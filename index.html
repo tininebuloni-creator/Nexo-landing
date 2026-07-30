@@ -203,16 +203,14 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
     </section>
 
     <!-- Sección de Cierre y Contacto -->
-<section id="contacto" class="py-20 bg-[#161b26]">
- <div class="container mx-auto px-12 max-w-6xl flex flex-col md:flex-row md:items-start justify-between gap-12 w-full">
-      <!-- Bloque Izquierdo: Contacto y WhatsApp -->
-      <div class="space-y-4 min-w-[280px]">
-          <h3 class="text-3xl lg:text-4xl font-bold text-[#f1f5f9] tracking-tight whitespace-nowrap m-0">
+<section id="contacto" style="padding: 80px 0; background-color: #161b26;">
+  <div style="max-w: 1150px; margin: 0 auto; padding: 0 48px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 48px;">
+          
+      <!-- Bloque Izquierdo: Contacto -->
+      <div style="flex: 1; min-width: 280px;">
+          <h3 class="text-3xl lg:text-4xl font-bold text-[#f1f5f9] tracking-tight whitespace-nowrap" style="margin: 0 0 16px 0;">
               Conectemos tu negocio
           </h3>
-      
-        
-        
             <!-- Botón de WhatsApp debajo del párrafo -->
             <div class="pt-2">
                 <a href="https://wa.me/2364719731" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-2 bg-[#25D366] hover:bg-[#20ba5a] text-white px-5 py-2.5 rounded-lg font-bold text-sm transition shadow-[0_0_15px_rgba(37,211,102,0.2)]">
@@ -223,24 +221,36 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
                     <span>Escribinos por WhatsApp</span>
                 </a> 
             </div>
-        
-           <!-- Bloque Derecho: Presentación de Pampa Agro -->
-       <div class="space-y-6 md:text-right flex flex-col md:items-end">
-          <h4 class="text-2xl lg:text-3xl font-bold text-[#f1f5f9] tracking-tight m-0">
+        <!-- Bloque Derecho: Pampa Agro (Obligado a ir a la derecha) -->
+      <div style="flex: 1; min-width: 280px; text-align: right; display: flex; flex-direction: column; align-items: flex-end;">
+          <h4 class="text-2xl lg:text-3xl font-bold text-[#f1f5f9] tracking-tight" style="margin: 0 0 24px 0;">
               Conoce PampaAgro Gestión Integral
-            </h4>
-            <!-- Botón Doble de Grande, limpio y debajo del título -->
-            <a href="pampaagro-web/index.html" class="inline-flex items-center justify-center w-full sm:w-auto bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-black text-xl py-5 px-12 rounded-2xl transition-all duration-300 transform hover:-translate-y-1 shadow-[0_6px_20px_rgba(16,185,129,0.4)] whitespace-nowrap">
-                Pampa Agro ERP 
+          </h4>
+          <!-- Botón Gigante con Ruta Universal -->
+          <a href="index.html" id="btn-pampa-directo" class="inline-flex items-center justify-center bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-black text-xl py-5 px-12 rounded-2xl transition-all duration-300 transform hover:-translate-y-1 shadow-[0_6px_20px_rgba(16,185,129,0.4)] whitespace-nowrap">
+            Pampa Agro ERP 
              </a>
           </div>
 
         </div>
-
-</div>
-
-        
-    </section>
+     </div>  
+ </section>
+<script>
+  // Script inteligente para detectar el nombre real de tu carpeta en GitHub
+  document.addEventListener("DOMContentLoaded", function() {
+    const boton = document.getElementById("btn-pampa-directo");
+    if(boton) {
+      // Detecta si tu carpeta actual en GitHub se quedó con mayúsculas o minúsculas
+      const rutaActual = window.location.pathname;
+      if(rutaActual.includes("pampaagro-erp")) {
+        boton.href = "./pampaagro-erp/index.html";
+      } else {
+        boton.href = "./pampaagro-erp/index.html";
+      }
+    }
+  });
+</script>
+    
 <!-- Formulario integrado -->
             <div class="md:col-span-3 bg-[#1e2433] p-8 rounded-lg border border-[#2d3548] shadow-2xl">
                 <form id="formulario-contacto">
