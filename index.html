@@ -56,6 +56,35 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
         .font-mono {
             font-family: var(--font-mono);
         }
+
+       .trust-bar{
+  display:flex; flex-wrap:wrap; align-items:center; justify-content:center;
+  gap:14px; padding:18px; background:#fafafa;
+  border-top:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb;
+}
+.badge{
+  display:inline-flex; align-items:center; gap:10px;
+  background:#fff; border:1px solid #e5e7eb; border-radius:10px;
+  padding:10px 14px; font-size:13px; color:#222;
+  box-shadow:0 1px 2px rgba(0,0,0,.04); text-decoration:none;
+}
+.badge:hover{border-color:#c9d1db}
+.badge .ico{
+  width:34px; height:34px; display:inline-flex; align-items:center; justify-content:center;
+  border-radius:8px; flex-shrink:0;
+}
+.badge .ico.green{background:#e8f6ee; color:#0f8a4a}
+.badge .ico.blue{background:#e6efFA; color:#0b5cad}
+.badge .ico.gray{background:#eef1f5; color:#374151}
+.badge strong{display:block; font-size:13px; line-height:1.15}
+.badge span{display:block; font-size:11px; color:#5a5a5a; line-height:1.15; margin-top:2px}
+.legal-links{
+  text-align:center; padding:14px; font-size:13px; color:#5a5a5a;
+  background:#fff; border-bottom:1px solid #e5e7eb;
+}
+.legal-links a{color:#0b5cad; text-decoration:none; margin:0 8px}
+.legal-links a:hover{text-decoration:underline} 
+        
     </style>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-PDCKSP6QMR">
@@ -297,6 +326,67 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
     
     <!-- Footer -->
     <footer class="bg-[#0f1419] text-[#64748b] text-xs py-8 border-t border-[#2d3548]">
+        <div class="legal-links">
+  © 2026 NEXO Soluciones en Ingeniería ·
+  <a href="terminos.html">Términos y Condiciones</a> ·
+  <a href="mailto:privacidad.html">Política de Privacidad</a> ·
+  <a href="mailto:[email protected]">Contacto</a>          
+ </div>
+<div class="trust-bar">
+    
+  <!-- SSL / Sitio seguro -->
+  <a href="https://www.ssllabs.com/ssltest/analyze.html?d=solucioneseningenieria.com.ar"
+     target="_blank" rel="noopener" class="badge" title="Verificar certificado SSL">
+    <span class="ico green">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="4" y="10" width="16" height="10" rx="2"/>
+        <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+      </svg>
+    </span>
+    <div><strong>Conexión Segura SSL</strong><span>Certificado HTTPS activo</span></div>
+  </a>
+
+  <!-- Dominio verificado NIC.ar -->
+  <a href="https://nic.ar/es/nic-argentina/registrar-un-dominio/consulta-de-datos-de-un-dominio"
+     target="_blank" rel="noopener" class="badge" title="Dominio registrado en NIC Argentina">
+    <span class="ico blue">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2 4 6v6c0 5 3.5 8.5 8 10 4.5-1.5 8-5 8-10V6l-8-4z"/>
+        <path d="m9 12 2 2 4-4"/>
+      </svg>
+    </span>
+    <div><strong>Dominio Verificado</strong><span>.com.ar registrado en NIC.ar</span></div>
+  </a>
+
+  <!-- Libre de virus / escaneado -->
+  <a href="https://www.virustotal.com/gui/domain/solucioneseningenieria.com.ar"
+     target="_blank" rel="noopener" class="badge" title="Escanear sitio en VirusTotal">
+    <span class="ico green">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        <path d="m9 12 2 2 4-4"/>
+      </svg>
+    </span>
+    <div><strong>Sitio Libre de Virus</strong><span>Escaneado por VirusTotal</span></div>
+  </a>
+
+  <!-- Protección de datos Ley 25.326 -->
+  <a href="privacidad.html" class="badge" title="Cumplimos con la Ley 25.326">
+    <span class="ico gray">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M12 8v4M12 16h.01"/>
+      </svg>
+    </span>
+    <div><strong>Protección de Datos</strong><span>Ley 25.326 · Argentina</span></div>
+  </a>
+
+</div>
+        
         <div class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center space-x-3">
                 <div class="w-8 h-6 rounded overflow-hidden opacity-70">
