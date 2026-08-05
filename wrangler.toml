@@ -3,5 +3,8 @@ main = "index.js"
 compatibility_date = "2026-08-04"
 account_id = "d4a41af7898b091e9b01b7f73bc00c6d"
 workers_dev = true
+[vars]
+ASSETS = "__STATIC_CONTENT"
+
 
 
