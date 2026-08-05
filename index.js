@@ -1,11 +1,6 @@
 export default {
   async fetch(request, env, ctx) {
-    const url = new URL(request.url);
-
-    // Rutas según el path
-    switch (url.pathname) {
-      case "/":
-      case "/index.html":
+    
         return new Response(await env.ASSETS.fetch("index.html"), {
           headers: { "content-type": "text/html" },
         });
