@@ -10,7 +10,7 @@ export default {
     }
 
     // Intentamos obtener el archivo desde ASSETS
-    const response = await env.ASSETS.fetch(pathname);
+    const response = await env.ASSETS.fetch(request);
 
     // Si existe, lo devolvemos tal cual
     if (response.status === 200) {
