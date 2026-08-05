@@ -7,9 +7,11 @@ entry-point = "workers-site"
 account_id = "d4a41af7898b091e9b01b7f73bc00c6d"
 workers_dev = true
 [vars]
-"assets": {
-  "directory": "./public"
-}
+# Línea 10 en adelante
+[assets]
+directory = "./public" # Cambia por tu carpeta de compilación (dist, build, etc.)
+binding = "ASSETS"     # Opcional si usas Cloudflare Workers
+
 
 
 
