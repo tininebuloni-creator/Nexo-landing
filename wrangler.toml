@@ -7,7 +7,10 @@ entry-point = "workers-site"
 account_id = "d4a41af7898b091e9b01b7f73bc00c6d"
 workers_dev = true
 [vars]
-ASSETS = "__STATIC_CONTENT"
+"assets": {
+  "directory": "./public"
+}
+
 
 
 
