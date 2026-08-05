@@ -1,5 +1,5 @@
 name = "nexo-landing"
-compatibility_date = "2026-08-04"
+compatibility_date = "2026-08-05"
 
 [assets]
 directory = "./public" # Cambia por tu carpeta de compilación (dist, build, etc.)
