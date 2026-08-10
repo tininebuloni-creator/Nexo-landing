@@ -1,8 +1,9 @@
 name = "nexo-landing"
 compatibility_date = "2026-08-05"
+pages_build_output_dir = "./public"
 
 [assets]
-directory = "./public" # Cambia por tu carpeta de compilación (dist, build, etc.)
+directory = "./public" # Carpeta estática que sirve Cloudflare Pages
 
 
 
