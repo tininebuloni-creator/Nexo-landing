@@ -2,9 +2,6 @@ name = "nexo-landing"
 compatibility_date = "2026-08-05"
 pages_build_output_dir = "./public"
 
-[assets]
-directory = "./public" # Carpeta estática que sirve Cloudflare Pages
-
 
 
 
