@@ -1,0 +1,2213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="PampaAgro ERP - Solución completa de gestión agropecuaria integral. Maneja campos, siembras, cosechas, hacienda, inventario y finanzas en una sola plataforma.">
+  <meta name="keywords" content="ERP agrícola, gestión agropecuaria, software agrícola, administración rural, hacienda">
+  <meta name="theme-color" content="#0f5132">
+  <title>PampaAgro ERP - Gestión Agropecuaria Integral</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --green: #0f5132;
+      --green-light: #e8f5e9;
+      --green-dark: #082b1b;
+      --orange: #f59e0b;
+      --blue: #3b82f6;
+      --text-primary: #1f2937;
+      --text-secondary: #6b7280;
+      --bg-light: #f9fafb;
+      --bg-white: #ffffff;
+      --border: #e5e7eb;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text-primary);
+      line-height: 1.6;
+      background: var(--bg-white);
+    }
+
+    h1, h2, h3 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+    }
+
+    /* === HEADER === */
+    header {
+      position: sticky;
+      top: 0;
+      background: var(--bg-white);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    nav {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--green);
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #0f5132 0%, #0a7c3e 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+    }
+
+    nav ul {
+      display: flex;
+      list-style: none;
+      gap: 32px;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: var(--text-primary);
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    nav a:hover {
+      color: var(--green);
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: all 0.3s;
+      font-size: 14px;
+    }
+
+    .btn-primary {
+      background: var(--green);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--green-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(15, 81, 50, 0.3);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--green);
+      border: 2px solid var(--green);
+    }
+
+    .btn-secondary:hover {
+      background: var(--green-light);
+    }
+
+    @media (max-width: 768px) {
+      nav ul {
+        display: none;
+      }
+    }
+
+    /* === HERO === */
+    .hero {
+      background: linear-gradient(135deg, #0f5132 0%, #0a7c3e 50%, #082b1b 100%);
+      color: white;
+      padding: 100px 20px;
+      text-align: center;
+    }
+
+    .hero-content {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .hero h1 {
+      font-size: 56px;
+      margin-bottom: 20px;
+      line-height: 1.2;
+    }
+
+    .hero p {
+      font-size: 20px;
+      margin-bottom: 40px;
+      opacity: 0.95;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-large {
+      padding: 16px 40px;
+      font-size: 16px;
+    }
+
+    .btn-hero-primary {
+      background: var(--orange);
+      color: white;
+    }
+
+    .btn-hero-primary:hover {
+      background: #d97706;
+    }
+
+    .btn-hero-secondary {
+      background: white;
+      color: var(--green);
+    }
+
+    .btn-hero-secondary:hover {
+      background: var(--bg-light);
+    }
+
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 36px;
+      }
+      .hero p {
+        font-size: 16px;
+      }
+    }
+
+    /* === FEATURES === */
+    section {
+      padding: 80px 20px;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 42px;
+      margin-bottom: 50px;
+      color: var(--text-primary);
+    }
+
+    .section-subtitle {
+      text-align: center;
+      font-size: 20px;
+      color: var(--text-secondary);
+      margin-bottom: 60px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.6;
+    }
+
+    .pricing-section .section-subtitle {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 60px;
+    }
+
+    .pricing-highlight {
+      color: var(--green);
+      font-weight: 700;
+      font-size: 26px;
+    }
+
+    .features-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 32px;
+    }
+
+    .feature-card {
+      background: var(--bg-white);
+      padding: 40px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      transition: all 0.3s;
+      text-align: center;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+      border-color: var(--green);
+    }
+
+    .feature-icon {
+      width: 60px;
+      height: 60px;
+      background: var(--green-light);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin: 0 auto 20px;
+    }
+
+    .feature-card h3 {
+      font-size: 20px;
+      margin-bottom: 12px;
+      color: var(--text-primary);
+    }
+
+    .feature-card p {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .features-highlight {
+      max-width: 880px;
+      margin: 0 auto 52px;
+      background: linear-gradient(135deg, rgba(15, 81, 50, 0.08), rgba(15, 81, 50, 0.02));
+      border: 1px solid rgba(15, 81, 50, 0.2);
+      border-radius: 14px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .features-highlight-title {
+      display: inline-block;
+      background: var(--green);
+      color: white;
+      font-weight: 700;
+      font-size: 16px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      margin-bottom: 14px;
+      letter-spacing: 0.2px;
+    }
+
+    .features-highlight-subtitle {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--green-dark);
+      margin-bottom: 16px;
+      line-height: 1.35;
+    }
+
+    .pillar-line {
+      font-size: 17px;
+      color: var(--text-primary);
+      margin-bottom: 14px;
+      font-weight: 600;
+    }
+
+    .pillar-tags {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .pillar-tag {
+      background: white;
+      border: 1px solid rgba(15, 81, 50, 0.25);
+      color: var(--green);
+      font-weight: 700;
+      font-size: 14px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .pillar-tag:hover {
+      border-color: var(--green);
+      transform: translateY(-1px);
+    }
+
+    .pillar-tag.active {
+      background: var(--green);
+      color: white;
+      border-color: var(--green);
+    }
+
+    .pillar-dropdown {
+      max-width: 760px;
+      margin: 0 auto;
+      background: white;
+      border: 1px solid rgba(15, 81, 50, 0.2);
+      border-radius: 12px;
+      padding: 14px 16px;
+      text-align: left;
+      display: none;
+    }
+
+    .pillar-dropdown.active {
+      display: block;
+    }
+
+    .pillar-dropdown-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--green-dark);
+      margin-bottom: 8px;
+    }
+
+    .pillar-dropdown-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px 14px;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .pillar-dropdown-list li {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    @media (max-width: 768px) {
+      .pillar-dropdown-list {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* === MODULES === */
+    .modules-section {
+      background: var(--bg-light);
+    }
+
+    .modules-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .module-box {
+      background: var(--bg-white);
+      padding: 32px;
+      border-radius: 12px;
+      border-left: 4px solid var(--green);
+      transition: all 0.3s;
+    }
+
+    .module-box:hover {
+      box-shadow: 0 8px 24px rgba(15, 81, 50, 0.15);
+      transform: translateX(4px);
+    }
+
+    .module-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+
+    .module-box h4 {
+      font-size: 18px;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+
+    .module-box p {
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* === BENEFITS === */
+    .benefits-section {
+      background: white;
+    }
+
+    .benefits-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .benefits-content h3 {
+      font-size: 28px;
+      margin-bottom: 30px;
+      color: var(--green);
+    }
+
+    .benefit-item {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .benefit-check {
+      width: 24px;
+      height: 24px;
+      background: var(--green);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .benefit-item p {
+      color: var(--text-secondary);
+      font-size: 15px;
+    }
+
+    .benefits-image {
+      background: linear-gradient(135deg, var(--green-light) 0%, #c8e6c9 100%);
+      height: 400px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 80px;
+    }
+
+    @media (max-width: 768px) {
+      .benefits-container {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+    }
+
+    /* === TESTIMONIALS === */
+    .testimonials-section {
+      background: var(--bg-light);
+    }
+
+    .testimonials-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 32px;
+    }
+
+    .testimonial-card {
+      background: var(--bg-white);
+      padding: 40px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .testimonial-stars {
+      color: var(--orange);
+      font-size: 18px;
+      margin-bottom: 12px;
+      letter-spacing: 2px;
+    }
+
+    .testimonial-text {
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+      font-style: italic;
+      line-height: 1.8;
+    }
+
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .author-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--green), var(--blue));
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .author-info h4 {
+      font-size: 14px;
+      margin: 0;
+      color: var(--text-primary);
+    }
+
+    .author-info p {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+
+    /* === PRICING === */
+    .pricing-section {
+      background: white;
+    }
+
+    .pricing-grid {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 32px;
+    }
+
+    .pricing-card {
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 30px 25px;
+      text-align: center;
+      transition: all 0.3s;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .pricing-card.featured {
+      border-color: var(--green);
+      background: linear-gradient(135deg, var(--green-light), white);
+      transform: scale(1.05);
+      box-shadow: 0 12px 32px rgba(15, 81, 50, 0.2);
+    }
+
+    .pricing-card:hover {
+      transform: translateY(-8px);
+    }
+
+    .pricing-card.featured:hover {
+      transform: scale(1.05) translateY(-8px);
+    }
+
+    .featured-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--orange);
+      color: white;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .pricing-name {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: var(--text-primary);
+    }
+
+    .pricing-price {
+      font-size: 42px;
+      font-weight: 700;
+      color: var(--green);
+      margin-bottom: 8px;
+    }
+
+    .pricing-subtitle {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+
+    .pricing-period {
+      color: var(--text-secondary);
+      font-size: 13px;
+      margin-bottom: 24px;
+      line-height: 1.4;
+    }
+
+    .pricing-features {
+      text-align: left;
+      margin-bottom: 20px;
+      flex-grow: 1;
+    }
+
+    .pricing-features li {
+      list-style: none;
+      padding: 10px 0;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .pricing-features li:last-child {
+      border-bottom: none;
+    }
+
+    .pricing-features li::before {
+      content: "✓";
+      color: var(--green);
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .pricing-payment-method {
+      background: linear-gradient(135deg, rgba(15, 81, 50, 0.08), rgba(15, 81, 50, 0.04));
+      border: 2px solid var(--green);
+      border-radius: 12px;
+      padding: 16px 14px;
+      margin-bottom: 24px;
+      text-align: center;
+      font-size: 13px;
+      margin-top: auto;
+    }
+
+    .pricing-payment-method strong {
+      display: block;
+      color: var(--green);
+      font-weight: 700;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    .pricing-payment-method p {
+      color: var(--text-secondary);
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.4;
+      word-wrap: break-word;
+    }
+
+    .modules-extra-pricing {
+      max-width: 1000px;
+      margin: 40px auto 0;
+      padding: 28px;
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(15, 81, 50, 0.05), rgba(15, 81, 50, 0.02));
+    }
+
+    .modules-extra-pricing h3 {
+      font-size: 28px;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .modules-extra-pricing p {
+      text-align: center;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+      font-size: 15px;
+    }
+
+    .extra-pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+
+    .extra-price-item {
+      background: var(--bg-white);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    .extra-price-item h4 {
+      font-size: 15px;
+      color: var(--green-dark);
+      margin-bottom: 4px;
+    }
+
+    .extra-price-item strong {
+      font-size: 18px;
+      color: var(--green);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .extra-price-item span {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+      display: block;
+    }
+
+    /* === PAYMENT METHODS === */
+    .payment-methods {
+      margin-top: 80px;
+      padding-top: 60px;
+      border-top: 2px solid var(--border);
+      text-align: center;
+    }
+
+    .payment-methods h3 {
+      font-size: 32px;
+      margin-bottom: 12px;
+      color: var(--text-primary);
+    }
+
+    .payment-methods > p {
+      color: var(--text-secondary);
+      font-size: 16px;
+      margin-bottom: 40px;
+    }
+
+    .payment-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .payment-option {
+      background: linear-gradient(135deg, var(--green-light), white);
+      padding: 32px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      transition: all 0.3s;
+    }
+
+    .payment-option:hover {
+      border-color: var(--green);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(15, 81, 50, 0.15);
+    }
+
+    .payment-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+    }
+
+    .payment-option h4 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+
+    .payment-option p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* === WHATSAPP COORDINATION === */
+    .whatsapp-coordination-section {
+      margin-top: 60px;
+      padding: 40px;
+      background: linear-gradient(135deg, rgba(15, 81, 50, 0.08) 0%, rgba(15, 81, 50, 0.04) 100%);
+      border: 2px solid var(--green);
+      border-radius: 16px;
+      text-align: center;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .whatsapp-coordination-section h4 {
+      font-size: 20px;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+
+    .whatsapp-coordination-section p {
+      font-size: 16px;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+      font-style: italic;
+      line-height: 1.5;
+    }
+
+    .whatsapp-highlight {
+      color: var(--green);
+      font-weight: 700;
+      font-size: 18px;
+      font-style: italic;
+    }
+
+    .btn-whatsapp {
+      background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+      color: white;
+      border: none;
+      padding: 14px 32px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-whatsapp:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(37, 211, 102, 0.3);
+    }
+
+    .btn-whatsapp:active {
+      transform: translateY(0);
+    }
+
+    .wa-icon {
+      font-size: 20px;
+    }
+
+    /* === REGISTRATION === */
+    .registration-section {
+      background: linear-gradient(180deg, #f4fbf6 0%, #ffffff 100%);
+      scroll-margin-top: 96px;
+    }
+
+    .registration-wrapper {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+      gap: 40px;
+      align-items: start;
+    }
+
+    .registration-copy {
+      padding-top: 24px;
+    }
+
+    .registration-copy h3 {
+      font-size: 36px;
+      line-height: 1.2;
+      margin-bottom: 18px;
+      color: var(--green-dark);
+    }
+
+    .registration-copy p {
+      color: var(--text-secondary);
+      font-size: 17px;
+      margin-bottom: 24px;
+    }
+
+    .registration-points {
+      list-style: none;
+      display: grid;
+      gap: 14px;
+    }
+
+    .registration-points li {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(15, 81, 50, 0.14);
+      border-radius: 12px;
+      padding: 16px 18px;
+      color: var(--text-primary);
+      box-shadow: 0 10px 24px rgba(15, 81, 50, 0.06);
+    }
+
+    .registration-form-card {
+      background: white;
+      border: 1px solid rgba(15, 81, 50, 0.12);
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 18px 45px rgba(8, 43, 27, 0.10);
+    }
+
+    .registration-form {
+      display: grid;
+      gap: 22px;
+    }
+
+    .registration-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .form-field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .form-field.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .form-field label,
+    .radio-group-title {
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 14px;
+    }
+
+    .form-field input,
+    .form-field select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 15px;
+      color: var(--text-primary);
+      background: #fcfdfc;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .form-field input:focus,
+    .form-field select:focus {
+      outline: none;
+      border-color: var(--green);
+      box-shadow: 0 0 0 4px rgba(15, 81, 50, 0.12);
+    }
+
+    .field-note {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .radio-group {
+      display: grid;
+      gap: 12px;
+    }
+
+    .radio-options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .radio-option {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      background: #fcfdfc;
+      transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+    }
+
+    .radio-option:hover {
+      border-color: var(--green);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(15, 81, 50, 0.08);
+    }
+
+    .radio-option input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--green);
+      flex-shrink: 0;
+    }
+
+    .registration-submit {
+      width: 100%;
+      justify-content: center;
+      padding: 16px 24px;
+      font-size: 16px;
+    }
+
+    .registration-legal {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* === FAQ === */
+    .faq-section {
+      background: var(--bg-light);
+      padding: 80px 20px;
+      text-align: center;
+    }
+
+    .faq-container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .faq-item {
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 24px;
+      overflow: hidden;
+      text-align: left;
+      transition: all 0.3s;
+    }
+
+    .faq-item:hover {
+      border-color: var(--green);
+      box-shadow: 0 4px 12px rgba(15, 81, 50, 0.1);
+    }
+
+    .faq-question {
+      background: linear-gradient(135deg, rgba(15, 81, 50, 0.05), rgba(15, 81, 50, 0.02));
+      padding: 24px;
+      font-weight: 600;
+      color: var(--text-primary);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .faq-question::after {
+      content: '▼';
+      color: var(--green);
+      font-size: 12px;
+      transition: transform 0.3s;
+    }
+
+    .faq-item.active .faq-question::after {
+      transform: rotate(180deg);
+    }
+
+    .faq-answer {
+      display: none;
+      padding: 24px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    .faq-item.active .faq-answer {
+      display: block;
+    }
+
+    /* === CTA === */
+    .cta-section {
+      background: linear-gradient(135deg, var(--green) 0%, var(--green-dark) 100%);
+      color: white;
+      text-align: center;
+      padding: 80px 20px;
+    }
+
+    .cta-content {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .cta-section h2 {
+      font-size: 42px;
+      margin-bottom: 20px;
+    }
+
+    .cta-section p {
+      font-size: 18px;
+      margin-bottom: 40px;
+      opacity: 0.95;
+    }
+
+    /* === PRIVACY POLICY === */
+    .privacy-section {
+      background: white;
+      padding: 80px 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .privacy-container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .privacy-section h2 {
+      font-size: 42px;
+      margin-bottom: 12px;
+      color: var(--text-primary);
+    }
+
+    .privacy-section h3 {
+      font-size: 18px;
+      color: var(--green);
+      margin-top: 32px;
+      margin-bottom: 16px;
+      font-weight: 700;
+    }
+
+    .privacy-section p,
+    .privacy-section li {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.8;
+      margin-bottom: 12px;
+    }
+
+    .privacy-section ul {
+      list-style: none;
+      padding-left: 0;
+      margin-bottom: 20px;
+    }
+
+    .privacy-section li {
+      padding-left: 24px;
+      position: relative;
+      margin-bottom: 10px;
+    }
+
+    .privacy-section li::before {
+      content: "•";
+      color: var(--green);
+      font-weight: bold;
+      position: absolute;
+      left: 0;
+    }
+
+    .privacy-intro {
+      background: linear-gradient(135deg, rgba(15, 81, 50, 0.05), rgba(15, 81, 50, 0.02));
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 40px;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    /* === TERMS & CONDITIONS === */
+    .terms-section {
+      background: linear-gradient(135deg, rgba(15, 81, 50, 0.02) 0%, rgba(15, 81, 50, 0.05) 100%);
+      padding: 80px 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .terms-container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .terms-section h2 {
+      font-size: 42px;
+      margin-bottom: 12px;
+      color: var(--text-primary);
+    }
+
+    .terms-section h3 {
+      font-size: 18px;
+      color: var(--green);
+      margin-top: 32px;
+      margin-bottom: 16px;
+      font-weight: 700;
+    }
+
+    .terms-section p,
+    .terms-section li {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.8;
+      margin-bottom: 12px;
+    }
+
+    .terms-intro {
+      background: white;
+      border: 2px solid var(--green);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 40px;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .terms-highlight {
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    /* === TERMS & CONDITIONS === */
+    .terms-section {
+      background: linear-gradient(135deg, rgba(15, 81, 50, 0.02) 0%, rgba(15, 81, 50, 0.05) 100%);
+      padding: 80px 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .terms-container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .terms-section h2 {
+      font-size: 42px;
+      margin-bottom: 12px;
+      color: var(--text-primary);
+    }
+
+    .terms-section h3 {
+      font-size: 18px;
+      color: var(--green);
+      margin-top: 32px;
+      margin-bottom: 16px;
+      font-weight: 700;
+    }
+
+    .terms-section p,
+    .terms-section li {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.8;
+      margin-bottom: 12px;
+    }
+
+    .terms-intro {
+      background: white;
+      border: 2px solid var(--green);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 40px;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .terms-highlight {
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    /* Secciones legales/FAQ ocultas por defecto; visibles al navegar por hash */
+    .faq-section,
+    .privacy-section,
+    .terms-section {
+      display: none;
+    }
+
+    .faq-section:target,
+    .privacy-section:target,
+    .terms-section:target {
+      display: block;
+    }
+
+    /* === FOOTER === */
+    footer {
+      background: var(--text-primary);
+      color: white;
+      padding: 60px 20px 20px;
+    }
+
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+
+    .footer-section h4 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .footer-section ul {
+      list-style: none;
+    }
+
+    .footer-section li {
+      margin-bottom: 12px;
+    }
+
+    .footer-section a {
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .footer-section a:hover {
+      color: white;
+    }
+
+    .footer-bottom {
+      border-top: 1px solid rgba(255,255,255,0.2);
+      padding-top: 30px;
+      text-align: center;
+      color: rgba(255,255,255,0.6);
+      font-size: 14px;
+    }
+
+    /* === RESPONSIVE === */
+    @media (max-width: 768px) {
+      nav ul {
+        display: none;
+      }
+
+      .hero h1 {
+        font-size: 32px;
+      }
+
+      .section-title {
+        font-size: 28px;
+      }
+
+      .registration-wrapper,
+      .registration-grid,
+      .radio-options {
+        grid-template-columns: 1fr;
+      }
+
+      .registration-form-card {
+        padding: 24px;
+      }
+
+      .registration-copy h3 {
+        font-size: 30px;
+      }
+
+      .pricing-card.featured {
+        transform: scale(1);
+      }
+
+      .pricing-card.featured:hover {
+        transform: translateY(-8px);
+      }
+
+      .payment-methods h3 {
+        font-size: 24px;
+      }
+
+      .payment-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* === ANIMATIONS === */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .fade-in {
+      animation: fadeInUp 0.6s ease-out;
+    }
+  </style>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PDCKSP6QMR">
+</script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-PDCKSP6QMR');
+</script>
+  
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <nav>
+      <a href="#" class="logo">
+        <div class="logo-icon">🌾</div>
+        <span>PampaAgro ERP</span>
+      </a>
+      <ul>
+        <li><a href="#features">Características</a></li>
+        <li><a href="#modules">Módulos</a></li>
+        <li><a href="#benefits">Beneficios</a></li>
+        <li><a href="#pricing">Precios</a></li>
+      </ul>
+      <div class="nav-buttons">
+        <a class="btn btn-secondary" href="#registro" data-open-registro="true">Ingresar</a>
+        <a class="btn btn-primary" href="#registro" data-open-registro="true">Solicitar Demo</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>El Control de tu Margen en el Bolsillo</h1>
+      <p>Conoce tu margen bruto por hectárea en tiempo real</p>
+      <p style="font-size: 16px; opacity: 0.9; font-weight: 600; margin-bottom: 30px;">💰 Pago único con módulos a elección</p>
+      <div class="hero-buttons">
+        <a class="btn btn-large btn-hero-primary" href="#registro" data-open-registro="true">Comenzar Ahora</a>
+        <a class="btn btn-large btn-hero-secondary" href="#registro" data-open-registro="true">Solicitar Demo</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <h2 class="section-title">Compralo una vez, usalo para siempre</h2>
+    <div class="features-highlight">
+      <div class="features-highlight-title">CARACTERISTICAS DESTACADAS</div>
+      <p class="features-highlight-subtitle">Señal cero, control total</p>
+      <p class="pillar-line">Tu campo en 4 pilares:</p>
+      <div class="pillar-tags">
+        <button class="pillar-tag" type="button" data-pillar="agricola" aria-expanded="false">Agrícola</button>
+        <button class="pillar-tag" type="button" data-pillar="ganadero" aria-expanded="false">Ganadero</button>
+        <button class="pillar-tag" type="button" data-pillar="maquinas" aria-expanded="false">Máquinas</button>
+        <button class="pillar-tag" type="button" data-pillar="finanzas" aria-expanded="false">Finanzas</button>
+      </div>
+      <div class="pillar-dropdown" id="pillarDropdown">
+        <div class="pillar-dropdown-title" id="pillarDropdownTitle"></div>
+        <ul class="pillar-dropdown-list" id="pillarDropdownList"></ul>
+      </div>
+    </div>
+    
+    <div class="features-grid">
+      <div class="feature-card fade-in">
+        <div class="feature-icon">📊</div>
+        <h3>Dashboard Ejecutivo</h3>
+        <p>Visualiza en tiempo real el estado de tu empresa con gráficos y KPIs personalizables</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">📱</div>
+        <h3>Acceso Multiplataforma</h3>
+        <p>Funciona en desktop, tablet y mobile. Accede desde cualquier dispositivo, en cualquier lugar y guarda tus registros aun sin señal</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">⚙️</div>
+        <h3>Automatización</h3>
+        <p>Automatiza tareas repetitivas y ahorra tiempo en registros y reportes</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">🔐</div>
+        <h3>Seguridad Avanzada</h3>
+        <p>Tus datos protegidos con encriptación y backups automáticos</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">👥</div>
+        <h3>Roles y Permisos</h3>
+        <p>Gestiona accesos diferenciados para propietario, administración, ingeniero, veterinario y operadores</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">�</div>
+        <h3>Sin Suscripciones</h3>
+        <p>Pago único. Mantén tu licencia actualizada de por vida sin costos mensuales adicionales</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODULES -->
+  <section id="modules" class="modules-section">
+    <h2 class="section-title">Módulos Especializados</h2>
+    <p class="section-subtitle">Herramientas completas para cada aspecto de tu operación agropecuaria</p>
+    
+    <div class="modules-grid">
+      <div class="module-box">
+        <div class="module-icon">🗺️</div>
+        <h4>Campos & Lotes</h4>
+        <p>Administra tus establecimientos, campos y lotes productivos con información georreferenciada</p>
+      </div>
+
+      <div class="module-box">
+        <div class="module-icon">🌱</div>
+        <h4>Siembra & Campaña</h4>
+        <p>Registra sembradoras, cultivos, variedades y seguimiento de campañas</p>
+      </div>
+
+      <div class="module-box">
+        <div class="module-icon">🌾</div>
+        <h4>Cosecha</h4>
+        <p>Control completo de cosechas, rendimientos, humedad y destinos</p>
+      </div>
+
+      <div class="module-box">
+        <div class="module-icon">🚜</div>
+        <h4>Aplicaciones</h4>
+        <p>Gestiona aplicaciones de agroquímicos con detalle de productos y operarios</p>
+      </div>
+
+      <div class="module-box">
+        <div class="module-icon">🐄</div>
+        <h4>Hacienda</h4>
+        <p>Control ganadero integral: movimientos, sanidad, alimentación y trazabilidad</p>
+      </div>
+
+      <div class="module-box">
+        <div class="module-icon">🍖</div>
+        <h4>Alimentación</h4>
+        <p>Programa y registra raciones de alimento por categoría de ganado</p>
+      </div>
+
+      <div class="module-box">
+        <div class="module-icon">🚜</div>
+        <h4>Maquinarias</h4>
+        <p>Inventario de equipos con cálculo de amortización, costo operativo y mantenimiento</p>
+      </div>
+
+      <div class="module-box">
+        <div class="module-icon">🔧</div>
+        <h4>Mantenimiento</h4>
+        <p>Órdenes de trabajo y seguimiento de reparaciones de equipos</p>
+      </div>
+
+      <div class="module-box">
+        <div class="module-icon">📦</div>
+        <h4>Inventario</h4>
+        <p>Control de stock de insumos, repuestos y productos terminados</p>
+      </div>
+
+      <div class="module-box">
+        <div class="module-icon">💰</div>
+        <h4>Caja & Bancos</h4>
+        <p>Movimientos de efectivo y conciliación bancaria automatizada</p>
+      </div>
+
+      <div class="module-box">
+        <div class="module-icon">💳</div>
+        <h4>Créditos & Cheques</h4>
+        <p>Gestión de préstamos, cheques por cobrar y por cubrir</p>
+      </div>
+
+      <div class="module-box">
+        <div class="module-icon">👥</div>
+        <h4>Empleados</h4>
+        <p>Base de datos de personal con control de asistencia</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- BENEFITS -->
+  <section id="benefits" class="benefits-section">
+    <div class="benefits-container">
+      <div class="benefits-content">
+        <h3>Beneficios Clave</h3>
+        
+        <div class="benefit-item">
+          <div class="benefit-check">✓</div>
+          <p><strong>Registrar datos sin señal:</strong> Cargá información en el lote y sincronizá al volver al pueblo</p>
+        </div>
+
+        <div class="benefit-item">
+          <div class="benefit-check">✓</div>
+          <p><strong>Multimoneda:</strong> Operá con distintas monedas y seguí tus costos sin perder contexto</p>
+        </div>
+
+        <div class="benefit-item">
+          <div class="benefit-check">✓</div>
+          <p><strong>Migración fácil:</strong> Importá tus datos actuales sin fricción para empezar a trabajar desde el día uno</p>
+        </div>
+
+        <div class="benefit-item">
+          <div class="benefit-check">✓</div>
+          <p><strong>Sincronización Automática:</strong> Tus datos se sincronizan automáticamente a la ubicación que decidas. Respaldo seguro sin complicaciones</p>
+        </div>
+
+        <div class="benefit-item">
+          <div class="benefit-check">✓</div>
+          <p><strong>Informes Profesionales:</strong> Reportes exportables, podes importar tus datos históricos</p>
+        </div>
+
+        <div class="benefit-item">
+          <div class="benefit-check">✓</div>
+          <p><strong>Cumplimiento:</strong> Registros completos para auditoría y control</p>
+        </div>
+      </div>
+
+      <div class="benefits-image">
+       <img src="beneficio.png" 
+
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing" class="pricing-section">
+    <h2 class="section-title">Elige el Plan Perfecto para Tu Negocio</h2>
+    <p class="section-subtitle">Tres opciones pensadas para cada tipo de empresa agropecuaria.<br><span class="pricing-highlight">Módulos a elección + pago único con actualizaciones incluidas.</span></p>
+    
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <div class="pricing-name">Nexo Básica</div>
+        <div class="pricing-subtitle">Para Contratistas y Productores Chicos</div>
+        <div class="pricing-period">Hasta 4 módulos a elección</div>
+        <ul class="pricing-features">
+          <li>4 módulos a elección según tu operación</li>
+          <li>Dashboard y Reportes incluidos</li>
+          <li>Si elegís Finanzas: Caja + Bancos + Costos</li>
+          <li>Ideal para estructura inicial y control diario</li>
+        </ul>
+        <div class="pricing-payment-method">
+          <strong>💳 Link de Pago Directo:</strong>
+          <p>Tarjeta de crédito común o transferencia rápida desde el celular</p>
+        </div>
+        <button class="btn btn-large btn-secondary">Elegir Plan</button>
+      </div>
+
+      <div class="pricing-card featured">
+        <div class="featured-badge">Para PYMEs</div>
+        <div class="pricing-name">Nexo Profesional</div>
+        <div class="pricing-subtitle">Para PYMEs Agropecuarias</div>
+        <div class="pricing-period">Hasta 6 módulos a elección</div>
+        <ul class="pricing-features">
+          <li>6 módulos a elección para campo mixto</li>
+          <li>Dashboard y Reportes incluidos</li>
+          <li>Si elegís Finanzas: Caja + Bancos + Costos + Créditos</li>
+          <li>Escalable para producción y administración</li>
+        </ul>
+        <div class="pricing-payment-method">
+          <strong>🏦 Financiación con Tarjeta Agro:</strong>
+          <p>Envío de link específico para pasar la tarjeta rural en cuotas fijas de campaña</p>
+        </div>
+        <a class="btn btn-large btn-primary" href="#registro" data-open-registro="true">Comenzar Prueba Gratis</a>
+      </div>
+
+      <div class="pricing-card">
+        <div class="pricing-name">Nexo Premium</div>
+        <div class="pricing-subtitle">Para Administraciones y Grandes Empresas</div>
+        <div class="pricing-period">Hasta 10 módulos a elección</div>
+        <ul class="pricing-features">
+          <li>10 módulos a elección por unidad de negocio</li>
+          <li>Dashboard y Reportes incluidos</li>
+          <li>Diseño modular para grandes operaciones</li>
+          <li>Soporte prioritario y evolución continua</li>
+        </ul>
+        <div class="pricing-payment-method">
+          <strong>🌾 Canje de Granos:</strong>
+          <p>Botón en la web "Pagar con Granos". El equipo de Nexo Agro coordina con el acopio / corredor del cliente</p>
+        </div>
+        <button class="btn btn-large btn-secondary">Contactar Ventas</button>
+      </div>
+    </div>
+
+    <div class="modules-extra-pricing">
+      <h3>Listado de Precios - Módulos Adicionales</h3>
+      <p>Si querés sumar módulos por encima del cupo de tu plan, podés agregarlos con precio por módulo.</p>
+      <div class="extra-pricing-grid">
+        <div class="extra-price-item">
+          <h4>Módulo Productivo</h4>
+          <strong>ARS 180.000</strong>
+          <span>Ejemplos: Campos, Lotes, Siembra, Cosecha, Inventario.</span>
+        </div>
+        <div class="extra-price-item">
+          <h4>Módulo Ganadero</h4>
+          <strong>ARS 180.000</strong>
+          <span>Ejemplos: Hacienda, Alimentación y trazabilidad operativa.</span>
+        </div>
+        <div class="extra-price-item">
+          <h4>Módulo Financiero</h4>
+          <strong>ARS 150.000</strong>
+          <span>Ejemplos: Caja, Bancos, Costos, Créditos, Cheques, Flujo.</span>
+        </div>
+        <div class="extra-price-item">
+          <h4>Módulo Especializado</h4>
+          <strong>ARS 210.000</strong>
+          <span>Ejemplos: Rentabilidad avanzada, documentos e integraciones.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MÉTODOS DE PAGO -->
+    <div class="payment-methods">
+      <h3>Métodos de Pago Disponibles</h3>
+      <p>Elegí la forma más conveniente para vos</p>
+      <div class="payment-grid">
+      <div class="payment-option">
+        <div class="payment-icon">🌾</div>
+        <h4>Plan Canje Cereal</h4>
+        <p>Pagá con cereales de tu cosecha. Valuamos al precio de mercado vigente</p>
+      </div>
+
+        <div class="payment-option">
+          <div class="payment-icon">💳</div>
+          <h4>Tarjeta de Crédito</h4>
+          <p>Visa, Mastercard, American Express. </p>
+        </div>
+
+        <div class="payment-option">
+          <div class="payment-icon">💰</div>
+          <h4>Depósito</h4>
+          <p>Depósito en nuestro banco. Ideal para transacciones locales</p>
+        </div>
+
+        <div class="payment-option">
+          <div class="payment-icon">📱</div>
+          <h4>Mercado Pago</h4>
+          <p>Billetera virtual. Seguí comprando como siempre</p>
+        </div>
+
+        <div class="payment-option">
+          <div class="payment-icon">🔗</div>
+          <h4>Transferencia Bancaria 24/7</h4>
+          <p>CBU disponible. Procesamos en tiempo real</p>
+        </div>
+
+        <div class="payment-option">
+          <div class="payment-icon">✅</div>
+          <h4>Presupuesto Personalizado</h4>
+          <p>¿Necesitas otro medio? Consultanos sin compromiso</p>
+        </div>
+      </div>
+
+      <!-- BOTÓN WHATSAPP COORDINACIÓN DE PAGOS -->
+      <div class="whatsapp-coordination-section">
+        <h4>¿Prefieren cerrar por teléfono?</h4>
+        <p><span class="whatsapp-highlight">Los grandes negocios agropecuarios se cierran hablando con una persona de confianza</span></p>
+        <button class="btn btn-whatsapp" onclick="abrirWhatsAppPagos()">
+          <span class="wa-icon">💬</span> Coordinar por WhatsApp
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- REGISTRO -->
+  <section id="registro" class="registration-section">
+    <div class="registration-wrapper">
+      <div class="registration-copy">
+        <h2 class="section-title" style="text-align: left; margin-bottom: 20px;">Solicitá Tu Registro</h2>
+        <h3>Dejanos tus datos y te activamos el trial de 7 días</h3>
+        <p>Completá esta planilla de registro para que el equipo de Nexo Agro te contacte, valide el alta y te envíe los accesos correspondientes.</p>
+        <ul class="registration-points">
+          <li>Alta simple para productores, contratistas y empresas agropecuarias.</li>
+          <li>Contacto inicial por WhatsApp para acelerar la activación y el soporte.</li>
+          <li>Datos mínimos y concretos para asignar la propuesta adecuada a tu escala.</li>
+        </ul>
+      </div>
+
+      <div class="registration-form-card">
+        <form id="registroForm" class="registration-form">
+          <div class="registration-grid">
+            <div class="form-field full-width">
+              <label for="nombreApellido">Nombre y Apellido</label>
+              <input id="nombreApellido" name="nombreApellido" type="text" required>
+            </div>
+
+            <div class="form-field">
+              <label for="telefonoWhatsapp">Teléfono / WhatsApp</label>
+              <input id="telefonoWhatsapp" name="telefonoWhatsapp" type="tel" inputmode="numeric" pattern="[0-9+ ]+" required>
+              <span class="field-note">Ingresá el número con característica, sin puntos.</span>
+            </div>
+
+            <div class="form-field">
+              <label for="establecimientoEmpresa">Nombre de tu Establecimiento / Empresa</label>
+              <input id="establecimientoEmpresa" name="establecimientoEmpresa" type="text">
+            </div>
+
+            <div class="form-field">
+              <label for="provincia">¿En qué provincia está tu campo principal?</label>
+              <select id="provincia" name="provincia" required>
+                <option value="">Seleccioná una provincia</option>
+                <option>Buenos Aires</option>
+                <option>Catamarca</option>
+                <option>Chaco</option>
+                <option>Chubut</option>
+                <option>Córdoba</option>
+                <option>Corrientes</option>
+                <option>Entre Ríos</option>
+                <option>Formosa</option>
+                <option>Jujuy</option>
+                <option>La Pampa</option>
+                <option>La Rioja</option>
+                <option>Mendoza</option>
+                <option>Misiones</option>
+                <option>Neuquén</option>
+                <option>Río Negro</option>
+                <option>Salta</option>
+                <option>San Juan</option>
+                <option>San Luis</option>
+                <option>Santa Cruz</option>
+                <option>Santa Fe</option>
+                <option>Santiago del Estero</option>
+                <option>Tierra del Fuego</option>
+                <option>Tucumán</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label for="superficieGestion">Superficie total estimada bajo gestión</label>
+              <select id="superficieGestion" name="superficieGestion" required>
+                <option value="">Seleccioná una opción</option>
+                <option>Hasta 200 ha</option>
+                <option>201 a 500 ha</option>
+                <option>501 a 1.000 ha</option>
+                <option>1.001 a 1.500 ha</option>
+                <option>Más de 1.500 ha</option>
+              </select>
+            </div>
+
+            <div class="form-field full-width radio-group">
+              <span class="radio-group-title">Actividad Principal</span>
+              <div class="radio-options">
+                <label class="radio-option" for="actividadAgricola">
+                  <input id="actividadAgricola" name="actividadPrincipal" type="radio" value="Agrícola" required>
+                  <span>Agrícola</span>
+                </label>
+                <label class="radio-option" for="actividadGanadera">
+                  <input id="actividadGanadera" name="actividadPrincipal" type="radio" value="Ganadera" required>
+                  <span>Ganadera</span>
+                </label>
+                <label class="radio-option" for="actividadMixta">
+                  <input id="actividadMixta" name="actividadPrincipal" type="radio" value="Mixta" required>
+                  <span>Mixta</span>
+                </label>
+                <label class="radio-option" for="actividadContratista">
+                  <input id="actividadContratista" name="actividadPrincipal" type="radio" value="Contratista" required>
+                  <span>Contratista</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn btn-primary registration-submit" type="submit">Enviar y abrir WhatsApp</button>
+          <p class="registration-legal">Al enviar este formulario, aceptás ser contactado por el equipo de Nexo Agro para la activación del trial, soporte inicial y propuesta comercial asociada.</p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- PREGUNTAS FRECUENTES -->
+  <section id="faq" class="faq-section">
+    <div class="faq-container">
+      <h2 class="section-title">Preguntas Frecuentes (FAQ)</h2>
+      <p class="section-subtitle">Resolvemos tus dudas sobre PampaAgro ERP</p>
+
+      <div class="faq-item active">
+        <div class="faq-question" onclick="toggleFAQ(this)">¿El pago único de verdad incluye actualizaciones?</div>
+        <div class="faq-answer">
+          <p>Sí. Comprás la licencia hoy y todas las mejoras y actualizaciones técnicas de tus módulos están cubiertas de por vida. No hay costos adicionales ni sorpresas. Tu inversión está protegida.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFAQ(this)">¿Cómo funciona el canje de granos para pagar la app?</div>
+        <div class="faq-answer">
+          <p>Hacés clic en el botón de compra por canje, nuestro equipo se contacta con tu corredor o acopio de confianza y transferís los granos equivalentes de forma simple. El equipo de Nexo Agro coordina todo el proceso con tu socio comercial de confianza.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFAQ(this)">¿Puedo migrar mis datos actuales de Excel?</div>
+        <div class="faq-answer">
+          <p>Totalmente. Durante tus 7 días de prueba, el equipo de soporte te ayuda a subir tus archivos históricos para que no pierdas nada de información. Realizamos la importación sin costo y sin complicaciones.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- POLÍTICAS DE PRIVACIDAD -->
+  <section id="privacy" class="privacy-section">
+    <div class="privacy-container">
+      <h2>Políticas de Privacidad</h2>
+      <p class="section-subtitle">Protección de tus datos personales</p>
+
+      <div class="privacy-intro">
+        <strong>Política de Privacidad de Nexo Agro</strong> - Sistema de Gestión Agropecuaria
+      </div>
+
+      <h3>1. Responsable del Tratamiento de Datos</h3>
+      <p>
+        <strong>Nexo Agro</strong> - Sistema de Gestión, con domicilio en Argentina, en cumplimiento con la <strong>Ley Nº 25.326 de Protección de Datos Personales de la República Argentina</strong>, informa que los datos recolectados en este sitio web serán tratados de forma confidencial y segura.
+      </p>
+
+      <h3>2. Datos Recolectados y Finalidad</h3>
+      <p>Los datos solicitados en nuestros formularios de registro (Nombre, Teléfono/WhatsApp, Establecimiento/Empresa, Provincia, Actividad y Superficie) se recolectan con la única finalidad de:</p>
+      <ul>
+        <li>Validar la identidad del usuario para el alta del Trial de 7 días</li>
+        <li>Enviar los enlaces de descarga de la aplicación vía WhatsApp o correo electrónico</li>
+        <li>Ofrecer asistencia técnica e información comercial sobre las licencias del software</li>
+      </ul>
+
+      <h3>3. Consentimiento</h3>
+      <p>
+        Al completar y enviar el formulario, el usuario otorga su <strong>consentimiento expreso</strong> para ser contactado por el equipo de soporte técnico y comercial de Nexo Agro a través de los canales provistos (WhatsApp, teléfono o correo electrónico).
+      </p>
+
+      <h3>4. Derechos del Usuario</h3>
+      <p>
+        El titular de los datos personales tiene la facultad de ejercer el derecho de <strong>acceso, rectificación, actualización o supresión</strong> de sus datos de forma gratuita enviando un mensaje a nuestro soporte oficial de WhatsApp (+54 9 236 4719731) o al correo <strong>soporte@nexoagro.com.ar</strong>. La <strong>Dirección Nacional de Protección de Datos Personales</strong> es el órgano de control de la Ley Nº 25.326.
+      </p>
+    </div>
+  </section>
+
+  <!-- CTA FINAL -->
+  <section class="cta-section">
+    <div class="cta-content">
+      <h2>¿Listo para transformar tu empresa agropecuaria?</h2>
+      <p>Pago único, actualizaciones de por vida. Comienza con tu prueba gratuita de 7 días</p>
+      <a class="btn btn-large btn-primary" href="#registro" data-open-registro="true">Iniciar Prueba Gratis</a>
+    </div>
+  </section>
+
+  <!-- TÉRMINOS Y CONDICIONES -->
+  <section id="terms" class="terms-section">
+    <div class="terms-container">
+      <h2>Términos y Condiciones</h2>
+      <p class="section-subtitle">Condiciones de uso del Trial de 7 días</p>
+
+      <div class="terms-intro">
+        <strong>Términos y Condiciones de Uso del Trial - Nexo Agro</strong>
+      </div>
+
+      <h3>1. Objeto</h3>
+      <p>
+        El presente documento regula el acceso y uso del período de prueba gratuito ("Trial") de <span class="terms-highlight">7 días</span> del software Nexo Agro - Sistema de Gestión.
+      </p>
+
+      <h3>2. Condiciones del Trial</h3>
+      <p>
+        El Trial otorga acceso temporal, no exclusivo e intransferible a los módulos agrícolas, ganaderos, financieros y de maquinaria de la plataforma por un plazo estricto de <span class="terms-highlight">7 (siete) días corridos</span> a partir de la fecha de registro. El uso está limitado a la evaluación interna del sistema por parte del productor o empresa solicitante.
+      </p>
+
+      <h3>3. Arquitectura Offline y Datos</h3>
+      <p>
+        Nexo Agro es un sistema <span class="terms-highlight">offline-first</span>. La carga de datos se realiza de forma local en el dispositivo del usuario. <span class="terms-highlight">Nexo Agro no se responsabiliza por la pérdida de datos</span> cargados durante el período de prueba si el usuario desinstala la aplicación o si el Trial expira sin realizar la migración a una licencia perpetua.
+      </p>
+
+      <h3>4. Modelo de Licenciamiento</h3>
+      <p>
+        Al finalizar los 7 días, el acceso al sistema se suspenderá automáticamente. Para mantener los registros y continuar utilizando las funciones, el usuario deberá adquirir una licencia definitiva mediante los canales de pago autorizados:
+      </p>
+      <ul style="list-style: none; padding-left: 0; margin-top: 12px; margin-bottom: 20px;">
+        <li style="padding-left: 24px; position: relative; margin-bottom: 10px;"><span style="position: absolute; left: 0; color: var(--green); font-weight: bold;">•</span> Transferencia Bancaria</li>
+        <li style="padding-left: 24px; position: relative; margin-bottom: 10px;"><span style="position: absolute; left: 0; color: var(--green); font-weight: bold;">•</span> Tarjeta Agropecuaria</li>
+        <li style="padding-left: 24px; position: relative; margin-bottom: 10px;"><span style="position: absolute; left: 0; color: var(--green); font-weight: bold;">•</span> Canje de Granos</li>
+      </ul>
+      <p>
+        Nexo Agro se compromete a otorgar mejoras sobre los módulos adquiridos bajo la modalidad de pago único, sujeto a las condiciones de soporte técnico vigentes.
+      </p>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>PampaAgro ERP</h4>
+        <ul>
+          <li><a href="#features">Características</a></li>
+          <li><a href="#modules">Módulos</a></li>
+          <li><a href="#pricing">Precios</a></li>
+          <li><a href="#">Documentación</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-section">
+        <h4>Empresa</h4>
+        <ul>
+          <li><a href="#">Sobre Nosotros</a></li>
+          <li><a href="#">Contacto</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-section">
+        <h4>Soporte</h4>
+        <ul>
+          <li><a href="#faq">Preguntas Frecuentes</a></li>
+          <li><a href="#">Reportar Bug</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-section">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="#terms">Términos y Condiciones</a></li>
+          <li><a href="#privacy">Política de Privacidad</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2026 PampaAgro ERP. Todos los derechos reservados.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Smooth scroll para links internos
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        const href = this.getAttribute('href');
+        if (href !== '#') {
+          e.preventDefault();
+
+          const target = document.querySelector(href);
+          if (target) {
+            if (window.location.hash !== href) {
+              window.location.hash = href;
+            }
+
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }
+      });
+    });
+
+    // Animación fade-in al scroll
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -100px 0px'
+    };
+
+    const observer = new IntersectionObserver(function(entries) {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('fade-in');
+        }
+      });
+    }, observerOptions);
+
+    document.querySelectorAll('.feature-card, .module-box, .testimonial-card').forEach(el => {
+      observer.observe(el);
+    });
+
+    const pillarModulesMap = {
+      agricola: {
+        title: 'Módulos del pilar Agrícola',
+        modules: ['Campos', 'Lotes', 'Campañas', 'Siembra', 'Aplicaciones', 'Cosecha']
+      },
+      ganadero: {
+        title: 'Módulos del pilar Ganadero',
+        modules: ['Hacienda', 'Alimentación', 'Trazabilidad de Hacienda']
+      },
+      maquinas: {
+        title: 'Módulos del pilar Máquinas',
+        modules: ['Maquinarias', 'Cargas de Combustible', 'Costos Operativos', 'Mantenimiento']
+      },
+      finanzas: {
+        title: 'Módulos del pilar Finanzas',
+        modules: ['Caja', 'Bancos', 'Cuentas Bancarias', 'Cheques', 'Créditos', 'Flujo de Fondos', 'Costos', 'Rentabilidad']
+      }
+    };
+
+    function closePillarDropdown() {
+      const dropdown = document.getElementById('pillarDropdown');
+      if (dropdown) dropdown.classList.remove('active');
+      document.querySelectorAll('.pillar-tag').forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-expanded', 'false');
+      });
+    }
+
+    function openPillarDropdown(pillarKey, buttonEl) {
+      const cfg = pillarModulesMap[pillarKey];
+      if (!cfg) return;
+
+      const dropdown = document.getElementById('pillarDropdown');
+      const title = document.getElementById('pillarDropdownTitle');
+      const list = document.getElementById('pillarDropdownList');
+      if (!dropdown || !title || !list) return;
+
+      const isSameAndOpen = buttonEl.classList.contains('active') && dropdown.classList.contains('active');
+      if (isSameAndOpen) {
+        closePillarDropdown();
+        return;
+      }
+
+      document.querySelectorAll('.pillar-tag').forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-expanded', 'false');
+      });
+
+      buttonEl.classList.add('active');
+      buttonEl.setAttribute('aria-expanded', 'true');
+      title.textContent = cfg.title;
+      list.innerHTML = cfg.modules.map(mod => `<li>• ${mod}</li>`).join('');
+      dropdown.classList.add('active');
+    }
+
+    document.querySelectorAll('.pillar-tag[data-pillar]').forEach(btn => {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        openPillarDropdown(this.dataset.pillar, this);
+      });
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.features-highlight')) {
+        closePillarDropdown();
+      }
+    });
+
+    function normalizarNumeroWhatsApp(valor) {
+      return (valor || '').replace(/\D/g, '');
+    }
+
+    function buildMensajeBienvenidaWhatsApp(downloadLink) {
+      return `¡Hola! Bienvenido a Nexo Agro - Sistema de Gestión. 🌾🤝
+
+Ya está activo tu Trial de 7 días con acceso completo a las herramientas para optimizar tus márgenes, maquinarias y producción de forma offline.
+
+📲 Descargá la app para tu celular desde este link oficial: ${downloadLink}
+
+Guardá este contacto. Soy parte del equipo de soporte de Nexo Agro y voy a estar acá en WhatsApp para ayudarte a configurar tus primeros lotes, máquinas o rodeos sin que pierdas tiempo.
+
+¿Pudiste descargar la app correctamente? Avisame por acá. 👍`;
+    }
+
+    const registroForm = document.getElementById('registroForm');
+    if (registroForm) {
+      registroForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const telefonoIngresado = document.getElementById('telefonoWhatsapp').value;
+        const telefonoNormalizado = normalizarNumeroWhatsApp(telefonoIngresado);
+
+        if (!telefonoNormalizado) {
+          alert('Ingresá un teléfono válido para abrir WhatsApp.');
+          return;
+        }
+
+        const downloadLink = '[LINK DE DESCARGA]';
+        const mensaje = buildMensajeBienvenidaWhatsApp(downloadLink);
+        const urlWhatsApp = `https://wa.me/${telefonoNormalizado}?text=${encodeURIComponent(mensaje)}`;
+
+        window.open(urlWhatsApp, '_blank', 'noopener,noreferrer');
+        registroForm.reset();
+      });
+    }
+
+    // Toggle FAQ items
+    function toggleFAQ(element) {
+      const faqItem = element.closest('.faq-item');
+      
+      // Close all other items
+      document.querySelectorAll('.faq-item').forEach(item => {
+        if (item !== faqItem) {
+          item.classList.remove('active');
+        }
+      });
+      
+      // Toggle current item
+      faqItem.classList.toggle('active');
+    }
+
+    // Abrir WhatsApp para coordinar pagos
+    function abrirWhatsAppPagos() {
+      const numeroWhatsApp = '5492364719731'; // Número de WhatsApp de la empresa
+      const mensaje = encodeURIComponent('Quiero coordinar mi pago por Canje de Granos / Tarjeta Agro');
+      const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${mensaje}`;
+      window.open(urlWhatsApp, '_blank');
+    }
+  </script>
+</body>
+</html>
