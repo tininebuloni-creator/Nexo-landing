@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="PampaTopografía - Software integral de topografía y geodesia. Cálculos, coordenadas, visor de mapas y planos, y gestión de proyectos de obra en una sola plataforma.">
+  <meta name="keywords" content="topografia, software topografico, geodesia, coordenadas, curvas de nivel, gestion de obra, levantamientos">
+  <meta name="theme-color" content="#0f5132">
+  <title>PampaTopografía - Software de Topografía y Geodesia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --green: #0f5132;
+      --green-light: #e8f5e9;
+      --green-dark: #082b1b;
+      --orange: #f59e0b;
+      --blue: #3b82f6;
+      --text-primary: #1f2937;
+      --text-secondary: #6b7280;
+      --bg-light: #f9fafb;
+      --bg-white: #ffffff;
+      --border: #e5e7eb;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text-primary);
+      line-height: 1.6;
+      background: var(--bg-white);
+    }
+
+    h1, h2, h3 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+    }
+
+    /* === HEADER === */
+    header {
+      position: sticky;
+      top: 0;
+      background: var(--bg-white);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    nav {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 20px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--green);
+    }
+
+    .logo img {
+      height: 48px;
+      width: auto;
+      border-radius: 8px;
+      object-fit: contain;
+      display: block;
+    }
+
+    nav ul {
+      display: flex;
+      list-style: none;
+      gap: 32px;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: var(--text-primary);
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    nav a:hover { color: var(--green); }
+
+    .nav-buttons { display: flex; gap: 12px; }
+
+    .btn {
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: all 0.3s;
+      font-size: 14px;
+      display: inline-block;
+    }
+
+    .btn-primary { background: var(--green); color: white; }
+    .btn-primary:hover {
+      background: var(--green-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(15, 81, 50, 0.3);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--green);
+      border: 2px solid var(--green);
+    }
+    .btn-secondary:hover { background: var(--green-light); }
+
+    @media (max-width: 768px) {
+      nav ul { display: none; }
+    }
+
+    /* === HERO === */
+    .hero {
+      background: linear-gradient(135deg, #0f5132 0%, #0a7c3e 50%, #082b1b 100%);
+      color: white;
+      padding: 100px 20px;
+      text-align: center;
+    }
+    .hero-content { max-width: 820px; margin: 0 auto; }
+    .hero h1 { font-size: 56px; margin-bottom: 20px; line-height: 1.2; }
+    .hero p { font-size: 20px; margin-bottom: 40px; opacity: 0.95; }
+    .hero-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .btn-large { padding: 16px 40px; font-size: 16px; }
+    .btn-hero-primary { background: var(--orange); color: white; }
+    .btn-hero-primary:hover { background: #d97706; }
+    .btn-hero-secondary { background: white; color: var(--green); }
+    .btn-hero-secondary:hover { background: var(--bg-light); }
+
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 34px; }
+      .hero p { font-size: 16px; }
+    }
+
+    /* === SECTIONS === */
+    section { padding: 80px 20px; }
+
+    .section-title {
+      text-align: center;
+      font-size: 42px;
+      margin-bottom: 20px;
+      color: var(--text-primary);
+    }
+
+    .section-subtitle {
+      text-align: center;
+      font-size: 20px;
+      color: var(--text-secondary);
+      margin: 0 auto 60px;
+      max-width: 640px;
+      line-height: 1.6;
+    }
+
+    /* === FEATURES === */
+    .features-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 32px;
+    }
+
+    .feature-card {
+      background: linear-gradient(135deg, rgba(15, 81, 50, 0.05), rgba(15, 81, 50, 0.01));
+      padding: 40px;
+      border-radius: 12px;
+      border: 1px solid rgba(15, 81, 50, 0.22);
+      border-left: 4px solid var(--green);
+      transition: all 0.3s;
+      text-align: center;
+    }
+    .feature-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+      border-color: var(--green);
+    }
+    .feature-icon {
+      width: 60px;
+      height: 60px;
+      background: var(--green-light);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin: 0 auto 20px;
+    }
+    .feature-card h3 { font-size: 20px; margin-bottom: 12px; color: var(--text-primary); }
+    .feature-card p { color: var(--text-secondary); font-size: 14px; }
+
+    /* === MODULES === */
+    .modules-section { background: var(--bg-light); }
+    .modules-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+    .module-box {
+      background: var(--bg-white);
+      padding: 32px;
+      border-radius: 12px;
+      border-left: 4px solid var(--green);
+      transition: all 0.3s;
+    }
+    .module-box:hover {
+      box-shadow: 0 8px 24px rgba(15, 81, 50, 0.15);
+      transform: translateX(4px);
+    }
+    .module-icon { font-size: 32px; margin-bottom: 12px; }
+    .module-box h4 { font-size: 18px; margin-bottom: 8px; color: var(--text-primary); }
+    .module-box p { color: var(--text-secondary); font-size: 14px; line-height: 1.6; }
+
+    /* === BENEFITS === */
+    .benefits-section { background: white; }
+    .benefits-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+    .benefits-content h3 { font-size: 28px; margin-bottom: 30px; color: var(--green); }
+    .benefit-item { display: flex; gap: 16px; margin-bottom: 24px; }
+    .benefit-check {
+      width: 24px; height: 24px;
+      background: var(--green);
+      color: white;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; font-weight: bold; font-size: 14px;
+    }
+    .benefit-item p { color: var(--text-secondary); font-size: 15px; }
+    .benefits-image {
+      background: linear-gradient(135deg, var(--green-light) 0%, #c8e6c9 100%);
+      height: 400px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 80px;
+    }
+    @media (max-width: 768px) {
+      .benefits-container { grid-template-columns: 1fr; gap: 40px; }
+    }
+
+    /* === STATS / CREDIBILITY === */
+    .stats-section { background: var(--bg-light); }
+    .stats-grid {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 32px;
+      text-align: center;
+    }
+    .stat-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--green);
+      margin-bottom: 8px;
+    }
+    .stat-label { color: var(--text-secondary); font-size: 15px; }
+
+    /* === TESTIMONIALS === */
+    .testimonials-section { background: white; }
+    .testimonials-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 32px;
+    }
+    .testimonial-card {
+      background: var(--bg-white);
+      padding: 40px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    .testimonial-stars { color: var(--orange); font-size: 18px; margin-bottom: 12px; letter-spacing: 2px; }
+    .testimonial-text { color: var(--text-secondary); margin-bottom: 20px; font-style: italic; line-height: 1.8; }
+    .testimonial-author { display: flex; align-items: center; gap: 12px; }
+    .author-avatar {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--green), var(--blue));
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 18px;
+    }
+    .author-info h4 { font-size: 14px; margin: 0; color: var(--text-primary); }
+    .author-info p { font-size: 12px; color: var(--text-secondary); margin: 0; }
+
+    /* === FAQ === */
+    .faq-section { background: var(--bg-light); text-align: center; }
+    .faq-container { max-width: 800px; margin: 0 auto; }
+    .faq-item {
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 24px;
+      overflow: hidden;
+      text-align: left;
+      transition: all 0.3s;
+    }
+    .faq-item:hover { border-color: var(--green); box-shadow: 0 4px 12px rgba(15, 81, 50, 0.1); }
+    .faq-question {
+      background: linear-gradient(135deg, rgba(15, 81, 50, 0.05), rgba(15, 81, 50, 0.02));
+      padding: 24px;
+      font-weight: 600;
+      color: var(--text-primary);
+      cursor: pointer;
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .faq-question::after { content: '▼'; color: var(--green); font-size: 12px; transition: transform 0.3s; }
+    .faq-item.active .faq-question::after { transform: rotate(180deg); }
+    .faq-answer { display: none; padding: 24px; color: var(--text-secondary); line-height: 1.7; font-size: 15px; }
+    .faq-item.active .faq-answer { display: block; }
+
+    /* === CTA === */
+    .cta-section {
+      background: linear-gradient(135deg, var(--green) 0%, var(--green-dark) 100%);
+      color: white;
+      text-align: center;
+      padding: 80px 20px;
+    }
+    .cta-content { max-width: 600px; margin: 0 auto; }
+    .cta-section h2 { font-size: 42px; margin-bottom: 20px; }
+    .cta-section p { font-size: 18px; margin-bottom: 40px; opacity: 0.95; }
+
+    /* === REGISTRATION / FORM === */
+    .registration-section {
+      background: linear-gradient(180deg, #f4fbf6 0%, #ffffff 100%);
+      scroll-margin-top: 80px;
+    }
+    .registration-wrapper {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+      gap: 40px;
+      align-items: start;
+    }
+    .registration-copy { padding-top: 12px; }
+    .registration-copy h3 { font-size: 34px; line-height: 1.2; margin-bottom: 18px; color: var(--green-dark); }
+    .registration-copy p { color: var(--text-secondary); font-size: 17px; margin-bottom: 24px; }
+    .registration-points { list-style: none; display: grid; gap: 14px; }
+    .registration-points li {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(15, 81, 50, 0.14);
+      border-radius: 12px;
+      padding: 16px 18px;
+      color: var(--text-primary);
+      box-shadow: 0 10px 24px rgba(15, 81, 50, 0.06);
+    }
+    .registration-form-card {
+      background: white;
+      border: 1px solid rgba(15, 81, 50, 0.12);
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 18px 45px rgba(8, 43, 27, 0.10);
+    }
+    .registration-form { display: grid; gap: 20px; }
+    .registration-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .form-field { display: grid; gap: 8px; }
+    .form-field.full-width { grid-column: 1 / -1; }
+    .form-field label { font-weight: 600; color: var(--text-primary); font-size: 14px; }
+    .form-field input,
+    .form-field select,
+    .form-field textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 15px;
+      color: var(--text-primary);
+      background: #fcfdfc;
+      font-family: inherit;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .form-field textarea { resize: vertical; min-height: 90px; }
+    .form-field input:focus,
+    .form-field select:focus,
+    .form-field textarea:focus {
+      outline: none;
+      border-color: var(--green);
+      box-shadow: 0 0 0 4px rgba(15, 81, 50, 0.12);
+    }
+    .field-note { font-size: 12px; color: var(--text-secondary); }
+    .registration-submit { width: 100%; justify-content: center; padding: 16px 24px; font-size: 16px; }
+    .registration-legal { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+
+    @media (max-width: 768px) {
+      .registration-wrapper,
+      .registration-grid { grid-template-columns: 1fr; }
+      .registration-form-card { padding: 24px; }
+      .registration-copy h3 { font-size: 28px; }
+    }
+
+    /* === FOOTER === */
+    footer { background: var(--text-primary); color: white; padding: 60px 20px 20px; }
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto 40px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 40px;
+    }
+    .footer-section h4 { font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+    .footer-section ul { list-style: none; }
+    .footer-section li { margin-bottom: 12px; }
+    .footer-section a { color: rgba(255,255,255,0.7); text-decoration: none; transition: color 0.3s; }
+    .footer-section a:hover { color: white; }
+    .footer-bottom {
+      border-top: 1px solid rgba(255,255,255,0.2);
+      padding-top: 30px;
+      text-align: center;
+      color: rgba(255,255,255,0.6);
+      font-size: 14px;
+    }
+
+    /* === RESPONSIVE === */
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 32px; }
+      .section-title { font-size: 28px; }
+    }
+
+    /* === ANIMATIONS === */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in { animation: fadeInUp 0.6s ease-out; }
+  </style>
+</head>
+<body>
+  <!-- HEADER -->
+  <header>
+    <nav>
+      <a href="#" class="logo">
+        <img src="logo-header.png" alt="PampaTopografía">
+        <span>PampaTopografía</span>
+      </a>
+      <ul>
+        <li><a href="#features">Características</a></li>
+        <li><a href="#modules">Módulos</a></li>
+        <li><a href="#benefits">Beneficios</a></li>
+        <li><a href="#faq">FAQ</a></li>
+      </ul>
+      <div class="nav-buttons">
+        <a class="btn btn-primary" href="/app/" target="_blank" rel="noopener">IR AL PROGRAMA</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Toda tu topografía en una sola plataforma</h1>
+      <p>Cálculos y coordenadas, visor de mapas y planos, y gestión de proyectos de obra: precisión profesional del campo al gabinete.</p>
+      <div class="hero-buttons">
+        <a class="btn btn-large btn-hero-primary" href="/app/" target="_blank" rel="noopener">IR AL PROGRAMA</a>
+        <a class="btn btn-large btn-hero-secondary" href="#features">Ver Características</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <h2 class="section-title">Precisión profesional, del campo al gabinete</h2>
+    <p class="section-subtitle">Una suite pensada para topógrafos e ingenieros que necesitan confiabilidad en cada medición.</p>
+
+    <div class="features-grid">
+      <div class="feature-card fade-in">
+        <div class="feature-icon">📐</div>
+        <h3>Cálculos Topográficos</h3>
+        <p>Poligonales, nivelación, áreas, volúmenes y compensación de errores con precisión geodésica.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <div class="feature-icon">🗺️</div>
+        <h3>Visor de Mapas y Planos</h3>
+        <p>Visualizá terrenos, curvas de nivel y datos geoespaciales sobre cartografía de referencia.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <div class="feature-icon">📊</div>
+        <h3>Gestión de Proyectos</h3>
+        <p>Organizá obras, clientes, levantamientos y documentación en un único lugar ordenado.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <div class="feature-icon">🛰️</div>
+        <h3>Coordenadas y GNSS</h3>
+        <p>Importá y transformá coordenadas entre sistemas y datums, con soporte para datos de campo.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <div class="feature-icon">📄</div>
+        <h3>Informes Profesionales</h3>
+        <p>Generá planillas, planos y reportes exportables listos para presentar y auditar.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <div class="feature-icon">☁️</div>
+        <h3>Acceso Multiplataforma</h3>
+        <p>Trabajá desde la web en cualquier dispositivo, con tus proyectos siempre disponibles.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODULES -->
+  <section id="modules" class="modules-section">
+    <h2 class="section-title">Módulos Especializados</h2>
+    <p class="section-subtitle">Herramientas completas para cada etapa de tu trabajo topográfico.</p>
+
+    <div class="modules-grid">
+      <div class="module-box">
+        <div class="module-icon">📍</div>
+        <h4>Levantamientos</h4>
+        <p>Carga y edición de puntos, poligonales y radiaciones con control de precisión.</p>
+      </div>
+      <div class="module-box">
+        <div class="module-icon">📏</div>
+        <h4>Nivelación</h4>
+        <p>Cálculo de cotas, perfiles longitudinales y transversales, y compensación.</p>
+      </div>
+      <div class="module-box">
+        <div class="module-icon">⛰️</div>
+        <h4>Curvas de Nivel</h4>
+        <p>Generación de modelos de terreno y curvas de nivel a partir de tus datos.</p>
+      </div>
+      <div class="module-box">
+        <div class="module-icon">🧮</div>
+        <h4>Cálculo de Superficies</h4>
+        <p>Áreas y volúmenes de movimiento de suelo con reportes detallados.</p>
+      </div>
+      <div class="module-box">
+        <div class="module-icon">🔄</div>
+        <h4>Transformación de Coordenadas</h4>
+        <p>Conversión entre sistemas de referencia, datums y proyecciones.</p>
+      </div>
+      <div class="module-box">
+        <div class="module-icon">🗂️</div>
+        <h4>Proyectos y Clientes</h4>
+        <p>Organización de obras, expedientes y documentación por cliente.</p>
+      </div>
+      <div class="module-box">
+        <div class="module-icon">📤</div>
+        <h4>Importación / Exportación</h4>
+        <p>Compatibilidad con formatos de campo y CAD para integrar tu flujo de trabajo.</p>
+      </div>
+      <div class="module-box">
+        <div class="module-icon">📑</div>
+        <h4>Reportes y Planos</h4>
+        <p>Salidas profesionales en PDF y planillas listas para presentar.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- BENEFITS -->
+  <section id="benefits" class="benefits-section">
+    <div class="benefits-container">
+      <div class="benefits-content">
+        <h3>Beneficios Clave</h3>
+        <div class="benefit-item">
+          <div class="benefit-check">✓</div>
+          <p><strong>Precisión confiable:</strong> Algoritmos de cálculo y compensación que reducen el error en cada trabajo.</p>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-check">✓</div>
+          <p><strong>Todo integrado:</strong> Del dato de campo al plano final sin saltar entre programas.</p>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-check">✓</div>
+          <p><strong>Compatibilidad:</strong> Importá y exportá con los formatos que ya usás en campo y CAD.</p>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-check">✓</div>
+          <p><strong>Proyectos ordenados:</strong> Cada obra, cliente y documento en su lugar y siempre accesible.</p>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-check">✓</div>
+          <p><strong>Informes listos:</strong> Reportes profesionales exportables para presentar y auditar.</p>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-check">✓</div>
+          <p><strong>En la nube:</strong> Accedé a tu trabajo desde cualquier dispositivo, cuando lo necesites.</p>
+        </div>
+      </div>
+      <div class="benefits-image">🗺️</div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="faq-section">
+    <div class="faq-container">
+      <h2 class="section-title">Preguntas Frecuentes</h2>
+      <p class="section-subtitle">Resolvemos tus dudas sobre PampaTopografía</p>
+
+      <div class="faq-item active">
+        <div class="faq-question" onclick="toggleFAQ(this)">¿Qué puedo hacer con la plataforma?</div>
+        <div class="faq-answer">
+          <p>Realizar cálculos topográficos (poligonales, nivelación, áreas y volúmenes), visualizar mapas, planos y curvas de nivel, transformar coordenadas y gestionar tus proyectos, obras y clientes en un solo lugar.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFAQ(this)">¿Con qué formatos es compatible?</div>
+        <div class="faq-answer">
+          <p>[Completá con los formatos que soporta tu app: por ej. CSV/TXT de estación total, DXF/DWG de CAD, coordenadas en distintos sistemas y datums.]</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFAQ(this)">¿Necesito instalar algo?</div>
+        <div class="faq-answer">
+          <p>No. Es una aplicación web: accedés desde el navegador en cualquier dispositivo. [Ajustá si además ofrecés versión de escritorio o móvil.]</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFAQ(this)">¿Cómo empiezo a usarla?</div>
+        <div class="faq-answer">
+          <p>Hacé clic en "IR AL PROGRAMA" para probar la demo online con datos de prueba. Si querés la versión completa para instalar, escribinos con el formulario de consultas y te pasamos toda la información.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA FINAL -->
+  <section class="cta-section">
+    <div class="cta-content">
+      <h2>¿Listo para llevar tu topografía al siguiente nivel?</h2>
+      <p>Probá PampaTopografía online con datos de prueba, sin instalar nada.</p>
+      <a class="btn btn-large btn-primary" href="/app/" target="_blank" rel="noopener">IR AL PROGRAMA</a>
+    </div>
+  </section>
+
+  <!-- REGISTRO / FORMULARIO -->
+  <section id="registro" class="registration-section">
+    <div class="registration-wrapper">
+      <div class="registration-copy">
+        <h2 class="section-title" style="text-align: left; margin-bottom: 20px;">Consultas y compra</h2>
+        <h3>¿Querés la versión completa o tenés dudas?</h3>
+        <p>Dejanos tu consulta y el equipo de PampaTopografía te responde por WhatsApp con precios, la versión completa para instalar y todo lo que necesites saber.</p>
+        <ul class="registration-points">
+          <li>Información sobre la versión completa para instalar (.exe).</li>
+          <li>Asesoramiento según el tipo de trabajo topográfico que realizás.</li>
+          <li>Probá primero la demo online con el botón "IR AL PROGRAMA".</li>
+        </ul>
+      </div>
+
+      <div class="registration-form-card">
+        <form id="registroForm" class="registration-form">
+          <div class="registration-grid">
+            <div class="form-field full-width">
+              <label for="nombreApellido">Nombre y Apellido</label>
+              <input id="nombreApellido" name="nombreApellido" type="text" required>
+            </div>
+            <div class="form-field">
+              <label for="telefonoWhatsapp">Teléfono / WhatsApp</label>
+              <input id="telefonoWhatsapp" name="telefonoWhatsapp" type="tel" inputmode="numeric" pattern="[0-9+ ]+" required>
+              <span class="field-note">Con característica, sin puntos.</span>
+            </div>
+            <div class="form-field">
+              <label for="email">Correo electrónico</label>
+              <input id="email" name="email" type="email">
+            </div>
+            <div class="form-field">
+              <label for="profesion">Profesión / Actividad</label>
+              <select id="profesion" name="profesion" required>
+                <option value="">Seleccioná una opción</option>
+                <option>Agrimensor/a</option>
+                <option>Ingeniero/a Civil</option>
+                <option>Técnico/a en Topografía</option>
+                <option>Estudio / Empresa</option>
+                <option>Otra</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="motivo">Motivo de la consulta</label>
+              <select id="motivo" name="motivo" required>
+                <option value="">Seleccioná una opción</option>
+                <option>Comprar la versión completa</option>
+                <option>Consulta sobre precios</option>
+                <option>Dudas sobre funciones</option>
+                <option>Soporte técnico</option>
+                <option>Otra</option>
+              </select>
+            </div>
+            <div class="form-field full-width">
+              <label for="mensaje">¿En qué te podemos ayudar?</label>
+              <textarea id="mensaje" name="mensaje" placeholder="Contanos brevemente qué necesitás"></textarea>
+            </div>
+          </div>
+          <button class="btn btn-primary registration-submit" type="submit">Enviar consulta por WhatsApp</button>
+          <p class="registration-legal">Al enviar este formulario, aceptás ser contactado por el equipo de PampaTopografía para responder tu consulta y brindarte la propuesta comercial asociada.</p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>PampaTopografía</h4>
+        <ul>
+          <li><a href="#features">Características</a></li>
+          <li><a href="#modules">Módulos</a></li>
+          <li><a href="#benefits">Beneficios</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Producto</h4>
+        <ul>
+          <li><a href="#registro">Consultas y compra</a></li>
+          <li><a href="#features">Características</a></li>
+          <li><a href="#modules">Módulos</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Contacto</h4>
+        <ul>
+          <li><a href="/cdn-cgi/l/email-protection#abc8c4c5d8dec7dfcaebd8c4c7dec8c2c4c5ced8cec5c2c5cccec5c2ced9c2ca85c8c4c685cad9"><span class="__cf_email__" data-cfemail="30535f5e43455c445170435f5c4553595f5e5543555e595e57555e59554259511e535f5d1e5142">[email&#160;protected]</span></a></li>
+          <li><a href="https://wa.me/5492364719731" target="_blank" rel="noopener">WhatsApp: +54 9 236 4719731</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="#">Términos y Condiciones</a></li>
+          <li><a href="#">Política de Privacidad</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 PampaTopografía. Todos los derechos reservados.</p>
+    </div>
+  </footer>
+
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    // Smooth scroll para links internos
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        const href = this.getAttribute('href');
+        if (href !== '#') {
+          const target = document.querySelector(href);
+          if (target) {
+            e.preventDefault();
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }
+      });
+    });
+
+    // Animación fade-in al scroll
+    const observer = new IntersectionObserver(function(entries) {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('fade-in');
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -100px 0px' });
+
+    document.querySelectorAll('.feature-card, .module-box, .testimonial-card').forEach(el => observer.observe(el));
+
+    // Toggle FAQ
+    function toggleFAQ(element) {
+      const faqItem = element.closest('.faq-item');
+      document.querySelectorAll('.faq-item').forEach(item => {
+        if (item !== faqItem) item.classList.remove('active');
+      });
+      faqItem.classList.toggle('active');
+    }
+
+    // Envío del formulario de contacto -> abre TU WhatsApp con la consulta del interesado.
+    const WHATSAPP_DESTINO = '5492364719731'; // +54 9 236 4719731
+
+    const registroForm = document.getElementById('registroForm');
+    if (registroForm) {
+      registroForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const nombre = document.getElementById('nombreApellido').value.trim();
+        const telefono = document.getElementById('telefonoWhatsapp').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const profesion = document.getElementById('profesion').value;
+        const motivo = document.getElementById('motivo').value;
+        const mensaje = document.getElementById('mensaje').value.trim();
+
+        const texto =
+          'Hola PampaTopografía, tengo una consulta.%0A%0A' +
+          '*Nombre:* ' + encodeURIComponent(nombre) + '%0A' +
+          '*Teléfono:* ' + encodeURIComponent(telefono) + '%0A' +
+          (email ? '*Email:* ' + encodeURIComponent(email) + '%0A' : '') +
+          '*Actividad:* ' + encodeURIComponent(profesion) + '%0A' +
+          '*Motivo:* ' + encodeURIComponent(motivo) + '%0A' +
+          (mensaje ? '*Consulta:* ' + encodeURIComponent(mensaje) : '');
+
+        const url = 'https://wa.me/' + WHATSAPP_DESTINO + '?text=' + texto;
+        window.open(url, '_blank', 'noopener,noreferrer');
+        registroForm.reset();
+      });
+    }
+  </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1}' crossorigin="anonymous"></script>
+</body>
+</html>
