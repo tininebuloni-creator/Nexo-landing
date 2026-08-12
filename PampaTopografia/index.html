@@ -73,11 +73,10 @@
     }
 
     .logo img {
-      height: 48px;
-      width: auto;
+      width: 44px;
+      height: 44px;
       border-radius: 8px;
-      object-fit: contain;
-      display: block;
+      object-fit: cover;
     }
 
     nav ul {
@@ -178,11 +177,10 @@
     }
 
     .feature-card {
-      background: linear-gradient(135deg, rgba(15, 81, 50, 0.05), rgba(15, 81, 50, 0.01));
+      background: var(--bg-white);
       padding: 40px;
       border-radius: 12px;
-      border: 1px solid rgba(15, 81, 50, 0.22);
-      border-left: 4px solid var(--green);
+      border: 1px solid var(--border);
       transition: all 0.3s;
       text-align: center;
     }
@@ -348,75 +346,6 @@
     .cta-section h2 { font-size: 42px; margin-bottom: 20px; }
     .cta-section p { font-size: 18px; margin-bottom: 40px; opacity: 0.95; }
 
-    /* === REGISTRATION / FORM === */
-    .registration-section {
-      background: linear-gradient(180deg, #f4fbf6 0%, #ffffff 100%);
-      scroll-margin-top: 80px;
-    }
-    .registration-wrapper {
-      max-width: 1100px;
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
-      gap: 40px;
-      align-items: start;
-    }
-    .registration-copy { padding-top: 12px; }
-    .registration-copy h3 { font-size: 34px; line-height: 1.2; margin-bottom: 18px; color: var(--green-dark); }
-    .registration-copy p { color: var(--text-secondary); font-size: 17px; margin-bottom: 24px; }
-    .registration-points { list-style: none; display: grid; gap: 14px; }
-    .registration-points li {
-      background: rgba(255, 255, 255, 0.85);
-      border: 1px solid rgba(15, 81, 50, 0.14);
-      border-radius: 12px;
-      padding: 16px 18px;
-      color: var(--text-primary);
-      box-shadow: 0 10px 24px rgba(15, 81, 50, 0.06);
-    }
-    .registration-form-card {
-      background: white;
-      border: 1px solid rgba(15, 81, 50, 0.12);
-      border-radius: 20px;
-      padding: 32px;
-      box-shadow: 0 18px 45px rgba(8, 43, 27, 0.10);
-    }
-    .registration-form { display: grid; gap: 20px; }
-    .registration-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
-    .form-field { display: grid; gap: 8px; }
-    .form-field.full-width { grid-column: 1 / -1; }
-    .form-field label { font-weight: 600; color: var(--text-primary); font-size: 14px; }
-    .form-field input,
-    .form-field select,
-    .form-field textarea {
-      width: 100%;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 14px 16px;
-      font-size: 15px;
-      color: var(--text-primary);
-      background: #fcfdfc;
-      font-family: inherit;
-      transition: border-color 0.3s, box-shadow 0.3s;
-    }
-    .form-field textarea { resize: vertical; min-height: 90px; }
-    .form-field input:focus,
-    .form-field select:focus,
-    .form-field textarea:focus {
-      outline: none;
-      border-color: var(--green);
-      box-shadow: 0 0 0 4px rgba(15, 81, 50, 0.12);
-    }
-    .field-note { font-size: 12px; color: var(--text-secondary); }
-    .registration-submit { width: 100%; justify-content: center; padding: 16px 24px; font-size: 16px; }
-    .registration-legal { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
-
-    @media (max-width: 768px) {
-      .registration-wrapper,
-      .registration-grid { grid-template-columns: 1fr; }
-      .registration-form-card { padding: 24px; }
-      .registration-copy h3 { font-size: 28px; }
-    }
-
     /* === FOOTER === */
     footer { background: var(--text-primary); color: white; padding: 60px 20px 20px; }
     .footer-content {
@@ -468,7 +397,12 @@
         <li><a href="#faq">FAQ</a></li>
       </ul>
       <div class="nav-buttons">
+<<<<<<< HEAD
+        <a class="btn btn-secondary" href="#contacto">Contacto</a>
+        <a class="btn btn-primary" href="app/">Ir a la App</a>
+=======
         <a class="btn btn-primary" href="app/" target="_blank" rel="noopener">IR A LA DEMO</a>
+>>>>>>> 3c7311ba63108a8b516331f79bb57cb93a14c36d
       </div>
     </nav>
   </header>
@@ -479,7 +413,11 @@
       <h1>Toda tu topografía en una sola plataforma</h1>
       <p>Cálculos y coordenadas, visor de mapas y planos, y gestión de proyectos de obra: precisión profesional del campo al gabinete.</p>
       <div class="hero-buttons">
+<<<<<<< HEAD
+        <a class="btn btn-large btn-hero-primary" href="app/">Ir a la App</a>
+=======
         <a class="btn btn-large btn-hero-primary" href="app/" target="_blank" rel="noopener">IR A LA DEMO</a>
+>>>>>>> 3c7311ba63108a8b516331f79bb57cb93a14c36d
         <a class="btn btn-large btn-hero-secondary" href="#features">Ver Características</a>
       </div>
     </div>
@@ -607,6 +545,71 @@
     </div>
   </section>
 
+  <!-- STATS / CREDIBILITY -->
+  <section class="stats-section">
+    <h2 class="section-title">Confianza que se mide</h2>
+    <p class="section-subtitle">Resultados que respaldan el trabajo profesional. [Ajustá estos números a tu realidad]</p>
+    <div class="stats-grid">
+      <div>
+        <div class="stat-number">+[X]</div>
+        <div class="stat-label">Profesionales usando la plataforma</div>
+      </div>
+      <div>
+        <div class="stat-number">+[X]</div>
+        <div class="stat-label">Proyectos gestionados</div>
+      </div>
+      <div>
+        <div class="stat-number">[X]%</div>
+        <div class="stat-label">Menos tiempo en gabinete</div>
+      </div>
+      <div>
+        <div class="stat-number">[X]</div>
+        <div class="stat-label">Años de experiencia</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section class="testimonials-section">
+    <h2 class="section-title">Lo que dicen los profesionales</h2>
+    <p class="section-subtitle">[Reemplazá por testimonios reales de tus clientes]</p>
+    <div class="testimonials-grid">
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"Pasé todos mis cálculos y planos a una sola herramienta. Ahorro horas de gabinete en cada obra."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">JP</div>
+          <div class="author-info">
+            <h4>[Nombre]</h4>
+            <p>Agrimensor, [Ciudad]</p>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"La gestión de proyectos y clientes me ordenó el estudio. Encuentro todo al instante."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">MG</div>
+          <div class="author-info">
+            <h4>[Nombre]</h4>
+            <p>Ingeniero Civil, [Ciudad]</p>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"El visor de curvas de nivel y los reportes son muy claros. Mis entregas quedan impecables."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">RL</div>
+          <div class="author-info">
+            <h4>[Nombre]</h4>
+            <p>Técnico en Topografía, [Ciudad]</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- FAQ -->
   <section id="faq" class="faq-section">
     <div class="faq-container">
@@ -634,16 +637,26 @@
       <div class="faq-item">
         <div class="faq-question" onclick="toggleFAQ(this)">¿Cómo empiezo a usarla?</div>
         <div class="faq-answer">
+<<<<<<< HEAD
+          <p>Hacé clic en "Ir a la App" y creá tu cuenta. Para dudas o soporte, escribinos por los canales de contacto. [Ajustá según tu proceso de alta.]</p>
+=======
           <p>Hacé clic en "IR A LA DEMO" para probar la demo online con datos de prueba. Si querés la versión completa para instalar, escribinos con el formulario de consultas y te pasamos toda la información.</p>
+>>>>>>> 3c7311ba63108a8b516331f79bb57cb93a14c36d
         </div>
       </div>
     </div>
   </section>
 
   <!-- CTA FINAL -->
-  <section class="cta-section">
+  <section id="contacto" class="cta-section">
     <div class="cta-content">
       <h2>¿Listo para llevar tu topografía al siguiente nivel?</h2>
+<<<<<<< HEAD
+      <p>Empezá a trabajar con precisión profesional desde hoy o escribinos para una consulta.</p>
+      <div class="hero-buttons">
+        <a class="btn btn-large btn-hero-primary" href="app/">Ir a la App</a>
+        <a class="btn btn-large btn-hero-secondary" href="https://wa.me/5492344719731" target="_blank" rel="noopener">Consultar por WhatsApp</a>
+=======
       <p>Probá PampaTopografía online con datos de prueba, sin instalar nada.</p>
       <a class="btn btn-large btn-primary" href="app/" target="_blank" rel="noopener">IR A LA DEMO</a>
     </div>
@@ -709,7 +722,11 @@
           <button class="btn btn-primary registration-submit" type="submit">Enviar consulta por WhatsApp</button>
           <p class="registration-legal">Al enviar este formulario, aceptás ser contactado por el equipo de PampaTopografía para responder tu consulta y brindarte la propuesta comercial asociada.</p>
         </form>
+>>>>>>> 3c7311ba63108a8b516331f79bb57cb93a14c36d
       </div>
+      <p style="margin-top: 24px; margin-bottom: 0; font-size: 15px;">
+        <a href="/cdn-cgi/l/email-protection#11727e7f62647d657051627e7d6472787e7f7462747f787f76747f78746378703f727e7c3f7063" style="color: #fff; text-decoration: underline;"><span class="__cf_email__" data-cfemail="9bf8f4f5e8eef7effadbe8f4f7eef8f2f4f5fee8fef5f2f5fcfef5f2fee9f2fab5f8f4f6b5fae9">[email&#160;protected]</span></a>
+      </p>
     </div>
   </section>
 
@@ -728,16 +745,16 @@
       <div class="footer-section">
         <h4>Producto</h4>
         <ul>
-          <li><a href="#registro">Consultas y compra</a></li>
-          <li><a href="#features">Características</a></li>
-          <li><a href="#modules">Módulos</a></li>
+          <li><a href="app/">Ir a la App</a></li>
+          <li><a href="#">Documentación</a></li>
+          <li><a href="#">Tutoriales</a></li>
         </ul>
       </div>
       <div class="footer-section">
         <h4>Contacto</h4>
         <ul>
-          <li><a href="/cdn-cgi/l/email-protection#abc8c4c5d8dec7dfcaebd8c4c7dec8c2c4c5ced8cec5c2c5cccec5c2ced9c2ca85c8c4c685cad9"><span class="__cf_email__" data-cfemail="30535f5e43455c445170435f5c4553595f5e5543555e595e57555e59554259511e535f5d1e5142">[email&#160;protected]</span></a></li>
-          <li><a href="https://wa.me/5492364719731" target="_blank" rel="noopener">WhatsApp: +54 9 236 4719731</a></li>
+          <li><a href="/cdn-cgi/l/email-protection#40232f2e33352c342100332f2c3523292f2e2533252e292e27252e29253229216e232f2d6e2132"><span class="__cf_email__" data-cfemail="01626e6f72746d756041726e6d7462686e6f6472646f686f66646f68647368602f626e6c2f6073">[email&#160;protected]</span></a></li>
+          <li><a href="https://wa.me/5492344719731" target="_blank" rel="noopener">WhatsApp: +54 9 234 4719731</a></li>
         </ul>
       </div>
       <div class="footer-section">
@@ -785,36 +802,8 @@
       });
       faqItem.classList.toggle('active');
     }
-
-    // Envío del formulario de contacto -> abre TU WhatsApp con la consulta del interesado.
-    const WHATSAPP_DESTINO = '5492364719731'; // +54 9 236 4719731
-
-    const registroForm = document.getElementById('registroForm');
-    if (registroForm) {
-      registroForm.addEventListener('submit', function (e) {
-        e.preventDefault();
-        const nombre = document.getElementById('nombreApellido').value.trim();
-        const telefono = document.getElementById('telefonoWhatsapp').value.trim();
-        const email = document.getElementById('email').value.trim();
-        const profesion = document.getElementById('profesion').value;
-        const motivo = document.getElementById('motivo').value;
-        const mensaje = document.getElementById('mensaje').value.trim();
-
-        const texto =
-          'Hola PampaTopografía, tengo una consulta.%0A%0A' +
-          '*Nombre:* ' + encodeURIComponent(nombre) + '%0A' +
-          '*Teléfono:* ' + encodeURIComponent(telefono) + '%0A' +
-          (email ? '*Email:* ' + encodeURIComponent(email) + '%0A' : '') +
-          '*Actividad:* ' + encodeURIComponent(profesion) + '%0A' +
-          '*Motivo:* ' + encodeURIComponent(motivo) + '%0A' +
-          (mensaje ? '*Consulta:* ' + encodeURIComponent(mensaje) : '');
-
-        const url = 'https://wa.me/' + WHATSAPP_DESTINO + '?text=' + texto;
-        window.open(url, '_blank', 'noopener,noreferrer');
-        registroForm.reset();
-      });
-    }
   </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1}' crossorigin="anonymous"></script>
 </body>
 </html>
