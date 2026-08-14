@@ -1,0 +1,10 @@
+name = "ganaderia"
+main = "worker.js"
+compatibility_date = "2026-08-14"
+workers_dev = true
+
+# Publica la aplicación general desde los archivos del proyecto.
+# El Worker ya no usa el template Hello World ni necesita ORIGIN_URL.
+[assets]
+directory = "./public"
+binding = "ASSETS"
