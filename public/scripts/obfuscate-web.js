@@ -3,7 +3,8 @@ const path = require('path');
 const JavaScriptObfuscator = require('javascript-obfuscator');
 
 const ROOT_DIR = path.resolve(__dirname, '..');
-const TARGET = path.join(ROOT_DIR, 'pampaganaderia-erp', 'index.html');
+const targetDirectory = process.argv[3] || 'pampaganaderia-erp';
+const TARGET = path.join(ROOT_DIR, targetDirectory, 'index.html');
 const BACKUP = `${TARGET}.obf-backup`;
 
 const OPTIONS = {
