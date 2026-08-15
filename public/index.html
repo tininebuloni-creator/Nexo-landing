@@ -88,6 +88,46 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
 .legal-links a{color:#0b5cad; text-decoration:none; margin:0 8px}
 .legal-links a:hover{text-decoration:underline}
 
+/* ===== MÉTODOS DE PAGO ===== */
+.payment-methods{
+  max-width:1150px; margin:0 auto; padding:0 24px; text-align:center;
+}
+.payment-methods h3{
+  font-size:clamp(1.75rem, 3vw, 2.25rem); font-weight:700;
+  color:var(--text-primary); letter-spacing:-.02em; margin:0 0 10px;
+}
+.payment-methods > p{
+  color:var(--text-secondary); font-size:1rem; margin:0 auto 48px; max-width:640px;
+}
+.payment-grid{
+  display:grid; gap:24px; text-align:left;
+  grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
+}
+.payment-option{
+  background:var(--bg-card); border:1px solid var(--border);
+  border-radius:12px; padding:28px 24px;
+  transition:border-color .3s ease, transform .3s ease, box-shadow .3s ease;
+}
+.payment-option:hover{
+  border-color:var(--green); transform:translateY(-4px);
+  box-shadow:0 10px 30px rgba(0,0,0,.35);
+}
+.payment-icon{
+  width:52px; height:52px; display:flex; align-items:center; justify-content:center;
+  font-size:26px; line-height:1; border-radius:10px; margin-bottom:18px;
+  background:var(--green-glow); border:1px solid rgba(245,158,11,.3);
+}
+.payment-option h4{
+  font-size:1.125rem; font-weight:700; color:var(--text-primary); margin:0 0 8px;
+}
+.payment-option p{
+  font-size:.9rem; line-height:1.6; color:var(--text-secondary); margin:0;
+}
+@media (max-width:640px){
+  .payment-methods{padding:0 20px}
+  .payment-option{padding:24px 20px}
+}
+
     </style>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-PDCKSP6QMR">
@@ -243,6 +283,51 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
                 </div>
             </div>
         </div>
+    </section>
+
+    <!-- MÉTODOS DE PAGO -->
+    <section id="metodos-pago" class="py-20 bg-[#161b26] border-b border-[#2d3548]">
+    <div class="payment-methods">
+      <h3>Métodos de Pago Disponibles</h3>
+      <p>Elegí la forma más conveniente para vos</p>
+      <div class="payment-grid">
+      <div class="payment-option">
+        <div class="payment-icon">🌾</div>
+        <h4>Plan Canje Cereal</h4>
+        <p>Pagá con cereales de tu cosecha. Valuamos al precio de mercado vigente</p>
+      </div>
+
+        <div class="payment-option">
+          <div class="payment-icon">💳</div>
+          <h4>Tarjeta de Crédito</h4>
+          <p>Visa, Mastercard, American Express. </p>
+        </div>
+
+        <div class="payment-option">
+          <div class="payment-icon">💰</div>
+          <h4>Depósito</h4>
+          <p>Depósito en nuestro banco. Ideal para transacciones locales</p>
+        </div>
+
+        <div class="payment-option">
+          <div class="payment-icon">📱</div>
+          <h4>Mercado Pago</h4>
+          <p>Billetera virtual. Seguí comprando como siempre</p>
+        </div>
+
+        <div class="payment-option">
+          <div class="payment-icon">🔗</div>
+          <h4>Transferencia Bancaria 24/7</h4>
+          <p>CBU disponible. Procesamos en tiempo real</p>
+        </div>
+
+        <div class="payment-option">
+          <div class="payment-icon">✅</div>
+          <h4>Presupuesto Personalizado</h4>
+          <p>¿Necesitas otro medio? Consultanos sin compromiso</p>
+        </div>
+      </div>
+    </div>
     </section>
 
     <!-- Sección de Cierre y Contacto -->
@@ -575,5 +660,6 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
     </footer>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1}' crossorigin="anonymous"></script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1}' crossorigin="anonymous"></script>
 </body>
 </html>
