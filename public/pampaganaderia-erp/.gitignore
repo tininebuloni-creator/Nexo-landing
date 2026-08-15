@@ -7,3 +7,4 @@ certs/
 *.key
 *.p12
 *.pem
+*.obf-backup
