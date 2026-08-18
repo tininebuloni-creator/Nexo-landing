@@ -338,6 +338,7 @@
     let lotLocations = loadList('pampa-lot-locations', { 'L-04 · La Esperanza': 'Buenos Aires', 'L-09 · El Ombu': 'Buenos Aires', 'L-12 · Santa Clara': 'Buenos Aires' });
     let registeredCompanies = loadList('pampa-companies', [{ name: 'Pampa Agropecuaria S.A.', taxId: '', address: '' }, { name: 'PampaPrecision Demo', taxId: '', address: '' }, { name: 'Establecimiento La Esperanza', taxId: '', address: '' }]);
     let registeredEquipment = loadList('pampa-equipment', []);
+    let registeredPurchases = loadList('pampa-purchases', []);
       let registeredBuyers = loadList('pampa-buyers', [{ name: 'Acopio La Pampa S.A.', taxId: '', role: 'Acopio' }, { name: 'Cerealera del Centro S.A.', taxId: '', role: 'Cerealista' }]);
       let registeredBanks = loadList('pampa-banks', ['Banco Nación', 'Banco Provincia', 'Banco Galicia', 'Banco Santander', 'BBVA', 'Banco Macro', 'Banco Credicoop', 'ICBC', 'Brubank', 'Ualá']);
     let registeredUsers = loadList('pampa-users', ['Marina R.', 'Lucas B.', 'Sofia M.']);
@@ -1633,7 +1634,13 @@
           showFieldsAndLotsModule();
         });
       } else if (label.includes('Nueva orden de compra')) {
-        openNewForm('Nueva orden de compra', [{ id: 'input', label: 'Insumo', placeholder: 'Ej. Glifosato 48%', full: true }, { id: 'quantity', label: 'Cantidad', type: 'number', placeholder: '0' }, { id: 'supplier', label: 'Proveedor', placeholder: 'Nombre comercial' }]);
+        openNewForm('Nueva compra', [{ id: 'movement', label: 'Tipo de movimiento', type: 'select', options: ['Ingreso', 'Consumo', 'Ajuste'] }, { id: 'input', label: 'Insumo', placeholder: 'Ej. Urea granulada' }, { id: 'quantity', label: 'Cantidad', type: 'number', placeholder: '0' }, { id: 'supplier', label: 'Proveedor', placeholder: 'Nombre comercial' }], formData => {
+          const purchase = { movement: formData.get('movement'), input: formData.get('input').trim(), quantity: Number(formData.get('quantity') || 0), supplier: formData.get('supplier').trim(), createdAt: new Date().toISOString() };
+          registeredPurchases.unshift(purchase);
+          localStorage.setItem('pampa-purchases', JSON.stringify(registeredPurchases));
+          recordAudit('Nueva compra', `${purchase.input} · ${purchase.quantity} · ${purchase.supplier}`);
+          showToast('Compra registrada localmente');
+        });
       } else if (label.includes('Nueva orden')) {
         openNewForm('Nueva orden de trabajo', [{ id: 'operation', label: 'Tipo de operacion', type: 'select', options: ['Aplicacion foliar', 'Fertilizacion', 'Relevamiento'] }, { id: 'plot', label: 'Lote', type: 'select', options: registeredLots }, { id: 'date', label: 'Fecha solicitada', type: 'date' }], formData => recordAudit('Creacion de orden de trabajo', formData.get('plot')));
       } else if (label.includes('Movimiento de stock')) {
