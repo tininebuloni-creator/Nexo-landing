@@ -228,6 +228,7 @@
         <button data-view="Telemetria y clima"><b class="nav-icon">T</b><span>Telemetria</span></button>
         <button data-view="Analitica"><b class="nav-icon">A</b><span>Analitica</span></button>
         <button data-view="Finanzas"><b class="nav-icon">$</b><span>Finanzas</span></button>
+        <button data-view="Rentabilidad"><b class="nav-icon">%</b><span>Rentabilidad</span></button>
         <button data-view="ARCA"><b class="nav-icon">A</b><span>ARCA</span></button>
         <button data-view="RRHH"><b class="nav-icon">H</b><span>RRHH</span></button>
         <button data-view="Usuarios y roles"><b class="nav-icon">R</b><span>Usuarios y roles</span></button>
@@ -252,42 +253,36 @@
       </header>
 
       <section class="metrics" aria-label="Indicadores principales">
-        <article class="metric"><div class="metric-label">Superficie activa</div><div class="metric-value">2.486 ha</div><div class="trend">+8,4% vs. campana anterior</div></article>
-        <article class="metric"><div class="metric-label">Ordenes en curso</div><div class="metric-value">18</div><div class="trend">12 dentro de plazo</div></article>
-        <article class="metric"><div class="metric-label">Cumplimiento operativo</div><div class="metric-value">86,2%</div><div class="trend">+4,1 pts este mes</div></article>
-        <article class="metric"><div class="metric-label">Alertas pendientes</div><div class="metric-value">07</div><div class="trend warn">2 requieren atencion hoy</div></article>
+        <article class="metric"><div class="metric-label">Superficie activa</div><div class="metric-value" id="dashboardSurface">0 ha</div><div class="trend" id="dashboardSurfaceTrend">Sin lotes registrados</div></article>
+        <article class="metric"><div class="metric-label">Ordenes en curso</div><div class="metric-value" id="dashboardOrders">0</div><div class="trend" id="dashboardOrdersTrend">Sin ordenes registradas</div></article>
+        <article class="metric"><div class="metric-label">Cumplimiento operativo</div><div class="metric-value" id="dashboardCompliance">0%</div><div class="trend" id="dashboardComplianceTrend">Sin datos operativos</div></article>
+        <article class="metric"><div class="metric-label">Alertas pendientes</div><div class="metric-value" id="dashboardAlerts">0</div><div class="trend warn" id="dashboardAlertsTrend">Sin alertas registradas</div></article>
       </section>
 
       <div class="layout">
         <div>
           <section class="panel">
-            <div class="panel-head"><div><h2>Superficie por ambiente</h2><p class="panel-caption">La Esperanza · 1.240 ha declaradas</p></div><button class="text-button" id="mapButton">Abrir mapa</button></div>
-            <div class="field-map" aria-label="Mapa esquematico de lotes productivos">
-              <div class="field field-a"></div><div class="field field-b"></div><div class="field field-c"></div>
-              <span class="field-label label-a">L-04 · 420 ha</span><span class="field-label label-b">L-09 · 380 ha</span><span class="field-label label-c">L-12 · 440 ha</span>
-              <div class="map-legend"><span class="legend-dot"></span>Rinde alto <span class="legend-dot blue"></span>Monitoreo</div>
+            <div class="panel-head"><div><h2>Superficie por ambiente</h2><p class="panel-caption" id="dashboardMapCaption">Sin lotes registrados</p></div><button class="text-button" id="mapButton">Abrir mapa</button></div>
+            <div class="field-map" id="dashboardFieldMap" aria-label="Mapa esquematico de lotes productivos">
+              <div class="map-legend">No hay lotes registrados para mostrar.</div>
             </div>
           </section>
           <section class="panel jobs">
             <div class="panel-head"><div><h2>Ordenes de trabajo recientes</h2><p class="panel-caption">Ejecuciones y avance de campo</p></div><button class="text-button" id="jobsButton">Ver todas</button></div>
-            <div class="job"><i class="status"></i><div><strong>Aplicacion foliar · Lote L-04</strong><span>La Esperanza · Iniciada hace 2 h</span><div class="progress"><i style="width: 74%"></i></div></div><b>74%</b></div>
-            <div class="job"><i class="status yellow"></i><div><strong>Fertilizacion nitrogenada · Lote L-09</strong><span>El Ombu · Programada para hoy</span><div class="progress"><i class="yellow" style="width: 42%"></i></div></div><b>42%</b></div>
-            <div class="job"><i class="status red"></i><div><strong>Relevamiento de malezas · Lote L-12</strong><span>Santa Clara · Vencida hace 1 dia</span><div class="progress"><i class="red" style="width: 18%"></i></div></div><b>18%</b></div>
+            <div id="dashboardJobsEmpty" class="job"><i class="status"></i><div><strong>Sin ordenes de trabajo</strong><span>Las ordenes apareceran cuando se registren.</span></div></div>
           </section>
         </div>
         <div>
           <section class="panel">
             <div class="panel-head"><div><h2>Alertas que requieren accion</h2><p class="panel-caption">Actualizado hace 12 minutos</p></div><button class="text-button" id="alertsButton">Gestionar</button></div>
-            <div class="alerts">
-              <div class="alert critical"><div class="alert-head"><span>Condicion de aplicacion</span><span>Critica</span></div><p>Viento superior al limite en L-04. Revisar antes de reanudar la orden.</p></div>
-              <div class="alert"><div class="alert-head"><span>Stock bajo</span><span>Atencion</span></div><p>Glifosato 48% por debajo del minimo operativo. Quedan 320 L.</p></div>
-              <div class="alert info"><div class="alert-head"><span>Dato satelital disponible</span><span>Nuevo</span></div><p>Indice NDVI actualizado para 14 lotes de La Esperanza.</p></div>
+            <div class="alerts" id="dashboardAlertsList">
+              <div class="alert info"><div class="alert-head"><span>Sin alertas</span><span>Informacion</span></div><p>No hay alertas operativas registradas.</p></div>
             </div>
           </section>
           <section class="panel" style="margin-top:19px">
             <div class="panel-head"><div><h2>Rinde estimado</h2><p class="panel-caption">Toneladas por hectarea · maiz</p></div><span class="eyebrow">Campana actual</span></div>
-            <div class="chart"><div class="bar-wrap"><div class="bar dim" style="height:58%"></div><span>L-04</span></div><div class="bar-wrap"><div class="bar selected" style="height:82%"></div><span>L-09</span></div><div class="bar-wrap"><div class="bar" style="height:69%"></div><span>L-12</span></div><div class="bar-wrap"><div class="bar dim" style="height:48%"></div><span>L-16</span></div><div class="bar-wrap"><div class="bar" style="height:64%"></div><span>L-21</span></div></div>
-            <div class="footnote">Promedio del establecimiento: <strong>8,6 t/ha</strong> <span class="trend">+6,8%</span></div>
+            <div class="chart" id="dashboardYieldChart"><div class="map-legend">Sin datos de rinde registrados.</div></div>
+            <div class="footnote">Promedio del establecimiento: <strong id="dashboardYieldAverage">Sin datos</strong></div>
           </section>
         </div>
       </div>
@@ -306,43 +301,36 @@
     const modalRoot = document.querySelector('#modalRoot');
     const connectionStatus = document.querySelector('#connectionStatus');
     const main = document.querySelector('main');
-    let dashboard;
+    const dashboard = main.innerHTML;
     let activeModuleView = 'Centro operativo';
     const activeTenantId = '10000000-0000-0000-0000-000000000001';
-    const trialMode = new URLSearchParams(window.location.search).get('trial') === 'auto';
-    const cleanInstallMode = trialMode || localStorage.getItem('pampa-clean-install') === '1';
-    const cleanInstallDataKeys = new Set(['pampa-fields', 'pampa-lots', 'pampa-field-details', 'pampa-lot-details', 'pampa-lot-locations', 'pampa-companies', 'pampa-buyers', 'pampa-banks', 'pampa-users', 'pampa-roles', 'pampa-imported-geojson', 'pampa-audit-events', 'pampa-calibration-records', 'pampa-historical-imports']);
-    if (cleanInstallMode) {
-      main.querySelectorAll('.metric-value').forEach(element => { element.textContent = '0'; });
-      main.querySelectorAll('.trend').forEach(element => { element.textContent = 'Sin datos cargados'; });
-      main.querySelectorAll('.jobs .job, .alerts .alert').forEach(element => element.remove());
-      main.querySelectorAll('.jobs, .alerts').forEach(element => { element.innerHTML = '<div class="empty-state">Sin datos cargados</div>'; });
-      main.querySelectorAll('.field-map, .chart').forEach(element => { element.innerHTML = '<div class="empty-state">Sin datos cargados</div>'; });
-      main.querySelectorAll('.panel-caption, .footnote, .panel .eyebrow').forEach(element => { element.textContent = 'Sin datos cargados'; });
-    }
-    dashboard = main.innerHTML;
+    const isTrialMode = !licenseCache.getLocal()?.license;
     window.lpgConfig = { provinces: [] };
     api.getLpgConfig().then(config => { window.lpgConfig = config; }).catch(() => {});
     function loadList(key, fallback) {
-      if (cleanInstallMode && cleanInstallDataKeys.has(key)) return [];
       try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; }
     }
-    let registeredFields = loadList('pampa-fields', ['La Esperanza', 'El Ombu', 'Santa Clara']);
-    let registeredLots = loadList('pampa-lots', ['L-04 · La Esperanza', 'L-09 · El Ombu', 'L-12 · Santa Clara']);
-    let registeredFieldDetails = loadList('pampa-field-details', [
-      { name: 'La Esperanza', latitude: -34.6128, longitude: -58.4281, surface: 1240, reference: 'Partido de Pergamino · Buenos Aires' },
-      { name: 'El Ombu', latitude: -34.6098, longitude: -58.4254, surface: 780, reference: 'Buenos Aires' },
-      { name: 'Santa Clara', latitude: -34.6171, longitude: -58.4298, surface: 466, reference: 'Buenos Aires' }
-    ]);
-    let registeredLotDetails = loadList('pampa-lot-details', [
-      { code: 'L-04', field: 'La Esperanza', surface: 420, latitude: -34.6142, longitude: -58.4310 },
-      { code: 'L-09', field: 'El Ombu', surface: 380, latitude: -34.6098, longitude: -58.4254 },
-      { code: 'L-12', field: 'Santa Clara', surface: 440, latitude: -34.6171, longitude: -58.4298 }
-    ]);
-    const legacyDemoLots = registeredLotDetails.length === 3 && registeredLotDetails.every(lot => ['L-04', 'L-09', 'L-12'].includes(lot.code) && lot.field === 'La Esperanza');
-    if (legacyDemoLots) {
-      registeredLotDetails = registeredLotDetails.map(lot => ({ ...lot, field: lot.code === 'L-09' ? 'El Ombu' : lot.code === 'L-12' ? 'Santa Clara' : lot.field }));
+    let registeredFields = loadList('pampa-fields', []);
+    let registeredLots = loadList('pampa-lots', []);
+    let registeredFieldDetails = loadList('pampa-field-details', []);
+    const demoFieldNames = new Set(['La Esperanza', 'El Ombu', 'Santa Clara']);
+    const cleanFieldDetails = registeredFieldDetails.filter(field => !demoFieldNames.has(field.name));
+    const cleanFields = registeredFields.filter(field => !demoFieldNames.has(field));
+    if (cleanFieldDetails.length !== registeredFieldDetails.length || cleanFields.length !== registeredFields.length) {
+      registeredFieldDetails = cleanFieldDetails;
+      registeredFields = cleanFields;
+      localStorage.setItem('pampa-field-details', JSON.stringify(registeredFieldDetails));
+      localStorage.setItem('pampa-fields', JSON.stringify(registeredFields));
+    }
+    let registeredLotDetails = loadList('pampa-lot-details', []);
+    const demoLotCodes = new Set(['L-04', 'L-09', 'L-12']);
+    const cleanLotDetails = registeredLotDetails.filter(lot => !demoLotCodes.has(lot.code));
+    const cleanLots = registeredLots.filter(lot => ![...demoLotCodes].some(code => lot.startsWith(`${code} ·`)));
+    if (cleanLotDetails.length !== registeredLotDetails.length || cleanLots.length !== registeredLots.length) {
+      registeredLotDetails = cleanLotDetails;
+      registeredLots = cleanLots;
       localStorage.setItem('pampa-lot-details', JSON.stringify(registeredLotDetails));
+      localStorage.setItem('pampa-lots', JSON.stringify(registeredLots));
     }
     let importedGeoJson = loadList('pampa-imported-geojson', []);
     let lotMapInstance = null;
@@ -350,6 +338,9 @@
     let precisionResizeTimer = null;
     let lotLocations = loadList('pampa-lot-locations', { 'L-04 · La Esperanza': 'Buenos Aires', 'L-09 · El Ombu': 'Buenos Aires', 'L-12 · Santa Clara': 'Buenos Aires' });
     let registeredCompanies = loadList('pampa-companies', [{ name: 'Pampa Agropecuaria S.A.', taxId: '', address: '' }, { name: 'PampaPrecision Demo', taxId: '', address: '' }, { name: 'Establecimiento La Esperanza', taxId: '', address: '' }]);
+    let registeredEquipment = loadList('pampa-equipment', []);
+    let registeredPurchases = loadList('pampa-purchases', []);
+    let registeredRevenues = loadList('pampa-revenues', []);
       let registeredBuyers = loadList('pampa-buyers', [{ name: 'Acopio La Pampa S.A.', taxId: '', role: 'Acopio' }, { name: 'Cerealera del Centro S.A.', taxId: '', role: 'Cerealista' }]);
       let registeredBanks = loadList('pampa-banks', ['Banco Nación', 'Banco Provincia', 'Banco Galicia', 'Banco Santander', 'BBVA', 'Banco Macro', 'Banco Credicoop', 'ICBC', 'Brubank', 'Ualá']);
     let registeredUsers = loadList('pampa-users', ['Marina R.', 'Lucas B.', 'Sofia M.']);
@@ -392,7 +383,7 @@
     const sidebarCompanySelector = document.querySelector('#sidebarCompanySelector');
     function refreshCompanyOptions() {
       sidebarCompanySelector.innerHTML = registeredCompanies.map(company => `<option>${company.name}</option>`).join('');
-      sidebarCompanySelector.value = localStorage.getItem('pampa-company') || registeredCompanies[0]?.name || '';
+      sidebarCompanySelector.value = localStorage.getItem('pampa-company') || registeredCompanies[0].name;
     }
     refreshCompanyOptions();
     sidebarCompanySelector.addEventListener('change', event => { localStorage.setItem('pampa-company', event.target.value); showToast(`Empresa activa: ${event.target.value}`); });
@@ -1389,6 +1380,19 @@
         downloadFile(JSON.stringify(payload, null, 2), `plan-equipamiento-${new Date().toISOString().slice(0, 10)}.json`, 'application/json');
         recordAudit('Exportacion plan equipamiento', 'JSON reglas y catalogo');
         showToast('Plan de equipamiento exportado');
+      } else if (label === 'Exportar rentabilidad') {
+        const rows = [['Concepto', 'Importe'], ['Ingresos', registeredRevenues.reduce((total, item) => total + Number(item.amount || 0), 0)], ['Costos', registeredPurchases.reduce((total, item) => total + Number(item.invoiceTotal || 0), 0)]];
+        downloadFile(rows.map(row => row.join(',')).join('\n'), `rentabilidad-${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8');
+        showToast('Reporte de rentabilidad descargado');
+      } else if (label === 'Nuevo ingreso productivo') {
+        openNewForm('Registrar ingreso productivo', [{ id: 'revenueLot', label: 'Lote', type: 'select', options: ['General', ...registeredLotDetails.map(lot => lot.code)] }, { id: 'revenueConcept', label: 'Concepto', placeholder: 'Venta de cosecha / servicio', full: true }, { id: 'revenueAmount', label: 'Importe (USD)', type: 'number', placeholder: '0' }, { id: 'revenueDate', label: 'Fecha', type: 'date' }], formData => {
+          const revenue = { lot: formData.get('revenueLot'), concept: formData.get('revenueConcept').trim(), amount: Number(formData.get('revenueAmount') || 0), date: formData.get('revenueDate') || new Date().toISOString().slice(0, 10) };
+          registeredRevenues.unshift(revenue);
+          localStorage.setItem('pampa-revenues', JSON.stringify(registeredRevenues));
+          recordAudit('Nuevo ingreso productivo', `${revenue.lot} · ${revenue.amount}`);
+          showToast('Ingreso registrado localmente');
+          renderTrialProfitability();
+        });
       } else if (label === 'Nuevo registro de calibracion') {
         const options = calibrationProtocol.map(item => item.system);
         openNewForm('Nuevo registro de calibracion', [{ id: 'calDate', label: 'Fecha', type: 'date' }, { id: 'calSystem', label: 'Sistema', type: 'select', options }, { id: 'calEquipment', label: 'Equipo / componente', placeholder: 'Ej. GNSS receptor + IMU', full: true }, { id: 'calStandard', label: 'Patron usado', placeholder: 'Ej. Manometro clase 1', full: true }, { id: 'calFactorBefore', label: 'Factor anterior', placeholder: '1.000' }, { id: 'calFactorAfter', label: 'Factor nuevo', placeholder: '0.986' }, { id: 'calDeviation', label: 'Desvio (%)', type: 'number', placeholder: '0' }, { id: 'calFrequency', label: 'Frecuencia', type: 'select', options: calibrationProtocol.map(item => item.frequency) }, { id: 'calClosure', label: 'Validacion de cierre', type: 'select', options: ['si', 'no'] }, { id: 'calResponsible', label: 'Responsable', placeholder: 'Tecnico de precision' }, { id: 'calNote', label: 'Observaciones', placeholder: 'Resultado, deriva y accion correctiva', full: true }], formData => {
@@ -1420,7 +1424,21 @@
         recordAudit('Exportacion calibraciones', 'CSV de trazabilidad');
         showToast('Planilla de calibraciones descargada');
       } else if (label === 'Nueva maquina') {
-        openNewForm('Nuevo equipo de precision', [{ id: 'machineCode', label: 'Codigo', placeholder: 'EQ-001' }, { id: 'machineCategory', label: 'Funcion del equipo', type: 'select', options: precisionMachineFormOptions }, { id: 'machineBrand', label: 'Marca' }, { id: 'machineModel', label: 'Modelo' }, { id: 'machineHourlyCost', label: 'Costo horario (USD)', type: 'number', placeholder: '35' }], async formData => { await api.createMachine(activeTenantId, { code: formData.get('machineCode'), category: formData.get('machineCategory'), brand: formData.get('machineBrand'), model: formData.get('machineModel'), hourlyCostUsd: Number(formData.get('machineHourlyCost') || 35) }); showToast('Equipo registrado'); loadAgriculturalModule(); });
+        openNewForm('Nuevo equipo de precision', [{ id: 'machineCode', label: 'Codigo', placeholder: 'EQ-001' }, { id: 'machineCategory', label: 'Funcion del equipo', type: 'select', options: precisionMachineFormOptions }, { id: 'machineBrand', label: 'Marca' }, { id: 'machineModel', label: 'Modelo' }, { id: 'machineHourlyCost', label: 'Costo horario (USD)', type: 'number', placeholder: '35' }], async formData => {
+          const equipment = { code: formData.get('machineCode').trim(), category: formData.get('machineCategory'), brand: formData.get('machineBrand').trim(), model: formData.get('machineModel').trim(), hourlyCostUsd: Number(formData.get('machineHourlyCost') || 35) };
+          if (isTrialMode) {
+            if (registeredEquipment.some(item => item.code === equipment.code)) throw new Error('Ya existe un equipo con ese código');
+            registeredEquipment.push(equipment);
+            localStorage.setItem('pampa-equipment', JSON.stringify(registeredEquipment));
+            recordAudit('Nuevo equipo', equipment.code);
+            showToast('Equipo registrado localmente');
+            if (activeModuleView === 'Inventario') { main.innerHTML = moduleViews.Inventario; bindModuleActions(); clearTrialModuleDemo('Inventario'); }
+          } else {
+            await api.createMachine(activeTenantId, equipment);
+            showToast('Equipo registrado');
+            loadAgriculturalModule();
+          }
+        });
       } else if (label === 'Cargar eventos telemetria') {
         openNewForm('Cargar eventos de maquinaria', [{ id: 'device', label: 'Dispositivo', type: 'select', options: ['GNSS-RTK-01 · Posicionamiento y guiado', 'VRA-SEED-02 · Siembra variable', 'PWM-SPR-03 · Pulverizacion inteligente', 'NIR-HRV-04 · Cosecha y calidad', 'IOT-LORA-05 · Telemetria y conectividad'], full: true }, { id: 'eventCount', label: 'Cantidad de eventos', type: 'number', placeholder: '1000' }, { id: 'eventDate', label: 'Fecha de los eventos', type: 'date' }], formData => { recordAudit('Ingesta bulk de telemetria', formData.get('device')); });
       } else if (label === 'Configurar ARCA') {
@@ -1471,7 +1489,20 @@
           showToast(`${label} registrada`); loadAgriculturalModule();
         });
       } else if (label === 'Nueva maquina') {
-        openNewForm('Nueva maquina', [{ id: 'machineCode', label: 'Codigo', placeholder: 'TR-001' }, { id: 'machineCategory', label: 'Categoria', type: 'select', options: ['tractor', 'cosechadora', 'sembradora', 'pulverizadora', 'camion'] }, { id: 'machineBrand', label: 'Marca' }, { id: 'machineModel', label: 'Modelo' }, { id: 'machineHourlyCost', label: 'Costo horario (USD)', type: 'number', placeholder: '35' }], async formData => { await api.createMachine(activeTenantId, { code: formData.get('machineCode'), category: formData.get('machineCategory'), brand: formData.get('machineBrand'), model: formData.get('machineModel'), hourlyCostUsd: Number(formData.get('machineHourlyCost') || 35) }); showToast('Maquina registrada'); loadAgriculturalModule(); });
+        openNewForm('Nueva maquina', [{ id: 'machineCode', label: 'Codigo', placeholder: 'TR-001' }, { id: 'machineCategory', label: 'Categoria', type: 'select', options: ['tractor', 'cosechadora', 'sembradora', 'pulverizadora', 'camion'] }, { id: 'machineBrand', label: 'Marca' }, { id: 'machineModel', label: 'Modelo' }, { id: 'machineHourlyCost', label: 'Costo horario (USD)', type: 'number', placeholder: '35' }], async formData => {
+          const equipment = { code: formData.get('machineCode').trim(), category: formData.get('machineCategory'), brand: formData.get('machineBrand').trim(), model: formData.get('machineModel').trim(), hourlyCostUsd: Number(formData.get('machineHourlyCost') || 35) };
+          if (isTrialMode) {
+            if (registeredEquipment.some(item => item.code === equipment.code)) throw new Error('Ya existe un equipo con ese código');
+            registeredEquipment.push(equipment);
+            localStorage.setItem('pampa-equipment', JSON.stringify(registeredEquipment));
+            recordAudit('Nueva maquina', equipment.code);
+            showToast('Maquina registrada localmente');
+          } else {
+            await api.createMachine(activeTenantId, equipment);
+            showToast('Maquina registrada');
+            loadAgriculturalModule();
+          }
+        });
       } else if (label === 'Planificar mantenimiento') {
         const machineOptions = await agriculturalMachineOptions();
         openNewForm('Planificar mantenimiento', [{ id: 'maintenanceMachine', label: 'Maquina', type: 'select', options: machineOptions.map(item => `${item.value} · ${item.label}`), full: true }, { id: 'maintenanceDescription', label: 'Trabajo requerido', placeholder: 'Cambio de aceite y filtros', full: true }, { id: 'maintenanceDue', label: 'Vencimiento', type: 'date' }, { id: 'maintenancePriority', label: 'Prioridad', type: 'select', options: ['low', 'medium', 'high'] }, { id: 'maintenanceCost', label: 'Costo estimado (USD)', type: 'number', placeholder: '0' }], async formData => { await api.createMaintenance(activeTenantId, { machineId: formData.get('maintenanceMachine').split(' · ')[0], description: formData.get('maintenanceDescription'), dueAt: formData.get('maintenanceDue'), priority: formData.get('maintenancePriority'), estimatedCostUsd: Number(formData.get('maintenanceCost') || 0) }); showToast('Mantenimiento planificado'); loadAgriculturalModule(); });
@@ -1618,7 +1649,13 @@
           showFieldsAndLotsModule();
         });
       } else if (label.includes('Nueva orden de compra')) {
-        openNewForm('Nueva orden de compra', [{ id: 'input', label: 'Insumo', placeholder: 'Ej. Glifosato 48%', full: true }, { id: 'quantity', label: 'Cantidad', type: 'number', placeholder: '0' }, { id: 'supplier', label: 'Proveedor', placeholder: 'Nombre comercial' }]);
+        openNewForm('Nueva compra', [{ id: 'movement', label: 'Tipo de movimiento', type: 'select', options: ['Ingreso', 'Consumo', 'Ajuste'] }, { id: 'input', label: 'Insumo', placeholder: 'Ej. Urea granulada' }, { id: 'quantity', label: 'Cantidad', type: 'number', placeholder: '0' }, { id: 'supplier', label: 'Proveedor', placeholder: 'Nombre comercial' }, { id: 'invoiceNumber', label: 'Factura del proveedor', placeholder: '0001-00001234' }, { id: 'invoiceDate', label: 'Fecha de factura', type: 'date' }, { id: 'invoiceTotal', label: 'Total a pagar', type: 'number', placeholder: '0' }], formData => {
+          const purchase = { movement: formData.get('movement'), input: formData.get('input').trim(), quantity: Number(formData.get('quantity') || 0), supplier: formData.get('supplier').trim(), invoiceNumber: formData.get('invoiceNumber').trim(), invoiceDate: formData.get('invoiceDate'), invoiceTotal: Number(formData.get('invoiceTotal') || 0), createdAt: new Date().toISOString() };
+          registeredPurchases.unshift(purchase);
+          localStorage.setItem('pampa-purchases', JSON.stringify(registeredPurchases));
+          recordAudit('Nueva compra', `${purchase.input} · ${purchase.quantity} · ${purchase.supplier}`);
+          showToast('Compra registrada localmente');
+        });
       } else if (label.includes('Nueva orden')) {
         openNewForm('Nueva orden de trabajo', [{ id: 'operation', label: 'Tipo de operacion', type: 'select', options: ['Aplicacion foliar', 'Fertilizacion', 'Relevamiento'] }, { id: 'plot', label: 'Lote', type: 'select', options: registeredLots }, { id: 'date', label: 'Fecha solicitada', type: 'date' }], formData => recordAudit('Creacion de orden de trabajo', formData.get('plot')));
       } else if (label.includes('Movimiento de stock')) {
@@ -1648,12 +1685,17 @@
         <div class="layout" style="margin-top:19px"><section class="panel"><div class="panel-head"><div><h2>Asistencia y novedades</h2><p class="panel-caption">Parte diario de las últimas jornadas</p></div><button class="text-button" data-action="Registrar asistencia">+ Registrar</button></div><table class="data-table"><thead><tr><th>Fecha</th><th>Empleado</th><th>Estado</th><th>Horas</th><th>Extra</th></tr></thead><tbody id="hrAttendanceRows"><tr><td colspan="5">Cargando...</td></tr></tbody></table></section><section class="panel"><div class="panel-head"><div><h2>Liquidaciones</h2><p class="panel-caption">Períodos, personas y costo neto</p></div><button class="text-button" data-action="Nueva liquidacion">+ Nuevo período</button></div><table class="data-table"><thead><tr><th>Período</th><th>Personas</th><th>Total neto</th><th>Estado</th></tr></thead><tbody id="hrPayrollRows"><tr><td colspan="4">Cargando...</td></tr></tbody></table></section></div></section>`,
       'Finanzas': `
         <header class="topbar"><div><div class="eyebrow">Workspace / Gestion financiera</div><h1>Finanzas</h1></div><div class="toolbar"><button class="button" data-action="Nueva cuenta de fondos">+ Cuenta</button><button class="button" data-action="Nuevo movimiento">+ Movimiento</button><button class="button" data-action="Nueva LPG">+ LPG</button><button class="button primary" data-action="Nueva venta">+ Nueva venta</button></div></header>
-        <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Ventas emitidas</span><strong id="financeSalesTotal">$ 0</strong></article><article class="panel module-stat warning"><span>Por cobrar</span><strong id="financeReceivable">$ 0</strong></article><article class="panel module-stat"><span>Saldo de fondos</span><strong id="financeCashBalance">$ 0</strong></article><article class="panel module-stat"><span>Flujo neto</span><strong id="financeNetFlow">$ 0</strong></article><article class="panel module-stat warning"><span>Créditos abiertos</span><strong id="financeCreditBalance">$ 0</strong></article><article class="panel module-stat danger"><span>Vencidos</span><strong id="financeOverdueCredits">0 · $ 0</strong></article></div>
+        <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Ventas emitidas</span><strong id="financeSalesTotal">$ 0</strong></article><article class="panel module-stat warning"><span>Por cobrar</span><strong id="financeReceivable">$ 0</strong></article><article class="panel module-stat danger"><span>Por pagar</span><strong id="financePayableTotal">$ 0</strong></article><article class="panel module-stat"><span>Saldo de fondos</span><strong id="financeCashBalance">$ 0</strong></article><article class="panel module-stat"><span>Flujo neto</span><strong id="financeNetFlow">$ 0</strong></article><article class="panel module-stat warning"><span>Créditos abiertos</span><strong id="financeCreditBalance">$ 0</strong></article><article class="panel module-stat danger"><span>Vencidos</span><strong id="financeOverdueCredits">0 · $ 0</strong></article></div>
         <section class="panel"><div class="panel-head"><div><h2>Liquidaciones Primarias de Granos</h2><p class="panel-caption">COE, productor, grano, documentos de respaldo, retenciones y saldo neto</p></div><button class="text-button" data-action="Nueva LPG">+ Emitir LPG</button></div><table class="data-table"><thead><tr><th>Comprobante / COE</th><th>Productor</th><th>Grano / campana</th><th>Peso neto</th><th>Neto a pagar</th><th>Estado</th></tr></thead><tbody id="financeLpgRows"><tr><td colspan="6">Cargando...</td></tr></tbody></table></section>
         <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Ventas registradas</h2><p class="panel-caption">Comprobantes, clientes, importes y estado de cobro</p></div><button class="text-button" data-action="Nueva venta">+ Registrar venta</button></div><table class="data-table"><thead><tr><th>Comprobante</th><th>Cliente</th><th>Detalle</th><th>Total</th><th>Cobro</th></tr></thead><tbody id="financeSalesRows"><tr><td colspan="5">Cargando...</td></tr></tbody></table></section>
         <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Créditos y cuentas por cobrar</h2><p class="panel-caption">Capital, vencimiento, saldo pendiente y estado</p></div><div class="toolbar"><button class="text-button" data-action="Cobrar crédito">Registrar cobro</button><button class="text-button" data-action="Nuevo crédito">+ Nuevo crédito</button></div></div><table class="data-table"><thead><tr><th>Crédito</th><th>Cliente</th><th>Vencimiento</th><th>Saldo</th><th>Estado</th></tr></thead><tbody id="financeCreditRows"><tr><td colspan="5">Cargando...</td></tr></tbody></table></section>
         <div class="layout" style="margin-top:19px"><section class="panel"><div class="panel-head"><div><h2>Cuentas de fondos</h2><p class="panel-caption">Caja, bancos y billeteras operativas</p></div><button class="text-button" data-action="Nueva cuenta de fondos">+ Nueva cuenta</button></div><table class="data-table"><thead><tr><th>Cuenta</th><th>Moneda</th><th>Saldo</th><th>Estado</th></tr></thead><tbody id="financeAccountRows"><tr><td colspan="4">Cargando...</td></tr></tbody></table></section><section class="panel"><div class="panel-head"><div><h2>Flujo diario</h2><p class="panel-caption">Ingresos y egresos confirmados</p></div><span class="eyebrow">Periodo actual</span></div><table class="data-table"><thead><tr><th>Fecha</th><th>Ingresos</th><th>Egresos</th><th>Neto</th></tr></thead><tbody id="financeFlowRows"><tr><td colspan="4">Cargando...</td></tr></tbody></table></section></div>
         <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Movimientos de fondos</h2><p class="panel-caption">Registro bancario y de caja</p></div><div class="toolbar"><button class="text-button" data-action="Registrar cobro">Registrar cobro</button><button class="text-button" data-action="Nuevo movimiento">+ Registrar movimiento</button></div></div><table class="data-table"><thead><tr><th>Fecha</th><th>Cuenta</th><th>Descripcion</th><th>Tipo</th><th>Importe</th></tr></thead><tbody id="financeMovementRows"><tr><td colspan="5">Cargando...</td></tr></tbody></table></section></section>`,
+      'Rentabilidad': `
+        <header class="topbar"><div><div class="eyebrow">Workspace / Decisiones económicas</div><h1>Rentabilidad</h1></div><div class="toolbar"><select id="profitabilityCampaign" aria-label="Campaña"><option>2025 / 2026</option></select><button class="button" data-action="Exportar rentabilidad">Exportar reporte</button><button class="button primary" data-action="Nuevo ingreso productivo">+ Registrar ingreso</button></div></header>
+        <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Ingresos registrados</span><strong id="profitRevenue">$ 0</strong></article><article class="panel module-stat danger"><span>Costos registrados</span><strong id="profitCosts">$ 0</strong></article><article class="panel module-stat warning"><span>Resultado neto</span><strong id="profitNet">$ 0</strong></article><article class="panel module-stat"><span>Margen</span><strong id="profitMargin">0%</strong></article></div>
+        <section class="panel"><div class="panel-head"><div><h2>Resultado económico</h2><p class="panel-caption">Ingresos, costos y margen de la campaña activa</p></div><span class="pill" id="profitabilityState">Sin datos</span></div><table class="data-table"><thead><tr><th>Concepto</th><th>Importe</th><th>Origen</th><th>Estado</th></tr></thead><tbody id="profitabilitySummaryRows"><tr><td colspan="4">Sin datos de rentabilidad registrados.</td></tr></tbody></table></section>
+        <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Rentabilidad por lote</h2><p class="panel-caption">Comparación de ingresos, costos directos y resultado</p></div><span class="pill yellow">Pendiente de datos</span></div><table class="data-table"><thead><tr><th>Lote</th><th>Ingresos</th><th>Costos</th><th>Resultado</th><th>Margen</th></tr></thead><tbody id="profitabilityLotRows"><tr><td colspan="5">Registrá ingresos y costos para calcular la rentabilidad por lote.</td></tr></tbody></table></section></section>`,
       'Agricola': `
         <header class="topbar"><div><div class="eyebrow">Workspace / Produccion agricola</div><h1>Modulo agricola</h1></div><div class="toolbar"><button class="button" data-action="Planificar siembra">+ Siembra</button><button class="button" data-action="Planificar cosecha">+ Cosecha</button><button class="button primary" data-action="Nuevo costo operativo">+ Costo operativo</button></div></header>
         <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Maquinas activas</span><strong id="agriMachinesCount">0</strong></article><article class="panel module-stat warning"><span>Mantenimientos pendientes</span><strong id="agriMaintenanceCount">0</strong></article><article class="panel module-stat"><span>Cosecha registrada</span><strong id="agriHarvestTotal">0 tn</strong></article><article class="panel module-stat danger"><span>Costos operativos</span><strong id="agriCostTotal">$ 0</strong></article></div>
@@ -1676,11 +1718,11 @@
         <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Cómo funciona Offline-First</h2><p class="panel-caption">Tu trabajo está siempre disponible, incluso sin conexión</p></div></div><div class="footnote" style="line-height:1.8;"><strong>1️⃣ Guardar localmente:</strong> Todos los cambios se guardan inmediatamente en tu dispositivo (IndexedDB)<br><strong>2️⃣ Trabajar sin conexión:</strong> Seguís accediendo a datos y creando registros normalmente<br><strong>3️⃣ Sincronizar al conectar:</strong> Cuando recuperas conexión, los datos se envían automáticamente al destino configurado<br><strong>4️⃣ Resolver conflictos:</strong> Si hay cambios en ambos lados, se fusionan inteligentemente</div></section>
         <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Estado de sincronización</h2><p class="panel-caption">Cambios pendientes por sincronizar</p></div></div><div id="syncQueueStatus" style="padding:15px;background:#f0f0f0;border-radius:6px;"><i>Cargando estado...</i></div></section></section>`,
       'Inventario': `
-        <header class="topbar"><div><div class="eyebrow">Workspace / Abastecimiento</div><h1>Inventario</h1></div><div class="toolbar"><button class="button" data-action="Recepcion de compra">Recepcion</button><button class="button" data-action="Registrar factura">Factura</button><button class="button" data-action="Movimiento de stock iniciado">Registrar movimiento</button><button class="button primary" data-action="Nueva orden de compra creada">+ Nueva compra</button></div></header>
-        <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Valor en stock</span><strong>$ 48,6 M</strong></article><article class="panel module-stat warning"><span>Items bajo minimo</span><strong>07</strong></article><article class="panel module-stat"><span>Compras pendientes</span><strong>04</strong></article></div><section class="panel"><div class="panel-head"><div><h2>Existencias por insumo</h2><p class="panel-caption">Stock disponible y punto de reposicion</p></div><button class="text-button" data-action="Inventario exportado">Exportar</button></div><table class="data-table"><thead><tr><th>Insumo</th><th>Categoria</th><th>Disponible</th><th>Minimo</th><th>Estado</th></tr></thead><tbody><tr><td><strong>Glifosato 48%</strong><small>Herbicida</small></td><td>Fitosanitario</td><td>320 L</td><td>500 L</td><td><span class="pill red">Reponer</span></td></tr><tr><td><strong>Urea granulada</strong><small>Fertilizante</small></td><td>Fertilizante</td><td>18.400 kg</td><td>12.000 kg</td><td><span class="pill">Disponible</span></td></tr><tr><td><strong>Diesel agro</strong><small>Combustible</small></td><td>Combustible</td><td>8.240 L</td><td>6.000 L</td><td><span class="pill">Disponible</span></td></tr></tbody></table></section></section>`,
+        <header class="topbar"><div><div class="eyebrow">Workspace / Abastecimiento</div><h1>Inventario</h1></div><div class="toolbar"><button class="button" data-action="Recepcion de compra">Recepcion</button><button class="button" data-action="Registrar factura">Factura</button><button class="button primary" data-action="Nueva orden de compra creada">+ Nueva compra</button></div></header>
+        <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Valor en stock</span><strong>$ 0</strong></article><article class="panel module-stat warning"><span>Items bajo minimo</span><strong>0</strong></article><article class="panel module-stat"><span>Compras pendientes</span><strong>0</strong></article></div><section class="panel"><div class="panel-head"><div><h2>Existencias por insumo</h2><p class="panel-caption">Stock disponible y punto de reposicion</p></div><button class="text-button" data-action="Inventario exportado">Exportar</button></div><table class="data-table"><thead><tr><th>Insumo</th><th>Categoria</th><th>Disponible</th><th>Minimo</th><th>Estado</th></tr></thead><tbody><tr><td colspan="5">Sin insumos registrados.</td></tr></tbody></table></section><section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Equipos y maquinaria</h2><p class="panel-caption">Activos disponibles para las operaciones de campo</p></div><button class="text-button" data-action="Nueva maquina">+ Nuevo equipo</button></div><table class="data-table"><thead><tr><th>Código</th><th>Función</th><th>Marca / modelo</th><th>Costo horario</th><th>Estado</th></tr></thead><tbody id="inventoryEquipmentRows"><tr><td colspan="5">Sin equipos registrados.</td></tr></tbody></table></section></section>`,
       'Precision': `
         <header class="topbar"><div><div class="eyebrow">Workspace / Geoespacial</div><h1>Precision</h1></div><div class="toolbar"><button class="button" data-action="Cargar mapa de rinde">Cargar rinde</button><button class="button" data-action="Nueva prescripcion">+ Prescripcion</button><button class="button primary" data-action="Prescripcion exportada">Exportar prescripcion</button></div></header>
-        <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Lotes monitoreados</span><strong>42</strong></article><article class="panel module-stat"><span>NDVI actualizado</span><strong>94%</strong></article><article class="panel module-stat danger"><span>Zonas con variabilidad</span><strong>09</strong></article></div><section class="panel"><div class="panel-head"><div><h2>Mapa multicapa</h2><p class="panel-caption" id="precisionLayerCaption">Índice verde de vigor por lote</p></div><div class="toolbar"><span class="pill" id="precisionLayerState">NDVI</span><select id="precisionMapField" aria-label="Establecimiento"></select><select id="precisionMapLot" aria-label="Enfocar lote"></select><select id="precisionMapLayer" aria-label="Capa del mapa"><option value="ndvi">Índice NDVI</option><option value="yield">Mapa de rinde</option><option value="prescription">Prescripción de siembra</option></select></div></div><div id="lotMap" aria-label="Mapa Leaflet de precision" style="height:330px"></div><div class="precision-legend" id="precisionLayerLegend" aria-live="polite"></div></section></section>`,
+        <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Lotes monitoreados</span><strong id="precisionMonitoredLots">0</strong></article><article class="panel module-stat"><span>NDVI actualizado</span><strong id="precisionNdviUpdated">0%</strong></article><article class="panel module-stat danger"><span>Zonas con variabilidad</span><strong id="precisionVariableZones">0</strong></article></div><section class="panel"><div class="panel-head"><div><h2>Mapa multicapa</h2><p class="panel-caption" id="precisionLayerCaption">Índice verde de vigor por lote</p></div><div class="toolbar"><span class="pill" id="precisionLayerState">NDVI</span><select id="precisionMapField" aria-label="Establecimiento"></select><select id="precisionMapLot" aria-label="Enfocar lote"></select><select id="precisionMapLayer" aria-label="Capa del mapa"><option value="ndvi">Índice NDVI</option><option value="yield">Mapa de rinde</option><option value="prescription">Prescripción de siembra</option></select></div></div><div id="lotMap" aria-label="Mapa Leaflet de precision" style="height:330px"></div><div class="precision-legend" id="precisionLayerLegend" aria-live="polite"></div></section></section>`,
       'Calibraciones': `
         <header class="topbar"><div><div class="eyebrow">Workspace / Calidad de dato</div><h1>Calibraciones</h1></div><div class="toolbar"><button class="button" data-action="Exportar planilla calibraciones">Exportar planilla</button><button class="button primary" data-action="Nuevo registro de calibracion">+ Nueva calibracion</button></div></header>
         <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Protocolos activos</span><strong id="calibrationProtocolCount">0</strong></article><article class="panel module-stat"><span>Registros guardados</span><strong id="calibrationRecordsCount">0</strong></article><article class="panel module-stat warning"><span>Vencidas</span><strong id="calibrationOverdueCount">0</strong></article><article class="panel module-stat danger"><span>Cierre validado</span><strong id="calibrationClosureRate">0%</strong></article></div>
@@ -1962,7 +2004,7 @@
       if (!mapElement) return;
       if (!window.L) {
         mapElement.className = 'offline-map';
-        mapElement.innerHTML = '<div class="field field-a"></div><div class="field field-b"></div><div class="field field-c"></div><span class="field-label label-a">L-04 · La Esperanza</span><span class="field-label label-b">L-09 · El Ombu</span><span class="field-label label-c">L-12 · Santa Clara</span><div class="map-legend"><span class="legend-dot"></span>Lotes guardados localmente</div>';
+        mapElement.innerHTML = '<div class="map-legend">Mapa sin conexión. No hay lotes registrados para mostrar.</div>';
         return;
       }
       lotMapInstance?.remove();
@@ -2002,15 +2044,58 @@
       const layerSelector = document.querySelector('#precisionMapLayer');
       const fieldSelector = document.querySelector('#precisionMapField');
       const lotSelector = document.querySelector('#precisionMapLot');
-      if (!mapElement || !layerSelector || !fieldSelector || !lotSelector || !window.L) return;
+      if (!mapElement || !layerSelector || !fieldSelector || !lotSelector) return;
       const layer = selectedLayer || layerSelector.value;
       const layers = [];
-      const allMapLots = registeredLotDetails.length ? registeredLotDetails : [
-        { code: 'L-04', field: 'La Esperanza', latitude: -34.6142, longitude: -58.4310 },
-        { code: 'L-09', field: 'La Esperanza', latitude: -34.6098, longitude: -58.4254 },
-        { code: 'L-12', field: 'La Esperanza', latitude: -34.6171, longitude: -58.4298 }
-      ];
+      const allMapLots = registeredLotDetails;
       const fieldsWithLots = [...new Set(allMapLots.map(lot => lot.field))];
+      const layerInfo = {
+        ndvi: { name: 'NDVI', caption: 'Índice verde de vigor por lote' },
+        yield: { name: 'Rinde', caption: 'Rinde estimado en toneladas por hectárea' },
+        prescription: { name: 'Prescripción', caption: 'Zonas y dosis objetivo de siembra' }
+      }[layer] || { name: 'NDVI', caption: 'Índice verde de vigor por lote' };
+      const updateMetrics = () => {
+        const monitoredLots = document.querySelector('#precisionMonitoredLots');
+        const ndviUpdated = document.querySelector('#precisionNdviUpdated');
+        const variableZones = document.querySelector('#precisionVariableZones');
+        if (monitoredLots) monitoredLots.textContent = String(allMapLots.length);
+        if (ndviUpdated) ndviUpdated.textContent = '0%';
+        if (variableZones) variableZones.textContent = '0';
+      };
+      const bindSelectors = () => {
+        if (!layerSelector.dataset.bound) {
+          layerSelector.dataset.bound = 'true';
+          layerSelector.addEventListener('change', () => initializePrecisionMap(layerSelector.value));
+        }
+        if (!lotSelector.dataset.listenerBound) {
+          lotSelector.dataset.listenerBound = 'true';
+          lotSelector.addEventListener('change', () => initializePrecisionMap(layerSelector.value));
+        }
+        if (!fieldSelector.dataset.listenerBound) {
+          fieldSelector.dataset.listenerBound = 'true';
+          fieldSelector.addEventListener('change', () => initializePrecisionMap(layerSelector.value));
+        }
+      };
+      updateMetrics();
+      bindSelectors();
+      document.querySelector('#precisionLayerState').textContent = layerInfo.name;
+      document.querySelector('#precisionLayerCaption').textContent = layerInfo.caption;
+      if (!window.L) {
+        mapElement.className = 'offline-map';
+        mapElement.innerHTML = '<div class="map-legend">Mapa sin conexión. No hay lotes registrados para mostrar.</div>';
+        return;
+      }
+      if (!fieldsWithLots.length) {
+        fieldSelector.innerHTML = '<option value="">Sin lotes registrados</option>';
+        lotSelector.innerHTML = '<option value="">Sin lotes registrados</option>';
+        lotMapInstance?.remove();
+        precisionLayerGroup = null;
+        lotMapInstance = L.map(mapElement).setView([-34.6128, -58.4281], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', keepBuffer: 1, updateWhenIdle: true }).addTo(lotMapInstance);
+        document.querySelector('#precisionLayerLegend').innerHTML = '<div><strong>Sin datos</strong><span>No hay lotes registrados para mostrar.</span></div>';
+        setTimeout(() => lotMapInstance.invalidateSize(), 100);
+        return;
+      }
       if (!fieldSelector.dataset.bound) {
         fieldSelector.innerHTML = fieldsWithLots.map(field => `<option value="${field}">${field}</option>`).join('');
         fieldSelector.dataset.bound = 'true';
@@ -2022,12 +2107,6 @@
       lotSelector.innerHTML = mapLots.map(lot => `<option value="${lot.code}">Enfocar ${lot.code}</option>`).join('');
       lotSelector.value = mapLots.some(lot => lot.code === previousLot) ? previousLot : mapLots[0].code;
       const focusLot = mapLots.find(lot => lot.code === lotSelector.value) || mapLots[0];
-      const layerInfo = {
-        ndvi: { name: 'NDVI', caption: 'Índice verde de vigor por lote' },
-        yield: { name: 'Rinde', caption: 'Rinde estimado en toneladas por hectárea' },
-        prescription: { name: 'Prescripción', caption: 'Zonas y dosis objetivo de siembra' }
-      }[layer] || { name: 'NDVI', caption: 'Índice verde de vigor por lote' };
-
       if (lotMapInstance?.getContainer() !== mapElement || !precisionLayerGroup) {
         lotMapInstance?.remove();
         lotMapInstance = L.map(mapElement).setView([mapLots[0].latitude, mapLots[0].longitude], 13);
@@ -2072,18 +2151,6 @@
         legend.className = `precision-legend ${layer} single`;
         legend.innerHTML = legendContent.map(([lot, detail]) => `<div><strong>${lot}</strong><span>${detail}</span></div>`).join('');
       }
-      if (!layerSelector.dataset.bound) {
-        layerSelector.dataset.bound = 'true';
-        layerSelector.addEventListener('change', () => initializePrecisionMap(layerSelector.value));
-      }
-      if (!lotSelector.dataset.listenerBound) {
-        lotSelector.dataset.listenerBound = 'true';
-        lotSelector.addEventListener('change', () => initializePrecisionMap(layerSelector.value));
-      }
-      if (!fieldSelector.dataset.listenerBound) {
-        fieldSelector.dataset.listenerBound = 'true';
-        fieldSelector.addEventListener('change', () => initializePrecisionMap(layerSelector.value));
-      }
       clearTimeout(precisionResizeTimer);
       precisionResizeTimer = setTimeout(() => {
         map.invalidateSize({ animate: false });
@@ -2124,6 +2191,70 @@
       renderAuditEvents(filter.value);
     }
 
+    function renderTrialFinancePurchases() {
+      if (!isTrialMode) return;
+      const payableTotal = registeredPurchases.reduce((total, purchase) => total + Number(purchase.invoiceTotal || 0), 0);
+      const payableMetric = main.querySelector('#financePayableTotal');
+      if (payableMetric) payableMetric.textContent = `$ ${payableTotal.toLocaleString('es-AR')}`;
+      const anchor = main.querySelector('#financeSalesRows')?.closest('.panel');
+      if (!anchor || main.querySelector('#financePayableRows')) return;
+      anchor.insertAdjacentHTML('afterend', '<section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Cuentas por pagar</h2><p class="panel-caption">Compras y facturas de proveedores pendientes de pago</p></div><span class="pill yellow">Pendientes</span></div><table class="data-table"><thead><tr><th>Factura</th><th>Proveedor</th><th>Insumo</th><th>Vencimiento</th><th>Total</th><th>Estado</th></tr></thead><tbody id="financePayableRows"></tbody></table></section>');
+      const rows = main.querySelector('#financePayableRows');
+      rows.innerHTML = registeredPurchases.length ? registeredPurchases.map(purchase => `<tr><td><strong>${purchase.invoiceNumber || 'Sin factura'}</strong></td><td>${purchase.supplier || 'Sin proveedor'}</td><td>${purchase.input} · ${purchase.quantity}</td><td>${purchase.invoiceDate ? new Date(`${purchase.invoiceDate}T12:00:00`).toLocaleDateString('es-AR') : '-'}</td><td>$ ${Number(purchase.invoiceTotal || 0).toLocaleString('es-AR')}</td><td><span class="pill yellow">Pendiente</span></td></tr>`).join('') : '<tr><td colspan="6">No hay cuentas por pagar registradas.</td></tr>';
+    }
+
+    function renderTrialProfitability() {
+      if (!isTrialMode || activeModuleView !== 'Rentabilidad') return;
+      const revenue = registeredRevenues.reduce((total, item) => total + Number(item.amount || 0), 0);
+      const costs = registeredPurchases.reduce((total, item) => total + Number(item.invoiceTotal || 0), 0);
+      const net = revenue - costs;
+      const margin = revenue ? (net / revenue) * 100 : 0;
+      const setText = (id, value) => { const element = main.querySelector(`#${id}`); if (element) element.textContent = value; };
+      setText('profitRevenue', `$ ${revenue.toLocaleString('es-AR')}`);
+      setText('profitCosts', `$ ${costs.toLocaleString('es-AR')}`);
+      setText('profitNet', `$ ${net.toLocaleString('es-AR')}`);
+      setText('profitMargin', `${margin.toLocaleString('es-AR', { maximumFractionDigits: 1 })}%`);
+      const state = main.querySelector('#profitabilityState');
+      if (state) state.textContent = revenue || costs ? 'Calculado' : 'Sin datos';
+      const summary = main.querySelector('#profitabilitySummaryRows');
+      if (summary) summary.innerHTML = revenue || costs
+        ? `<tr><td>Ingresos</td><td>$ ${revenue.toLocaleString('es-AR')}</td><td>Ventas registradas</td><td><span class="pill">Confirmado</span></td></tr><tr><td>Costos</td><td>$ ${costs.toLocaleString('es-AR')}</td><td>Compras / cuentas por pagar</td><td><span class="pill yellow">Pendiente de imputación</span></td></tr><tr><td>Resultado neto</td><td>$ ${net.toLocaleString('es-AR')}</td><td>Ingresos menos costos</td><td><span class="pill ${net >= 0 ? '' : 'red'}">${net >= 0 ? 'Positivo' : 'Negativo'}</span></td></tr>`
+        : '<tr><td colspan="4">Sin datos de rentabilidad registrados.</td></tr>';
+      const lotRows = main.querySelector('#profitabilityLotRows');
+      if (lotRows) lotRows.innerHTML = registeredRevenues.length
+        ? registeredRevenues.map(item => { const itemCost = registeredPurchases.filter(purchase => purchase.lot === item.lot).reduce((total, purchase) => total + Number(purchase.invoiceTotal || 0), 0); const itemNet = Number(item.amount || 0) - itemCost; const itemMargin = Number(item.amount || 0) ? (itemNet / Number(item.amount)) * 100 : 0; return `<tr><td><strong>${item.lot || 'General'}</strong></td><td>$ ${Number(item.amount || 0).toLocaleString('es-AR')}</td><td>$ ${itemCost.toLocaleString('es-AR')}</td><td>$ ${itemNet.toLocaleString('es-AR')}</td><td>${itemMargin.toLocaleString('es-AR', { maximumFractionDigits: 1 })}%</td></tr>`; }).join('')
+        : '<tr><td colspan="5">Registrá ingresos y costos para calcular la rentabilidad por lote.</td></tr>';
+    }
+
+    function clearTrialModuleDemo(view) {
+      const emptyRows = (selector, colspan) => {
+        main.querySelectorAll(selector).forEach(body => { body.innerHTML = `<tr><td colspan="${colspan}">Sin datos registrados.</td></tr>`; });
+      };
+      const setMetricValues = values => main.querySelectorAll('.module-stat strong').forEach((metric, index) => { if (values[index] !== undefined) metric.textContent = values[index]; });
+      if (view === 'Inventario') {
+        setMetricValues(['$ 0', '0', '0']);
+        emptyRows('.data-table tbody', 5);
+        const equipmentRows = main.querySelector('#inventoryEquipmentRows');
+        if (equipmentRows) equipmentRows.innerHTML = registeredEquipment.length
+          ? registeredEquipment.map(item => `<tr><td><strong>${item.code}</strong></td><td>${machineCategoryLabel(item.category)}</td><td>${item.brand || ''} ${item.model || ''}</td><td>$ ${Number(item.hourlyCostUsd || 0).toLocaleString('es-AR')}/h</td><td><span class="pill">Operativo</span></td></tr>`).join('')
+          : '<tr><td colspan="5">Sin equipos registrados.</td></tr>';
+      } else if (view === 'Operaciones') {
+        setMetricValues(['0', '0 ha', '0']);
+        emptyRows('.data-table tbody', 5);
+      } else if (view === 'Analitica') {
+        setMetricValues(['0 t/ha', '$ 0', '0%']);
+        const chart = main.querySelector('.chart.large');
+        if (chart) chart.innerHTML = '<div class="map-legend">Sin datos de rinde registrados.</div>';
+      } else if (view === 'Telemetria y clima') {
+        setMetricValues(['0', '0', '0']);
+        emptyRows('.data-table tbody', 5);
+        main.querySelectorAll('.module-stat strong').forEach(metric => { if (/^(24,8 C|61%|11,2 km\/h|3,4 mm)$/.test(metric.textContent)) metric.textContent = 'Sin datos'; });
+      } else if (view === 'Usuarios y roles') {
+        setMetricValues(['0', '0', '0']);
+        emptyRows('.data-table tbody', 4);
+      }
+    }
+
     document.querySelectorAll('.nav button').forEach(button => {
       button.addEventListener('click', () => {
         document.querySelector('.nav button.active')?.classList.remove('active');
@@ -2136,11 +2267,14 @@
           showFieldsAndLotsModule();
         } else {
           main.innerHTML = moduleViews[button.dataset.view];
+          clearTrialModuleDemo(button.dataset.view);
+          renderTrialFinancePurchases();
+          renderTrialProfitability();
           bindModuleActions();
           addHistoricalImportAction(button.dataset.view);
-          if (button.dataset.view === 'Agricola') loadAgriculturalModule();
-          if (button.dataset.view === 'Finanzas') loadFinanceModule();
-          if (button.dataset.view === 'RRHH') loadHrModule();
+          if (button.dataset.view === 'Agricola' && !isTrialMode) loadAgriculturalModule();
+          if (button.dataset.view === 'Finanzas' && !isTrialMode) loadFinanceModule();
+          if (button.dataset.view === 'RRHH' && !isTrialMode) loadHrModule();
           if (button.dataset.view === 'Calibraciones') loadCalibrationModule();
           if (button.dataset.view === 'Plan de equipamiento') loadEquipmentPlanModule();
           if (button.dataset.view === 'Precision') initializePrecisionMap();
@@ -2156,8 +2290,39 @@
       const button = [...document.querySelectorAll('.nav button')].find(item => item.dataset.view === view);
       button?.click();
     }
+    function refreshDashboardData() {
+      const lots = registeredLotDetails;
+      const surface = lots.reduce((total, lot) => total + Number(lot.surface || 0), 0);
+      const setText = (id, value) => { const element = document.querySelector(`#${id}`); if (element) element.textContent = value; };
+      setText('dashboardSurface', `${surface.toLocaleString('es-AR')} ha`);
+      setText('dashboardSurfaceTrend', lots.length ? `${lots.length} lote(s) registrado(s)` : 'Sin lotes registrados');
+      setText('dashboardOrders', '0');
+      setText('dashboardOrdersTrend', 'Sin ordenes registradas');
+      setText('dashboardCompliance', '0%');
+      setText('dashboardComplianceTrend', 'Sin datos operativos');
+      setText('dashboardAlerts', '0');
+      setText('dashboardAlertsTrend', 'Sin alertas registradas');
+      const caption = document.querySelector('#dashboardMapCaption');
+      if (caption) caption.textContent = lots.length ? `${lots.length} lote(s) · ${surface.toLocaleString('es-AR')} ha declaradas` : 'Sin lotes registrados';
+      const map = document.querySelector('#dashboardFieldMap');
+      if (map) {
+        map.innerHTML = lots.length
+          ? `${lots.slice(0, 12).map((lot, index) => `<span class="field-label label-${String.fromCharCode(97 + (index % 3))}">${lot.code} · ${Number(lot.surface || 0).toLocaleString('es-AR')} ha</span>`).join('')}<div class="map-legend"><span class="legend-dot"></span>Lotes registrados</div>`
+          : '<div class="map-legend">No hay lotes registrados para mostrar.</div>';
+      }
+      const jobs = document.querySelector('#dashboardJobsEmpty');
+      if (jobs) jobs.innerHTML = lots.length
+        ? `<i class="status"></i><div><strong>Sin ordenes de trabajo</strong><span>Hay ${lots.length} lote(s), pero no hay ordenes registradas.</span></div>`
+        : '<i class="status"></i><div><strong>Sin ordenes de trabajo</strong><span>Las ordenes apareceran cuando se registren.</span></div>';
+      const alerts = document.querySelector('#dashboardAlertsList');
+      if (alerts) alerts.innerHTML = '<div class="alert info"><div class="alert-head"><span>Sin alertas</span><span>Informacion</span></div><p>No hay alertas operativas registradas.</p></div>';
+      const yieldChart = document.querySelector('#dashboardYieldChart');
+      if (yieldChart) yieldChart.innerHTML = '<div class="map-legend">Sin datos de rinde registrados.</div>';
+      setText('dashboardYieldAverage', 'Sin datos');
+    }
     function bindDashboardActions() {
       addHistoricalImportAction('Centro operativo');
+      refreshDashboardData();
       document.querySelector('#establishment').addEventListener('change', event => showToast(`Contexto actualizado: ${event.target.value}`));
       const companySelector = document.querySelector('#sidebarCompanySelector');
       companySelector.value = localStorage.getItem('pampa-company') || companySelector.value;
