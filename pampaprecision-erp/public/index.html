@@ -303,18 +303,24 @@
     const dashboard = main.innerHTML;
     let activeModuleView = 'Centro operativo';
     const activeTenantId = '10000000-0000-0000-0000-000000000001';
+    const isTrialMode = !licenseCache.getLocal()?.license;
     window.lpgConfig = { provinces: [] };
     api.getLpgConfig().then(config => { window.lpgConfig = config; }).catch(() => {});
     function loadList(key, fallback) {
       try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; }
     }
-    let registeredFields = loadList('pampa-fields', ['La Esperanza', 'El Ombu', 'Santa Clara']);
+    let registeredFields = loadList('pampa-fields', []);
     let registeredLots = loadList('pampa-lots', []);
-    let registeredFieldDetails = loadList('pampa-field-details', [
-      { name: 'La Esperanza', latitude: -34.6128, longitude: -58.4281, surface: 1240, reference: 'Partido de Pergamino · Buenos Aires' },
-      { name: 'El Ombu', latitude: -34.6098, longitude: -58.4254, surface: 780, reference: 'Buenos Aires' },
-      { name: 'Santa Clara', latitude: -34.6171, longitude: -58.4298, surface: 466, reference: 'Buenos Aires' }
-    ]);
+    let registeredFieldDetails = loadList('pampa-field-details', []);
+    const demoFieldNames = new Set(['La Esperanza', 'El Ombu', 'Santa Clara']);
+    const cleanFieldDetails = registeredFieldDetails.filter(field => !demoFieldNames.has(field.name));
+    const cleanFields = registeredFields.filter(field => !demoFieldNames.has(field));
+    if (cleanFieldDetails.length !== registeredFieldDetails.length || cleanFields.length !== registeredFields.length) {
+      registeredFieldDetails = cleanFieldDetails;
+      registeredFields = cleanFields;
+      localStorage.setItem('pampa-field-details', JSON.stringify(registeredFieldDetails));
+      localStorage.setItem('pampa-fields', JSON.stringify(registeredFields));
+    }
     let registeredLotDetails = loadList('pampa-lot-details', []);
     const demoLotCodes = new Set(['L-04', 'L-09', 'L-12']);
     const cleanLotDetails = registeredLotDetails.filter(lot => !demoLotCodes.has(lot.code));
@@ -1943,7 +1949,7 @@
       if (!mapElement) return;
       if (!window.L) {
         mapElement.className = 'offline-map';
-        mapElement.innerHTML = '<div class="field field-a"></div><div class="field field-b"></div><div class="field field-c"></div><span class="field-label label-a">L-04 · La Esperanza</span><span class="field-label label-b">L-09 · El Ombu</span><span class="field-label label-c">L-12 · Santa Clara</span><div class="map-legend"><span class="legend-dot"></span>Lotes guardados localmente</div>';
+        mapElement.innerHTML = '<div class="map-legend">Mapa sin conexión. No hay lotes registrados para mostrar.</div>';
         return;
       }
       lotMapInstance?.remove();
@@ -2130,6 +2136,31 @@
       renderAuditEvents(filter.value);
     }
 
+    function clearTrialModuleDemo(view) {
+      const emptyRows = (selector, colspan) => {
+        main.querySelectorAll(selector).forEach(body => { body.innerHTML = `<tr><td colspan="${colspan}">Sin datos registrados.</td></tr>`; });
+      };
+      const setMetricValues = values => main.querySelectorAll('.module-stat strong').forEach((metric, index) => { if (values[index] !== undefined) metric.textContent = values[index]; });
+      if (view === 'Inventario') {
+        setMetricValues(['$ 0', '0', '0']);
+        emptyRows('.data-table tbody', 5);
+      } else if (view === 'Operaciones') {
+        setMetricValues(['0', '0 ha', '0']);
+        emptyRows('.data-table tbody', 5);
+      } else if (view === 'Analitica') {
+        setMetricValues(['0 t/ha', '$ 0', '0%']);
+        const chart = main.querySelector('.chart.large');
+        if (chart) chart.innerHTML = '<div class="map-legend">Sin datos de rinde registrados.</div>';
+      } else if (view === 'Telemetria y clima') {
+        setMetricValues(['0', '0', '0']);
+        emptyRows('.data-table tbody', 5);
+        main.querySelectorAll('.module-stat strong').forEach(metric => { if (/^(24,8 C|61%|11,2 km\/h|3,4 mm)$/.test(metric.textContent)) metric.textContent = 'Sin datos'; });
+      } else if (view === 'Usuarios y roles') {
+        setMetricValues(['0', '0', '0']);
+        emptyRows('.data-table tbody', 4);
+      }
+    }
+
     document.querySelectorAll('.nav button').forEach(button => {
       button.addEventListener('click', () => {
         document.querySelector('.nav button.active')?.classList.remove('active');
@@ -2142,11 +2173,12 @@
           showFieldsAndLotsModule();
         } else {
           main.innerHTML = moduleViews[button.dataset.view];
+          clearTrialModuleDemo(button.dataset.view);
           bindModuleActions();
           addHistoricalImportAction(button.dataset.view);
-          if (button.dataset.view === 'Agricola') loadAgriculturalModule();
-          if (button.dataset.view === 'Finanzas') loadFinanceModule();
-          if (button.dataset.view === 'RRHH') loadHrModule();
+          if (button.dataset.view === 'Agricola' && !isTrialMode) loadAgriculturalModule();
+          if (button.dataset.view === 'Finanzas' && !isTrialMode) loadFinanceModule();
+          if (button.dataset.view === 'RRHH' && !isTrialMode) loadHrModule();
           if (button.dataset.view === 'Calibraciones') loadCalibrationModule();
           if (button.dataset.view === 'Plan de equipamiento') loadEquipmentPlanModule();
           if (button.dataset.view === 'Precision') initializePrecisionMap();
