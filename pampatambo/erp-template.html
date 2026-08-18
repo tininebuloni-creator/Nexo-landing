@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ERP Template - Estilo Visual</title>
+  <style>
+    :root {
+      --bg-primary: #0f1419;
+      --bg-secondary: #161a27;
+      --bg-tertiary: #1b1f2b;
+      --bg-card: #1e2433;
+      --border: #191f2c;
+      --border-light: #1d2435;
+      --green: #f59e0b;
+      --green-dim: #d97706;
+      --green-glow: rgba(245, 158, 11, 0.15);
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --orange: #f97316;
+      --red: #ef4444;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-dim: #64748b;
+      --font-main: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --sidebar-w: 280px;
+      --radius: 8px;
+      --radius-lg: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-main);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      height: 100vh;
+      overflow: hidden;
+    }
+    .app { display: flex; height: 100vh; }
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo-icon {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--green), var(--green-dim));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 42px;
+      font-weight: 800;
+      color: white;
+    }
+    .logo-text { font-weight: 700; font-size: 16px; text-align: center; }
+    .logo-sub { font-size: 11px; color: var(--text-dim); font-family: var(--font-mono); text-align: center; }
+    .sidebar-nav { flex: 1; padding: 16px 12px; }
+    .nav-section { margin-bottom: 20px; }
+    .nav-section-title {
+      font-size: 12px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      color: var(--text-primary);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      padding: 12px 12px 8px 12px;
+      margin-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text-secondary);
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .nav-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+    .nav-item.active {
+      background: var(--green-glow);
+      color: var(--green);
+      font-weight: 500;
+    }
+    .nav-icon { width: 20px; text-align: center; font-size: 16px; }
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .topbar {
+      height: 60px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 16px;
+    }
+    .topbar-title { font-weight: 600; font-size: 16px; }
+    .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+    .topbar-btn {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .topbar-btn.primary { background: var(--green); color: white; border-color: var(--green); }
+    .content { flex: 1; overflow-y: auto; padding: 24px; }
+    .module { display: none; animation: fadeIn 0.3s ease; }
+    .module.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .card-title { font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .kpi {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--green); }
+    .kpi.blue::before { background: var(--blue); }
+    .kpi.purple::before { background: var(--purple); }
+    .kpi.orange::before { background: var(--orange); }
+    .kpi.red::before { background: var(--red); }
+    .kpi-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .kpi-value { font-size: 28px; font-weight: 700; font-family: var(--font-mono); }
+    .kpi-sub { font-size: 12px; color: var(--text-secondary); margin-top: 6px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .data-table th {
+      text-align: left; padding: 12px; background: var(--bg-tertiary); color: var(--text-dim); font-weight: 500; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; border-bottom: 1px solid var(--border);
+    }
+    .data-table td { padding: 12px; border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+    .tag { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+    .tag.green { background: rgba(245,158,11,0.15); color: var(--green); }
+    .tag.blue { background: rgba(59,130,246,0.15); color: var(--blue); }
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+    .form-input, .form-select {
+      width: 100%; background: var(--bg-primary); border: 1px solid var(--border); color: var(--text-primary); padding: 10px 12px; border-radius: 6px; font-size: 13px; outline: none;
+    }
+    .form-input:focus, .form-select:focus { border-color: var(--green); }
+    .btn { padding: 10px 20px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--bg-tertiary); color: var(--text-primary); }
+    .btn-primary { background: var(--green); border-color: var(--green); color: white; }
+    @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-icon">EA</div>
+        <div>
+          <div class="logo-text">ERP Base</div>
+          <div class="logo-sub">Plantilla visual lista</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Principal</div>
+          <div class="nav-item active" data-module="dashboard"><span class="nav-icon">📊</span> Dashboard</div>
+          <div class="nav-item" data-module="empresa"><span class="nav-icon">🏢</span> Empresa</div>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">Operaciones</div>
+          <div class="nav-item" data-module="clientes"><span class="nav-icon">👥</span> Clientes</div>
+          <div class="nav-item" data-module="proveedores"><span class="nav-icon">🏭</span> Proveedores</div>
+          <div class="nav-item" data-module="productos"><span class="nav-icon">📦</span> Productos</div>
+          <div class="nav-item" data-module="ventas"><span class="nav-icon">🧾</span> Ventas</div>
+          <div class="nav-item" data-module="compras"><span class="nav-icon">🛒</span> Compras</div>
+          <div class="nav-item" data-module="config"><span class="nav-icon">⚙️</span> Configuración</div>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="topbar-title" id="topbarTitle">Dashboard</div>
+        <div class="topbar-right">
+          <button class="topbar-btn">Sincronizar</button>
+          <button class="topbar-btn primary">Nuevo registro</button>
+        </div>
+      </header>
+      <div class="content">
+        <section class="module active" id="module-dashboard">
+          <div class="kpi-grid">
+            <div class="kpi">
+              <div class="kpi-label">Ingresos</div>
+              <div class="kpi-value">$ 84.250</div>
+              <div class="kpi-sub">+12% respecto al mes anterior</div>
+            </div>
+            <div class="kpi blue">
+              <div class="kpi-label">Clientes</div>
+              <div class="kpi-value">128</div>
+              <div class="kpi-sub">24 activos hoy</div>
+            </div>
+            <div class="kpi purple">
+              <div class="kpi-label">Productos</div>
+              <div class="kpi-value">56</div>
+              <div class="kpi-sub">9 con stock bajo</div>
+            </div>
+            <div class="kpi orange">
+              <div class="kpi-label">Pendientes</div>
+              <div class="kpi-value">14</div>
+              <div class="kpi-sub">3 requieren acción</div>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header"><div class="card-title">📈 Resumen rápido</div></div>
+              <p style="color: var(--text-secondary); line-height: 1.6;">Esta plantilla ya trae el estilo visual del ERP y una estructura base para ir agregando datos reales.</p>
+            </div>
+            <div class="card">
+              <div class="card-header"><div class="card-title">🗂️ Datos iniciales</div></div>
+              <ul style="padding-left: 18px; color: var(--text-secondary); line-height: 1.8;">
+                <li>Empresa</li>
+                <li>Clientes</li>
+                <li>Proveedores</li>
+                <li>Productos</li>
+                <li>Ventas y compras</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="module" id="module-empresa">
+          <div class="card">
+            <div class="card-header"><div class="card-title">🏢 Empresa</div><button class="btn btn-primary">Guardar</button></div>
+            <div class="grid-2">
+              <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" value="Empresa Demo" /></div>
+              <div class="form-group"><label class="form-label">RUC/CUIT</label><input class="form-input" value="30-00000000-0" /></div>
+              <div class="form-group"><label class="form-label">Dirección</label><input class="form-input" value="Av. Principal 123" /></div>
+              <div class="form-group"><label class="form-label">Email</label><input class="form-input" value="contacto@empresa.com" /></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="module" id="module-clientes">
+          <div class="card">
+            <div class="card-header"><div class="card-title">👥 Clientes</div><button class="btn btn-primary">Agregar</button></div>
+            <table class="data-table">
+              <thead><tr><th>Nombre</th><th>Documento</th><th>Teléfono</th><th>Estado</th></tr></thead>
+              <tbody id="clientesBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="module" id="module-proveedores">
+          <div class="card">
+            <div class="card-header"><div class="card-title">🏭 Proveedores</div><button class="btn btn-primary">Agregar</button></div>
+            <table class="data-table">
+              <thead><tr><th>Nombre</th><th>Documento</th><th>Contacto</th><th>Estado</th></tr></thead>
+              <tbody id="proveedoresBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="module" id="module-productos">
+          <div class="card">
+            <div class="card-header"><div class="card-title">📦 Productos</div><button class="btn btn-primary">Agregar</button></div>
+            <table class="data-table">
+              <thead><tr><th>Código</th><th>Nombre</th><th>Precio</th><th>Stock</th></tr></thead>
+              <tbody id="productosBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="module" id="module-ventas">
+          <div class="card">
+            <div class="card-header"><div class="card-title">🧾 Ventas</div><button class="btn btn-primary">Nueva venta</button></div>
+            <table class="data-table">
+              <thead><tr><th>Fecha</th><th>Cliente</th><th>Total</th><th>Estado</th></tr></thead>
+              <tbody id="ventasBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="module" id="module-compras">
+          <div class="card">
+            <div class="card-header"><div class="card-title">🛒 Compras</div><button class="btn btn-primary">Nueva compra</button></div>
+            <table class="data-table">
+              <thead><tr><th>Fecha</th><th>Proveedor</th><th>Total</th><th>Estado</th></tr></thead>
+              <tbody id="comprasBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="module" id="module-config">
+          <div class="card">
+            <div class="card-header"><div class="card-title">⚙️ Configuración</div><button class="btn btn-primary">Guardar</button></div>
+            <div class="grid-2">
+              <div class="form-group"><label class="form-label">Tema</label><select class="form-select"><option>Oscuro</option><option>Claro</option></select></div>
+              <div class="form-group"><label class="form-label">Moneda</label><input class="form-input" value="ARS" /></div>
+              <div class="form-group"><label class="form-label">Color principal</label><input class="form-input" value="#f59e0b" /></div>
+              <div class="form-group"><label class="form-label">Idioma</label><input class="form-input" value="Español" /></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const state = {
+      clientes: [
+        { nombre: 'Ana Pérez', documento: '20345678', telefono: '11 5555-0001', estado: 'Activo' },
+        { nombre: 'Luis Gómez', documento: '20345679', telefono: '11 5555-0002', estado: 'Pendiente' }
+      ],
+      proveedores: [
+        { nombre: 'Agro S.A.', documento: '30-10000000-1', contacto: 'Marcos', estado: 'Activo' },
+        { nombre: 'Campo Norte', documento: '30-10000001-2', contacto: 'Sofía', estado: 'Activo' }
+      ],
+      productos: [
+        { codigo: 'P-001', nombre: 'Fertilizante', precio: '$ 8.500', stock: '25' },
+        { codigo: 'P-002', nombre: 'Semilla', precio: '$ 12.300', stock: '10' }
+      ],
+      ventas: [
+        { fecha: '2026-08-02', cliente: 'Ana Pérez', total: '$ 34.500', estado: 'Cobrada' },
+        { fecha: '2026-08-05', cliente: 'Luis Gómez', total: '$ 16.000', estado: 'Pendiente' }
+      ],
+      compras: [
+        { fecha: '2026-08-01', proveedor: 'Agro S.A.', total: '$ 21.000', estado: 'Recibida' },
+        { fecha: '2026-08-04', proveedor: 'Campo Norte', total: '$ 9.800', estado: 'Pendiente' }
+      ]
+    };
+
+    function renderTables() {
+      document.getElementById('clientesBody').innerHTML = state.clientes.map(item => `
+        <tr>
+          <td>${item.nombre}</td>
+          <td>${item.documento}</td>
+          <td>${item.telefono}</td>
+          <td><span class="tag green">${item.estado}</span></td>
+        </tr>
+      `).join('');
+
+      document.getElementById('proveedoresBody').innerHTML = state.proveedores.map(item => `
+        <tr>
+          <td>${item.nombre}</td>
+          <td>${item.documento}</td>
+          <td>${item.contacto}</td>
+          <td><span class="tag green">${item.estado}</span></td>
+        </tr>
+      `).join('');
+
+      document.getElementById('productosBody').innerHTML = state.productos.map(item => `
+        <tr>
+          <td>${item.codigo}</td>
+          <td>${item.nombre}</td>
+          <td>${item.precio}</td>
+          <td>${item.stock}</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('ventasBody').innerHTML = state.ventas.map(item => `
+        <tr>
+          <td>${item.fecha}</td>
+          <td>${item.cliente}</td>
+          <td>${item.total}</td>
+          <td><span class="tag blue">${item.estado}</span></td>
+        </tr>
+      `).join('');
+
+      document.getElementById('comprasBody').innerHTML = state.compras.map(item => `
+        <tr>
+          <td>${item.fecha}</td>
+          <td>${item.proveedor}</td>
+          <td>${item.total}</td>
+          <td><span class="tag orange">${item.estado}</span></td>
+        </tr>
+      `).join('');
+    }
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
+        item.classList.add('active');
+        const moduleName = item.getAttribute('data-module');
+        document.querySelectorAll('.module').forEach(mod => mod.classList.remove('active'));
+        document.getElementById(`module-${moduleName}`)?.classList.add('active');
+        document.getElementById('topbarTitle').textContent = item.textContent.trim();
+      });
+    });
+
+    renderTables();
+  </script>
+</body>
+</html>

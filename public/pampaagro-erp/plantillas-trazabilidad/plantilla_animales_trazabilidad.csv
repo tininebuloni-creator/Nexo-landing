@@ -1,0 +1,3 @@
+ID_Animal,RFID_TAG,Categoria,Raza,Fecha_Nacimiento,Predio_Origen
+AN-00001,RFID-000001,Ternero,Angus,2025-08-14,Establecimiento Norte
+AN-00002,RFID-000002,Vaquillona,Hereford,2024-11-02,Establecimiento Sur

@@ -1,0 +1,3 @@
+ID_Movimiento,ID_Animal,Fecha,Origen_ID,Destino_ID,Nro_DTE,Detalle
+MOV-00001,AN-00001,2026-07-15,Potrero-A,Corral-1,DTE-AR-000123,Traslado para pesaje
+MOV-00002,AN-00002,2026-07-18,Corral-1,Feria-Central,DTE-AR-000124,Salida a feria

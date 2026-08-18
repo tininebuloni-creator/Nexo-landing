@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generador de Licencias - PampaTambo</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 980px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #0f1419;
+      color: #f1f5f9;
+    }
+    .container {
+      background: #1a1f2e;
+      border: 1px solid #2d3548;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    h1 {
+      color: #10b981;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      color: #94a3b8;
+      margin-bottom: 30px;
+    }
+    button {
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: background 0.15s;
+    }
+    button:hover {
+      background: #059669;
+    }
+    .key-container {
+      background: #0f1419;
+      border: 1px solid #2d3548;
+      border-radius: 6px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .key-label {
+      color: #64748b;
+      font-size: 12px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .key-value {
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      color: #10b981;
+      line-height: 1.5;
+      word-break: break-all;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+    .field.full {
+      grid-column: 1 / -1;
+    }
+    .field label {
+      color: #94a3b8;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .field input,
+    .field select {
+      border: 1px solid #2d3548;
+      background: #111827;
+      color: #f1f5f9;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 13px;
+    }
+    .roles-box {
+      background: #0f1419;
+      border: 1px solid #2d3548;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 20px;
+    }
+    .roles-title {
+      font-size: 13px;
+      color: #cbd5e1;
+      margin-bottom: 10px;
+    }
+    .roles-grid {
+      display: grid;
+      gap: 10px;
+    }
+    .role-row {
+      display: grid;
+      grid-template-columns: 150px 100px 1fr 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+    .role-row span {
+      color: #cbd5e1;
+      font-size: 13px;
+    }
+    .role-row input {
+      border: 1px solid #2d3548;
+      background: #111827;
+      color: #f1f5f9;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+    .info-box {
+      background: #252b3b;
+      border-left: 4px solid #3b82f6;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 4px;
+    }
+    .info-box h3 {
+      color: #3b82f6;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    .info-box p {
+      color: #94a3b8;
+      font-size: 13px;
+      line-height: 1.6;
+      margin: 5px 0;
+    }
+    .history {
+      margin-top: 30px;
+    }
+    .history h3 {
+      color: #f1f5f9;
+      margin-bottom: 15px;
+    }
+    .history-item {
+      background: #252b3b;
+      padding: 12px;
+      margin-bottom: 8px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: #94a3b8;
+    }
+    .copy-btn {
+      background: #3b82f6;
+      padding: 6px 12px;
+      font-size: 12px;
+      margin-left: 10px;
+    }
+    .copy-btn:hover {
+      background: #2563eb;
+    }
+    @media (max-width: 760px) {
+      .role-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔐 Generador de Licencias</h1>
+    <p class="subtitle">PampaTambo - Sistema de Gestión de Licencias</p>
+
+    <div class="form-grid">
+      <div class="field full">
+        <label for="licenseOwner">Titular / Empresa</label>
+        <input id="licenseOwner" type="text" placeholder="Agropecuaria NEXO SA" value="Cliente NEXO" />
+      </div>
+      <div class="field">
+        <label for="licenseVersion">Versión de licencia</label>
+        <select id="licenseVersion">
+          <option value="basica">Básica (B)</option>
+          <option value="profesional">Profesional (P)</option>
+          <option value="premium">Premium (M)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="licenseExp">Vencimiento</label>
+        <input id="licenseExp" type="date" />
+      </div>
+    </div>
+
+    <div class="roles-box">
+      <div class="roles-title">Plantilla de roles incluida en la licencia (con WhatsApp para reportes/envíos)</div>
+      <div class="roles-grid" id="rolesTemplate"></div>
+    </div>
+
+    <button onclick="generateKey()">✨ Generar Nueva Clave de Licencia</button>
+    <div class="key-container">
+      <div class="key-label">Clave de Activación</div>
+      <div class="key-value" id="currentKey">NXT1.B.payload.firma</div>
+    </div>
+
+    <div class="info-box">
+      <h3>ℹ️ Información Importante</h3>
+      <p><strong>Formato de clave:</strong> NXT1.&lt;version&gt;.&lt;payload&gt;.&lt;firma&gt;</p>
+      <p><strong>Vencimiento:</strong> la licencia incluye fecha de expiración y en la app no activa si está vencida.</p>
+      <p><strong>Roles:</strong> se guarda plantilla de roles con cupos y WhatsApp por rol en el payload.</p>
+      <p><strong>Historial:</strong> Las claves generadas se guardan abajo para referencia</p>
+    </div>
+
+    <div class="history">
+      <h3>📋 Historial de Claves Generadas</h3>
+      <div id="historyList"></div>
+    </div>
+  </div>
+
+  <script>
+const _0x5657f4=_0x72e3;(function(_0x116c07,_0xce39fe){const _0xd6500e=_0x72e3,_0x45ac21=_0x116c07();while(!![]){try{const _0x30802a=-parseInt(_0xd6500e(0x19a))/0x1+-parseInt(_0xd6500e(0x128))/0x2*(parseInt(_0xd6500e(0xf4))/0x3)+-parseInt(_0xd6500e(0x144))/0x4+parseInt(_0xd6500e(0x104))/0x5*(parseInt(_0xd6500e(0x198))/0x6)+-parseInt(_0xd6500e(0x179))/0x7+-parseInt(_0xd6500e(0x135))/0x8*(parseInt(_0xd6500e(0x181))/0x9)+parseInt(_0xd6500e(0x1b5))/0xa;if(_0x30802a===_0xce39fe)break;else _0x45ac21['push'](_0x45ac21['shift']());}catch(_0x5457dc){_0x45ac21['push'](_0x45ac21['shift']());}}}(_0x1412,0xc7a02));const API_BASE_CANDIDATES=((()=>{const _0x13c6e7=_0x72e3,_0x326321=window[_0x13c6e7(0x12d)][_0x13c6e7(0x147)]||'http:',_0x34ab3c=window[_0x13c6e7(0x12d)][_0x13c6e7(0x130)]||'localhos'+'t',_0x8d1c38=[];if(window[_0x13c6e7(0x12d)][_0x13c6e7(0x178)]==='5500'){_0x8d1c38[_0x13c6e7(0xfa)](_0x326321+'//'+_0x34ab3c+(_0x13c6e7(0xe0)+_0x13c6e7(0xf3))),_0x8d1c38[_0x13c6e7(0xfa)](_0x13c6e7(0x1ac)+_0x34ab3c+(':3000/ta'+_0x13c6e7(0xf3)));if(_0x34ab3c===_0x13c6e7(0x180)+'t')_0x8d1c38[_0x13c6e7(0xfa)](_0x326321+(_0x13c6e7(0xe6)+_0x13c6e7(0x177)+'/tambo'));if(_0x34ab3c===_0x13c6e7(0x180)+'t')_0x8d1c38[_0x13c6e7(0xfa)](_0x13c6e7(0x110)+_0x13c6e7(0x12a)+_0x13c6e7(0xe0)+_0x13c6e7(0xf3));if(_0x34ab3c===_0x13c6e7(0x12b)+'1')_0x8d1c38[_0x13c6e7(0xfa)](_0x326321+(_0x13c6e7(0x18d)+'ost:3000'+_0x13c6e7(0x127)));if(_0x34ab3c===_0x13c6e7(0x12b)+'1')_0x8d1c38[_0x13c6e7(0xfa)]('http://l'+_0x13c6e7(0x17c)+_0x13c6e7(0xe0)+'mbo');_0x8d1c38['push'](_0x13c6e7(0x127));}else _0x8d1c38[_0x13c6e7(0xfa)]('/tambo');return Array[_0x13c6e7(0x1aa)](new Set(_0x8d1c38));})());let apiBaseCache=API_BASE_CANDIDATES[0x0];const VERSION_META={'basica':{'code':'B','label':_0x5657f4(0x186),'roles':[{'role':_0x5657f4(0x182)+_0x5657f4(0x1a3),'label':_0x5657f4(0xed)+_0x5657f4(0x1a3),'cap':0x1},{'role':_0x5657f4(0xf5)+_0x5657f4(0x1a3),'label':_0x5657f4(0x1af)+_0x5657f4(0x1a3),'cap':0x1},{'role':_0x5657f4(0x17e),'label':_0x5657f4(0x105),'cap':0x1}]},'profesional':{'code':'P','label':_0x5657f4(0x14b)+_0x5657f4(0x1c4),'roles':[{'role':_0x5657f4(0x182)+_0x5657f4(0x1a3),'label':_0x5657f4(0xed)+'rio','cap':0x1},{'role':_0x5657f4(0x1b2)+'o','label':_0x5657f4(0x176)+'o','cap':0x1},{'role':_0x5657f4(0xf5)+_0x5657f4(0x1a3),'label':'Veterina'+_0x5657f4(0x1a3),'cap':0x1},{'role':_0x5657f4(0x17e),'label':'Operador','cap':0x3},{'role':_0x5657f4(0x156)+_0x5657f4(0x152),'label':_0x5657f4(0x13f)+'racion','cap':0x1}]},'premium':{'code':'M','label':'Premium','roles':[{'role':'propieta'+_0x5657f4(0x1a3),'label':_0x5657f4(0xed)+'rio','cap':0x2},{'role':_0x5657f4(0x1b2)+'o','label':_0x5657f4(0x176)+'o','cap':0x1},{'role':_0x5657f4(0xf5)+_0x5657f4(0x1a3),'label':_0x5657f4(0x1af)+_0x5657f4(0x1a3),'cap':0x1},{'role':_0x5657f4(0x17e),'label':_0x5657f4(0x105),'cap':0x4},{'role':'administ'+_0x5657f4(0x152),'label':'Administ'+_0x5657f4(0x152),'cap':0x2}]}};async function signLicenseViaApi(_0x2a32af){const _0x496556=_0x5657f4,_0x5b8feb=JSON[_0x496556(0x19b)+'y']({'payload':_0x2a32af}),_0x4850b0=[apiBaseCache,...API_BASE_CANDIDATES[_0x496556(0xef)](_0x3d051c=>_0x3d051c!==apiBaseCache)];let _0x97cf6e=null;for(const _0x21badb of _0x4850b0){try{const _0x3a62dd=await fetch(_0x21badb+(_0x496556(0xeb)+_0x496556(0x166)),{'method':'POST','headers':{'Content-Type':_0x496556(0x146)+_0x496556(0x1a9)},'body':_0x5b8feb}),_0x2cf9f9=await _0x3a62dd[_0x496556(0x1bd)]()[_0x496556(0x170)](()=>({}));if(!_0x3a62dd['ok'])throw new Error(_0x2cf9f9?.['error']||_0x496556(0x16d)+_0x3a62dd['status']);return apiBaseCache=_0x21badb,_0x2cf9f9;}catch(_0x59e6f7){_0x97cf6e=_0x59e6f7;}}const _0x2ff2f5=''+(_0x97cf6e?.[_0x496556(0x122)]||'');if(_0x2ff2f5[_0x496556(0xe1)](_0x496556(0x199))||_0x2ff2f5[_0x496556(0xe1)](_0x496556(0x189)))throw new Error('No\x20hay\x20b'+_0x496556(0x108)+_0x496556(0x11c)+_0x496556(0x192)+'onible\x20e'+_0x496556(0x120)+_0x496556(0x12f)+_0x496556(0x118)+_0x496556(0x16f)+_0x496556(0x103)+_0x496556(0x1c2)+_0x496556(0xfb));throw new Error(_0x97cf6e?.['message']||_0x496556(0x13a)+'do\x20firma'+_0x496556(0x12e)+_0x496556(0x13b)+_0x496556(0x10b));}function normalizeWhatsApp(_0x2085a4){const _0x59d979=_0x5657f4,_0x1a2bc8=(''+(_0x2085a4||''))[_0x59d979(0x134)]();if(!_0x1a2bc8)return'';const _0x374a8a=_0x1a2bc8[_0x59d979(0x145)+'th']('+')?'+':'',_0x545fc1=_0x1a2bc8[_0x59d979(0x113)](/\D+/g,'');return''+_0x374a8a+_0x545fc1;}function setDefaultExpiration(_0x3217e1=0x16d){const _0x26217a=_0x5657f4,_0x653914=new Date();_0x653914[_0x26217a(0xf9)](_0x653914[_0x26217a(0x168)]()+_0x3217e1);const _0x471e59=_0x653914['getFullY'+_0x26217a(0x1b3)](),_0x213e9f=(''+(_0x653914['getMonth']()+0x1))[_0x26217a(0x153)](0x2,'0'),_0x2f91a5=(''+_0x653914['getDate']())[_0x26217a(0x153)](0x2,'0');document[_0x26217a(0xe3)+_0x26217a(0x167)](_0x26217a(0x11b)+'xp')[_0x26217a(0xe8)]=_0x471e59+'-'+_0x213e9f+'-'+_0x2f91a5;}function renderRolesTemplate(){const _0x58071e=_0x5657f4,_0x54bcad=document[_0x58071e(0xe3)+_0x58071e(0x167)](_0x58071e(0xe2)+_0x58071e(0x119))[_0x58071e(0xe8)]||'basica',_0x72991a=VERSION_META[_0x54bcad]||VERSION_META['basica'],_0x232680=document['getEleme'+_0x58071e(0x167)](_0x58071e(0xe4)+_0x58071e(0x173));_0x232680[_0x58071e(0x1ae)+'L']=_0x72991a[_0x58071e(0x107)][_0x58071e(0x164)](_0x1309a=>_0x58071e(0x18a)+_0x58071e(0x114)+_0x58071e(0x121)+'e-row\x22\x20d'+_0x58071e(0x112)+'=\x22'+_0x1309a[_0x58071e(0x160)]+('\x22>\x0a\x20\x20\x20\x20\x20'+'\x20\x20\x20\x20\x20<sp'+'an>')+_0x1309a[_0x58071e(0x197)]+('</span>\x0a'+_0x58071e(0x184)+_0x58071e(0x16a)+_0x58071e(0x18e))+_0x1309a['cap']+(_0x58071e(0x1b8)+_0x58071e(0x184)+_0x58071e(0x195)+_0x58071e(0x141)+_0x58071e(0x115)+_0x58071e(0x163)+_0x58071e(0x1b1)+_0x58071e(0x109)+'r=\x22Nombr'+_0x58071e(0x143)+_0x58071e(0x14e))+_0x1309a[_0x58071e(0x197)]+(_0x58071e(0x102)+_0x58071e(0x184)+_0x58071e(0x1b0)+_0x58071e(0x129)+_0x58071e(0x148)+'kind=\x22wh'+'atsapp\x22\x20'+_0x58071e(0x183)+'der=\x22Wha'+_0x58071e(0x1a0))+_0x1309a[_0x58071e(0x197)]+(')\x22\x20/>\x0a\x20\x20'+_0x58071e(0x15b)+_0x58071e(0xde)+'\x20\x20\x20'))['join']('');}function collectRolesTemplate(){const _0x1f1647=_0x5657f4,_0x2036e2=document['getEleme'+_0x1f1647(0x167)](_0x1f1647(0xe2)+_0x1f1647(0x119))[_0x1f1647(0xe8)]||_0x1f1647(0x1a1),_0x3d6218=VERSION_META[_0x2036e2]||VERSION_META[_0x1f1647(0x1a1)],_0x5ac065=Array['from'](document['querySel'+_0x1f1647(0x1c0)]('#rolesTe'+_0x1f1647(0x151)+_0x1f1647(0x11e))),_0x122e3e=_0x3d6218[_0x1f1647(0x107)][_0x1f1647(0x164)](_0x22e21f=>{const _0x40076c=_0x1f1647,_0x55da82=_0x5ac065[_0x40076c(0x194)](_0x2316c7=>_0x2316c7[_0x40076c(0x14c)+_0x40076c(0x1b7)]('data-rol'+'e')===_0x22e21f[_0x40076c(0x160)]),_0x208a92=_0x55da82?.[_0x40076c(0x1bc)+'ector']('[data-ki'+_0x40076c(0x165)+'\x22]')?.[_0x40076c(0xe8)]?.[_0x40076c(0x134)]()||'',_0x2fa0a2=normalizeWhatsApp(_0x55da82?.[_0x40076c(0x1bc)+_0x40076c(0x1b6)]('[data-ki'+_0x40076c(0x193)+_0x40076c(0x154))?.[_0x40076c(0xe8)]||'');return{'role':_0x22e21f['role'],'label':_0x22e21f[_0x40076c(0x197)],'cap':_0x22e21f[_0x40076c(0x1c1)],'name':_0x208a92,'whatsapp':_0x2fa0a2};});return _0x122e3e;}function buildPayload(){const _0x36d013=_0x5657f4,_0x5dc15f=document['getEleme'+'ntById'](_0x36d013(0xe2)+_0x36d013(0x119))[_0x36d013(0xe8)]||'basica',_0x45737d=VERSION_META[_0x5dc15f]||VERSION_META['basica'],_0x4cda8b=(document[_0x36d013(0xe3)+_0x36d013(0x167)](_0x36d013(0xee)+_0x36d013(0xfd))[_0x36d013(0xe8)]||_0x36d013(0x159)+_0x36d013(0x111))[_0x36d013(0x134)]()||_0x36d013(0x159)+_0x36d013(0x111),_0x4ef506=document[_0x36d013(0xe3)+_0x36d013(0x167)](_0x36d013(0x11b)+'xp')[_0x36d013(0xe8)];if(!_0x4ef506)throw new Error(_0x36d013(0x158)+_0x36d013(0x13d)+_0x36d013(0x149)+'imiento\x20'+'para\x20la\x20'+_0x36d013(0x125)+'.');const _0x59d69d=collectRolesTemplate(),_0x58ee57=_0x59d69d['reduce']((_0x4fe878,_0x33f04f)=>{const _0x6591c1=_0x36d013;return _0x4fe878[_0x33f04f[_0x6591c1(0x160)]]=_0x33f04f[_0x6591c1(0x17b)],_0x4fe878;},{});return{'owner':_0x4cda8b,'version':_0x45737d[_0x36d013(0x197)],'versionCode':_0x45737d['code'],'exp':_0x4ef506,'issuedAt':new Date()[_0x36d013(0xe7)+_0x36d013(0x157)](),'roles':_0x59d69d,'roleContacts':_0x58ee57};}async function generateKey(){const _0x215b5a=_0x5657f4;try{const _0x3ad5f0=buildPayload(),_0x31c458=await signLicenseViaApi(_0x3ad5f0),_0x213c4f=_0x31c458?.[_0x215b5a(0x136)]||'';if(!_0x213c4f)throw new Error(_0x215b5a(0xfe)+_0x215b5a(0x11a)+_0x215b5a(0xf1)+_0x215b5a(0xea)+_0x215b5a(0x188));document[_0x215b5a(0xe3)+_0x215b5a(0x167)](_0x215b5a(0x171)+'ey')[_0x215b5a(0xf6)+_0x215b5a(0x16e)]=_0x213c4f,addToHistory(_0x213c4f,_0x31c458?.[_0x215b5a(0x10d)]||_0x3ad5f0);}catch(_0x58fe48){alert(_0x58fe48?.[_0x215b5a(0x122)]||_0x215b5a(0x13a)+_0x215b5a(0x1bb)+'ar\x20la\x20li'+_0x215b5a(0x11d));}}function addToHistory(_0x5510e8,_0x4dcfec){const _0x411086=_0x5657f4,_0x18cc05=JSON[_0x411086(0x132)](localStorage[_0x411086(0x1ab)]('licenseH'+_0x411086(0x1a5))||'[]');_0x18cc05[_0x411086(0x14d)]({'key':_0x5510e8,'owner':_0x4dcfec['owner'],'version':_0x4dcfec[_0x411086(0x139)],'exp':_0x4dcfec[_0x411086(0x1a7)],'roles':_0x4dcfec[_0x411086(0x107)],'date':new Date()[_0x411086(0xdf)+'String'](_0x411086(0x1c3))}),_0x18cc05[_0x411086(0x126)]>0x14&&_0x18cc05[_0x411086(0xec)](0x14),localStorage[_0x411086(0x1a6)](_0x411086(0xff)+_0x411086(0x1a5),JSON['stringif'+'y'](_0x18cc05)),renderHistory();}function renderHistory(){const _0x1d2be2=_0x5657f4,_0x405822=JSON[_0x1d2be2(0x132)](localStorage[_0x1d2be2(0x1ab)](_0x1d2be2(0xff)+_0x1d2be2(0x1a5))||'[]'),_0x28b414=document['getEleme'+_0x1d2be2(0x167)](_0x1d2be2(0x142)+_0x1d2be2(0x13e));if(_0x405822[_0x1d2be2(0x126)]===0x0){_0x28b414['innerHTM'+'L']='<p\x20style'+_0x1d2be2(0xfc)+_0x1d2be2(0x174)+';\x20font-s'+_0x1d2be2(0x1ad)+_0x1d2be2(0x16c)+'o\x20hay\x20cl'+_0x1d2be2(0x15e)+_0x1d2be2(0x18b)+_0x1d2be2(0x190);return;}_0x28b414[_0x1d2be2(0x1ae)+'L']=_0x405822[_0x1d2be2(0x164)]((_0x4ed1c4,_0x1aa451)=>'\x0a\x20\x20\x20\x20\x20\x20\x20'+'\x20<div\x20cl'+'ass=\x22his'+'tory-ite'+_0x1d2be2(0x10e)+_0x1d2be2(0x123)+_0x1d2be2(0xdd)+_0x1d2be2(0x101)+_0x1d2be2(0x161)+_0x1d2be2(0x191)+_0x1d2be2(0x15c)+_0x1d2be2(0x19d)+_0x1d2be2(0x15f)+'x-wrap:w'+_0x1d2be2(0x18f)+'10px;ali'+'gn-items'+_0x1d2be2(0x137)+_0x1d2be2(0x133)+_0x1d2be2(0x16b)+'span>'+_0x4ed1c4[_0x1d2be2(0x136)]+(_0x1d2be2(0x1b8)+_0x1d2be2(0x184)+_0x1d2be2(0x1a8)+_0x1d2be2(0x117)+_0x1d2be2(0x106)+_0x1d2be2(0x1be)+_0x1d2be2(0x1ba)+_0x1d2be2(0x19e)+_0x1d2be2(0x19f))+(_0x4ed1c4['version']||'-')+(_0x1d2be2(0x1b8)+_0x1d2be2(0x184)+_0x1d2be2(0x15d)+_0x1d2be2(0x18a)+_0x1d2be2(0x14a)+_0x1d2be2(0x150)+_0x1d2be2(0xf8)+_0x1d2be2(0x131)+_0x1d2be2(0x15a)+_0x1d2be2(0x10a)+_0x1d2be2(0x19c)+_0x1d2be2(0xf7)+'ular:\x20')+(_0x4ed1c4[_0x1d2be2(0x18c)]||'-')+('\x20·\x20Vence'+':\x20')+(_0x4ed1c4['exp']||'-')+(_0x1d2be2(0x1b4)+_0x1d2be2(0x184)+_0x1d2be2(0x155)+'yle=\x22dis'+_0x1d2be2(0x1bf)+'x;justif'+'y-conten'+_0x1d2be2(0x10c)+_0x1d2be2(0xf0)+_0x1d2be2(0x17a)+_0x1d2be2(0x185)+_0x1d2be2(0x17d)+'n-top:8p'+_0x1d2be2(0x10f)+_0x1d2be2(0x184)+_0x1d2be2(0x140)+_0x1d2be2(0x1b9)+_0x1d2be2(0x175)+_0x1d2be2(0x12c)+_0x1d2be2(0x14f)+_0x1d2be2(0xf2))+_0x4ed1c4[_0x1d2be2(0x1a2)]+(_0x1d2be2(0x1b8)+'\x20\x20\x20\x20\x20\x20\x20\x20'+'\x20\x20\x20\x20<but'+_0x1d2be2(0x138)+_0x1d2be2(0x124)+'btn\x22\x20onc'+'lick=\x22co'+_0x1d2be2(0x1a4)+_0x1d2be2(0x196))+_0x4ed1c4['key']+(_0x1d2be2(0x17f)+'ar</butt'+_0x1d2be2(0x162)+_0x1d2be2(0x15b)+_0x1d2be2(0xde)+_0x1d2be2(0x100)+_0x1d2be2(0x172)+'\x20\x20'))['join']('');}function _0x1412(){const _0x4898f2=['port','10377689PFYfEX','align-it','whatsapp','ocalhost','er;margi','operador','\x27)\x22>Copi','localhos','6543hEXQnH','propieta','placehol','\x20\x20\x20\x20\x20\x20\x20\x20','ems:cent','Basica','Clave\x20co','válida.','404','\x0a\x20\x20\x20\x20\x20\x20\x20','eradas\x20a','owner','//localh','Cupo:\x20','rap;gap:','ún</p>','ustify-c','ias\x20disp','nd=\x22what','find','\x20\x20<input','board(\x27','label','16374HhkbOt','405','1427684ATpgtp','stringif','-size:11','pace-bet','ze:\x2011px',';\x22>','tsApp\x20(','basica','date','rio','pyToClip','istory','setItem','exp','\x20\x20\x20\x20<spa','ion/json','from','getItem','http://','tyle:\x20it','innerHTM','Veterina','<input\x20t','name\x22\x20pl','ingenier','ear','</div>\x0a\x20','75264950rSDKeR','ector','bute','</span>\x0a','tyle=\x22co','\x20font-si','do\x20gener','querySel','json','#94a3b8;','play:fle','ectorAll','cap','la\x20app\x20.','es-AR','nal','clipboar','iv\x20style','div>\x0a\x20\x20\x20','toLocale',':3000/ta','includes','licenseV','getEleme','rolesTem','writeTex','//127.0.','toISOStr','value','piada:\x20','icencia\x20','/license','splice','Propieta','licenseO','filter','between;','ió\x20una\x20l','\x2011px;\x22>','mbo','9687trdGiL','veterina','textCont','px;\x22>Tit','argin-to','setDate','push','exe.','=\x22color:','wner','La\x20API\x20n','licenseH','\x20\x20\x20\x20\x20</d','=\x22displa',')\x22\x20/>\x0a\x20\x20','s\x20o\x20usá\x20','555DJMVrG','Operador','\x22color:\x20','roles','ackend\x20d','aceholde','3b8;font','sde\x20API.','t:space-','payload','m\x22>\x0a\x20\x20\x20\x20','x;\x22>\x0a\x20\x20\x20','http://1','NEXO','ata-role','replace','\x20<div\x20cl','ext\x22\x20dat','Error\x20al','n\x20style=','iá\x20node\x20','ersion','o\x20devolv','licenseE','e\x20licenc','cencia.','role-row','then','n\x20esta\x20U','ass=\x22rol','message','\x20\x20\x20\x20\x20\x20<d','s=\x22copy-','licencia','length','/tambo','874AUWuAg','ype=\x22tex','27.0.0.1','127.0.0.','748b;\x20fo','location','r\x20la\x20lic','RL.\x20Inic','hostname','p:6px;co','parse','\x22>\x0a\x20\x20\x20\x20\x20','trim','15272XfbWOB','key',':center;','ton\x20clas','version','No\x20se\x20pu','encia\x20de','\x20copiar:','na\x20fecha','ist','Administ','\x20<span\x20s','\x20type=\x22t','historyL','e\x20respon','5210484ZdPuZM','startsWi','applicat','protocol','t\x22\x20data-','\x20de\x20venc','\x20\x20\x20<div\x20','Profesio','getAttri','unshift','sable\x20(','nt-size:','style=\x22m','mplate\x20.','racion','padStart','sapp\x22]','\x20<div\x20st','administ','ing','Definí\x20u','Cliente\x20','lor:#94a','\x20\x20\x20\x20\x20\x20</','ontent:s','\x20\x20</div>','aves\x20gen','ween;fle','role','y:flex;j','on>\x0a\x20\x20\x20\x20','a-kind=\x22','map','nd=\x22name','/sign','ntById','getDate','addEvent','\x20\x20<span>','\x20\x20\x20\x20\x20\x20\x20<','alic;\x22>N','Error\x20','ent','server.j','catch','currentK','iv>\x0a\x20\x20\x20\x20','plate','\x20#64748b','lor:\x20#64','Ingenier','0.1:3000'];_0x1412=function(){return _0x4898f2;};return _0x1412();}function copyToClipboard(_0xd074b0){const _0x4fea1f=_0x5657f4;navigator[_0x4fea1f(0x1c5)+'d'][_0x4fea1f(0xe5)+'t'](_0xd074b0)[_0x4fea1f(0x11f)](()=>{const _0x47cdf9=_0x4fea1f;alert(_0x47cdf9(0x187)+_0x47cdf9(0xe9)+_0xd074b0);})[_0x4fea1f(0x170)](_0x198690=>{const _0xcdeefc=_0x4fea1f;console['error'](_0xcdeefc(0x116)+_0xcdeefc(0x13c),_0x198690);});}function _0x72e3(_0x1f557c,_0x56bf70){_0x1f557c=_0x1f557c-0xdd;const _0x1412cb=_0x1412();let _0x72e38d=_0x1412cb[_0x1f557c];return _0x72e38d;}document['getEleme'+_0x5657f4(0x167)](_0x5657f4(0xe2)+_0x5657f4(0x119))[_0x5657f4(0x169)+'Listener']('change',renderRolesTemplate),renderHistory(),renderRolesTemplate(),setDefaultExpiration(0x16d),generateKey();
+</script>
+</body>
+</html>
