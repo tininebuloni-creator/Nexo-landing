@@ -228,6 +228,7 @@
         <button data-view="Telemetria y clima"><b class="nav-icon">T</b><span>Telemetria</span></button>
         <button data-view="Analitica"><b class="nav-icon">A</b><span>Analitica</span></button>
         <button data-view="Finanzas"><b class="nav-icon">$</b><span>Finanzas</span></button>
+        <button data-view="Rentabilidad"><b class="nav-icon">%</b><span>Rentabilidad</span></button>
         <button data-view="ARCA"><b class="nav-icon">A</b><span>ARCA</span></button>
         <button data-view="RRHH"><b class="nav-icon">H</b><span>RRHH</span></button>
         <button data-view="Usuarios y roles"><b class="nav-icon">R</b><span>Usuarios y roles</span></button>
@@ -339,6 +340,7 @@
     let registeredCompanies = loadList('pampa-companies', [{ name: 'Pampa Agropecuaria S.A.', taxId: '', address: '' }, { name: 'PampaPrecision Demo', taxId: '', address: '' }, { name: 'Establecimiento La Esperanza', taxId: '', address: '' }]);
     let registeredEquipment = loadList('pampa-equipment', []);
     let registeredPurchases = loadList('pampa-purchases', []);
+    let registeredRevenues = loadList('pampa-revenues', []);
       let registeredBuyers = loadList('pampa-buyers', [{ name: 'Acopio La Pampa S.A.', taxId: '', role: 'Acopio' }, { name: 'Cerealera del Centro S.A.', taxId: '', role: 'Cerealista' }]);
       let registeredBanks = loadList('pampa-banks', ['Banco Nación', 'Banco Provincia', 'Banco Galicia', 'Banco Santander', 'BBVA', 'Banco Macro', 'Banco Credicoop', 'ICBC', 'Brubank', 'Ualá']);
     let registeredUsers = loadList('pampa-users', ['Marina R.', 'Lucas B.', 'Sofia M.']);
@@ -1378,6 +1380,19 @@
         downloadFile(JSON.stringify(payload, null, 2), `plan-equipamiento-${new Date().toISOString().slice(0, 10)}.json`, 'application/json');
         recordAudit('Exportacion plan equipamiento', 'JSON reglas y catalogo');
         showToast('Plan de equipamiento exportado');
+      } else if (label === 'Exportar rentabilidad') {
+        const rows = [['Concepto', 'Importe'], ['Ingresos', registeredRevenues.reduce((total, item) => total + Number(item.amount || 0), 0)], ['Costos', registeredPurchases.reduce((total, item) => total + Number(item.invoiceTotal || 0), 0)]];
+        downloadFile(rows.map(row => row.join(',')).join('\n'), `rentabilidad-${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8');
+        showToast('Reporte de rentabilidad descargado');
+      } else if (label === 'Nuevo ingreso productivo') {
+        openNewForm('Registrar ingreso productivo', [{ id: 'revenueLot', label: 'Lote', type: 'select', options: ['General', ...registeredLotDetails.map(lot => lot.code)] }, { id: 'revenueConcept', label: 'Concepto', placeholder: 'Venta de cosecha / servicio', full: true }, { id: 'revenueAmount', label: 'Importe (USD)', type: 'number', placeholder: '0' }, { id: 'revenueDate', label: 'Fecha', type: 'date' }], formData => {
+          const revenue = { lot: formData.get('revenueLot'), concept: formData.get('revenueConcept').trim(), amount: Number(formData.get('revenueAmount') || 0), date: formData.get('revenueDate') || new Date().toISOString().slice(0, 10) };
+          registeredRevenues.unshift(revenue);
+          localStorage.setItem('pampa-revenues', JSON.stringify(registeredRevenues));
+          recordAudit('Nuevo ingreso productivo', `${revenue.lot} · ${revenue.amount}`);
+          showToast('Ingreso registrado localmente');
+          renderTrialProfitability();
+        });
       } else if (label === 'Nuevo registro de calibracion') {
         const options = calibrationProtocol.map(item => item.system);
         openNewForm('Nuevo registro de calibracion', [{ id: 'calDate', label: 'Fecha', type: 'date' }, { id: 'calSystem', label: 'Sistema', type: 'select', options }, { id: 'calEquipment', label: 'Equipo / componente', placeholder: 'Ej. GNSS receptor + IMU', full: true }, { id: 'calStandard', label: 'Patron usado', placeholder: 'Ej. Manometro clase 1', full: true }, { id: 'calFactorBefore', label: 'Factor anterior', placeholder: '1.000' }, { id: 'calFactorAfter', label: 'Factor nuevo', placeholder: '0.986' }, { id: 'calDeviation', label: 'Desvio (%)', type: 'number', placeholder: '0' }, { id: 'calFrequency', label: 'Frecuencia', type: 'select', options: calibrationProtocol.map(item => item.frequency) }, { id: 'calClosure', label: 'Validacion de cierre', type: 'select', options: ['si', 'no'] }, { id: 'calResponsible', label: 'Responsable', placeholder: 'Tecnico de precision' }, { id: 'calNote', label: 'Observaciones', placeholder: 'Resultado, deriva y accion correctiva', full: true }], formData => {
@@ -1676,6 +1691,11 @@
         <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Créditos y cuentas por cobrar</h2><p class="panel-caption">Capital, vencimiento, saldo pendiente y estado</p></div><div class="toolbar"><button class="text-button" data-action="Cobrar crédito">Registrar cobro</button><button class="text-button" data-action="Nuevo crédito">+ Nuevo crédito</button></div></div><table class="data-table"><thead><tr><th>Crédito</th><th>Cliente</th><th>Vencimiento</th><th>Saldo</th><th>Estado</th></tr></thead><tbody id="financeCreditRows"><tr><td colspan="5">Cargando...</td></tr></tbody></table></section>
         <div class="layout" style="margin-top:19px"><section class="panel"><div class="panel-head"><div><h2>Cuentas de fondos</h2><p class="panel-caption">Caja, bancos y billeteras operativas</p></div><button class="text-button" data-action="Nueva cuenta de fondos">+ Nueva cuenta</button></div><table class="data-table"><thead><tr><th>Cuenta</th><th>Moneda</th><th>Saldo</th><th>Estado</th></tr></thead><tbody id="financeAccountRows"><tr><td colspan="4">Cargando...</td></tr></tbody></table></section><section class="panel"><div class="panel-head"><div><h2>Flujo diario</h2><p class="panel-caption">Ingresos y egresos confirmados</p></div><span class="eyebrow">Periodo actual</span></div><table class="data-table"><thead><tr><th>Fecha</th><th>Ingresos</th><th>Egresos</th><th>Neto</th></tr></thead><tbody id="financeFlowRows"><tr><td colspan="4">Cargando...</td></tr></tbody></table></section></div>
         <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Movimientos de fondos</h2><p class="panel-caption">Registro bancario y de caja</p></div><div class="toolbar"><button class="text-button" data-action="Registrar cobro">Registrar cobro</button><button class="text-button" data-action="Nuevo movimiento">+ Registrar movimiento</button></div></div><table class="data-table"><thead><tr><th>Fecha</th><th>Cuenta</th><th>Descripcion</th><th>Tipo</th><th>Importe</th></tr></thead><tbody id="financeMovementRows"><tr><td colspan="5">Cargando...</td></tr></tbody></table></section></section>`,
+      'Rentabilidad': `
+        <header class="topbar"><div><div class="eyebrow">Workspace / Decisiones económicas</div><h1>Rentabilidad</h1></div><div class="toolbar"><select id="profitabilityCampaign" aria-label="Campaña"><option>2025 / 2026</option></select><button class="button" data-action="Exportar rentabilidad">Exportar reporte</button><button class="button primary" data-action="Nuevo ingreso productivo">+ Registrar ingreso</button></div></header>
+        <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Ingresos registrados</span><strong id="profitRevenue">$ 0</strong></article><article class="panel module-stat danger"><span>Costos registrados</span><strong id="profitCosts">$ 0</strong></article><article class="panel module-stat warning"><span>Resultado neto</span><strong id="profitNet">$ 0</strong></article><article class="panel module-stat"><span>Margen</span><strong id="profitMargin">0%</strong></article></div>
+        <section class="panel"><div class="panel-head"><div><h2>Resultado económico</h2><p class="panel-caption">Ingresos, costos y margen de la campaña activa</p></div><span class="pill" id="profitabilityState">Sin datos</span></div><table class="data-table"><thead><tr><th>Concepto</th><th>Importe</th><th>Origen</th><th>Estado</th></tr></thead><tbody id="profitabilitySummaryRows"><tr><td colspan="4">Sin datos de rentabilidad registrados.</td></tr></tbody></table></section>
+        <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Rentabilidad por lote</h2><p class="panel-caption">Comparación de ingresos, costos directos y resultado</p></div><span class="pill yellow">Pendiente de datos</span></div><table class="data-table"><thead><tr><th>Lote</th><th>Ingresos</th><th>Costos</th><th>Resultado</th><th>Margen</th></tr></thead><tbody id="profitabilityLotRows"><tr><td colspan="5">Registrá ingresos y costos para calcular la rentabilidad por lote.</td></tr></tbody></table></section></section>`,
       'Agricola': `
         <header class="topbar"><div><div class="eyebrow">Workspace / Produccion agricola</div><h1>Modulo agricola</h1></div><div class="toolbar"><button class="button" data-action="Planificar siembra">+ Siembra</button><button class="button" data-action="Planificar cosecha">+ Cosecha</button><button class="button primary" data-action="Nuevo costo operativo">+ Costo operativo</button></div></header>
         <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Maquinas activas</span><strong id="agriMachinesCount">0</strong></article><article class="panel module-stat warning"><span>Mantenimientos pendientes</span><strong id="agriMaintenanceCount">0</strong></article><article class="panel module-stat"><span>Cosecha registrada</span><strong id="agriHarvestTotal">0 tn</strong></article><article class="panel module-stat danger"><span>Costos operativos</span><strong id="agriCostTotal">$ 0</strong></article></div>
@@ -2183,6 +2203,29 @@
       rows.innerHTML = registeredPurchases.length ? registeredPurchases.map(purchase => `<tr><td><strong>${purchase.invoiceNumber || 'Sin factura'}</strong></td><td>${purchase.supplier || 'Sin proveedor'}</td><td>${purchase.input} · ${purchase.quantity}</td><td>${purchase.invoiceDate ? new Date(`${purchase.invoiceDate}T12:00:00`).toLocaleDateString('es-AR') : '-'}</td><td>$ ${Number(purchase.invoiceTotal || 0).toLocaleString('es-AR')}</td><td><span class="pill yellow">Pendiente</span></td></tr>`).join('') : '<tr><td colspan="6">No hay cuentas por pagar registradas.</td></tr>';
     }
 
+    function renderTrialProfitability() {
+      if (!isTrialMode || activeModuleView !== 'Rentabilidad') return;
+      const revenue = registeredRevenues.reduce((total, item) => total + Number(item.amount || 0), 0);
+      const costs = registeredPurchases.reduce((total, item) => total + Number(item.invoiceTotal || 0), 0);
+      const net = revenue - costs;
+      const margin = revenue ? (net / revenue) * 100 : 0;
+      const setText = (id, value) => { const element = main.querySelector(`#${id}`); if (element) element.textContent = value; };
+      setText('profitRevenue', `$ ${revenue.toLocaleString('es-AR')}`);
+      setText('profitCosts', `$ ${costs.toLocaleString('es-AR')}`);
+      setText('profitNet', `$ ${net.toLocaleString('es-AR')}`);
+      setText('profitMargin', `${margin.toLocaleString('es-AR', { maximumFractionDigits: 1 })}%`);
+      const state = main.querySelector('#profitabilityState');
+      if (state) state.textContent = revenue || costs ? 'Calculado' : 'Sin datos';
+      const summary = main.querySelector('#profitabilitySummaryRows');
+      if (summary) summary.innerHTML = revenue || costs
+        ? `<tr><td>Ingresos</td><td>$ ${revenue.toLocaleString('es-AR')}</td><td>Ventas registradas</td><td><span class="pill">Confirmado</span></td></tr><tr><td>Costos</td><td>$ ${costs.toLocaleString('es-AR')}</td><td>Compras / cuentas por pagar</td><td><span class="pill yellow">Pendiente de imputación</span></td></tr><tr><td>Resultado neto</td><td>$ ${net.toLocaleString('es-AR')}</td><td>Ingresos menos costos</td><td><span class="pill ${net >= 0 ? '' : 'red'}">${net >= 0 ? 'Positivo' : 'Negativo'}</span></td></tr>`
+        : '<tr><td colspan="4">Sin datos de rentabilidad registrados.</td></tr>';
+      const lotRows = main.querySelector('#profitabilityLotRows');
+      if (lotRows) lotRows.innerHTML = registeredRevenues.length
+        ? registeredRevenues.map(item => { const itemCost = registeredPurchases.filter(purchase => purchase.lot === item.lot).reduce((total, purchase) => total + Number(purchase.invoiceTotal || 0), 0); const itemNet = Number(item.amount || 0) - itemCost; const itemMargin = Number(item.amount || 0) ? (itemNet / Number(item.amount)) * 100 : 0; return `<tr><td><strong>${item.lot || 'General'}</strong></td><td>$ ${Number(item.amount || 0).toLocaleString('es-AR')}</td><td>$ ${itemCost.toLocaleString('es-AR')}</td><td>$ ${itemNet.toLocaleString('es-AR')}</td><td>${itemMargin.toLocaleString('es-AR', { maximumFractionDigits: 1 })}%</td></tr>`; }).join('')
+        : '<tr><td colspan="5">Registrá ingresos y costos para calcular la rentabilidad por lote.</td></tr>';
+    }
+
     function clearTrialModuleDemo(view) {
       const emptyRows = (selector, colspan) => {
         main.querySelectorAll(selector).forEach(body => { body.innerHTML = `<tr><td colspan="${colspan}">Sin datos registrados.</td></tr>`; });
@@ -2226,6 +2269,7 @@
           main.innerHTML = moduleViews[button.dataset.view];
           clearTrialModuleDemo(button.dataset.view);
           renderTrialFinancePurchases();
+          renderTrialProfitability();
           bindModuleActions();
           addHistoricalImportAction(button.dataset.view);
           if (button.dataset.view === 'Agricola' && !isTrialMode) loadAgriculturalModule();
