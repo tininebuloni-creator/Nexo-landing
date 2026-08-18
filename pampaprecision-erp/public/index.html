@@ -337,6 +337,7 @@
     let precisionResizeTimer = null;
     let lotLocations = loadList('pampa-lot-locations', { 'L-04 · La Esperanza': 'Buenos Aires', 'L-09 · El Ombu': 'Buenos Aires', 'L-12 · Santa Clara': 'Buenos Aires' });
     let registeredCompanies = loadList('pampa-companies', [{ name: 'Pampa Agropecuaria S.A.', taxId: '', address: '' }, { name: 'PampaPrecision Demo', taxId: '', address: '' }, { name: 'Establecimiento La Esperanza', taxId: '', address: '' }]);
+    let registeredEquipment = loadList('pampa-equipment', []);
       let registeredBuyers = loadList('pampa-buyers', [{ name: 'Acopio La Pampa S.A.', taxId: '', role: 'Acopio' }, { name: 'Cerealera del Centro S.A.', taxId: '', role: 'Cerealista' }]);
       let registeredBanks = loadList('pampa-banks', ['Banco Nación', 'Banco Provincia', 'Banco Galicia', 'Banco Santander', 'BBVA', 'Banco Macro', 'Banco Credicoop', 'ICBC', 'Brubank', 'Ualá']);
     let registeredUsers = loadList('pampa-users', ['Marina R.', 'Lucas B.', 'Sofia M.']);
@@ -1407,7 +1408,21 @@
         recordAudit('Exportacion calibraciones', 'CSV de trazabilidad');
         showToast('Planilla de calibraciones descargada');
       } else if (label === 'Nueva maquina') {
-        openNewForm('Nuevo equipo de precision', [{ id: 'machineCode', label: 'Codigo', placeholder: 'EQ-001' }, { id: 'machineCategory', label: 'Funcion del equipo', type: 'select', options: precisionMachineFormOptions }, { id: 'machineBrand', label: 'Marca' }, { id: 'machineModel', label: 'Modelo' }, { id: 'machineHourlyCost', label: 'Costo horario (USD)', type: 'number', placeholder: '35' }], async formData => { await api.createMachine(activeTenantId, { code: formData.get('machineCode'), category: formData.get('machineCategory'), brand: formData.get('machineBrand'), model: formData.get('machineModel'), hourlyCostUsd: Number(formData.get('machineHourlyCost') || 35) }); showToast('Equipo registrado'); loadAgriculturalModule(); });
+        openNewForm('Nuevo equipo de precision', [{ id: 'machineCode', label: 'Codigo', placeholder: 'EQ-001' }, { id: 'machineCategory', label: 'Funcion del equipo', type: 'select', options: precisionMachineFormOptions }, { id: 'machineBrand', label: 'Marca' }, { id: 'machineModel', label: 'Modelo' }, { id: 'machineHourlyCost', label: 'Costo horario (USD)', type: 'number', placeholder: '35' }], async formData => {
+          const equipment = { code: formData.get('machineCode').trim(), category: formData.get('machineCategory'), brand: formData.get('machineBrand').trim(), model: formData.get('machineModel').trim(), hourlyCostUsd: Number(formData.get('machineHourlyCost') || 35) };
+          if (isTrialMode) {
+            if (registeredEquipment.some(item => item.code === equipment.code)) throw new Error('Ya existe un equipo con ese código');
+            registeredEquipment.push(equipment);
+            localStorage.setItem('pampa-equipment', JSON.stringify(registeredEquipment));
+            recordAudit('Nuevo equipo', equipment.code);
+            showToast('Equipo registrado localmente');
+            if (activeModuleView === 'Inventario') { main.innerHTML = moduleViews.Inventario; bindModuleActions(); clearTrialModuleDemo('Inventario'); }
+          } else {
+            await api.createMachine(activeTenantId, equipment);
+            showToast('Equipo registrado');
+            loadAgriculturalModule();
+          }
+        });
       } else if (label === 'Cargar eventos telemetria') {
         openNewForm('Cargar eventos de maquinaria', [{ id: 'device', label: 'Dispositivo', type: 'select', options: ['GNSS-RTK-01 · Posicionamiento y guiado', 'VRA-SEED-02 · Siembra variable', 'PWM-SPR-03 · Pulverizacion inteligente', 'NIR-HRV-04 · Cosecha y calidad', 'IOT-LORA-05 · Telemetria y conectividad'], full: true }, { id: 'eventCount', label: 'Cantidad de eventos', type: 'number', placeholder: '1000' }, { id: 'eventDate', label: 'Fecha de los eventos', type: 'date' }], formData => { recordAudit('Ingesta bulk de telemetria', formData.get('device')); });
       } else if (label === 'Configurar ARCA') {
@@ -1458,7 +1473,20 @@
           showToast(`${label} registrada`); loadAgriculturalModule();
         });
       } else if (label === 'Nueva maquina') {
-        openNewForm('Nueva maquina', [{ id: 'machineCode', label: 'Codigo', placeholder: 'TR-001' }, { id: 'machineCategory', label: 'Categoria', type: 'select', options: ['tractor', 'cosechadora', 'sembradora', 'pulverizadora', 'camion'] }, { id: 'machineBrand', label: 'Marca' }, { id: 'machineModel', label: 'Modelo' }, { id: 'machineHourlyCost', label: 'Costo horario (USD)', type: 'number', placeholder: '35' }], async formData => { await api.createMachine(activeTenantId, { code: formData.get('machineCode'), category: formData.get('machineCategory'), brand: formData.get('machineBrand'), model: formData.get('machineModel'), hourlyCostUsd: Number(formData.get('machineHourlyCost') || 35) }); showToast('Maquina registrada'); loadAgriculturalModule(); });
+        openNewForm('Nueva maquina', [{ id: 'machineCode', label: 'Codigo', placeholder: 'TR-001' }, { id: 'machineCategory', label: 'Categoria', type: 'select', options: ['tractor', 'cosechadora', 'sembradora', 'pulverizadora', 'camion'] }, { id: 'machineBrand', label: 'Marca' }, { id: 'machineModel', label: 'Modelo' }, { id: 'machineHourlyCost', label: 'Costo horario (USD)', type: 'number', placeholder: '35' }], async formData => {
+          const equipment = { code: formData.get('machineCode').trim(), category: formData.get('machineCategory'), brand: formData.get('machineBrand').trim(), model: formData.get('machineModel').trim(), hourlyCostUsd: Number(formData.get('machineHourlyCost') || 35) };
+          if (isTrialMode) {
+            if (registeredEquipment.some(item => item.code === equipment.code)) throw new Error('Ya existe un equipo con ese código');
+            registeredEquipment.push(equipment);
+            localStorage.setItem('pampa-equipment', JSON.stringify(registeredEquipment));
+            recordAudit('Nueva maquina', equipment.code);
+            showToast('Maquina registrada localmente');
+          } else {
+            await api.createMachine(activeTenantId, equipment);
+            showToast('Maquina registrada');
+            loadAgriculturalModule();
+          }
+        });
       } else if (label === 'Planificar mantenimiento') {
         const machineOptions = await agriculturalMachineOptions();
         openNewForm('Planificar mantenimiento', [{ id: 'maintenanceMachine', label: 'Maquina', type: 'select', options: machineOptions.map(item => `${item.value} · ${item.label}`), full: true }, { id: 'maintenanceDescription', label: 'Trabajo requerido', placeholder: 'Cambio de aceite y filtros', full: true }, { id: 'maintenanceDue', label: 'Vencimiento', type: 'date' }, { id: 'maintenancePriority', label: 'Prioridad', type: 'select', options: ['low', 'medium', 'high'] }, { id: 'maintenanceCost', label: 'Costo estimado (USD)', type: 'number', placeholder: '0' }], async formData => { await api.createMaintenance(activeTenantId, { machineId: formData.get('maintenanceMachine').split(' · ')[0], description: formData.get('maintenanceDescription'), dueAt: formData.get('maintenanceDue'), priority: formData.get('maintenancePriority'), estimatedCostUsd: Number(formData.get('maintenanceCost') || 0) }); showToast('Mantenimiento planificado'); loadAgriculturalModule(); });
@@ -1664,7 +1692,7 @@
         <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Estado de sincronización</h2><p class="panel-caption">Cambios pendientes por sincronizar</p></div></div><div id="syncQueueStatus" style="padding:15px;background:#f0f0f0;border-radius:6px;"><i>Cargando estado...</i></div></section></section>`,
       'Inventario': `
         <header class="topbar"><div><div class="eyebrow">Workspace / Abastecimiento</div><h1>Inventario</h1></div><div class="toolbar"><button class="button" data-action="Recepcion de compra">Recepcion</button><button class="button" data-action="Registrar factura">Factura</button><button class="button" data-action="Movimiento de stock iniciado">Registrar movimiento</button><button class="button primary" data-action="Nueva orden de compra creada">+ Nueva compra</button></div></header>
-        <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Valor en stock</span><strong>$ 48,6 M</strong></article><article class="panel module-stat warning"><span>Items bajo minimo</span><strong>07</strong></article><article class="panel module-stat"><span>Compras pendientes</span><strong>04</strong></article></div><section class="panel"><div class="panel-head"><div><h2>Existencias por insumo</h2><p class="panel-caption">Stock disponible y punto de reposicion</p></div><button class="text-button" data-action="Inventario exportado">Exportar</button></div><table class="data-table"><thead><tr><th>Insumo</th><th>Categoria</th><th>Disponible</th><th>Minimo</th><th>Estado</th></tr></thead><tbody><tr><td><strong>Glifosato 48%</strong><small>Herbicida</small></td><td>Fitosanitario</td><td>320 L</td><td>500 L</td><td><span class="pill red">Reponer</span></td></tr><tr><td><strong>Urea granulada</strong><small>Fertilizante</small></td><td>Fertilizante</td><td>18.400 kg</td><td>12.000 kg</td><td><span class="pill">Disponible</span></td></tr><tr><td><strong>Diesel agro</strong><small>Combustible</small></td><td>Combustible</td><td>8.240 L</td><td>6.000 L</td><td><span class="pill">Disponible</span></td></tr></tbody></table></section></section>`,
+        <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Valor en stock</span><strong>$ 0</strong></article><article class="panel module-stat warning"><span>Items bajo minimo</span><strong>0</strong></article><article class="panel module-stat"><span>Compras pendientes</span><strong>0</strong></article></div><section class="panel"><div class="panel-head"><div><h2>Existencias por insumo</h2><p class="panel-caption">Stock disponible y punto de reposicion</p></div><button class="text-button" data-action="Inventario exportado">Exportar</button></div><table class="data-table"><thead><tr><th>Insumo</th><th>Categoria</th><th>Disponible</th><th>Minimo</th><th>Estado</th></tr></thead><tbody><tr><td colspan="5">Sin insumos registrados.</td></tr></tbody></table></section><section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Equipos y maquinaria</h2><p class="panel-caption">Activos disponibles para las operaciones de campo</p></div><button class="text-button" data-action="Nueva maquina">+ Nuevo equipo</button></div><table class="data-table"><thead><tr><th>Código</th><th>Función</th><th>Marca / modelo</th><th>Costo horario</th><th>Estado</th></tr></thead><tbody id="inventoryEquipmentRows"><tr><td colspan="5">Sin equipos registrados.</td></tr></tbody></table></section></section>`,
       'Precision': `
         <header class="topbar"><div><div class="eyebrow">Workspace / Geoespacial</div><h1>Precision</h1></div><div class="toolbar"><button class="button" data-action="Cargar mapa de rinde">Cargar rinde</button><button class="button" data-action="Nueva prescripcion">+ Prescripcion</button><button class="button primary" data-action="Prescripcion exportada">Exportar prescripcion</button></div></header>
         <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Lotes monitoreados</span><strong id="precisionMonitoredLots">0</strong></article><article class="panel module-stat"><span>NDVI actualizado</span><strong id="precisionNdviUpdated">0%</strong></article><article class="panel module-stat danger"><span>Zonas con variabilidad</span><strong id="precisionVariableZones">0</strong></article></div><section class="panel"><div class="panel-head"><div><h2>Mapa multicapa</h2><p class="panel-caption" id="precisionLayerCaption">Índice verde de vigor por lote</p></div><div class="toolbar"><span class="pill" id="precisionLayerState">NDVI</span><select id="precisionMapField" aria-label="Establecimiento"></select><select id="precisionMapLot" aria-label="Enfocar lote"></select><select id="precisionMapLayer" aria-label="Capa del mapa"><option value="ndvi">Índice NDVI</option><option value="yield">Mapa de rinde</option><option value="prescription">Prescripción de siembra</option></select></div></div><div id="lotMap" aria-label="Mapa Leaflet de precision" style="height:330px"></div><div class="precision-legend" id="precisionLayerLegend" aria-live="polite"></div></section></section>`,
@@ -2144,6 +2172,10 @@
       if (view === 'Inventario') {
         setMetricValues(['$ 0', '0', '0']);
         emptyRows('.data-table tbody', 5);
+        const equipmentRows = main.querySelector('#inventoryEquipmentRows');
+        if (equipmentRows) equipmentRows.innerHTML = registeredEquipment.length
+          ? registeredEquipment.map(item => `<tr><td><strong>${item.code}</strong></td><td>${machineCategoryLabel(item.category)}</td><td>${item.brand || ''} ${item.model || ''}</td><td>$ ${Number(item.hourlyCostUsd || 0).toLocaleString('es-AR')}/h</td><td><span class="pill">Operativo</span></td></tr>`).join('')
+          : '<tr><td colspan="5">Sin equipos registrados.</td></tr>';
       } else if (view === 'Operaciones') {
         setMetricValues(['0', '0 ha', '0']);
         emptyRows('.data-table tbody', 5);
