@@ -1,0 +1,716 @@
+-- =====================================================
+-- ERP Agricola + Precision
+-- PostgreSQL 15+ / PostGIS
+-- =====================================================
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE EXTENSION IF NOT EXISTS postgis;
+
+CREATE SCHEMA IF NOT EXISTS ref;
+CREATE SCHEMA IF NOT EXISTS core;
+CREATE SCHEMA IF NOT EXISTS agr;
+CREATE SCHEMA IF NOT EXISTS ops;
+CREATE SCHEMA IF NOT EXISTS inv;
+CREATE SCHEMA IF NOT EXISTS mach;
+CREATE SCHEMA IF NOT EXISTS com;
+CREATE SCHEMA IF NOT EXISTS fin;
+CREATE SCHEMA IF NOT EXISTS geo;
+CREATE SCHEMA IF NOT EXISTS tsd;
+CREATE SCHEMA IF NOT EXISTS sec;
+CREATE SCHEMA IF NOT EXISTS intg;
+
+-- =========================
+-- REFERENCIAS
+-- =========================
+CREATE TABLE ref.currency (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  code varchar(3) NOT NULL UNIQUE,
+  name text NOT NULL
+);
+
+CREATE TABLE ref.uom (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  code varchar(30) NOT NULL UNIQUE,
+  name text NOT NULL,
+  dimension varchar(30) NOT NULL
+);
+
+CREATE TABLE ref.uom_conversion (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  from_uom_id uuid NOT NULL REFERENCES ref.uom(id),
+  to_uom_id uuid NOT NULL REFERENCES ref.uom(id),
+  factor numeric(20,8) NOT NULL,
+  UNIQUE (from_uom_id, to_uom_id)
+);
+
+-- =========================
+-- CORE
+-- =========================
+CREATE TABLE core.tenant (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE core.campaign (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  code varchar(30) NOT NULL,
+  name text NOT NULL,
+  crop_year_start date NOT NULL,
+  crop_year_end date NOT NULL,
+  currency_id uuid NOT NULL REFERENCES ref.currency(id),
+  is_open boolean NOT NULL DEFAULT true,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (tenant_id, code),
+  CHECK (crop_year_end > crop_year_start)
+);
+
+CREATE TABLE core.establishment (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  code varchar(30) NOT NULL,
+  name text NOT NULL,
+  country_code varchar(2) NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (tenant_id, code)
+);
+
+CREATE TABLE core.plot (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  establishment_id uuid NOT NULL REFERENCES core.establishment(id),
+  code varchar(30) NOT NULL,
+  name text NOT NULL,
+  area_ha_declared numeric(12,3) NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (establishment_id, code)
+);
+
+CREATE TABLE core.plot_season (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  campaign_id uuid NOT NULL REFERENCES core.campaign(id),
+  plot_id uuid NOT NULL REFERENCES core.plot(id),
+  planned_crop_id uuid,
+  actual_crop_id uuid,
+  status varchar(20) NOT NULL DEFAULT 'planned',
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (campaign_id, plot_id)
+);
+
+-- =========================
+-- AGRONOMIA
+-- =========================
+CREATE TABLE agr.crop (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  code varchar(30) NOT NULL,
+  name text NOT NULL,
+  UNIQUE (tenant_id, code)
+);
+
+CREATE TABLE agr.variety (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  crop_id uuid NOT NULL REFERENCES agr.crop(id),
+  code varchar(30) NOT NULL,
+  name text NOT NULL,
+  UNIQUE (tenant_id, code)
+);
+
+CREATE TABLE agr.input (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  type varchar(20) NOT NULL,
+  commercial_name text NOT NULL,
+  uom_id uuid NOT NULL REFERENCES ref.uom(id),
+  UNIQUE (tenant_id, commercial_name),
+  CHECK (type IN ('seed','fertilizer','phytosanitary','fuel','other'))
+);
+
+CREATE TABLE agr.active_ingredient (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  name text NOT NULL,
+  UNIQUE (tenant_id, name)
+);
+
+CREATE TABLE agr.input_active_ingredient (
+  input_id uuid NOT NULL REFERENCES agr.input(id),
+  active_ingredient_id uuid NOT NULL REFERENCES agr.active_ingredient(id),
+  concentration numeric(10,4),
+  PRIMARY KEY (input_id, active_ingredient_id)
+);
+
+CREATE TABLE agr.input_regulatory_profile (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  input_id uuid NOT NULL REFERENCES agr.input(id),
+  country_code varchar(2) NOT NULL,
+  min_dose numeric(12,4),
+  max_dose numeric(12,4),
+  withholding_days integer,
+  reentry_hours integer,
+  UNIQUE (input_id, country_code)
+);
+
+-- =========================
+-- PLANIFICACION
+-- =========================
+CREATE TABLE agr.technical_budget_line (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  plot_season_id uuid NOT NULL REFERENCES core.plot_season(id),
+  concept varchar(50) NOT NULL,
+  input_id uuid REFERENCES agr.input(id),
+  qty_per_ha numeric(14,4) NOT NULL,
+  uom_id uuid NOT NULL REFERENCES ref.uom(id),
+  unit_cost numeric(16,4) NOT NULL,
+  total_cost_per_ha numeric(16,4) GENERATED ALWAYS AS (qty_per_ha * unit_cost) STORED
+);
+
+-- =========================
+-- OPERACIONES
+-- =========================
+CREATE TABLE ops.work_order (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  plot_season_id uuid NOT NULL REFERENCES core.plot_season(id),
+  operation_type varchar(30) NOT NULL,
+  requested_date date NOT NULL,
+  planned_area_ha numeric(12,3) NOT NULL,
+  status varchar(20) NOT NULL DEFAULT 'open',
+  contractor_party_id uuid,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE ops.work_execution (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  work_order_id uuid NOT NULL REFERENCES ops.work_order(id),
+  executed_at timestamptz NOT NULL,
+  area_ha numeric(12,3) NOT NULL,
+  machine_hours numeric(12,2) NOT NULL DEFAULT 0,
+  labor_hours numeric(12,2) NOT NULL DEFAULT 0,
+  operator_name text,
+  notes text
+);
+
+CREATE TABLE ops.application_condition (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  work_execution_id uuid NOT NULL UNIQUE REFERENCES ops.work_execution(id),
+  wind_speed_kmh numeric(8,2),
+  temperature_c numeric(6,2),
+  relative_humidity numeric(6,2),
+  thermal_inversion_flag boolean,
+  recorded_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE ops.execution_input_consumption (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  work_execution_id uuid NOT NULL REFERENCES ops.work_execution(id),
+  input_id uuid NOT NULL REFERENCES agr.input(id),
+  qty numeric(14,4) NOT NULL,
+  uom_id uuid NOT NULL REFERENCES ref.uom(id)
+);
+
+CREATE TABLE ops.field_log_entry (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  plot_season_id uuid NOT NULL REFERENCES core.plot_season(id),
+  work_execution_id uuid REFERENCES ops.work_execution(id),
+  entry_date date NOT NULL,
+  legal_note text NOT NULL,
+  certification_tag text
+);
+
+CREATE TABLE ops.scouting_event (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  plot_season_id uuid NOT NULL REFERENCES core.plot_season(id),
+  observed_at timestamptz NOT NULL,
+  category varchar(20) NOT NULL,
+  species text,
+  severity numeric(6,2),
+  action_threshold numeric(6,2),
+  geom geometry(Point, 4326),
+  CHECK (category IN ('pest','disease','weed','other'))
+);
+
+CREATE TABLE ops.irrigation_event (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  plot_season_id uuid NOT NULL REFERENCES core.plot_season(id),
+  irrigated_at timestamptz NOT NULL,
+  depth_mm numeric(10,2) NOT NULL,
+  duration_min integer,
+  notes text
+);
+
+-- =========================
+-- INVENTARIO Y COMPRAS
+-- =========================
+CREATE TABLE inv.warehouse (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  code varchar(30) NOT NULL,
+  name text NOT NULL,
+  UNIQUE (tenant_id, code)
+);
+
+CREATE TABLE inv.stock_lot (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  warehouse_id uuid NOT NULL REFERENCES inv.warehouse(id),
+  input_id uuid NOT NULL REFERENCES agr.input(id),
+  lot_code varchar(50),
+  expiry_date date,
+  qty_on_hand numeric(14,4) NOT NULL DEFAULT 0,
+  unit_cost numeric(16,4) NOT NULL DEFAULT 0
+);
+
+CREATE TABLE inv.inventory_movement (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  stock_lot_id uuid NOT NULL REFERENCES inv.stock_lot(id),
+  movement_type varchar(20) NOT NULL,
+  moved_at timestamptz NOT NULL DEFAULT now(),
+  qty numeric(14,4) NOT NULL,
+  unit_cost numeric(16,4),
+  ref_doc_type varchar(30),
+  ref_doc_id uuid,
+  CHECK (movement_type IN ('in','out','adjustment','transfer'))
+);
+
+CREATE TABLE inv.purchase_order (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  supplier_party_id uuid NOT NULL,
+  po_number varchar(40) NOT NULL,
+  po_date date NOT NULL,
+  status varchar(20) NOT NULL DEFAULT 'open',
+  currency_id uuid NOT NULL REFERENCES ref.currency(id),
+  UNIQUE (tenant_id, po_number)
+);
+
+CREATE TABLE inv.purchase_order_line (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  purchase_order_id uuid NOT NULL REFERENCES inv.purchase_order(id),
+  input_id uuid NOT NULL REFERENCES agr.input(id),
+  qty numeric(14,4) NOT NULL,
+  uom_id uuid NOT NULL REFERENCES ref.uom(id),
+  unit_price numeric(16,4) NOT NULL
+);
+
+CREATE TABLE inv.goods_receipt (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  purchase_order_id uuid NOT NULL REFERENCES inv.purchase_order(id),
+  receipt_number varchar(40) NOT NULL,
+  receipt_date date NOT NULL,
+  UNIQUE (tenant_id, receipt_number)
+);
+
+CREATE TABLE inv.goods_receipt_line (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  goods_receipt_id uuid NOT NULL REFERENCES inv.goods_receipt(id),
+  purchase_order_line_id uuid NOT NULL REFERENCES inv.purchase_order_line(id),
+  received_qty numeric(14,4) NOT NULL
+);
+
+CREATE TABLE inv.supplier_invoice (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  purchase_order_id uuid REFERENCES inv.purchase_order(id),
+  invoice_number varchar(40) NOT NULL,
+  invoice_date date NOT NULL,
+  total_amount numeric(16,2) NOT NULL,
+  currency_id uuid NOT NULL REFERENCES ref.currency(id),
+  UNIQUE (tenant_id, invoice_number)
+);
+
+-- =========================
+-- MAQUINARIA
+-- =========================
+CREATE TABLE mach.machine (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  code varchar(30) NOT NULL,
+  category varchar(30) NOT NULL,
+  brand text,
+  model text,
+  serial_no text,
+  plate text,
+  active boolean NOT NULL DEFAULT true,
+  UNIQUE (tenant_id, code)
+);
+
+CREATE TABLE mach.hourmeter_reading (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  machine_id uuid NOT NULL REFERENCES mach.machine(id),
+  reading_time timestamptz NOT NULL,
+  reading_value numeric(14,2) NOT NULL,
+  source varchar(20) NOT NULL DEFAULT 'manual'
+);
+
+CREATE TABLE mach.maintenance_work_order (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  machine_id uuid NOT NULL REFERENCES mach.machine(id),
+  opened_at timestamptz NOT NULL DEFAULT now(),
+  closed_at timestamptz,
+  status varchar(20) NOT NULL DEFAULT 'open',
+  description text
+);
+
+-- =========================
+-- COMERCIAL
+-- =========================
+CREATE TABLE com.harvest_estimate (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  plot_season_id uuid NOT NULL REFERENCES core.plot_season(id),
+  estimated_at timestamptz NOT NULL,
+  estimated_yield_tn_ha numeric(12,3) NOT NULL
+);
+
+CREATE TABLE com.weigh_ticket (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  plot_season_id uuid NOT NULL REFERENCES core.plot_season(id),
+  ticket_number varchar(40) NOT NULL,
+  gross_kg numeric(14,3) NOT NULL,
+  tare_kg numeric(14,3) NOT NULL,
+  net_kg numeric(14,3) GENERATED ALWAYS AS (gross_kg - tare_kg) STORED,
+  weighed_at timestamptz NOT NULL,
+  UNIQUE (tenant_id, ticket_number)
+);
+
+CREATE TABLE com.grain_contract (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  contract_number varchar(40) NOT NULL,
+  contract_type varchar(20) NOT NULL,
+  volume_tn numeric(14,3) NOT NULL,
+  price numeric(16,4),
+  currency_id uuid REFERENCES ref.currency(id),
+  signed_date date NOT NULL,
+  UNIQUE (tenant_id, contract_number),
+  CHECK (contract_type IN ('fixed','to_fix','forward','barter'))
+);
+
+CREATE TABLE com.grain_contract_allocation (
+  grain_contract_id uuid NOT NULL REFERENCES com.grain_contract(id),
+  plot_season_id uuid NOT NULL REFERENCES core.plot_season(id),
+  allocated_tn numeric(14,3) NOT NULL,
+  PRIMARY KEY (grain_contract_id, plot_season_id)
+);
+
+-- =========================
+-- FINANZAS
+-- =========================
+CREATE TABLE fin.account (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  code varchar(30) NOT NULL,
+  name text NOT NULL,
+  account_type varchar(20) NOT NULL,
+  UNIQUE (tenant_id, code)
+);
+
+CREATE TABLE fin.journal_entry (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  source_module varchar(20) NOT NULL,
+  source_id uuid NOT NULL,
+  posting_date date NOT NULL,
+  status varchar(20) NOT NULL DEFAULT 'draft',
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE fin.journal_line (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  journal_entry_id uuid NOT NULL REFERENCES fin.journal_entry(id),
+  account_id uuid NOT NULL REFERENCES fin.account(id),
+  debit numeric(16,2) NOT NULL DEFAULT 0,
+  credit numeric(16,2) NOT NULL DEFAULT 0,
+  description text,
+  CHECK (debit >= 0 AND credit >= 0),
+  CHECK (NOT (debit = 0 AND credit = 0))
+);
+
+-- =========================
+-- GEOESPACIAL
+-- =========================
+CREATE TABLE geo.geo_boundary (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  plot_id uuid NOT NULL REFERENCES core.plot(id),
+  boundary_type varchar(20) NOT NULL DEFAULT 'plot',
+  is_current boolean NOT NULL DEFAULT true
+);
+
+CREATE TABLE geo.geo_boundary_version (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  geo_boundary_id uuid NOT NULL REFERENCES geo.geo_boundary(id),
+  version_no integer NOT NULL,
+  geom geometry(MultiPolygon, 4326) NOT NULL,
+  area_ha_computed numeric(12,3) NOT NULL,
+  valid_from date NOT NULL,
+  valid_to date,
+  UNIQUE (geo_boundary_id, version_no)
+);
+
+CREATE TABLE geo.management_zone (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  plot_id uuid NOT NULL REFERENCES core.plot(id),
+  campaign_id uuid REFERENCES core.campaign(id),
+  name text NOT NULL,
+  geom geometry(MultiPolygon, 4326) NOT NULL
+);
+
+CREATE TABLE geo.imagery_asset (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  plot_id uuid NOT NULL REFERENCES core.plot(id),
+  provider varchar(40) NOT NULL,
+  acquisition_date date NOT NULL,
+  cloud_pct numeric(5,2),
+  asset_uri text NOT NULL
+);
+
+CREATE TABLE geo.spectral_index_daily (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  plot_id uuid NOT NULL REFERENCES core.plot(id),
+  index_type varchar(10) NOT NULL,
+  observed_date date NOT NULL,
+  mean_value numeric(8,5),
+  p10_value numeric(8,5),
+  p90_value numeric(8,5),
+  stddev_value numeric(8,5),
+  UNIQUE (plot_id, index_type, observed_date),
+  CHECK (index_type IN ('NDVI','NDRE','EVI'))
+);
+
+CREATE TABLE geo.yield_map_upload (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  plot_season_id uuid NOT NULL REFERENCES core.plot_season(id),
+  uploaded_at timestamptz NOT NULL DEFAULT now(),
+  source_file_uri text NOT NULL,
+  status varchar(20) NOT NULL DEFAULT 'uploaded'
+);
+
+CREATE TABLE geo.yield_point_raw (
+  id bigserial PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  yield_map_upload_id uuid NOT NULL REFERENCES geo.yield_map_upload(id),
+  geom geometry(Point, 4326) NOT NULL,
+  yield_value numeric(12,4),
+  moisture numeric(8,4),
+  speed_kmh numeric(8,3),
+  swath_width_m numeric(8,3)
+);
+
+CREATE TABLE geo.yield_point_clean (
+  id bigserial PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  yield_map_upload_id uuid NOT NULL REFERENCES geo.yield_map_upload(id),
+  geom geometry(Point, 4326) NOT NULL,
+  yield_value numeric(12,4),
+  moisture numeric(8,4),
+  quality_flag varchar(20) NOT NULL DEFAULT 'ok'
+);
+
+CREATE TABLE geo.prescription_map (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  plot_season_id uuid NOT NULL REFERENCES core.plot_season(id),
+  operation_type varchar(20) NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  status varchar(20) NOT NULL DEFAULT 'draft'
+);
+
+CREATE TABLE geo.prescription_zone (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  prescription_map_id uuid NOT NULL REFERENCES geo.prescription_map(id),
+  geom geometry(MultiPolygon, 4326) NOT NULL,
+  input_id uuid REFERENCES agr.input(id),
+  target_rate numeric(12,4) NOT NULL,
+  min_rate numeric(12,4),
+  max_rate numeric(12,4)
+);
+
+CREATE TABLE geo.prescription_export (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  prescription_map_id uuid NOT NULL REFERENCES geo.prescription_map(id),
+  format varchar(20) NOT NULL,
+  exported_at timestamptz NOT NULL DEFAULT now(),
+  file_uri text NOT NULL,
+  CHECK (format IN ('ISOXML','SHP','JD','TRIMBLE','CNH','AGLEADER'))
+);
+
+-- =========================
+-- SERIES TEMPORALES
+-- =========================
+CREATE TABLE tsd.device (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  code varchar(40) NOT NULL,
+  device_type varchar(30) NOT NULL,
+  machine_id uuid REFERENCES mach.machine(id),
+  UNIQUE (tenant_id, code)
+);
+
+CREATE TABLE tsd.telemetry_event (
+  id bigserial PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  device_id uuid NOT NULL REFERENCES tsd.device(id),
+  ts timestamptz NOT NULL,
+  geom geometry(Point, 4326),
+  speed_kmh numeric(8,3),
+  heading_deg numeric(8,3),
+  fuel_rate_l_h numeric(10,3),
+  overlap_pct numeric(6,2)
+);
+
+CREATE TABLE tsd.weather_station (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  code varchar(40) NOT NULL,
+  name text NOT NULL,
+  geom geometry(Point, 4326),
+  UNIQUE (tenant_id, code)
+);
+
+CREATE TABLE tsd.weather_observation (
+  id bigserial PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  weather_station_id uuid NOT NULL REFERENCES tsd.weather_station(id),
+  ts timestamptz NOT NULL,
+  temp_c numeric(6,2),
+  rh_pct numeric(6,2),
+  wind_kmh numeric(8,2),
+  rainfall_mm numeric(8,2),
+  solar_rad numeric(10,2)
+);
+
+CREATE TABLE tsd.soil_sensor (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  code varchar(40) NOT NULL,
+  plot_id uuid REFERENCES core.plot(id),
+  geom geometry(Point, 4326),
+  UNIQUE (tenant_id, code)
+);
+
+CREATE TABLE tsd.soil_sensor_observation (
+  id bigserial PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  soil_sensor_id uuid NOT NULL REFERENCES tsd.soil_sensor(id),
+  ts timestamptz NOT NULL,
+  depth_cm numeric(6,2),
+  moisture_vwc numeric(8,4),
+  temp_c numeric(6,2),
+  ec numeric(8,3)
+);
+
+-- =========================
+-- SEGURIDAD E INTEGRACION
+-- =========================
+CREATE TABLE sec.app_user (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  email text NOT NULL,
+  full_name text NOT NULL,
+  is_active boolean NOT NULL DEFAULT true,
+  UNIQUE (tenant_id, email)
+);
+
+CREATE TABLE sec.role (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  code varchar(30) NOT NULL,
+  name text NOT NULL,
+  UNIQUE (tenant_id, code)
+);
+
+CREATE TABLE sec.permission (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  code varchar(60) NOT NULL UNIQUE,
+  name text NOT NULL
+);
+
+CREATE TABLE sec.user_role (
+  user_id uuid NOT NULL REFERENCES sec.app_user(id),
+  role_id uuid NOT NULL REFERENCES sec.role(id),
+  PRIMARY KEY (user_id, role_id)
+);
+
+CREATE TABLE sec.role_permission (
+  role_id uuid NOT NULL REFERENCES sec.role(id),
+  permission_id uuid NOT NULL REFERENCES sec.permission(id),
+  PRIMARY KEY (role_id, permission_id)
+);
+
+CREATE TABLE sec.data_access_scope (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  user_id uuid NOT NULL REFERENCES sec.app_user(id),
+  campaign_id uuid REFERENCES core.campaign(id),
+  establishment_id uuid REFERENCES core.establishment(id),
+  plot_id uuid REFERENCES core.plot(id)
+);
+
+CREATE TABLE intg.outbox_event (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  aggregate_type varchar(50) NOT NULL,
+  aggregate_id uuid NOT NULL,
+  event_type varchar(80) NOT NULL,
+  payload jsonb NOT NULL,
+  occurred_at timestamptz NOT NULL DEFAULT now(),
+  published_at timestamptz
+);
+
+-- =========================
+-- INDICES CRITICOS
+-- =========================
+CREATE INDEX idx_plot_tenant_est ON core.plot (tenant_id, establishment_id);
+CREATE INDEX idx_plot_season_campaign_plot ON core.plot_season (campaign_id, plot_id);
+CREATE INDEX idx_work_order_plot_season ON ops.work_order (plot_season_id, status);
+CREATE INDEX idx_work_exec_order_time ON ops.work_execution (work_order_id, executed_at);
+CREATE INDEX idx_inventory_movement_lot_time ON inv.inventory_movement (stock_lot_id, moved_at);
+CREATE INDEX idx_journal_entry_source ON fin.journal_entry (source_module, source_id);
+
+CREATE INDEX sidx_scouting_geom ON ops.scouting_event USING gist (geom);
+CREATE INDEX sidx_boundary_geom ON geo.geo_boundary_version USING gist (geom);
+CREATE INDEX sidx_zone_geom ON geo.management_zone USING gist (geom);
+CREATE INDEX sidx_yield_raw_geom ON geo.yield_point_raw USING gist (geom);
+CREATE INDEX sidx_yield_clean_geom ON geo.yield_point_clean USING gist (geom);
+CREATE INDEX sidx_prescription_zone_geom ON geo.prescription_zone USING gist (geom);
+CREATE INDEX sidx_telemetry_geom ON tsd.telemetry_event USING gist (geom);
+
+CREATE INDEX idx_spectral_plot_date ON geo.spectral_index_daily (plot_id, observed_date);
+CREATE INDEX idx_telemetry_device_ts ON tsd.telemetry_event (device_id, ts);
+CREATE INDEX idx_weather_station_ts ON tsd.weather_observation (weather_station_id, ts);
+CREATE INDEX idx_soil_sensor_ts ON tsd.soil_sensor_observation (soil_sensor_id, ts);
+
+CREATE INDEX idx_outbox_unpublished ON intg.outbox_event (published_at) WHERE published_at IS NULL;

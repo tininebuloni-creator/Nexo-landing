@@ -1,0 +1,269 @@
+-- 002_tables_core_erp.sql
+
+-- =========================
+-- REF
+-- =========================
+CREATE TABLE IF NOT EXISTS ref.currency (
+  id uuid PRIMARY KEY,
+  code varchar(3) NOT NULL UNIQUE,
+  name text NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS ref.uom (
+  id uuid PRIMARY KEY,
+  code varchar(20) NOT NULL UNIQUE,
+  name text NOT NULL,
+  dimension varchar(20) NOT NULL
+);
+
+-- =========================
+-- CORE
+-- =========================
+CREATE TABLE IF NOT EXISTS core.tenant (
+  id uuid PRIMARY KEY,
+  name text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS core.campaign (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  code varchar(20) NOT NULL,
+  name text NOT NULL,
+  crop_year_start date NOT NULL,
+  crop_year_end date NOT NULL,
+  currency_id uuid NOT NULL REFERENCES ref.currency(id),
+  is_open boolean NOT NULL DEFAULT true,
+  UNIQUE (tenant_id, code),
+  CHECK (crop_year_end > crop_year_start)
+);
+
+CREATE TABLE IF NOT EXISTS core.establishment (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  code varchar(20) NOT NULL,
+  name text NOT NULL,
+  country_code varchar(2) NOT NULL,
+  UNIQUE (tenant_id, code)
+);
+
+CREATE TABLE IF NOT EXISTS core.plot (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  establishment_id uuid NOT NULL REFERENCES core.establishment(id),
+  code varchar(20) NOT NULL,
+  name text NOT NULL,
+  area_ha_declared numeric(12,3) NOT NULL,
+  UNIQUE (establishment_id, code)
+);
+
+CREATE TABLE IF NOT EXISTS core.plot_season (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  campaign_id uuid NOT NULL REFERENCES core.campaign(id),
+  plot_id uuid NOT NULL REFERENCES core.plot(id),
+  planned_crop_id uuid,
+  actual_crop_id uuid,
+  status varchar(20) NOT NULL DEFAULT 'planned',
+  UNIQUE (campaign_id, plot_id)
+);
+
+-- =========================
+-- AGR
+-- =========================
+CREATE TABLE IF NOT EXISTS agr.crop (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  code varchar(20) NOT NULL,
+  name text NOT NULL,
+  UNIQUE (tenant_id, code)
+);
+
+CREATE TABLE IF NOT EXISTS agr.variety (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  crop_id uuid NOT NULL REFERENCES agr.crop(id),
+  code varchar(20) NOT NULL,
+  name text NOT NULL,
+  UNIQUE (tenant_id, code)
+);
+
+CREATE TABLE IF NOT EXISTS agr.input (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  type varchar(20) NOT NULL,
+  commercial_name text NOT NULL,
+  uom_id uuid NOT NULL REFERENCES ref.uom(id),
+  UNIQUE (tenant_id, commercial_name),
+  CHECK (type IN ('seed','fertilizer','phytosanitary','fuel','other'))
+);
+
+-- =========================
+-- OPS
+-- =========================
+CREATE TABLE IF NOT EXISTS ops.work_order (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  plot_season_id uuid NOT NULL REFERENCES core.plot_season(id),
+  operation_type varchar(30) NOT NULL,
+  requested_date date NOT NULL,
+  planned_area_ha numeric(12,3) NOT NULL,
+  status varchar(20) NOT NULL DEFAULT 'open'
+);
+
+CREATE TABLE IF NOT EXISTS ops.work_execution (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  work_order_id uuid NOT NULL REFERENCES ops.work_order(id),
+  executed_at timestamptz NOT NULL,
+  area_ha numeric(12,3) NOT NULL,
+  machine_hours numeric(12,2) NOT NULL DEFAULT 0,
+  labor_hours numeric(12,2) NOT NULL DEFAULT 0,
+  operator_name text
+);
+
+CREATE TABLE IF NOT EXISTS ops.application_condition (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  work_execution_id uuid NOT NULL UNIQUE REFERENCES ops.work_execution(id),
+  wind_speed_kmh numeric(8,2),
+  temperature_c numeric(6,2),
+  relative_humidity numeric(6,2),
+  thermal_inversion_flag boolean,
+  recorded_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS ops.execution_input_consumption (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  work_execution_id uuid NOT NULL REFERENCES ops.work_execution(id),
+  input_id uuid NOT NULL REFERENCES agr.input(id),
+  qty numeric(14,4) NOT NULL,
+  uom_id uuid NOT NULL REFERENCES ref.uom(id)
+);
+
+-- =========================
+-- INV
+-- =========================
+CREATE TABLE IF NOT EXISTS inv.warehouse (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  code varchar(20) NOT NULL,
+  name text NOT NULL,
+  UNIQUE (tenant_id, code)
+);
+
+CREATE TABLE IF NOT EXISTS inv.stock_lot (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  warehouse_id uuid NOT NULL REFERENCES inv.warehouse(id),
+  input_id uuid NOT NULL REFERENCES agr.input(id),
+  lot_code varchar(40),
+  expiry_date date,
+  qty_on_hand numeric(14,4) NOT NULL DEFAULT 0,
+  unit_cost numeric(16,4) NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS inv.inventory_movement (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  stock_lot_id uuid NOT NULL REFERENCES inv.stock_lot(id),
+  movement_type varchar(20) NOT NULL,
+  moved_at timestamptz NOT NULL DEFAULT now(),
+  qty numeric(14,4) NOT NULL,
+  unit_cost numeric(16,4),
+  ref_doc_type varchar(30),
+  ref_doc_id uuid,
+  CHECK (movement_type IN ('in','out','adjustment','transfer'))
+);
+
+-- =========================
+-- FIN
+-- =========================
+CREATE TABLE IF NOT EXISTS fin.account (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  code varchar(20) NOT NULL,
+  name text NOT NULL,
+  account_type varchar(20) NOT NULL,
+  UNIQUE (tenant_id, code)
+);
+
+CREATE TABLE IF NOT EXISTS fin.journal_entry (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  source_module varchar(20) NOT NULL,
+  source_id uuid NOT NULL,
+  posting_date date NOT NULL,
+  status varchar(20) NOT NULL DEFAULT 'draft'
+);
+
+CREATE TABLE IF NOT EXISTS fin.journal_line (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  journal_entry_id uuid NOT NULL REFERENCES fin.journal_entry(id),
+  account_id uuid NOT NULL REFERENCES fin.account(id),
+  debit numeric(16,2) NOT NULL DEFAULT 0,
+  credit numeric(16,2) NOT NULL DEFAULT 0,
+  CHECK (debit >= 0 AND credit >= 0),
+  CHECK (NOT (debit = 0 AND credit = 0))
+);
+
+-- =========================
+-- SEC + INTEGRACION
+-- =========================
+CREATE TABLE IF NOT EXISTS sec.app_user (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  email text NOT NULL,
+  full_name text NOT NULL,
+  is_active boolean NOT NULL DEFAULT true,
+  UNIQUE (tenant_id, email)
+);
+
+CREATE TABLE IF NOT EXISTS sec.role (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  code varchar(30) NOT NULL,
+  name text NOT NULL,
+  UNIQUE (tenant_id, code)
+);
+
+CREATE TABLE IF NOT EXISTS sec.permission (
+  id uuid PRIMARY KEY,
+  code varchar(60) NOT NULL UNIQUE,
+  name text NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS sec.user_role (
+  user_id uuid NOT NULL REFERENCES sec.app_user(id),
+  role_id uuid NOT NULL REFERENCES sec.role(id),
+  PRIMARY KEY (user_id, role_id)
+);
+
+CREATE TABLE IF NOT EXISTS sec.role_permission (
+  role_id uuid NOT NULL REFERENCES sec.role(id),
+  permission_id uuid NOT NULL REFERENCES sec.permission(id),
+  PRIMARY KEY (role_id, permission_id)
+);
+
+CREATE TABLE IF NOT EXISTS intg.outbox_event (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  aggregate_type varchar(50) NOT NULL,
+  aggregate_id uuid NOT NULL,
+  event_type varchar(80) NOT NULL,
+  payload jsonb NOT NULL,
+  occurred_at timestamptz NOT NULL DEFAULT now(),
+  published_at timestamptz
+);
+
+-- =========================
+-- INDICES CORE
+-- =========================
+CREATE INDEX IF NOT EXISTS idx_plot_tenant_est ON core.plot (tenant_id, establishment_id);
+CREATE INDEX IF NOT EXISTS idx_plot_season_campaign_plot ON core.plot_season (campaign_id, plot_id);
+CREATE INDEX IF NOT EXISTS idx_wo_plot_season_status ON ops.work_order (plot_season_id, status);
+CREATE INDEX IF NOT EXISTS idx_exec_work_order_time ON ops.work_execution (work_order_id, executed_at);
+CREATE INDEX IF NOT EXISTS idx_inv_move_lot_time ON inv.inventory_movement (stock_lot_id, moved_at);
+CREATE INDEX IF NOT EXISTS idx_outbox_unpublished ON intg.outbox_event (published_at) WHERE published_at IS NULL;

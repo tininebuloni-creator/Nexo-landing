@@ -1,0 +1,33 @@
+-- Creditos y cuentas por cobrar vinculadas a ventas.
+
+CREATE TABLE IF NOT EXISTS fin.credit (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  sale_id uuid REFERENCES fin.sale(id),
+  customer_name text NOT NULL,
+  credit_number varchar(40) NOT NULL,
+  issue_date date NOT NULL DEFAULT CURRENT_DATE,
+  due_date date NOT NULL,
+  principal_amount_usd numeric(16,2) NOT NULL,
+  interest_rate numeric(8,3) NOT NULL DEFAULT 0,
+  total_amount_usd numeric(16,2) NOT NULL,
+  outstanding_amount_usd numeric(16,2) NOT NULL,
+  status varchar(20) NOT NULL DEFAULT 'open',
+  notes text,
+  UNIQUE (tenant_id, credit_number),
+  CHECK (principal_amount_usd >= 0 AND interest_rate >= 0 AND total_amount_usd >= 0 AND outstanding_amount_usd >= 0)
+);
+
+CREATE TABLE IF NOT EXISTS fin.credit_payment (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  credit_id uuid NOT NULL REFERENCES fin.credit(id) ON DELETE CASCADE,
+  cash_account_id uuid REFERENCES fin.cash_account(id),
+  payment_date date NOT NULL DEFAULT CURRENT_DATE,
+  amount_usd numeric(16,2) NOT NULL,
+  notes text,
+  CHECK (amount_usd > 0)
+);
+
+CREATE INDEX IF NOT EXISTS idx_credit_tenant_status_due ON fin.credit (tenant_id, status, due_date);
+CREATE INDEX IF NOT EXISTS idx_credit_payment_credit ON fin.credit_payment (credit_id, payment_date DESC);

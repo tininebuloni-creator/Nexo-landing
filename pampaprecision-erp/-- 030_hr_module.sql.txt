@@ -1,0 +1,74 @@
+-- Modulo RRHH: legajos, contratos, asistencia y liquidaciones.
+
+CREATE SCHEMA IF NOT EXISTS hr;
+
+CREATE TABLE IF NOT EXISTS hr.employee (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  employee_code varchar(30) NOT NULL,
+  first_name text NOT NULL,
+  last_name text NOT NULL,
+  national_id varchar(30),
+  email text,
+  phone text,
+  job_title text NOT NULL,
+  department varchar(30) NOT NULL DEFAULT 'campo',
+  hire_date date NOT NULL,
+  termination_date date,
+  employment_status varchar(20) NOT NULL DEFAULT 'active',
+  hourly_rate_usd numeric(12,2) NOT NULL DEFAULT 0,
+  monthly_salary_usd numeric(14,2) NOT NULL DEFAULT 0,
+  UNIQUE (tenant_id, employee_code)
+);
+
+CREATE TABLE IF NOT EXISTS hr.employment_contract (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  employee_id uuid NOT NULL REFERENCES hr.employee(id) ON DELETE CASCADE,
+  contract_type varchar(30) NOT NULL DEFAULT 'permanent',
+  start_date date NOT NULL,
+  end_date date,
+  salary_usd numeric(14,2) NOT NULL DEFAULT 0,
+  notes text
+);
+
+CREATE TABLE IF NOT EXISTS hr.attendance (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  employee_id uuid NOT NULL REFERENCES hr.employee(id) ON DELETE CASCADE,
+  work_date date NOT NULL,
+  status varchar(20) NOT NULL DEFAULT 'present',
+  hours_worked numeric(6,2) NOT NULL DEFAULT 0,
+  overtime_hours numeric(6,2) NOT NULL DEFAULT 0,
+  note text,
+  UNIQUE (employee_id, work_date)
+);
+
+CREATE TABLE IF NOT EXISTS hr.payroll_period (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  period_start date NOT NULL,
+  period_end date NOT NULL,
+  status varchar(20) NOT NULL DEFAULT 'draft',
+  payment_date date,
+  UNIQUE (tenant_id, period_start, period_end),
+  CHECK (period_end >= period_start)
+);
+
+CREATE TABLE IF NOT EXISTS hr.payroll_item (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  payroll_period_id uuid NOT NULL REFERENCES hr.payroll_period(id) ON DELETE CASCADE,
+  employee_id uuid NOT NULL REFERENCES hr.employee(id),
+  base_amount_usd numeric(14,2) NOT NULL DEFAULT 0,
+  overtime_amount_usd numeric(14,2) NOT NULL DEFAULT 0,
+  bonus_amount_usd numeric(14,2) NOT NULL DEFAULT 0,
+  deduction_amount_usd numeric(14,2) NOT NULL DEFAULT 0,
+  net_amount_usd numeric(14,2) NOT NULL DEFAULT 0,
+  status varchar(20) NOT NULL DEFAULT 'draft',
+  UNIQUE (payroll_period_id, employee_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_employee_tenant_status ON hr.employee (tenant_id, employment_status);
+CREATE INDEX IF NOT EXISTS idx_attendance_tenant_date ON hr.attendance (tenant_id, work_date DESC);
+CREATE INDEX IF NOT EXISTS idx_payroll_period_tenant ON hr.payroll_period (tenant_id, period_start DESC);

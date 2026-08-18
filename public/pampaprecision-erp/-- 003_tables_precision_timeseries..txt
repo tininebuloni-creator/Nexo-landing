@@ -1,0 +1,135 @@
+-- 003_tables_precision_timeseries.sql
+
+-- =========================
+-- GEO
+-- =========================
+CREATE TABLE IF NOT EXISTS geo.geo_boundary_version (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  plot_id uuid NOT NULL REFERENCES core.plot(id),
+  version_no integer NOT NULL,
+  geom geometry(MultiPolygon, 4326) NOT NULL,
+  area_ha_computed numeric(12,3) NOT NULL,
+  valid_from date NOT NULL,
+  valid_to date,
+  UNIQUE (plot_id, version_no)
+);
+
+CREATE TABLE IF NOT EXISTS geo.management_zone (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  plot_id uuid NOT NULL REFERENCES core.plot(id),
+  campaign_id uuid REFERENCES core.campaign(id),
+  name text NOT NULL,
+  geom geometry(MultiPolygon, 4326) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS geo.spectral_index_daily (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  plot_id uuid NOT NULL REFERENCES core.plot(id),
+  index_type varchar(10) NOT NULL,
+  observed_date date NOT NULL,
+  mean_value numeric(8,5),
+  p10_value numeric(8,5),
+  p90_value numeric(8,5),
+  stddev_value numeric(8,5),
+  UNIQUE (plot_id, index_type, observed_date),
+  CHECK (index_type IN ('NDVI','NDRE','EVI'))
+);
+
+CREATE TABLE IF NOT EXISTS geo.yield_map_upload (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  plot_season_id uuid NOT NULL REFERENCES core.plot_season(id),
+  uploaded_at timestamptz NOT NULL DEFAULT now(),
+  source_file_uri text NOT NULL,
+  status varchar(20) NOT NULL DEFAULT 'uploaded'
+);
+
+CREATE TABLE IF NOT EXISTS geo.yield_point_clean (
+  id bigserial PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  yield_map_upload_id uuid NOT NULL REFERENCES geo.yield_map_upload(id),
+  geom geometry(Point, 4326) NOT NULL,
+  yield_value numeric(12,4),
+  moisture numeric(8,4),
+  quality_flag varchar(20) NOT NULL DEFAULT 'ok'
+);
+
+CREATE TABLE IF NOT EXISTS geo.prescription_map (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  plot_season_id uuid NOT NULL REFERENCES core.plot_season(id),
+  operation_type varchar(20) NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  status varchar(20) NOT NULL DEFAULT 'draft'
+);
+
+CREATE TABLE IF NOT EXISTS geo.prescription_zone (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  prescription_map_id uuid NOT NULL REFERENCES geo.prescription_map(id),
+  geom geometry(MultiPolygon, 4326) NOT NULL,
+  input_id uuid REFERENCES agr.input(id),
+  target_rate numeric(12,4) NOT NULL,
+  min_rate numeric(12,4),
+  max_rate numeric(12,4)
+);
+
+-- =========================
+-- SERIES TEMPORALES
+-- =========================
+CREATE TABLE IF NOT EXISTS tsd.device (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  code varchar(40) NOT NULL,
+  device_type varchar(30) NOT NULL,
+  UNIQUE (tenant_id, code)
+);
+
+CREATE TABLE IF NOT EXISTS tsd.telemetry_event (
+  id bigserial PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  device_id uuid NOT NULL REFERENCES tsd.device(id),
+  ts timestamptz NOT NULL,
+  geom geometry(Point, 4326),
+  speed_kmh numeric(8,3),
+  heading_deg numeric(8,3),
+  fuel_rate_l_h numeric(10,3),
+  overlap_pct numeric(6,2)
+);
+
+CREATE TABLE IF NOT EXISTS tsd.weather_station (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  code varchar(40) NOT NULL,
+  name text NOT NULL,
+  geom geometry(Point, 4326),
+  UNIQUE (tenant_id, code)
+);
+
+CREATE TABLE IF NOT EXISTS tsd.weather_observation (
+  id bigserial PRIMARY KEY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  weather_station_id uuid NOT NULL REFERENCES tsd.weather_station(id),
+  ts timestamptz NOT NULL,
+  temp_c numeric(6,2),
+  rh_pct numeric(6,2),
+  wind_kmh numeric(8,2),
+  rainfall_mm numeric(8,2),
+  solar_rad numeric(10,2)
+);
+
+-- =========================
+-- INDICES GEO/TSD
+-- =========================
+CREATE INDEX IF NOT EXISTS sidx_boundary_geom ON geo.geo_boundary_version USING gist (geom);
+CREATE INDEX IF NOT EXISTS sidx_zone_geom ON geo.management_zone USING gist (geom);
+CREATE INDEX IF NOT EXISTS sidx_yield_clean_geom ON geo.yield_point_clean USING gist (geom);
+CREATE INDEX IF NOT EXISTS sidx_prescription_zone_geom ON geo.prescription_zone USING gist (geom);
+CREATE INDEX IF NOT EXISTS idx_spectral_plot_date ON geo.spectral_index_daily (plot_id, observed_date);
+
+CREATE INDEX IF NOT EXISTS sidx_telemetry_geom ON tsd.telemetry_event USING gist (geom);
+CREATE INDEX IF NOT EXISTS idx_telemetry_device_ts ON tsd.telemetry_event (device_id, ts);
+CREATE INDEX IF NOT EXISTS idx_weather_station_ts ON tsd.weather_observation (weather_station_id, ts);

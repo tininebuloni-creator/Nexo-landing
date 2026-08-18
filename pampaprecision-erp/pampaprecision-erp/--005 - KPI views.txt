@@ -1,0 +1,170 @@
+
+-- =========================================================
+-- SCRIPT 5 - KPI VIEWS
+-- Requiere: core, ops, inv, geo, postgis
+-- =========================================================
+
+CREATE SCHEMA IF NOT EXISTS rpt;
+
+-- 1) Costos operativos reales por lote-campaña
+CREATE OR REPLACE VIEW rpt.v_costos_operativos_plot_season AS
+SELECT
+  wo.tenant_id,
+  wo.plot_season_id,
+  sum(
+    eic.qty * COALESCE(sl.unit_cost, 0)
+  ) AS costo_insumos_usd,
+  sum(
+    COALESCE(we.machine_hours, 0) * 35.0
+  ) AS costo_maquinaria_usd,
+  sum(
+    COALESCE(we.labor_hours, 0) * 8.0
+  ) AS costo_mano_obra_usd,
+  sum(
+    (eic.qty * COALESCE(sl.unit_cost, 0))
+    + (COALESCE(we.machine_hours, 0) * 35.0)
+    + (COALESCE(we.labor_hours, 0) * 8.0)
+  ) AS costo_total_usd
+FROM ops.work_order wo
+JOIN ops.work_execution we
+  ON we.work_order_id = wo.id
+LEFT JOIN ops.execution_input_consumption eic
+  ON eic.work_execution_id = we.id
+LEFT JOIN inv.stock_lot sl
+  ON sl.input_id = eic.input_id
+ AND sl.tenant_id = wo.tenant_id
+GROUP BY wo.tenant_id, wo.plot_season_id;
+
+-- 2) Rendimiento medio (tn/ha) por lote-campaña desde yield limpio
+CREATE OR REPLACE VIEW rpt.v_rinde_plot_season AS
+SELECT
+  ymu.tenant_id,
+  ymu.plot_season_id,
+  avg(ypc.yield_value) AS rinde_promedio_tn_ha,
+  count(*) AS puntos_rinde
+FROM geo.yield_map_upload ymu
+JOIN geo.yield_point_clean ypc
+  ON ypc.yield_map_upload_id = ymu.id
+GROUP BY ymu.tenant_id, ymu.plot_season_id;
+
+-- 3) KPI principal por lote-campaña
+-- precio_referencia_usd_tn configurable por CTE (default 250)
+CREATE OR REPLACE VIEW rpt.v_kpi_plot_season AS
+WITH precio AS (
+  SELECT 250.0::numeric AS precio_referencia_usd_tn
+)
+SELECT
+  ps.tenant_id,
+  ps.id AS plot_season_id,
+  c.code AS campania,
+  e.code AS establecimiento,
+  p.code AS lote,
+  p.area_ha_declared AS area_ha,
+  COALESCE(r.rinde_promedio_tn_ha, 0) AS rinde_tn_ha,
+  COALESCE(r.rinde_promedio_tn_ha, 0) * p.area_ha_declared AS produccion_tn_estimada,
+  COALESCE(r.rinde_promedio_tn_ha, 0) * p.area_ha_declared * pr.precio_referencia_usd_tn AS ingreso_bruto_usd_estimado,
+  COALESCE(k.costo_total_usd, 0) AS costo_total_usd,
+  (
+    COALESCE(r.rinde_promedio_tn_ha, 0) * p.area_ha_declared * pr.precio_referencia_usd_tn
+    - COALESCE(k.costo_total_usd, 0)
+  ) AS margen_bruto_usd_estimado,
+  CASE
+    WHEN p.area_ha_declared > 0
+    THEN COALESCE(k.costo_total_usd, 0) / p.area_ha_declared
+    ELSE 0
+  END AS costo_usd_ha,
+  CASE
+    WHEN p.area_ha_declared > 0
+    THEN (
+      (COALESCE(r.rinde_promedio_tn_ha, 0) * p.area_ha_declared * pr.precio_referencia_usd_tn
+      - COALESCE(k.costo_total_usd, 0))
+      / p.area_ha_declared
+    )
+    ELSE 0
+  END AS margen_usd_ha
+FROM core.plot_season ps
+JOIN core.campaign c
+  ON c.id = ps.campaign_id
+JOIN core.plot p
+  ON p.id = ps.plot_id
+JOIN core.establishment e
+  ON e.id = p.establishment_id
+LEFT JOIN rpt.v_rinde_plot_season r
+  ON r.plot_season_id = ps.id
+ AND r.tenant_id = ps.tenant_id
+LEFT JOIN rpt.v_costos_operativos_plot_season k
+  ON k.plot_season_id = ps.id
+ AND k.tenant_id = ps.tenant_id
+CROSS JOIN precio pr;
+
+-- 4) KPI por ambiente (zona de manejo)
+-- Asigna puntos de rinde a zonas por intersección espacial.
+CREATE OR REPLACE VIEW rpt.v_kpi_ambiente AS
+WITH y AS (
+  SELECT
+    ymu.tenant_id,
+    ymu.plot_season_id,
+    mz.id AS management_zone_id,
+    mz.name AS ambiente,
+    avg(ypc.yield_value) AS rinde_tn_ha_ambiente,
+    count(*) AS puntos
+  FROM geo.yield_map_upload ymu
+  JOIN geo.yield_point_clean ypc
+    ON ypc.yield_map_upload_id = ymu.id
+  JOIN core.plot_season ps
+    ON ps.id = ymu.plot_season_id
+  JOIN core.plot p
+    ON p.id = ps.plot_id
+  JOIN geo.management_zone mz
+    ON mz.plot_id = p.id
+   AND mz.tenant_id = ymu.tenant_id
+   AND ST_Intersects(mz.geom, ypc.geom)
+  GROUP BY ymu.tenant_id, ymu.plot_season_id, mz.id, mz.name
+),
+a AS (
+  SELECT
+    mz.id AS management_zone_id,
+    ST_Area(mz.geom::geography) / 10000.0 AS area_ha_ambiente
+  FROM geo.management_zone mz
+),
+costo_lote AS (
+  SELECT
+    tenant_id,
+    plot_season_id,
+    costo_total_usd
+  FROM rpt.v_costos_operativos_plot_season
+),
+area_lote AS (
+  SELECT
+    ps.id AS plot_season_id,
+    ST_Area(gbv.geom::geography) / 10000.0 AS area_ha_lote
+  FROM core.plot_season ps
+  JOIN geo.geo_boundary_version gbv
+    ON gbv.plot_id = ps.plot_id
+   AND gbv.valid_to IS NULL
+)
+SELECT
+  y.tenant_id,
+  y.plot_season_id,
+  y.management_zone_id,
+  y.ambiente,
+  COALESCE(a.area_ha_ambiente, 0) AS area_ha_ambiente,
+  y.rinde_tn_ha_ambiente,
+  y.puntos,
+  COALESCE(cl.costo_total_usd, 0)
+    * CASE
+        WHEN COALESCE(al.area_ha_lote, 0) > 0 THEN COALESCE(a.area_ha_ambiente, 0) / al.area_ha_lote
+        ELSE 0
+      END AS costo_usd_asignado_ambiente
+FROM y
+LEFT JOIN a
+  ON a.management_zone_id = y.management_zone_id
+LEFT JOIN costo_lote cl
+  ON cl.tenant_id = y.tenant_id
+ AND cl.plot_season_id = y.plot_season_id
+LEFT JOIN area_lote al
+  ON al.plot_season_id = y.plot_season_id;
+
+-- 5) Consulta de ejemplo
+-- SELECT * FROM rpt.v_kpi_plot_season ORDER BY campania, establecimiento, lote;
+-- SELECT * FROM rpt.v_kpi_ambiente ORDER BY plot_season_id, ambiente;

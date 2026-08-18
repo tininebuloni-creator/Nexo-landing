@@ -1,0 +1,10 @@
+node_modules/
+.env
+.env.*
+!.env.example
+certs/
+*.crt
+*.key
+*.p12
+*.pem
+*.obf-backup

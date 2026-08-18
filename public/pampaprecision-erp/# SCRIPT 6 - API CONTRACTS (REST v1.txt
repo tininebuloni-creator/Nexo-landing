@@ -1,0 +1,188 @@
+# SCRIPT 6 - API CONTRACTS (REST v1)
+
+## Convenciones
+- Base path: /api/v1
+- Auth: Bearer JWT
+- Header obligatorio: X-Tenant-Id
+- Contexto recomendado en queries: campaign_id, establishment_id
+- Paginación: page, page_size
+- Respuesta de listas: { data: [], meta: { page, page_size, total } }
+
+## 1) Core contexto
+GET /context/campaigns
+GET /context/establishments
+GET /context/plots?establishment_id=
+GET /context/plot-seasons?campaign_id=&establishment_id=
+Response item plot-season:
+{
+  id,
+  campaign_id,
+  plot_id,
+  planned_crop_id,
+  actual_crop_id,
+  status
+}
+
+## 2) Operaciones de campo
+GET /operations/work-orders?campaign_id=&establishment_id=&status=
+POST /operations/work-orders
+Body:
+{
+  plot_season_id,
+  operation_type,
+  requested_date,
+  planned_area_ha
+}
+
+POST /operations/work-orders/{id}/executions
+Body:
+{
+  executed_at,
+  area_ha,
+  machine_hours,
+  labor_hours,
+  operator_name,
+  inputs: [
+    { input_id, qty, uom_id }
+  ],
+  application_condition: {
+    wind_speed_kmh,
+    temperature_c,
+    relative_humidity,
+    thermal_inversion_flag
+  }
+}
+
+GET /operations/executions?plot_season_id=
+GET /operations/scouting?plot_season_id=
+POST /operations/scouting
+Body:
+{
+  plot_season_id,
+  observed_at,
+  category,
+  species,
+  severity,
+  action_threshold,
+  lon,
+  lat
+}
+
+## 3) Inventario y compras
+GET /inventory/stock?warehouse_id=
+GET /inventory/movements?input_id=&from=&to=
+POST /inventory/movements
+Body:
+{
+  stock_lot_id,
+  movement_type,
+  qty,
+  unit_cost,
+  ref_doc_type,
+  ref_doc_id
+}
+
+GET /procurement/purchase-orders
+POST /procurement/purchase-orders
+Body:
+{
+  supplier_party_id,
+  po_number,
+  po_date,
+  currency_id,
+  lines: [
+    { input_id, qty, uom_id, unit_price }
+  ]
+}
+
+POST /procurement/purchase-orders/{id}/receipts
+Body:
+{
+  receipt_number,
+  receipt_date,
+  lines: [
+    { purchase_order_line_id, received_qty }
+  ]
+}
+
+## 4) Precision GIS + rendimiento
+GET /precision/plots/{plot_id}/boundaries/current
+GET /precision/plots/{plot_id}/zones?campaign_id=
+GET /precision/plots/{plot_id}/indices?index_type=NDVI&from=&to=
+POST /precision/yield/uploads
+Body:
+{
+  plot_season_id,
+  source_file_uri
+}
+
+POST /precision/yield/uploads/{id}/clean
+Body:
+{
+  ruleset: "default_v1"
+}
+
+GET /precision/yield/uploads/{id}/summary
+Response:
+{
+  points_total,
+  points_ok,
+  yield_avg_tn_ha,
+  moisture_avg
+}
+
+POST /precision/prescriptions
+Body:
+{
+  plot_season_id,
+  operation_type,
+  zones: [
+    { wkt_geom, input_id, target_rate, min_rate, max_rate }
+  ]
+}
+
+POST /precision/prescriptions/{id}/export
+Body:
+{
+  format: "ISOXML|SHP|JD|TRIMBLE|CNH|AGLEADER"
+}
+Response:
+{
+  export_id,
+  file_uri
+}
+
+## 5) Telemetría y clima
+GET /telemetry/devices
+POST /telemetry/events/bulk
+Body:
+{
+  device_id,
+  events: [
+    { ts, lon, lat, speed_kmh, heading_deg, fuel_rate_l_h, overlap_pct }
+  ]
+}
+
+GET /weather/stations
+POST /weather/observations/bulk
+Body:
+{
+  weather_station_id,
+  observations: [
+    { ts, temp_c, rh_pct, wind_kmh, rainfall_mm, solar_rad }
+  ]
+}
+
+## 6) KPI y analítica
+GET /analytics/kpi/plot-seasons?campaign_id=&establishment_id=
+GET /analytics/kpi/zones?plot_season_id=
+GET /analytics/costs/summary?campaign_id=&establishment_id=
+
+## 7) Errores estándar
+- 400 validation_error
+- 401 unauthorized
+- 403 forbidden_scope
+- 404 not_found
+- 409 conflict
+- 422 business_rule_violation
+- 500 internal_error

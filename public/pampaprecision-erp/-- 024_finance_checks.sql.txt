@@ -1,0 +1,22 @@
+-- Cheques recibidos y emitidos.
+
+CREATE TABLE IF NOT EXISTS fin.check_book (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  cash_account_id uuid REFERENCES fin.cash_account(id),
+  check_number varchar(40) NOT NULL,
+  check_type varchar(10) NOT NULL,
+  bank_name text NOT NULL,
+  holder_name text NOT NULL,
+  issue_date date NOT NULL DEFAULT CURRENT_DATE,
+  due_date date NOT NULL,
+  amount_usd numeric(16,2) NOT NULL,
+  status varchar(20) NOT NULL DEFAULT 'pending',
+  notes text,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (tenant_id, check_number, check_type),
+  CHECK (check_type IN ('received', 'issued')),
+  CHECK (amount_usd > 0)
+);
+
+CREATE INDEX IF NOT EXISTS idx_check_tenant_status_due ON fin.check_book (tenant_id, status, due_date);

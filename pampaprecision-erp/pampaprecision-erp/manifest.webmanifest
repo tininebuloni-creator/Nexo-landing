@@ -1,0 +1,10 @@
+{
+  "name": "Pampa Precision ERP",
+  "short_name": "Pampa ERP",
+  "description": "ERP agricola offline-first para campos, lotes y operaciones de precision.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f4f7f2",
+  "theme_color": "#174936",
+  "lang": "es"
+}

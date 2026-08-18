@@ -1,0 +1,22 @@
+-- Sistemas de amortizacion y cronograma de cuotas.
+
+ALTER TABLE fin.credit ADD COLUMN IF NOT EXISTS amortization_system varchar(20) NOT NULL DEFAULT 'french';
+ALTER TABLE fin.credit ADD COLUMN IF NOT EXISTS installment_count integer NOT NULL DEFAULT 1;
+ALTER TABLE fin.credit ADD COLUMN IF NOT EXISTS installment_frequency varchar(20) NOT NULL DEFAULT 'monthly';
+
+CREATE TABLE IF NOT EXISTS fin.credit_installment (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  credit_id uuid NOT NULL REFERENCES fin.credit(id) ON DELETE CASCADE,
+  installment_number integer NOT NULL,
+  due_date date NOT NULL,
+  principal_amount_usd numeric(16,2) NOT NULL,
+  interest_amount_usd numeric(16,2) NOT NULL,
+  installment_amount_usd numeric(16,2) NOT NULL,
+  outstanding_principal_usd numeric(16,2) NOT NULL,
+  status varchar(20) NOT NULL DEFAULT 'pending',
+  UNIQUE (credit_id, installment_number),
+  CHECK (installment_number > 0 AND principal_amount_usd >= 0 AND interest_amount_usd >= 0)
+);
+
+CREATE INDEX IF NOT EXISTS idx_credit_installment_due ON fin.credit_installment (tenant_id, status, due_date);

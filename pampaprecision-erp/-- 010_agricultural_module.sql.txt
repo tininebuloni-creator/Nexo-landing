@@ -1,0 +1,85 @@
+-- Modulo agricola: maquinaria, mantenimiento, cosecha y costos operativos.
+
+CREATE SCHEMA IF NOT EXISTS mach;
+CREATE SCHEMA IF NOT EXISTS com;
+
+CREATE TABLE IF NOT EXISTS mach.machine (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  code varchar(30) NOT NULL,
+  category varchar(30) NOT NULL,
+  brand text,
+  model text,
+  serial_no text,
+  plate text,
+  active boolean NOT NULL DEFAULT true,
+  hourly_cost_usd numeric(12,2) NOT NULL DEFAULT 35,
+  UNIQUE (tenant_id, code)
+);
+
+CREATE TABLE IF NOT EXISTS mach.hourmeter_reading (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  machine_id uuid NOT NULL REFERENCES mach.machine(id),
+  reading_time timestamptz NOT NULL DEFAULT now(),
+  reading_value numeric(14,2) NOT NULL,
+  source varchar(20) NOT NULL DEFAULT 'manual'
+);
+
+CREATE TABLE IF NOT EXISTS mach.maintenance_work_order (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  machine_id uuid NOT NULL REFERENCES mach.machine(id),
+  opened_at timestamptz NOT NULL DEFAULT now(),
+  due_at timestamptz,
+  closed_at timestamptz,
+  status varchar(20) NOT NULL DEFAULT 'open',
+  priority varchar(20) NOT NULL DEFAULT 'medium',
+  description text NOT NULL,
+  estimated_cost_usd numeric(14,2) NOT NULL DEFAULT 0,
+  actual_cost_usd numeric(14,2) NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS com.harvest_estimate (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  plot_season_id uuid NOT NULL REFERENCES core.plot_season(id),
+  estimated_at timestamptz NOT NULL DEFAULT now(),
+  estimated_yield_tn_ha numeric(12,3) NOT NULL,
+  source varchar(30) NOT NULL DEFAULT 'manual'
+);
+
+CREATE TABLE IF NOT EXISTS com.weigh_ticket (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  plot_season_id uuid NOT NULL REFERENCES core.plot_season(id),
+  ticket_number varchar(40) NOT NULL,
+  gross_kg numeric(14,3) NOT NULL,
+  tare_kg numeric(14,3) NOT NULL,
+  net_kg numeric(14,3) GENERATED ALWAYS AS (gross_kg - tare_kg) STORED,
+  weighed_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (tenant_id, ticket_number),
+  CHECK (gross_kg >= tare_kg)
+);
+
+CREATE TABLE IF NOT EXISTS fin.operating_cost (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  plot_season_id uuid REFERENCES core.plot_season(id),
+  work_order_id uuid REFERENCES ops.work_order(id),
+  machine_id uuid REFERENCES mach.machine(id),
+  cost_date date NOT NULL DEFAULT CURRENT_DATE,
+  category varchar(30) NOT NULL,
+  description text NOT NULL,
+  amount_usd numeric(14,2) NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  CHECK (amount_usd >= 0)
+);
+
+ALTER TABLE ops.work_execution ADD COLUMN IF NOT EXISTS machine_id uuid REFERENCES mach.machine(id);
+ALTER TABLE ops.work_execution ADD COLUMN IF NOT EXISTS labor_hours numeric(12,2) NOT NULL DEFAULT 0;
+
+CREATE INDEX IF NOT EXISTS idx_machine_tenant_active ON mach.machine (tenant_id, active);
+CREATE INDEX IF NOT EXISTS idx_maintenance_machine_status ON mach.maintenance_work_order (machine_id, status);
+CREATE INDEX IF NOT EXISTS idx_weigh_ticket_plot_season ON com.weigh_ticket (plot_season_id, weighed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_operating_cost_plot_date ON fin.operating_cost (plot_season_id, cost_date DESC);

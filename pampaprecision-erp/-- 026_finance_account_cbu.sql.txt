@@ -1,0 +1,4 @@
+-- CBU de cuentas bancarias para seleccionar el medio de pago de la LPG.
+ALTER TABLE fin.cash_account ADD COLUMN IF NOT EXISTS cbu varchar(22);
+ALTER TABLE fin.cash_account ADD CONSTRAINT cash_account_cbu_format
+  CHECK (cbu IS NULL OR cbu ~ '^[0-9]{22}$');

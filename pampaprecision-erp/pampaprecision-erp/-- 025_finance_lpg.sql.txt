@@ -1,0 +1,80 @@
+-- Liquidacion Primaria de Granos (LPG) - comprobante y detalle impositivo.
+CREATE TABLE IF NOT EXISTS fin.lpg (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  lpg_number varchar(40) NOT NULL,
+  coe varchar(30),
+  issue_date date NOT NULL DEFAULT CURRENT_DATE,
+  operation_date date NOT NULL DEFAULT CURRENT_DATE,
+  operation_type varchar(20) NOT NULL DEFAULT 'sale',
+  adjustment_type varchar(20),
+  issuer_tax_id varchar(30) NOT NULL,
+  issuer_name text NOT NULL,
+  issuer_vat_status varchar(40),
+  issuer_sisa_status varchar(30),
+  producer_tax_id varchar(30) NOT NULL,
+  producer_name text NOT NULL,
+  producer_vat_status varchar(40),
+  producer_sisa_status varchar(30),
+  establishment_name text,
+  establishment_province text,
+  establishment_locality text,
+  broker_tax_id varchar(30),
+  broker_name text,
+  producer_cbu varchar(22),
+  currency_id uuid NOT NULL REFERENCES ref.currency(id),
+  unit_price numeric(16,2) NOT NULL,
+  gross_amount numeric(16,2) NOT NULL DEFAULT 0,
+  deductible_expenses numeric(16,2) NOT NULL DEFAULT 0,
+  taxable_subtotal numeric(16,2) NOT NULL DEFAULT 0,
+  vat_rate numeric(6,3) NOT NULL DEFAULT 10.5,
+  vat_amount numeric(16,2) NOT NULL DEFAULT 0,
+  vat_withholding numeric(16,2) NOT NULL DEFAULT 0,
+  income_tax_withholding numeric(16,2) NOT NULL DEFAULT 0,
+  gross_income_withholding numeric(16,2) NOT NULL DEFAULT 0,
+  tax_credit numeric(16,2) NOT NULL DEFAULT 0,
+  net_amount numeric(16,2) NOT NULL DEFAULT 0,
+  status varchar(20) NOT NULL DEFAULT 'draft',
+  notes text,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (tenant_id, lpg_number),
+  CHECK (operation_type IN ('sale', 'consignment')),
+  CHECK (adjustment_type IS NULL OR adjustment_type IN ('debit', 'credit')),
+  CHECK (unit_price >= 0 AND gross_amount >= 0 AND deductible_expenses >= 0),
+  CHECK (vat_rate >= 0 AND vat_amount >= 0 AND net_amount >= 0)
+);
+
+CREATE TABLE IF NOT EXISTS fin.lpg_line (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  lpg_id uuid NOT NULL REFERENCES fin.lpg(id) ON DELETE CASCADE,
+  grain_code varchar(30) NOT NULL,
+  grain_name text NOT NULL,
+  campaign varchar(20) NOT NULL,
+  origin_province text,
+  origin_locality text,
+  destination text,
+  cpe_number varchar(40),
+  deposit_certificate varchar(40),
+  net_weight_kg numeric(16,3) NOT NULL,
+  reference_grade varchar(30),
+  moisture numeric(8,3),
+  sieve numeric(8,3),
+  volatile numeric(8,3),
+  quality_adjustment numeric(16,2) NOT NULL DEFAULT 0,
+  UNIQUE (lpg_id),
+  CHECK (net_weight_kg > 0)
+);
+
+CREATE TABLE IF NOT EXISTS fin.lpg_deduction (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  lpg_id uuid NOT NULL REFERENCES fin.lpg(id) ON DELETE CASCADE,
+  deduction_type varchar(30) NOT NULL,
+  description text NOT NULL,
+  amount numeric(16,2) NOT NULL,
+  CHECK (amount >= 0)
+);
+
+CREATE INDEX IF NOT EXISTS idx_lpg_tenant_date ON fin.lpg (tenant_id, issue_date DESC);
+CREATE INDEX IF NOT EXISTS idx_lpg_line_cpe ON fin.lpg_line (cpe_number);

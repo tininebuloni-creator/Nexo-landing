@@ -1,0 +1,123 @@
+-- =========================================================
+-- SCRIPT 7 - PARTITIONING TSD
+-- Migra tsd.telemetry_event y tsd.weather_observation
+-- a tablas particionadas por mes usando RANGE(ts).
+-- =========================================================
+
+BEGIN;
+
+-- 1) Renombrar tablas actuales a legacy
+ALTER TABLE tsd.telemetry_event RENAME TO telemetry_event_legacy;
+ALTER TABLE tsd.weather_observation RENAME TO weather_observation_legacy;
+
+-- 2) Crear nuevas tablas particionadas
+CREATE TABLE tsd.telemetry_event (
+  id bigint GENERATED ALWAYS AS IDENTITY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  device_id uuid NOT NULL REFERENCES tsd.device(id),
+  ts timestamptz NOT NULL,
+  geom geometry(Point, 4326),
+  speed_kmh numeric(8,3),
+  heading_deg numeric(8,3),
+  fuel_rate_l_h numeric(10,3),
+  overlap_pct numeric(6,2),
+  PRIMARY KEY (ts, id)
+) PARTITION BY RANGE (ts);
+
+CREATE TABLE tsd.weather_observation (
+  id bigint GENERATED ALWAYS AS IDENTITY,
+  tenant_id uuid NOT NULL REFERENCES core.tenant(id),
+  weather_station_id uuid NOT NULL REFERENCES tsd.weather_station(id),
+  ts timestamptz NOT NULL,
+  temp_c numeric(6,2),
+  rh_pct numeric(6,2),
+  wind_kmh numeric(8,2),
+  rainfall_mm numeric(8,2),
+  solar_rad numeric(10,2),
+  PRIMARY KEY (ts, id)
+) PARTITION BY RANGE (ts);
+
+-- 3) Particiones por defecto (seguridad)
+CREATE TABLE tsd.telemetry_event_default
+  PARTITION OF tsd.telemetry_event DEFAULT;
+
+CREATE TABLE tsd.weather_observation_default
+  PARTITION OF tsd.weather_observation DEFAULT;
+
+-- 4) Función para crear particiones mensuales
+CREATE OR REPLACE FUNCTION tsd.create_monthly_partitions(
+  p_start date,
+  p_end date
+)
+RETURNS void
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_month date;
+  v_next date;
+  v_tbl_telemetry text;
+  v_tbl_weather text;
+BEGIN
+  v_month := date_trunc('month', p_start)::date;
+
+  WHILE v_month < p_end LOOP
+    v_next := (v_month + interval '1 month')::date;
+
+    v_tbl_telemetry := format('telemetry_event_%s', to_char(v_month, 'YYYYMM'));
+    v_tbl_weather := format('weather_observation_%s', to_char(v_month, 'YYYYMM'));
+
+    EXECUTE format(
+      'CREATE TABLE IF NOT EXISTS tsd.%I PARTITION OF tsd.telemetry_event
+       FOR VALUES FROM (%L) TO (%L)',
+      v_tbl_telemetry, v_month, v_next
+    );
+
+    EXECUTE format(
+      'CREATE TABLE IF NOT EXISTS tsd.%I PARTITION OF tsd.weather_observation
+       FOR VALUES FROM (%L) TO (%L)',
+      v_tbl_weather, v_month, v_next
+    );
+
+    v_month := v_next;
+  END LOOP;
+END;
+$$;
+
+-- 5) Crear particiones históricas y futuras
+SELECT tsd.create_monthly_partitions('2024-01-01', '2028-01-01');
+
+-- 6) Reinsertar datos legacy
+INSERT INTO tsd.telemetry_event
+  (tenant_id, device_id, ts, geom, speed_kmh, heading_deg, fuel_rate_l_h, overlap_pct)
+SELECT
+  tenant_id, device_id, ts, geom, speed_kmh, heading_deg, fuel_rate_l_h, overlap_pct
+FROM tsd.telemetry_event_legacy
+ORDER BY ts;
+
+INSERT INTO tsd.weather_observation
+  (tenant_id, weather_station_id, ts, temp_c, rh_pct, wind_kmh, rainfall_mm, solar_rad)
+SELECT
+  tenant_id, weather_station_id, ts, temp_c, rh_pct, wind_kmh, rainfall_mm, solar_rad
+FROM tsd.weather_observation_legacy
+ORDER BY ts;
+
+-- 7) Índices en tabla padre (se propagan a particiones)
+CREATE INDEX IF NOT EXISTS idx_telemetry_device_ts
+  ON tsd.telemetry_event (device_id, ts);
+
+CREATE INDEX IF NOT EXISTS sidx_telemetry_geom
+  ON tsd.telemetry_event USING gist (geom);
+
+CREATE INDEX IF NOT EXISTS idx_weather_station_ts
+  ON tsd.weather_observation (weather_station_id, ts);
+
+COMMIT;
+
+-- 8) Limpieza manual opcional cuando valides conteos
+-- SELECT count(*) FROM tsd.telemetry_event_legacy;
+-- SELECT count(*) FROM tsd.telemetry_event;
+-- SELECT count(*) FROM tsd.weather_observation_legacy;
+-- SELECT count(*) FROM tsd.weather_observation;
+--
+-- DROP TABLE tsd.telemetry_event_legacy;
+-- DROP TABLE tsd.weather_observation_legacy;

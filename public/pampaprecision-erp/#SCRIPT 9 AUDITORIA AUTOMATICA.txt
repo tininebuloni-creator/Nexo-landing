@@ -1,0 +1,121 @@
+-- =========================================================
+-- SCRIPT 9 - AUDITORIA AUTOMATICA
+-- =========================================================
+
+CREATE SCHEMA IF NOT EXISTS audit;
+
+CREATE TABLE IF NOT EXISTS audit.log (
+  id bigserial PRIMARY KEY,
+  tenant_id uuid,
+  actor_user_id uuid,
+  action varchar(10) NOT NULL,         -- INSERT, UPDATE, DELETE
+  schema_name text NOT NULL,
+  table_name text NOT NULL,
+  row_pk text,
+  before_data jsonb,
+  after_data jsonb,
+  txid bigint NOT NULL DEFAULT txid_current(),
+  at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_tenant_time
+  ON audit.log (tenant_id, at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_audit_table_time
+  ON audit.log (schema_name, table_name, at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_audit_actor_time
+  ON audit.log (actor_user_id, at DESC);
+
+CREATE OR REPLACE FUNCTION audit.f_row_change()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_tenant_id uuid;
+  v_actor uuid;
+  v_row_pk text;
+BEGIN
+  v_actor := NULLIF(current_setting('app.user_id', true), '')::uuid;
+
+  IF TG_OP = 'INSERT' THEN
+    v_tenant_id := (to_jsonb(NEW)->>'tenant_id')::uuid;
+    v_row_pk := COALESCE(to_jsonb(NEW)->>'id', '');
+    INSERT INTO audit.log (
+      tenant_id, actor_user_id, action, schema_name, table_name, row_pk, before_data, after_data
+    )
+    VALUES (
+      v_tenant_id, v_actor, TG_OP, TG_TABLE_SCHEMA, TG_TABLE_NAME, v_row_pk, NULL, to_jsonb(NEW)
+    );
+    RETURN NEW;
+  ELSIF TG_OP = 'UPDATE' THEN
+    v_tenant_id := COALESCE((to_jsonb(NEW)->>'tenant_id')::uuid, (to_jsonb(OLD)->>'tenant_id')::uuid);
+    v_row_pk := COALESCE(to_jsonb(NEW)->>'id', to_jsonb(OLD)->>'id', '');
+    INSERT INTO audit.log (
+      tenant_id, actor_user_id, action, schema_name, table_name, row_pk, before_data, after_data
+    )
+    VALUES (
+      v_tenant_id, v_actor, TG_OP, TG_TABLE_SCHEMA, TG_TABLE_NAME, v_row_pk, to_jsonb(OLD), to_jsonb(NEW)
+    );
+    RETURN NEW;
+  ELSIF TG_OP = 'DELETE' THEN
+    v_tenant_id := (to_jsonb(OLD)->>'tenant_id')::uuid;
+    v_row_pk := COALESCE(to_jsonb(OLD)->>'id', '');
+    INSERT INTO audit.log (
+      tenant_id, actor_user_id, action, schema_name, table_name, row_pk, before_data, after_data
+    )
+    VALUES (
+      v_tenant_id, v_actor, TG_OP, TG_TABLE_SCHEMA, TG_TABLE_NAME, v_row_pk, to_jsonb(OLD), NULL
+    );
+    RETURN OLD;
+  END IF;
+
+  RETURN NULL;
+END;
+$$;
+
+-- Helper para adjuntar trigger en múltiples tablas
+CREATE OR REPLACE PROCEDURE audit.attach_trigger(p_schema text, p_table text)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_trigger_name text;
+BEGIN
+  v_trigger_name := format('tr_audit_%s_%s', p_schema, p_table);
+
+  EXECUTE format('DROP TRIGGER IF EXISTS %I ON %I.%I', v_trigger_name, p_schema, p_table);
+  EXECUTE format(
+    'CREATE TRIGGER %I
+     AFTER INSERT OR UPDATE OR DELETE ON %I.%I
+     FOR EACH ROW EXECUTE FUNCTION audit.f_row_change()',
+    v_trigger_name, p_schema, p_table
+  );
+END;
+$$;
+
+-- Tablas críticas del MVP
+CALL audit.attach_trigger('core', 'campaign');
+CALL audit.attach_trigger('core', 'plot');
+CALL audit.attach_trigger('core', 'plot_season');
+
+CALL audit.attach_trigger('ops', 'work_order');
+CALL audit.attach_trigger('ops', 'work_execution');
+CALL audit.attach_trigger('ops', 'application_condition');
+CALL audit.attach_trigger('ops', 'execution_input_consumption');
+
+CALL audit.attach_trigger('inv', 'stock_lot');
+CALL audit.attach_trigger('inv', 'inventory_movement');
+CALL audit.attach_trigger('inv', 'purchase_order');
+CALL audit.attach_trigger('inv', 'goods_receipt');
+CALL audit.attach_trigger('inv', 'supplier_invoice');
+
+CALL audit.attach_trigger('geo', 'yield_map_upload');
+CALL audit.attach_trigger('geo', 'yield_point_clean');
+CALL audit.attach_trigger('geo', 'prescription_map');
+CALL audit.attach_trigger('geo', 'prescription_zone');
+
+CALL audit.attach_trigger('fin', 'journal_entry');
+CALL audit.attach_trigger('fin', 'journal_line');
+
+-- Consulta rápida de auditoría
+-- SELECT * FROM audit.log ORDER BY at DESC LIMIT 100;
