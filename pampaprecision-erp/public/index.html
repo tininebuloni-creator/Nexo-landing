@@ -1667,7 +1667,7 @@
         <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Valor en stock</span><strong>$ 48,6 M</strong></article><article class="panel module-stat warning"><span>Items bajo minimo</span><strong>07</strong></article><article class="panel module-stat"><span>Compras pendientes</span><strong>04</strong></article></div><section class="panel"><div class="panel-head"><div><h2>Existencias por insumo</h2><p class="panel-caption">Stock disponible y punto de reposicion</p></div><button class="text-button" data-action="Inventario exportado">Exportar</button></div><table class="data-table"><thead><tr><th>Insumo</th><th>Categoria</th><th>Disponible</th><th>Minimo</th><th>Estado</th></tr></thead><tbody><tr><td><strong>Glifosato 48%</strong><small>Herbicida</small></td><td>Fitosanitario</td><td>320 L</td><td>500 L</td><td><span class="pill red">Reponer</span></td></tr><tr><td><strong>Urea granulada</strong><small>Fertilizante</small></td><td>Fertilizante</td><td>18.400 kg</td><td>12.000 kg</td><td><span class="pill">Disponible</span></td></tr><tr><td><strong>Diesel agro</strong><small>Combustible</small></td><td>Combustible</td><td>8.240 L</td><td>6.000 L</td><td><span class="pill">Disponible</span></td></tr></tbody></table></section></section>`,
       'Precision': `
         <header class="topbar"><div><div class="eyebrow">Workspace / Geoespacial</div><h1>Precision</h1></div><div class="toolbar"><button class="button" data-action="Cargar mapa de rinde">Cargar rinde</button><button class="button" data-action="Nueva prescripcion">+ Prescripcion</button><button class="button primary" data-action="Prescripcion exportada">Exportar prescripcion</button></div></header>
-        <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Lotes monitoreados</span><strong>42</strong></article><article class="panel module-stat"><span>NDVI actualizado</span><strong>94%</strong></article><article class="panel module-stat danger"><span>Zonas con variabilidad</span><strong>09</strong></article></div><section class="panel"><div class="panel-head"><div><h2>Mapa multicapa</h2><p class="panel-caption" id="precisionLayerCaption">Índice verde de vigor por lote</p></div><div class="toolbar"><span class="pill" id="precisionLayerState">NDVI</span><select id="precisionMapField" aria-label="Establecimiento"></select><select id="precisionMapLot" aria-label="Enfocar lote"></select><select id="precisionMapLayer" aria-label="Capa del mapa"><option value="ndvi">Índice NDVI</option><option value="yield">Mapa de rinde</option><option value="prescription">Prescripción de siembra</option></select></div></div><div id="lotMap" aria-label="Mapa Leaflet de precision" style="height:330px"></div><div class="precision-legend" id="precisionLayerLegend" aria-live="polite"></div></section></section>`,
+        <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Lotes monitoreados</span><strong id="precisionMonitoredLots">0</strong></article><article class="panel module-stat"><span>NDVI actualizado</span><strong id="precisionNdviUpdated">0%</strong></article><article class="panel module-stat danger"><span>Zonas con variabilidad</span><strong id="precisionVariableZones">0</strong></article></div><section class="panel"><div class="panel-head"><div><h2>Mapa multicapa</h2><p class="panel-caption" id="precisionLayerCaption">Índice verde de vigor por lote</p></div><div class="toolbar"><span class="pill" id="precisionLayerState">NDVI</span><select id="precisionMapField" aria-label="Establecimiento"></select><select id="precisionMapLot" aria-label="Enfocar lote"></select><select id="precisionMapLayer" aria-label="Capa del mapa"><option value="ndvi">Índice NDVI</option><option value="yield">Mapa de rinde</option><option value="prescription">Prescripción de siembra</option></select></div></div><div id="lotMap" aria-label="Mapa Leaflet de precision" style="height:330px"></div><div class="precision-legend" id="precisionLayerLegend" aria-live="polite"></div></section></section>`,
       'Calibraciones': `
         <header class="topbar"><div><div class="eyebrow">Workspace / Calidad de dato</div><h1>Calibraciones</h1></div><div class="toolbar"><button class="button" data-action="Exportar planilla calibraciones">Exportar planilla</button><button class="button primary" data-action="Nuevo registro de calibracion">+ Nueva calibracion</button></div></header>
         <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Protocolos activos</span><strong id="calibrationProtocolCount">0</strong></article><article class="panel module-stat"><span>Registros guardados</span><strong id="calibrationRecordsCount">0</strong></article><article class="panel module-stat warning"><span>Vencidas</span><strong id="calibrationOverdueCount">0</strong></article><article class="panel module-stat danger"><span>Cierre validado</span><strong id="calibrationClosureRate">0%</strong></article></div>
@@ -1989,15 +1989,56 @@
       const layerSelector = document.querySelector('#precisionMapLayer');
       const fieldSelector = document.querySelector('#precisionMapField');
       const lotSelector = document.querySelector('#precisionMapLot');
-      if (!mapElement || !layerSelector || !fieldSelector || !lotSelector || !window.L) return;
+      if (!mapElement || !layerSelector || !fieldSelector || !lotSelector) return;
       const layer = selectedLayer || layerSelector.value;
       const layers = [];
       const allMapLots = registeredLotDetails;
       const fieldsWithLots = [...new Set(allMapLots.map(lot => lot.field))];
+      const layerInfo = {
+        ndvi: { name: 'NDVI', caption: 'Índice verde de vigor por lote' },
+        yield: { name: 'Rinde', caption: 'Rinde estimado en toneladas por hectárea' },
+        prescription: { name: 'Prescripción', caption: 'Zonas y dosis objetivo de siembra' }
+      }[layer] || { name: 'NDVI', caption: 'Índice verde de vigor por lote' };
+      const updateMetrics = () => {
+        const monitoredLots = document.querySelector('#precisionMonitoredLots');
+        const ndviUpdated = document.querySelector('#precisionNdviUpdated');
+        const variableZones = document.querySelector('#precisionVariableZones');
+        if (monitoredLots) monitoredLots.textContent = String(allMapLots.length);
+        if (ndviUpdated) ndviUpdated.textContent = '0%';
+        if (variableZones) variableZones.textContent = '0';
+      };
+      const bindSelectors = () => {
+        if (!layerSelector.dataset.bound) {
+          layerSelector.dataset.bound = 'true';
+          layerSelector.addEventListener('change', () => initializePrecisionMap(layerSelector.value));
+        }
+        if (!lotSelector.dataset.listenerBound) {
+          lotSelector.dataset.listenerBound = 'true';
+          lotSelector.addEventListener('change', () => initializePrecisionMap(layerSelector.value));
+        }
+        if (!fieldSelector.dataset.listenerBound) {
+          fieldSelector.dataset.listenerBound = 'true';
+          fieldSelector.addEventListener('change', () => initializePrecisionMap(layerSelector.value));
+        }
+      };
+      updateMetrics();
+      bindSelectors();
+      document.querySelector('#precisionLayerState').textContent = layerInfo.name;
+      document.querySelector('#precisionLayerCaption').textContent = layerInfo.caption;
+      if (!window.L) {
+        mapElement.className = 'offline-map';
+        mapElement.innerHTML = '<div class="map-legend">Mapa sin conexión. No hay lotes registrados para mostrar.</div>';
+        return;
+      }
       if (!fieldsWithLots.length) {
         fieldSelector.innerHTML = '<option value="">Sin lotes registrados</option>';
         lotSelector.innerHTML = '<option value="">Sin lotes registrados</option>';
-        mapElement.innerHTML = '<div class="map-legend">No hay lotes registrados para mostrar.</div>';
+        lotMapInstance?.remove();
+        precisionLayerGroup = null;
+        lotMapInstance = L.map(mapElement).setView([-34.6128, -58.4281], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', keepBuffer: 1, updateWhenIdle: true }).addTo(lotMapInstance);
+        document.querySelector('#precisionLayerLegend').innerHTML = '<div><strong>Sin datos</strong><span>No hay lotes registrados para mostrar.</span></div>';
+        setTimeout(() => lotMapInstance.invalidateSize(), 100);
         return;
       }
       if (!fieldSelector.dataset.bound) {
@@ -2011,12 +2052,6 @@
       lotSelector.innerHTML = mapLots.map(lot => `<option value="${lot.code}">Enfocar ${lot.code}</option>`).join('');
       lotSelector.value = mapLots.some(lot => lot.code === previousLot) ? previousLot : mapLots[0].code;
       const focusLot = mapLots.find(lot => lot.code === lotSelector.value) || mapLots[0];
-      const layerInfo = {
-        ndvi: { name: 'NDVI', caption: 'Índice verde de vigor por lote' },
-        yield: { name: 'Rinde', caption: 'Rinde estimado en toneladas por hectárea' },
-        prescription: { name: 'Prescripción', caption: 'Zonas y dosis objetivo de siembra' }
-      }[layer] || { name: 'NDVI', caption: 'Índice verde de vigor por lote' };
-
       if (lotMapInstance?.getContainer() !== mapElement || !precisionLayerGroup) {
         lotMapInstance?.remove();
         lotMapInstance = L.map(mapElement).setView([mapLots[0].latitude, mapLots[0].longitude], 13);
@@ -2060,18 +2095,6 @@
       if (legend) {
         legend.className = `precision-legend ${layer} single`;
         legend.innerHTML = legendContent.map(([lot, detail]) => `<div><strong>${lot}</strong><span>${detail}</span></div>`).join('');
-      }
-      if (!layerSelector.dataset.bound) {
-        layerSelector.dataset.bound = 'true';
-        layerSelector.addEventListener('change', () => initializePrecisionMap(layerSelector.value));
-      }
-      if (!lotSelector.dataset.listenerBound) {
-        lotSelector.dataset.listenerBound = 'true';
-        lotSelector.addEventListener('change', () => initializePrecisionMap(layerSelector.value));
-      }
-      if (!fieldSelector.dataset.listenerBound) {
-        fieldSelector.dataset.listenerBound = 'true';
-        fieldSelector.addEventListener('change', () => initializePrecisionMap(layerSelector.value));
       }
       clearTimeout(precisionResizeTimer);
       precisionResizeTimer = setTimeout(() => {
