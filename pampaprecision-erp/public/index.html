@@ -252,42 +252,36 @@
       </header>
 
       <section class="metrics" aria-label="Indicadores principales">
-        <article class="metric"><div class="metric-label">Superficie activa</div><div class="metric-value">2.486 ha</div><div class="trend">+8,4% vs. campana anterior</div></article>
-        <article class="metric"><div class="metric-label">Ordenes en curso</div><div class="metric-value">18</div><div class="trend">12 dentro de plazo</div></article>
-        <article class="metric"><div class="metric-label">Cumplimiento operativo</div><div class="metric-value">86,2%</div><div class="trend">+4,1 pts este mes</div></article>
-        <article class="metric"><div class="metric-label">Alertas pendientes</div><div class="metric-value">07</div><div class="trend warn">2 requieren atencion hoy</div></article>
+        <article class="metric"><div class="metric-label">Superficie activa</div><div class="metric-value" id="dashboardSurface">0 ha</div><div class="trend" id="dashboardSurfaceTrend">Sin lotes registrados</div></article>
+        <article class="metric"><div class="metric-label">Ordenes en curso</div><div class="metric-value" id="dashboardOrders">0</div><div class="trend" id="dashboardOrdersTrend">Sin ordenes registradas</div></article>
+        <article class="metric"><div class="metric-label">Cumplimiento operativo</div><div class="metric-value" id="dashboardCompliance">0%</div><div class="trend" id="dashboardComplianceTrend">Sin datos operativos</div></article>
+        <article class="metric"><div class="metric-label">Alertas pendientes</div><div class="metric-value" id="dashboardAlerts">0</div><div class="trend warn" id="dashboardAlertsTrend">Sin alertas registradas</div></article>
       </section>
 
       <div class="layout">
         <div>
           <section class="panel">
-            <div class="panel-head"><div><h2>Superficie por ambiente</h2><p class="panel-caption">La Esperanza · 1.240 ha declaradas</p></div><button class="text-button" id="mapButton">Abrir mapa</button></div>
-            <div class="field-map" aria-label="Mapa esquematico de lotes productivos">
-              <div class="field field-a"></div><div class="field field-b"></div><div class="field field-c"></div>
-              <span class="field-label label-a">L-04 · 420 ha</span><span class="field-label label-b">L-09 · 380 ha</span><span class="field-label label-c">L-12 · 440 ha</span>
-              <div class="map-legend"><span class="legend-dot"></span>Rinde alto <span class="legend-dot blue"></span>Monitoreo</div>
+            <div class="panel-head"><div><h2>Superficie por ambiente</h2><p class="panel-caption" id="dashboardMapCaption">Sin lotes registrados</p></div><button class="text-button" id="mapButton">Abrir mapa</button></div>
+            <div class="field-map" id="dashboardFieldMap" aria-label="Mapa esquematico de lotes productivos">
+              <div class="map-legend">No hay lotes registrados para mostrar.</div>
             </div>
           </section>
           <section class="panel jobs">
             <div class="panel-head"><div><h2>Ordenes de trabajo recientes</h2><p class="panel-caption">Ejecuciones y avance de campo</p></div><button class="text-button" id="jobsButton">Ver todas</button></div>
-            <div class="job"><i class="status"></i><div><strong>Aplicacion foliar · Lote L-04</strong><span>La Esperanza · Iniciada hace 2 h</span><div class="progress"><i style="width: 74%"></i></div></div><b>74%</b></div>
-            <div class="job"><i class="status yellow"></i><div><strong>Fertilizacion nitrogenada · Lote L-09</strong><span>El Ombu · Programada para hoy</span><div class="progress"><i class="yellow" style="width: 42%"></i></div></div><b>42%</b></div>
-            <div class="job"><i class="status red"></i><div><strong>Relevamiento de malezas · Lote L-12</strong><span>Santa Clara · Vencida hace 1 dia</span><div class="progress"><i class="red" style="width: 18%"></i></div></div><b>18%</b></div>
+            <div id="dashboardJobsEmpty" class="job"><i class="status"></i><div><strong>Sin ordenes de trabajo</strong><span>Las ordenes apareceran cuando se registren.</span></div></div>
           </section>
         </div>
         <div>
           <section class="panel">
             <div class="panel-head"><div><h2>Alertas que requieren accion</h2><p class="panel-caption">Actualizado hace 12 minutos</p></div><button class="text-button" id="alertsButton">Gestionar</button></div>
-            <div class="alerts">
-              <div class="alert critical"><div class="alert-head"><span>Condicion de aplicacion</span><span>Critica</span></div><p>Viento superior al limite en L-04. Revisar antes de reanudar la orden.</p></div>
-              <div class="alert"><div class="alert-head"><span>Stock bajo</span><span>Atencion</span></div><p>Glifosato 48% por debajo del minimo operativo. Quedan 320 L.</p></div>
-              <div class="alert info"><div class="alert-head"><span>Dato satelital disponible</span><span>Nuevo</span></div><p>Indice NDVI actualizado para 14 lotes de La Esperanza.</p></div>
+            <div class="alerts" id="dashboardAlertsList">
+              <div class="alert info"><div class="alert-head"><span>Sin alertas</span><span>Informacion</span></div><p>No hay alertas operativas registradas.</p></div>
             </div>
           </section>
           <section class="panel" style="margin-top:19px">
             <div class="panel-head"><div><h2>Rinde estimado</h2><p class="panel-caption">Toneladas por hectarea · maiz</p></div><span class="eyebrow">Campana actual</span></div>
-            <div class="chart"><div class="bar-wrap"><div class="bar dim" style="height:58%"></div><span>L-04</span></div><div class="bar-wrap"><div class="bar selected" style="height:82%"></div><span>L-09</span></div><div class="bar-wrap"><div class="bar" style="height:69%"></div><span>L-12</span></div><div class="bar-wrap"><div class="bar dim" style="height:48%"></div><span>L-16</span></div><div class="bar-wrap"><div class="bar" style="height:64%"></div><span>L-21</span></div></div>
-            <div class="footnote">Promedio del establecimiento: <strong>8,6 t/ha</strong> <span class="trend">+6,8%</span></div>
+            <div class="chart" id="dashboardYieldChart"><div class="map-legend">Sin datos de rinde registrados.</div></div>
+            <div class="footnote">Promedio del establecimiento: <strong id="dashboardYieldAverage">Sin datos</strong></div>
           </section>
         </div>
       </div>
@@ -2168,8 +2162,39 @@
       const button = [...document.querySelectorAll('.nav button')].find(item => item.dataset.view === view);
       button?.click();
     }
+    function refreshDashboardData() {
+      const lots = registeredLotDetails;
+      const surface = lots.reduce((total, lot) => total + Number(lot.surface || 0), 0);
+      const setText = (id, value) => { const element = document.querySelector(`#${id}`); if (element) element.textContent = value; };
+      setText('dashboardSurface', `${surface.toLocaleString('es-AR')} ha`);
+      setText('dashboardSurfaceTrend', lots.length ? `${lots.length} lote(s) registrado(s)` : 'Sin lotes registrados');
+      setText('dashboardOrders', '0');
+      setText('dashboardOrdersTrend', 'Sin ordenes registradas');
+      setText('dashboardCompliance', '0%');
+      setText('dashboardComplianceTrend', 'Sin datos operativos');
+      setText('dashboardAlerts', '0');
+      setText('dashboardAlertsTrend', 'Sin alertas registradas');
+      const caption = document.querySelector('#dashboardMapCaption');
+      if (caption) caption.textContent = lots.length ? `${lots.length} lote(s) · ${surface.toLocaleString('es-AR')} ha declaradas` : 'Sin lotes registrados';
+      const map = document.querySelector('#dashboardFieldMap');
+      if (map) {
+        map.innerHTML = lots.length
+          ? `${lots.slice(0, 12).map((lot, index) => `<span class="field-label label-${String.fromCharCode(97 + (index % 3))}">${lot.code} · ${Number(lot.surface || 0).toLocaleString('es-AR')} ha</span>`).join('')}<div class="map-legend"><span class="legend-dot"></span>Lotes registrados</div>`
+          : '<div class="map-legend">No hay lotes registrados para mostrar.</div>';
+      }
+      const jobs = document.querySelector('#dashboardJobsEmpty');
+      if (jobs) jobs.innerHTML = lots.length
+        ? `<i class="status"></i><div><strong>Sin ordenes de trabajo</strong><span>Hay ${lots.length} lote(s), pero no hay ordenes registradas.</span></div>`
+        : '<i class="status"></i><div><strong>Sin ordenes de trabajo</strong><span>Las ordenes apareceran cuando se registren.</span></div>';
+      const alerts = document.querySelector('#dashboardAlertsList');
+      if (alerts) alerts.innerHTML = '<div class="alert info"><div class="alert-head"><span>Sin alertas</span><span>Informacion</span></div><p>No hay alertas operativas registradas.</p></div>';
+      const yieldChart = document.querySelector('#dashboardYieldChart');
+      if (yieldChart) yieldChart.innerHTML = '<div class="map-legend">Sin datos de rinde registrados.</div>';
+      setText('dashboardYieldAverage', 'Sin datos');
+    }
     function bindDashboardActions() {
       addHistoricalImportAction('Centro operativo');
+      refreshDashboardData();
       document.querySelector('#establishment').addEventListener('change', event => showToast(`Contexto actualizado: ${event.target.value}`));
       const companySelector = document.querySelector('#sidebarCompanySelector');
       companySelector.value = localStorage.getItem('pampa-company') || companySelector.value;
