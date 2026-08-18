@@ -710,6 +710,17 @@
       color: var(--text-dim);
       text-align: right;
     }
+    #licenseStatus.trial {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: rgba(59,130,246,0.12);
+      border: 1px solid var(--blue);
+      border-radius: 4px;
+      color: var(--blue);
+      font-weight: 600;
+    }
 
     .coord-tools {
       margin-top: 12px;
@@ -4485,6 +4496,7 @@
       const info = loadLicenseData();
       if (!info?.payload) {
         holder.textContent = 'Licencia: sin activar';
+        holder.classList.remove('trial');
         return;
       }
       const expired = isLicenseExpired(info.payload.exp);
@@ -4492,6 +4504,7 @@
       holder.textContent = expired
         ? `Licencia vencida (${info.payload.exp})`
         : `Licencia activa${versionLabel} [${info.payload.versionCode || '-'}] · vence ${info.payload.exp}`;
+      holder.classList.toggle('trial', !expired && Boolean(info.payload.trial));
     }
 
     function openLicenseModal() {
