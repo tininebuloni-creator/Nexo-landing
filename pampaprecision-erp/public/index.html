@@ -315,21 +315,21 @@
       try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; }
     }
     let registeredFields = loadList('pampa-fields', ['La Esperanza', 'El Ombu', 'Santa Clara']);
-    let registeredLots = loadList('pampa-lots', ['L-04 · La Esperanza', 'L-09 · El Ombu', 'L-12 · Santa Clara']);
+    let registeredLots = loadList('pampa-lots', []);
     let registeredFieldDetails = loadList('pampa-field-details', [
       { name: 'La Esperanza', latitude: -34.6128, longitude: -58.4281, surface: 1240, reference: 'Partido de Pergamino · Buenos Aires' },
       { name: 'El Ombu', latitude: -34.6098, longitude: -58.4254, surface: 780, reference: 'Buenos Aires' },
       { name: 'Santa Clara', latitude: -34.6171, longitude: -58.4298, surface: 466, reference: 'Buenos Aires' }
     ]);
-    let registeredLotDetails = loadList('pampa-lot-details', [
-      { code: 'L-04', field: 'La Esperanza', surface: 420, latitude: -34.6142, longitude: -58.4310 },
-      { code: 'L-09', field: 'El Ombu', surface: 380, latitude: -34.6098, longitude: -58.4254 },
-      { code: 'L-12', field: 'Santa Clara', surface: 440, latitude: -34.6171, longitude: -58.4298 }
-    ]);
-    const legacyDemoLots = registeredLotDetails.length === 3 && registeredLotDetails.every(lot => ['L-04', 'L-09', 'L-12'].includes(lot.code) && lot.field === 'La Esperanza');
-    if (legacyDemoLots) {
-      registeredLotDetails = registeredLotDetails.map(lot => ({ ...lot, field: lot.code === 'L-09' ? 'El Ombu' : lot.code === 'L-12' ? 'Santa Clara' : lot.field }));
+    let registeredLotDetails = loadList('pampa-lot-details', []);
+    const demoLotCodes = new Set(['L-04', 'L-09', 'L-12']);
+    const cleanLotDetails = registeredLotDetails.filter(lot => !demoLotCodes.has(lot.code));
+    const cleanLots = registeredLots.filter(lot => ![...demoLotCodes].some(code => lot.startsWith(`${code} ·`)));
+    if (cleanLotDetails.length !== registeredLotDetails.length || cleanLots.length !== registeredLots.length) {
+      registeredLotDetails = cleanLotDetails;
+      registeredLots = cleanLots;
       localStorage.setItem('pampa-lot-details', JSON.stringify(registeredLotDetails));
+      localStorage.setItem('pampa-lots', JSON.stringify(registeredLots));
     }
     let importedGeoJson = loadList('pampa-imported-geojson', []);
     let lotMapInstance = null;
@@ -1992,12 +1992,14 @@
       if (!mapElement || !layerSelector || !fieldSelector || !lotSelector || !window.L) return;
       const layer = selectedLayer || layerSelector.value;
       const layers = [];
-      const allMapLots = registeredLotDetails.length ? registeredLotDetails : [
-        { code: 'L-04', field: 'La Esperanza', latitude: -34.6142, longitude: -58.4310 },
-        { code: 'L-09', field: 'La Esperanza', latitude: -34.6098, longitude: -58.4254 },
-        { code: 'L-12', field: 'La Esperanza', latitude: -34.6171, longitude: -58.4298 }
-      ];
+      const allMapLots = registeredLotDetails;
       const fieldsWithLots = [...new Set(allMapLots.map(lot => lot.field))];
+      if (!fieldsWithLots.length) {
+        fieldSelector.innerHTML = '<option value="">Sin lotes registrados</option>';
+        lotSelector.innerHTML = '<option value="">Sin lotes registrados</option>';
+        mapElement.innerHTML = '<div class="map-legend">No hay lotes registrados para mostrar.</div>';
+        return;
+      }
       if (!fieldSelector.dataset.bound) {
         fieldSelector.innerHTML = fieldsWithLots.map(field => `<option value="${field}">${field}</option>`).join('');
         fieldSelector.dataset.bound = 'true';
