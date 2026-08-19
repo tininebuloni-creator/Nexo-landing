@@ -99,6 +99,9 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
 .payment-methods > p{
   color:var(--text-secondary); font-size:1rem; margin:0 auto 48px; max-width:640px;
 }
+.payment-methods .payment-subscription{
+    color:var(--green); font-size:.9rem; font-weight:600; margin:-32px auto 48px; max-width:720px;
+}
 .payment-grid{
   display:grid; gap:24px; text-align:left;
   grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
@@ -215,7 +218,7 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
     <!-- Características Técnicas -->
     <section id="caracteristicas" class="py-20 bg-[#161b26] border-b border-[#2d3548]">
         <div class="container mx-auto px-6">
-            <div class="max-w-3xl mb-16">
+            <div class="max-w-3xl mx-auto mb-16 text-center">
                 <span class="font-mono text-xs text-amber-500 uppercase tracking-widest">// ARQUITECTURA DEL SISTEMA</span>
                 <h2 class="text-3xl font-bold text-[#f1f5f9] mt-2 sm:text-4xl">Desarrollado para la complejidad del terreno</h2>
             </div>
@@ -244,6 +247,30 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
                     <p class="text-[#94a3b8] text-sm leading-relaxed">
                         Monitoreo financiero integrado. Acceso directo a cotizaciones de granos en tiempo real y datos climatológicos clave según los requerimientos del ERP.
                     </p>
+                </div>
+            </div>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6 max-w-5xl mx-auto">
+                <!-- Capacidades complementarias -->
+                <div class="p-5 bg-[#1a1f2e] border border-[#2d3548] rounded-lg text-center hover:border-amber-500/50 transition">
+                    <div class="text-2xl mb-3" aria-hidden="true">📊</div>
+                    <h3 class="text-lg font-bold text-[#f1f5f9] mb-2">Dashboard Ejecutivo</h3>
+                    <p class="text-[#94a3b8] text-sm leading-relaxed">Visualiza en tiempo real el estado de tu empresa con gráficos y KPIs personalizables.</p>
+                </div>
+                <div class="p-5 bg-[#1a1f2e] border border-[#2d3548] rounded-lg text-center hover:border-amber-500/50 transition">
+                    <div class="text-2xl mb-3" aria-hidden="true">📱</div>
+                    <h3 class="text-lg font-bold text-[#f1f5f9] mb-2">Acceso Multiplataforma</h3>
+                    <p class="text-[#94a3b8] text-sm leading-relaxed">Funciona en desktop, tablet y mobile. Accedé desde cualquier dispositivo, en cualquier lugar y guardá tus registros aun sin señal.</p>
+                </div>
+                <div class="p-5 bg-[#1a1f2e] border border-[#2d3548] rounded-lg text-center hover:border-amber-500/50 transition">
+                    <div class="text-2xl mb-3" aria-hidden="true">⚙️</div>
+                    <h3 class="text-lg font-bold text-[#f1f5f9] mb-2">Automatización</h3>
+                    <p class="text-[#94a3b8] text-sm leading-relaxed">Automatizá tareas repetitivas y ahorrá tiempo en registros y reportes.</p>
+                </div>
+                <div class="p-5 bg-[#1a1f2e] border border-[#2d3548] rounded-lg text-center hover:border-amber-500/50 transition">
+                    <div class="text-2xl mb-3" aria-hidden="true">🔐</div>
+                    <h3 class="text-lg font-bold text-[#f1f5f9] mb-2">Seguridad Avanzada</h3>
+                    <p class="text-[#94a3b8] text-sm leading-relaxed">Tus datos protegidos con encriptación y backups automáticos.</p>
                 </div>
             </div>
         </div>
@@ -276,7 +303,7 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
                         <div class="font-mono text-xs text-amber-500 mb-3">[ CONDICIONES COMERCIALES ]</div>
                         <h3 class="text-2xl font-bold text-[#f1f5f9] mb-4">Pago Único y Canje en Soja</h3>
                         <p class="text-[#94a3b8] text-sm leading-relaxed mb-4">
-                            Garantizamos previsibilidad financiera absoluta: el software es de **pago único**. Para adaptarnos a los ciclos comerciales del sector agropecuario, facilitamos el cierre operativo mediante la modalidad de **canje en soja**.
+                            Garantizamos previsibilidad financiera absoluta: el software es de **pago único**. Si optás por esta modalidad, también podés abonarlo mediante **canje en soja**, adaptándonos a los ciclos comerciales del sector agropecuario.
                         </p>
                     </div>
                     <span class="text-xs font-mono text-amber-500">Consultar cotización del día con administración</span>
@@ -290,6 +317,7 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
     <div class="payment-methods">
       <h3>Métodos de Pago Disponibles</h3>
       <p>Elegí la forma más conveniente para vos</p>
+    <p class="payment-subscription">Suscripción elegible: pago único perpetuo, anual, semestral o mensual</p>
       <div class="payment-grid">
       <div class="payment-option">
         <div class="payment-icon">🌾</div>
@@ -331,8 +359,8 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
     </section>
 
     <!-- Sección de Cierre y Contacto -->
-<section id="contacto" style="padding: 80px 0; background-color: #161b26;">
-  <div style="max-w: 1150px; margin: 0 auto; padding: 0 48px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 48px;">
+<section id="contacto" style="padding: 80px 0 32px; background-color: #161b26;">
+    <div style="max-width: 1150px; margin: 0 auto; padding: 0 48px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 48px;">
 
       <!-- Bloque Contacto -->
       <div class="flex flex-col items-center text-center" style="flex: 1; min-width: 280px;">
@@ -348,6 +376,14 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
                 <path fill-rule="evenodd" d="M12.31 2.25c-5.33 0-9.67 4.34-9.67 9.67 0 1.7.44 3.36 1.28 4.82L2.6 22l5.44-1.42a9.61 9.61 0 0 0 4.27 1.01c5.34 0 9.68-4.34 9.68-9.67a9.67 9.67 0 0 0-9.68-9.67Zm4.97 13.63c-.27.76-1.37 1.39-1.9 1.45-.53.05-1.02.26-3.37-.67-2.82-1.12-4.63-3.99-4.77-4.18-.14-.19-1.14-1.52-1.14-2.9 0-1.39.73-2.07 1-2.36.26-.3.58-.37.77-.37.2 0 .39.01.56.02.18.01.42-.07.66.5.26.63.88 2.16.96 2.32.08.16.13.36.03.57-.1.2-.16.33-.32.52-.16.19-.35.43-.5.58-.17.16-.35.34-.15.68.2.33.88 1.46 1.89 2.36 1.3 1.15 2.39 1.51 2.73 1.68.34.17.54.14.74-.09.2-.24.87-1.01 1.1-1.36.23-.35.47-.3.79-.18.33.12 2.1.99 2.46 1.17.36.18.6.27.69.42.09.15.09.87-.18 1.63Z" clip-rule="evenodd" />
             </svg>
             <span>Escribinos por WhatsApp</span>
+        </a>
+    </div>
+    <div class="pt-6">
+        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=consulta%40solucioneseningenieria.com.ar" target="_blank" rel="noopener noreferrer" aria-label="Redactar un correo a consulta@solucioneseningenieria.com.ar en Gmail" class="inline-flex items-center space-x-2 border border-amber-500/60 hover:bg-amber-500/10 text-amber-500 hover:text-amber-400 px-5 py-2.5 rounded-lg font-bold text-sm transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m-18 8V8a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+            </svg>
+            <span>consulta@solucioneseningenieria.com.ar</span>
         </a>
     </div>
 </div>
