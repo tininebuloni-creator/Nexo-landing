@@ -666,50 +666,29 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
 
 <!-- Formulario integrado -->
             <div class="md:col-span-3 bg-[#1e2433] p-8 rounded-lg border border-[#2d3548] shadow-2xl">
-  <!-- Contenedor limpio sin etiquetas FORM para evitar el bloqueo 405 de Cloudflare -->
-<div id="contenedor-contacto">
+ <!-- Formulario Nativo Oficial para Cloudflare Pages -->
+<form id="formulario-contacto" data-cloudflare-form="true" method="POST">
     
-    <!-- Almacenamos tu clave de Web3Forms de forma segura -->
-    <input type="hidden" id="cf-key" value="0762ec76-8f11-4ef7-8d73-e00674f00fef">
+    <!-- Cloudflare identificará tu formulario con este nombre en tu panel -->
+    <input type="hidden" name="form-name" value="contacto-erp">
 
     <div>
         <label class="block text-xs font-mono uppercase tracking-wider text-[#94a3b8] mb-2">Nombre o Establecimiento</label>
-        <input type="text" id="ins-nombre" placeholder="Tu Nombre" required class="w-full bg-[#1a1f2e] border border-[#2d3548] px-4 py-3 rounded text-[#f1f5f9] focus:outline-none focus:border-amber-500 font-mono text-sm transition">
+        <input type="text" name="Nombre" placeholder="Tu Nombre" required class="w-full bg-[#1a1f2e] border border-[#2d3548] px-4 py-3 rounded text-[#f1f5f9] focus:outline-none focus:border-amber-500 font-mono text-sm transition">
     </div>
-    <div class="mt-4">
+    <div>
         <label class="block text-xs font-mono uppercase tracking-wider text-[#94a3b8] mb-2">Correo de Contacto</label>
-        <input type="email" id="ins-correo" placeholder="tu@correo.com" required class="w-full bg-[#1a1f2e] border border-[#2d3548] px-4 py-3 rounded text-[#f1f5f9] focus:outline-none focus:border-amber-500 font-mono text-sm transition">
+        <input type="email" name="Correo" placeholder="tu@correo.com" required class="w-full bg-[#1a1f2e] border border-[#2d3548] px-4 py-3 rounded text-[#f1f5f9] focus:outline-none focus:border-amber-500 font-mono text-sm transition">
     </div>
-    <div class="mt-4">
+    <div>
         <label class="block text-xs font-mono uppercase tracking-wider text-[#94a3b8] mb-2">Detalle del Requerimiento</label>
-        <textarea id="ins-mensaje" placeholder="Escribe tu consulta. Ej: Cantidad de lotes, módulos requeridos..." rows="3" class="w-full bg-[#1a1f2e] border border-[#2d3548] px-4 py-3 rounded text-[#f1f5f9] focus:outline-none focus:border-amber-500 font-mono text-sm transition"></textarea>
+        <textarea name="Mensaje" placeholder="Escribe tu consulta. Ej: Cantidad de lotes, módulos requeridos..." rows="3" class="w-full bg-[#1a1f2e] border border-[#2d3548] px-4 py-3 rounded text-[#f1f5f9] focus:outline-none focus:border-amber-500 font-mono text-sm transition"></textarea>
     </div>
-    
-    <button type="button" onclick="despacharConsulta()" class="w-full mt-4 bg-amber-500 hover:bg-amber-600 text-black font-bold py-4 rounded transition text-sm font-mono uppercase tracking-wider">
+    <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-black font-bold py-4 rounded transition text-sm font-mono uppercase tracking-wider">
         >Enviar consulta
     </button>
-</div>
+</form>
 
-<script>
-function despacharConsulta() {
-    const nombre = document.getElementById('ins-nombre').value.trim();
-    const correo = document.getElementById('ins-correo').value.trim();
-    const mensaje = document.getElementById('ins-mensaje').value.trim();
-    const clave = document.getElementById('cf-key').value;
-
-    // Validación básica antes de enviar
-    if (!nombre || !correo || !mensaje) {
-        alert("Por favor, completa todos los campos requeridos.");
-        return;
-    }
-
-    // Construimos los parámetros para Web3Forms en la URL de forma segura
-    const urlFinal = `https://web3forms.com{clave}&Nombre=${encodeURIComponent(nombre)}&Correo=${encodeURIComponent(correo)}&Mensaje=${encodeURIComponent(mensaje)}&subject=${encodeURIComponent('Nuevo Requerimiento ERP - Soluciones en Ingeniería')}&redirect=${encodeURIComponent('https://solucioneseningenieria.com.ar')}`;
-
-    // Forzamos al navegador a salir del sitio web actual hacia la API externa
-    window.location.href = urlFinal;
-}
-</script>
 
 
     <!-- Footer -->
