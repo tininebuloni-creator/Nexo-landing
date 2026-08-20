@@ -685,7 +685,6 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
         >Enviar consulta
     </button>
 </div>
-
 <script>
 function enviarFormularioExterno() {
     const nombre = document.getElementById('campo-nombre').value.trim();
@@ -697,19 +696,24 @@ function enviarFormularioExterno() {
         return;
     }
 
-    // Volvemos a tu clave de Web3Forms de forma segura
+    // Tu clave de Web3Forms
     const token = "0762ec76-8f11-4ef7-8d73-e00674f00fef"; 
     
-    // Construimos el mensaje en texto plano para enviarlo por URL
-    const textoFormateado = `Nombre: ${nombre}%0AEmail: ${correo}%0AMensaje: ${mensaje}`;
+    // Construimos el cuerpo del mensaje (usamos saltos de línea estándar \n)
+    const textoFormateado = `Nombre: ${nombre}\nEmail: ${correo}\nMensaje: ${mensaje}`;
     
-    // Redirección externa directa usando la API de envío rápido de Web3Forms sin pasar por POST
-    const urlFormspree = `https://web3forms.com{token}&subject=Nuevo+Contacto+ERP&message=${encodeURIComponent(textoFormateado)}&redirect=https://solucioneseningenieria.com.ar`;
+    // Página a la que irá el usuario después de enviar el formulario con éxito
+    const paginaRedireccion = "https://solucioneseningenieria.com.ar";
 
-    // Abre el procesador en una pestaña nueva, saltándose el error 405 de Cloudflare
-    window.open(urlFormspree, '_blank');
+    // URL corregida con la ruta oficial de la API de Web3Forms y los parámetros bien estructurados
+    const urlWeb3Forms = `https://web3forms.com{token}&subject=Nuevo+Contacto+ERP&message=${encodeURIComponent(textoFormateado)}&redirect=${encodeURIComponent(paginaRedireccion)}`;
+
+    // Abre el procesador en una pestaña nueva para evitar bloqueos
+    window.open(urlWeb3Forms, '_blank');
 }
 </script>
+
+
 
 
 
