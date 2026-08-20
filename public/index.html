@@ -667,27 +667,50 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
 <!-- Formulario integrado -->
             <div class="md:col-span-3 bg-[#1e2433] p-8 rounded-lg border border-[#2d3548] shadow-2xl">
  <!-- Formulario Nativo Oficial para Cloudflare Pages -->
-<form id="formulario-contacto" data-cloudflare-form="true" method="POST">
-    
-    <!-- Cloudflare identificará tu formulario con este nombre en tu panel -->
-    <input type="hidden" name="form-name" value="contacto-erp">
-
+<!-- Contenedor simple para saltar el Firewall de Cloudflare -->
+<div id="area-contacto">
     <div>
         <label class="block text-xs font-mono uppercase tracking-wider text-[#94a3b8] mb-2">Nombre o Establecimiento</label>
-        <input type="text" name="Nombre" placeholder="Tu Nombre" required class="w-full bg-[#1a1f2e] border border-[#2d3548] px-4 py-3 rounded text-[#f1f5f9] focus:outline-none focus:border-amber-500 font-mono text-sm transition">
+        <input type="text" id="campo-nombre" placeholder="Tu Nombre" required class="w-full bg-[#1a1f2e] border border-[#2d3548] px-4 py-3 rounded text-[#f1f5f9] focus:outline-none focus:border-amber-500 font-mono text-sm transition">
     </div>
-    <div>
+    <div class="mt-4">
         <label class="block text-xs font-mono uppercase tracking-wider text-[#94a3b8] mb-2">Correo de Contacto</label>
-        <input type="email" name="Correo" placeholder="tu@correo.com" required class="w-full bg-[#1a1f2e] border border-[#2d3548] px-4 py-3 rounded text-[#f1f5f9] focus:outline-none focus:border-amber-500 font-mono text-sm transition">
+        <input type="email" id="campo-correo" placeholder="tu@correo.com" required class="w-full bg-[#1a1f2e] border border-[#2d3548] px-4 py-3 rounded text-[#f1f5f9] focus:outline-none focus:border-amber-500 font-mono text-sm transition">
     </div>
-    <div>
+    <div class="mt-4">
         <label class="block text-xs font-mono uppercase tracking-wider text-[#94a3b8] mb-2">Detalle del Requerimiento</label>
-        <textarea name="Mensaje" placeholder="Escribe tu consulta. Ej: Cantidad de lotes, módulos requeridos..." rows="3" class="w-full bg-[#1a1f2e] border border-[#2d3548] px-4 py-3 rounded text-[#f1f5f9] focus:outline-none focus:border-amber-500 font-mono text-sm transition"></textarea>
+        <textarea id="campo-mensaje" placeholder="Escribe tu consulta. Ej: Cantidad de lotes, módulos requeridos..." rows="3" class="w-full bg-[#1a1f2e] border border-[#2d3548] px-4 py-3 rounded text-[#f1f5f9] focus:outline-none focus:border-amber-500 font-mono text-sm transition"></textarea>
     </div>
-    <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-black font-bold py-4 rounded transition text-sm font-mono uppercase tracking-wider">
+    <button type="button" onclick="enviarFormularioExterno()" class="w-full mt-4 bg-amber-500 hover:bg-amber-600 text-black font-bold py-4 rounded transition text-sm font-mono uppercase tracking-wider">
         >Enviar consulta
     </button>
-</form>
+</div>
+
+<script>
+function enviarFormularioExterno() {
+    const nombre = document.getElementById('campo-nombre').value.trim();
+    const correo = document.getElementById('campo-correo').value.trim();
+    const mensaje = document.getElementById('campo-mensaje').value.trim();
+
+    if (!nombre || !correo || !mensaje) {
+        alert("Por favor, completa todos los campos.");
+        return;
+    }
+
+    // Volvemos a tu clave de Web3Forms de forma segura
+    const token = "0762ec76-8f11-4ef7-8d73-e00674f00fef"; 
+    
+    // Construimos el mensaje en texto plano para enviarlo por URL
+    const textoFormateado = `Nombre: ${nombre}%0AEmail: ${correo}%0AMensaje: ${mensaje}`;
+    
+    // Redirección externa directa usando la API de envío rápido de Web3Forms sin pasar por POST
+    const urlFormspree = `https://web3forms.com{token}&subject=Nuevo+Contacto+ERP&message=${encodeURIComponent(textoFormateado)}&redirect=https://solucioneseningenieria.com.ar`;
+
+    // Abre el procesador en una pestaña nueva, saltándose el error 405 de Cloudflare
+    window.open(urlFormspree, '_blank');
+}
+</script>
+
 
 
 
