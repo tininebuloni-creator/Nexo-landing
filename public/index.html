@@ -666,13 +666,11 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
 
 <!-- Formulario integrado -->
             <div class="md:col-span-3 bg-[#1e2433] p-8 rounded-lg border border-[#2d3548] shadow-2xl">
-                <!-- Formulario Seguro HTTPS mediante API externa (Sin Alertas de Peligro) -->
-<form id="formulario-contacto" action="https://web3forms.com" method="POST">
     
-    <!-- REPLAZA EL SIGUIENTE VALUE CON TU CLAVE DE WEB3FORMS -->
+    <!-- Formulario con envío AJAX seguro -->
+<form id="formulario-contacto" method="POST">
+    <!-- Tu clave de Web3Forms -->
     <input type="hidden" name="access_key" value="0762ec76-8f11-4ef7-8d73-e00674f00fef">
-    
-    <!-- Título personalizado para identificar el correo en tu bandeja -->
     <input type="hidden" name="subject" value="Nuevo Requerimiento ERP - Soluciones en Ingeniería">
 
     <div>
@@ -687,10 +685,47 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
         <label class="block text-xs font-mono uppercase tracking-wider text-[#94a3b8] mb-2">Detalle del Requerimiento</label>
         <textarea name="Mensaje" placeholder="Escribe tu consulta. Ej: Cantidad de lotes, módulos requeridos..." rows="3" class="w-full bg-[#1a1f2e] border border-[#2d3548] px-4 py-3 rounded text-[#f1f5f9] focus:outline-none focus:border-amber-500 font-mono text-sm transition"></textarea>
     </div>
-    <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-black font-bold py-4 rounded transition text-sm font-mono uppercase tracking-wider">
+    <button type="submit" id="btn-enviar" class="w-full bg-amber-500 hover:bg-amber-600 text-black font-bold py-4 rounded transition text-sm font-mono uppercase tracking-wider">
         >Enviar consulta
     </button>
 </form>
+
+<!-- Script para procesar el envío sin recargar la página -->
+<script>
+document.getElementById('formulario-contacto').addEventListener('submit', function(e) {
+    e.preventDefault(); // Evita que la página se recargue o falle
+    
+    const btn = document.getElementById('btn-enviar');
+    btn.innerText = 'ENVIANDO...';
+    btn.disabled = true;
+
+    const formData = new FormData(this);
+
+    fetch('https://web3forms.com', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            btn.innerText = '¡ENVIADO CON ÉXITO!';
+            btn.style.backgroundColor = '#10b981'; // Cambia a verde cian/esmeralda
+            this.reset(); // Limpia los campos
+        } else {
+            btn.innerText = 'ERROR AL ENVIAR';
+            btn.style.backgroundColor = '#ef4444'; // Rojo si falla la API
+            btn.disabled = false;
+        }
+    })
+    .catch(error => {
+        btn.innerText = 'ERROR DE RED';
+        btn.style.backgroundColor = '#ef4444';
+        btn.disabled = false;
+    });
+});
+</script>
+
+   
 
 
             </div>
