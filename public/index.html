@@ -666,52 +666,34 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
 
 <!-- Formulario integrado -->
             <div class="md:col-span-3 bg-[#1e2433] p-8 rounded-lg border border-[#2d3548] shadow-2xl">
- <!-- Formulario Nativo Oficial para Cloudflare Pages -->
-<!-- Contenedor simple para saltar el Firewall de Cloudflare -->
-<div id="area-contacto">
-    <div>
-        <label class="block text-xs font-mono uppercase tracking-wider text-[#94a3b8] mb-2">Nombre o Establecimiento</label>
-        <input type="text" id="campo-nombre" placeholder="Tu Nombre" required class="w-full bg-[#1a1f2e] border border-[#2d3548] px-4 py-3 rounded text-[#f1f5f9] focus:outline-none focus:border-amber-500 font-mono text-sm transition">
-    </div>
-    <div class="mt-4">
-        <label class="block text-xs font-mono uppercase tracking-wider text-[#94a3b8] mb-2">Correo de Contacto</label>
-        <input type="email" id="campo-correo" placeholder="tu@correo.com" required class="w-full bg-[#1a1f2e] border border-[#2d3548] px-4 py-3 rounded text-[#f1f5f9] focus:outline-none focus:border-amber-500 font-mono text-sm transition">
-    </div>
-    <div class="mt-4">
-        <label class="block text-xs font-mono uppercase tracking-wider text-[#94a3b8] mb-2">Detalle del Requerimiento</label>
-        <textarea id="campo-mensaje" placeholder="Escribe tu consulta. Ej: Cantidad de lotes, módulos requeridos..." rows="3" class="w-full bg-[#1a1f2e] border border-[#2d3548] px-4 py-3 rounded text-[#f1f5f9] focus:outline-none focus:border-amber-500 font-mono text-sm transition"></textarea>
-    </div>
-    <button type="button" onclick="enviarFormularioExterno()" class="w-full mt-4 bg-amber-500 hover:bg-amber-600 text-black font-bold py-4 rounded transition text-sm font-mono uppercase tracking-wider">
-        >Enviar consulta
-    </button>
-</div>
-<script>
-function enviarFormularioExterno() {
-    const nombre = document.getElementById('campo-nombre').value.trim();
-    const correo = document.getElementById('campo-correo').value.trim();
-    const mensaje = document.getElementById('campo-mensaje').value.trim();
-
-    if (!nombre || !correo || !mensaje) {
-        alert("Por favor, completa todos los campos.");
-        return;
-    }
-
-    // Tu clave de Web3Forms
-    const token = "0762ec76-8f11-4ef7-8d73-e00674f00fef"; 
-    
-    // Construimos el cuerpo del mensaje (usamos saltos de línea estándar \n)
-    const textoFormateado = `Nombre: ${nombre}\nEmail: ${correo}\nMensaje: ${mensaje}`;
-    
-    // Página a la que irá el usuario después de enviar el formulario con éxito
-    const paginaRedireccion = "https://solucioneseningenieria.com.ar";
-
-    // URL corregida con la ruta oficial de la API de Web3Forms y los parámetros bien estructurados
-    const urlWeb3Forms = `https://web3forms.com${token}&subject=Nuevo+Contacto+ERP&message=${encodeURIComponent(textoFormateado)}&redirect=${encodeURIComponent(paginaRedireccion)}`;
-
-    // Abre el procesador en una pestaña nueva para evitar bloqueos
-    window.open(urlWeb3Forms, '_blank');
-}
-</script>
+                <form id="formulario-contacto" onsubmit="enviarConsulta(event)">
+                    <div>
+                        <label class="block text-xs font-mono uppercase tracking-wider text-[#94a3b8] mb-2">Nombre o Establecimiento</label>
+                        <input type="text" name="Nombre" placeholder="Tu Nombre" required class="w-full bg-[#1a1f2e] border border-[#2d3548] px-4 py-3 rounded text-[#f1f5f9] focus:outline-none focus:border-amber-500 font-mono text-sm transition">
+                    </div>
+                    <div class="mt-4">
+                        <label class="block text-xs font-mono uppercase tracking-wider text-[#94a3b8] mb-2">Correo de Contacto</label>
+                        <input type="email" name="Correo" placeholder="tu@correo.com" required class="w-full bg-[#1a1f2e] border border-[#2d3548] px-4 py-3 rounded text-[#f1f5f9] focus:outline-none focus:border-amber-500 font-mono text-sm transition">
+                    </div>
+                    <div class="mt-4">
+                        <label class="block text-xs font-mono uppercase tracking-wider text-[#94a3b8] mb-2">Detalle del Requerimiento</label>
+                        <textarea name="Mensaje" placeholder="Escribe tu consulta. Ej: Cantidad de lotes, módulos requeridos..." rows="3" required class="w-full bg-[#1a1f2e] border border-[#2d3548] px-4 py-3 rounded text-[#f1f5f9] focus:outline-none focus:border-amber-500 font-mono text-sm transition"></textarea>
+                    </div>
+                    <button type="submit" class="w-full mt-4 bg-amber-500 hover:bg-amber-600 text-black font-bold py-4 rounded transition text-sm font-mono uppercase tracking-wider">
+                        >Enviar consulta
+                    </button>
+                </form>
+                <script>
+                    function enviarConsulta(event) {
+                        event.preventDefault();
+                        const datos = new FormData(event.currentTarget);
+                        const asunto = 'Consulta desde Pampa N - S.I.A.';
+                        const cuerpo = `Nombre o Establecimiento: ${datos.get('Nombre')}\nCorreo de Contacto: ${datos.get('Correo')}\n\nDetalle del Requerimiento: ${datos.get('Mensaje')}`;
+                        const url = `https://mail.google.com/mail/?view=cm&fs=1&to=consulta%40solucioneseningenieria.com.ar&su=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
+                        window.open(url, '_blank', 'noopener,noreferrer');
+                    }
+                </script>
+            </div>
 
 
 

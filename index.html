@@ -552,67 +552,34 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
 
 <!-- Formulario integrado -->
             <div class="md:col-span-3 bg-[#1e2433] p-8 rounded-lg border border-[#2d3548] shadow-2xl">
-<!-- Formulario Estructural -->
-<form id="formulario-contacto">
-    
-    <!-- REPLAZA ESTE VALUE CON TU CLAVE DE WEB3FORMS -->
-    <input type="hidden" name="access_key" value="0762ec76-8f11-4ef7-8d73-e00674f00fef">
-    <input type="hidden" name="subject" value="Nuevo Requerimiento ERP - Soluciones en Ingeniería">
-
-    <div>
-        <label class="block text-xs font-mono uppercase tracking-wider text-[#94a3b8] mb-2">Nombre o Establecimiento</label>
-        <input type="text" name="Nombre" placeholder="Tu Nombre" required class="w-full bg-[#1a1f2e] border border-[#2d3548] px-4 py-3 rounded text-[#f1f5f9] focus:outline-none focus:border-amber-500 font-mono text-sm transition">
-    </div>
-    <div>
-        <label class="block text-xs font-mono uppercase tracking-wider text-[#94a3b8] mb-2">Correo de Contacto</label>
-        <input type="email" name="Correo" placeholder="tu@correo.com" required class="w-full bg-[#1a1f2e] border border-[#2d3548] px-4 py-3 rounded text-[#f1f5f9] focus:outline-none focus:border-amber-500 font-mono text-sm transition">
-    </div>
-    <div>
-        <label class="block text-xs font-mono uppercase tracking-wider text-[#94a3b8] mb-2">Detalle del Requerimiento</label>
-        <textarea name="Mensaje" placeholder="Escribe tu consulta. Ej: Cantidad de lotes, módulos requeridos..." rows="3" class="w-full bg-[#1a1f2e] border border-[#2d3548] px-4 py-3 rounded text-[#f1f5f9] focus:outline-none focus:border-amber-500 font-mono text-sm transition"></textarea>
-    </div>
-  <button type="button" id="btn-enviar" class="w-full bg-amber-500 hover:bg-amber-600 text-black font-bold py-4 rounded transition text-sm font-mono uppercase tracking-wider">
-  >Enviar consulta
-    </button>
-</form>
-</div>
-<!-- Script con bypass 'no-cors' para saltar el bloqueo de Cloudflare -->
-<script>
-    async function enviarFormularioExterno() {
-  const token = "0762ec76-8f11-4ef7-8d73-e00674f00fef"; // tu access key
-  const textoFormateado = `nombre: ${nombre}\nemail: ${email}\nmensaje: ${mensaje}`;
-  const paginaRedireccion = "https://solucioneseningenieria.com.ar/";
-
-  const response = await fetch("https://api.web3forms.com/submit", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Accept": "application/json"
-    },
-    body: JSON.stringify({
-      access_key: token,
-      subject: "Nuevo Contacto ERP",
-      message: textoFormateado,
-      from: email,
-      redirect: paginaRedireccion
-    })
-  });
-
-  const result = await response.json();
-  if (result.success) {
-    window.location.href = paginaRedireccion;
-  } else {
-    alert("Error al enviar el formulario: " + (result.message || "inténtalo de nuevo"));
-  }
-}
-document.getElementById("btn-enviar").addEventListener("click", function(e) {
-  e.preventDefault();
-  enviarFormularioExterno();
-});
-   </button>
-</form>
-    </div>
-</script>
+                <form id="formulario-contacto" onsubmit="enviarConsulta(event)">
+                    <div>
+                        <label class="block text-xs font-mono uppercase tracking-wider text-[#94a3b8] mb-2">Nombre o Establecimiento</label>
+                        <input type="text" name="Nombre" placeholder="Tu Nombre" required class="w-full bg-[#1a1f2e] border border-[#2d3548] px-4 py-3 rounded text-[#f1f5f9] focus:outline-none focus:border-amber-500 font-mono text-sm transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono uppercase tracking-wider text-[#94a3b8] mb-2">Correo de Contacto</label>
+                        <input type="email" name="Correo" placeholder="tu@correo.com" required class="w-full bg-[#1a1f2e] border border-[#2d3548] px-4 py-3 rounded text-[#f1f5f9] focus:outline-none focus:border-amber-500 font-mono text-sm transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono uppercase tracking-wider text-[#94a3b8] mb-2">Detalle del Requerimiento</label>
+                        <textarea name="Mensaje" placeholder="Escribe tu consulta. Ej: Cantidad de lotes, módulos requeridos..." rows="3" required class="w-full bg-[#1a1f2e] border border-[#2d3548] px-4 py-3 rounded text-[#f1f5f9] focus:outline-none focus:border-amber-500 font-mono text-sm transition"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-black font-bold py-4 rounded transition text-sm font-mono uppercase tracking-wider">
+                        >Enviar consulta
+                    </button>
+                </form>
+                <script>
+                    function enviarConsulta(event) {
+                        event.preventDefault();
+                        const datos = new FormData(event.currentTarget);
+                        const asunto = 'Consulta desde Pampa N - S.I.A.';
+                        const cuerpo = `Nombre o Establecimiento: ${datos.get('Nombre')}\nCorreo de Contacto: ${datos.get('Correo')}\n\nDetalle del Requerimiento: ${datos.get('Mensaje')}`;
+                        const url = `https://mail.google.com/mail/?view=cm&fs=1&to=consulta%40solucioneseningenieria.com.ar&su=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
+                        window.open(url, '_blank', 'noopener,noreferrer');
+                    }
+                </script>
+            </div>
 
 
     <!-- Footer -->
