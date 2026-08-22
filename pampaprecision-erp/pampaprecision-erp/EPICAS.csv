@@ -1,7 +1,0 @@
-Issue Type,Summary,Epic Name,Description,Priority,Labels,Sprint
-"Epic,Plataforma base seguridad y auditoria,EPIC-SEGURIDAD,""Autenticacion JWT multi-tenant, permisos por rol/scope y auditoria de cambios criticos."",Highest,agro-erp;sprint1,Sprint 1"
-"Epic,Contexto productivo y operaciones de campo,EPIC-OPERACIONES,""Selector campana-establecimiento, ordenes de trabajo, ejecuciones y condiciones legales."",Highest,agro-erp;sprint1,Sprint 1"
-"Epic,Inventario compras y costos,EPIC-INVENTARIO,""Stock, movimientos, OC-recepcion-factura y costeo operativo base."",High,agro-erp;sprint1,Sprint 1"
-"Epic,Precision geoespacial y rendimiento,EPIC-PRECISION,""GIS multicapa, indices satelitales, limpieza de rinde y prescripciones exportables."",Highest,agro-erp;sprint2,Sprint 2"
-"Epic,Telemetria clima y analitica,EPIC-ANALITICA,""Ingesta temporal, particionado mensual y KPI por lote y ambiente."",High,agro-erp;sprint2,Sprint 2"
-"Epic,Go-live demo y hardening,EPIC-GOLIVE,""QA integral, performance base, guion demo y cierre de riesgos."",Highest,agro-erp;sprint2,Sprint 2"

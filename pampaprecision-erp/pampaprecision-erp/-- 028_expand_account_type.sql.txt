@@ -1,2 +1,0 @@
--- Permite nombres de tipo de cuenta descriptivos sin truncar el valor.
-ALTER TABLE fin.cash_account ALTER COLUMN account_type TYPE varchar(50);

@@ -1,3 +1,0 @@
--- Seguimiento de pagos por cuota.
-
-ALTER TABLE fin.credit_installment ADD COLUMN IF NOT EXISTS paid_amount_usd numeric(16,2) NOT NULL DEFAULT 0;
