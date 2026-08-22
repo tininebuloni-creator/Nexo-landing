@@ -17,7 +17,7 @@ npm run dev
 ```
 
 ## Branding del ejecutable/instalador
-- El icono Windows se genera automaticamente desde `logo.png` en `build/icon.ico`.
+- El icono Windows se genera automaticamente desde `logo2.png` en `build/icon.ico`.
 - Para regenerarlo manualmente:
 ```bash
 npm run make:icon
@@ -37,7 +37,7 @@ npm run dist:signed
 Variables requeridas para firma:
 - `CSC_LINK`: ruta al archivo de certificado (`.pfx`) o URL segura.
 - `CSC_KEY_PASSWORD`: contraseña del certificado.
-- `NEXO_AUTO_UPDATE_URL` (opcional): URL de feed para updates en runtime.
+- `PAMPA_AUTO_UPDATE_URL` (opcional): URL de feed para updates en runtime.
 
 Los artefactos se generan en una carpeta versionada por fecha/hora:
 - `release-dist-YYYYMMDD-HHMMSS/`
@@ -64,8 +64,8 @@ La version sin instalador se genera en `release-pack/win-unpacked/`.
 ## Auto-actualizaciones
 - La app usa `electron-updater`.
 - En instalacion real (`Setup`), revisa updates automaticamente al iniciar y cada 6 horas.
-- Feed por defecto en build: `https://updates.nexoagro.com/releases`.
-- Puedes sobreescribir feed en runtime con `NEXO_AUTO_UPDATE_URL`.
+- Feed por defecto en build: `https://updates.pampaagro.com/releases`.
+- Puedes sobreescribir feed en runtime con `PAMPA_AUTO_UPDATE_URL`.
 
 ## Rol por instalacion
 - El rol inicial se lee desde `settings.json` dentro de la carpeta de datos de usuario de Electron.

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NEXO Tambo</title>
+  <title>Pampa N - S.I.A. | Tambo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -72,7 +72,7 @@
     .logo-icon {
       width: 140px;
       height: 140px;
-      background: #1a1f2a url('logo.png') center/cover no-repeat;
+      background: #1a1f2a url('logo2.png') center/cover no-repeat;
       border: 1px solid var(--border-light);
       border-radius: 16px;
       display: flex;
@@ -135,7 +135,7 @@
       height: 136px;
       border-radius: 16px;
       border: 1px solid rgba(255, 255, 255, 0.45);
-      background: rgba(255, 255, 255, 0.18) url('logo.png') center/cover no-repeat;
+      background: rgba(255, 255, 255, 0.18) url('logo2.png') center/cover no-repeat;
       box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
     }
     .empresa-hero-title {
@@ -1019,7 +1019,7 @@
               <div class="empresa-hero-main">
                 <div class="empresa-hero-logo" aria-label="Logo empresa"></div>
                 <div>
-                  <div class="empresa-hero-title" id="dashboardEmpresaNombre">Agropecuaria NEXO</div>
+                  <div class="empresa-hero-title" id="dashboardEmpresaNombre">Pampa N - S.I.A.</div>
                   <div class="empresa-hero-sub" id="dashboardEmpresaSub">Panel operativo de la empresa</div>
                 </div>
               </div>
@@ -1157,7 +1157,7 @@
               <div class="form-grid">
                 <div class="field">
                   <label class="sr-only" for="empresaNombreInput">Nombre de la empresa</label>
-                  <input id="empresaNombreInput" type="text" placeholder="Agropecuaria NEXO" aria-label="Nombre de la empresa" />
+                  <input id="empresaNombreInput" type="text" placeholder="Pampa N - S.I.A." aria-label="Nombre de la empresa" />
                 </div>
                 <div class="field">
                   <label for="empresaCuitInput">CUIT</label>
@@ -2485,7 +2485,7 @@
       insumosSanidad: [],
       mantenimiento: [],
       empresa: {
-        nombre: 'Agropecuaria NEXO',
+        nombre: 'Pampa N - S.I.A.',
         cuit: '30-00000000-0',
         direccion: '',
         telefono: '',
@@ -5385,7 +5385,7 @@
 
     function renderEmpresaDashboard() {
       const emp = state.empresa || {};
-      byId('dashboardEmpresaNombre').textContent = emp.nombre || 'Agropecuaria NEXO';
+      byId('dashboardEmpresaNombre').textContent = emp.nombre || 'Pampa N - S.I.A.';
       byId('dashboardEmpresaSub').textContent = 'Panel operativo de la empresa';
       byId('dashboardEmpresaCuit').textContent = emp.cuit || 'Sin definir';
       byId('dashboardEmpresaDireccion').textContent = emp.direccion || 'Sin definir';
@@ -5451,7 +5451,7 @@
       const egresos = Number((state.finanzas || []).filter((x) => normalizeSignal(x.tipo || x.movimiento || '').includes('EGR')).reduce((acc, row) => acc + toNumber(row?.monto || row?.importe, 0), 0));
       const saldo = ingresos - egresos;
       return [
-        `Reporte operativo NEXO Tambo (${hoy})`,
+        `Reporte operativo Pampa N - S.I.A. Tambo (${hoy})`,
         `Animales: ${(state.animales || []).length}`,
         `Producción diaria (litros): ${litrosHoy.toFixed(2)}`,
         `Costos cargados: ${(state.costos || []).length}`,

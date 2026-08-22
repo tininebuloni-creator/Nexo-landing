@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Nexo Agro">
-<link rel="apple-touch-icon" href="logo.png">
+<link rel="apple-touch-icon" href="logo2.png">
 
 <!-- Google Drive API -->
 <script src="https://apis.google.com/js/api.js"></script>
@@ -103,7 +103,7 @@ body {
 }
 .logo-icon {
   width: 140px; height: 140px;
-  background: url('logo.png') center/contain no-repeat;
+  background: url('logo2.png') center/contain no-repeat;
   display: flex; align-items: center; justify-content: center;
 }
 .logo-text { font-weight: 700; font-size: 16px; text-align: center; }
@@ -164,7 +164,7 @@ body {
 .empresa-portada-logo {
   width: 480px; height: 280px;
   background-color: transparent;
-  background-image: url('logo.png');
+  background-image: url('logo2.png');
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
@@ -801,7 +801,7 @@ body {
 .activation-logo {
   width: 120px;
   height: 120px;
-  background: url('logo.png') center/contain no-repeat;
+  background: url('logo2.png') center/contain no-repeat;
   margin: 0 auto 20px;
 }
 

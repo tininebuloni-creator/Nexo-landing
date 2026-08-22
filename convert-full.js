@@ -6,7 +6,7 @@ const PptxGenJS = require('pptxgenjs');
 // Crear servidor local temporal
 const server = http.createServer((req, res) => {
   if (req.url === '/') {
-    const htmlPath = path.join(__dirname, 'presentacion-nexo-agro.html');
+    const htmlPath = path.join(__dirname, 'presentacion-pampa-agro.html');
     const htmlContent = fs.readFileSync(htmlPath, 'utf-8');
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(htmlContent);
@@ -82,7 +82,7 @@ async function convertHtmlToPptx() {
         await browser.close();
         
         // Guardar presentación
-        const outputPath = path.join(__dirname, 'presentacion-nexo-agro-full.pptx');
+        const outputPath = path.join(__dirname, 'presentacion-pampa-agro-full.pptx');
         await prs.writeFile({ fileName: outputPath });
         
         console.log(`\n✅ PPTX completo generado: ${outputPath}`);

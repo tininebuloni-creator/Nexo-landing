@@ -33,13 +33,13 @@ async function writeImage(image, filePath) {
 
 async function main() {
   const root = path.resolve(__dirname, '..');
-  const inputPng = path.join(root, 'logo.png');
+  const inputPng = path.join(root, 'logo2.png');
   const outDir = path.join(root, 'build');
   const tempPng = path.join(outDir, 'icon-square-temp.png');
   const outputIco = path.join(outDir, 'icon.ico');
 
   if (!fs.existsSync(inputPng)) {
-    throw new Error(`No se encontro logo base: ${inputPng}`);
+    throw new Error(`No se encontro logo2 base: ${inputPng}`);
   }
 
   if (!fs.existsSync(outDir)) {

@@ -6,7 +6,7 @@ const ROOT = path.resolve(__dirname, '..');
 const SRC_DIR = path.join(ROOT, 'public');
 const OUT_DIR = path.join(ROOT, 'public_protected');
 const HTML_FILES = ['index.html', 'generador-licencias.html'];
-const STATIC_FILES = ['logo.png'];
+const STATIC_FILES = ['logo2.png'];
 
 const OBFUSCATOR_OPTIONS = {
   compact: true,

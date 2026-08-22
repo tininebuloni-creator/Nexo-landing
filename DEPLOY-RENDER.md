@@ -31,7 +31,7 @@ npm start
 
 - `npm start` → Inicia servidor web Express (Puerto 3000)
 - `npm run start:electron` → Inicia app Electron (escritorio)
-- El servidor web sirve `nexo-agro-erp.html` en la raíz
+- El servidor web sirve `pampa-agro-erp.html` en la raíz
 - API en `/api/*` para backend
 
 ## Endpoints disponibles

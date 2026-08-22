@@ -6,7 +6,7 @@ const { JSDOM } = require('jsdom');
 
 async function convertHtmlToPptx() {
   // Leer el archivo HTML
-  const htmlPath = path.join(__dirname, 'presentacion-nexo-agro.html');
+  const htmlPath = path.join(__dirname, 'presentacion-pampa-agro.html');
   const htmlContent = fs.readFileSync(htmlPath, 'utf-8');
 
   // Crear una instancia de JSDOM para renderizar el HTML
@@ -72,7 +72,7 @@ async function convertHtmlToPptx() {
   }
 
   // Guardar la presentación
-  const outputPath = path.join(__dirname, 'presentacion-nexo-agro.pptx');
+  const outputPath = path.join(__dirname, 'presentacion-pampa-agro.pptx');
   await prs.writeFile(outputPath);
   
   console.log(`\n✅ PPTX generado correctamente: ${outputPath}`);

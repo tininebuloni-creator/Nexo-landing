@@ -17,7 +17,7 @@ npm run dev
 ```
 
 ## Branding del ejecutable/instalador
-- El icono Windows se genera automaticamente desde `logo.png` en `build/icon.ico`.
+- El icono Windows se genera automaticamente desde `logo2.png` en `build/icon.ico`.
 - Para regenerarlo manualmente:
 ```bash
 npm run make:icon

@@ -6,7 +6,7 @@ const PptxGenJS = require('pptxgenjs');
 // Crear un servidor HTTP temporal para servir el HTML
 const server = http.createServer((req, res) => {
   if (req.url === '/') {
-    const htmlPath = path.join(__dirname, 'presentacion-nexo-agro.html');
+    const htmlPath = path.join(__dirname, 'presentacion-pampa-agro.html');
     const htmlContent = fs.readFileSync(htmlPath, 'utf-8');
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(htmlContent);
@@ -48,7 +48,7 @@ server.listen(3000, async () => {
     // Contenido de cada diapositiva (simplificado)
     const slidesContent = [
       {
-        title: 'nexoagro ERP',
+        title: 'pampaagro ERP',
         subtitle: 'El sistema de gestión\ndiseñado para el campo argentino',
         bg: colors.bg0
       },
@@ -132,7 +132,7 @@ server.listen(3000, async () => {
     });
 
     // Guardar presentación
-    const outputPath = path.join(__dirname, 'presentacion-nexo-agro.pptx');
+    const outputPath = path.join(__dirname, 'presentacion-pampa-agro.pptx');
     await prs.writeFile({ fileName: outputPath });
     
     console.log(`\n✅ PPTX generado: ${outputPath}`);

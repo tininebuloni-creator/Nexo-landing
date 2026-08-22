@@ -316,7 +316,7 @@
     "files": [
       "electron/**/*",
       "nexo-agro-erp.html",
-      "logo.png",
+      "logo2.png",
       "nexo-agro-paquete/**/*",
       "settings.example.json",
       "!**/*.map",
