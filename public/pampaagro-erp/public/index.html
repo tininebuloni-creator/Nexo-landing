@@ -9584,6 +9584,7 @@ function activateLicense() {
   
   // Actualizar badge de licencia
   updateLicenseBadge();
+  updateTrialBlueBanner();
 
   // Inicializar app sin requerir recarga manual
   initializeAppAfterLicense();
@@ -9614,6 +9615,7 @@ function activateTrial() {
   }
   showToast(`Prueba activada por ${TRIAL_DAYS} días`, 'success');
   updateLicenseBadge();
+  updateTrialBlueBanner();
   initializeAppAfterLicense();
 }
 
@@ -9644,6 +9646,38 @@ function maybeAutoActivateTrialFromQuery() {
   window.history.replaceState({}, document.title, cleanUrl);
 }
 
+function renderTrialBlueBanner(remainingDays) {
+  const existingBanner = document.getElementById('trialBlueBanner');
+
+  if (remainingDays <= 0) {
+    if (existingBanner) existingBanner.remove();
+    return;
+  }
+
+  const message = `Prueba gratuita activa: quedan ${remainingDays} dia(s).`;
+  if (existingBanner) {
+    existingBanner.textContent = message;
+    return;
+  }
+
+  const banner = document.createElement('div');
+  banner.id = 'trialBlueBanner';
+  banner.setAttribute('role', 'status');
+  banner.style.cssText = 'position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:100000;background:#2563eb;color:#fff;padding:10px 18px;border-radius:8px;box-shadow:0 6px 20px rgba(15,23,42,.25);font:600 14px Arial,sans-serif;max-width:calc(100vw - 32px);text-align:center;';
+  banner.textContent = message;
+  document.body.appendChild(banner);
+}
+
+function updateTrialBlueBanner() {
+  const license = getLicenseData();
+  if (!license || license.type !== 'trial') {
+    renderTrialBlueBanner(0);
+    return;
+  }
+
+  renderTrialBlueBanner(getTrialRemainingDays(license));
+}
+
 // Desactivar licencia
 function deactivateLicense() {
   if (!confirm('¿Está seguro de desactivar la licencia? Esta acción requerirá una nueva clave de activación.')) {
@@ -9652,6 +9686,7 @@ function deactivateLicense() {
   
   localStorage.removeItem('nexoAgroLicense');
   closeLicenseModal();
+  updateTrialBlueBanner();
   
   // Mostrar pantalla de activación
   document.getElementById('activationOverlay').style.display = 'flex';
@@ -9675,6 +9710,7 @@ function checkLicense() {
     const remaining = getTrialRemainingDays(license);
     if (remaining <= 0) {
       localStorage.removeItem('nexoAgroLicense');
+      updateTrialBlueBanner();
       return false;
     }
     return true;
@@ -9758,6 +9794,7 @@ function updateLicenseBadge() {
             <span>Trial ${remaining} día(s)</span>
           </div>
         `;
+        updateTrialBlueBanner();
         return;
       }
     }
@@ -9781,6 +9818,7 @@ function updateLicenseBadge() {
       <span>Sin Licencia</span>
     </div>
   `;
+  updateTrialBlueBanner();
 }
 
 // Generar ID de dispositivo (para vincular licencia a un dispositivo)
@@ -9818,6 +9856,7 @@ function initializeAppAfterLicense() {
 // Inicializar sistema de licencia al cargar la página
 function initLicenseSystem() {
   maybeAutoActivateTrialFromQuery();
+  updateTrialBlueBanner();
 
   if (!window.electronAPI) {
     const overlay = document.getElementById('activationOverlay');
