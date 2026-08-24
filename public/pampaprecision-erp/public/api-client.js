@@ -450,6 +450,11 @@ class LicenseOfflineCache {
     try {
       const syncData = await api.syncLicense();
       if (syncData) {
+        const cached = this.getLocal();
+        const cachedTrial = cached?.license?.type === 'trial' && new Date(cached.license.expiresAt || 0).getTime() > Date.now();
+        if (cachedTrial && !syncData.activeLicense) {
+          return false;
+        }
         this.setLocal(syncData);
         console.log('✅ Licencia sincronizada con servidor');
         return true;
