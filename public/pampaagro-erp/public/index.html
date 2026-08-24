@@ -1055,6 +1055,8 @@ body {
 
 
 <link rel="manifest" href="./manifest.webmanifest">
+<script src="js/pampa-licensing.js"></script>
+<script src="js/pampa-trial-links.js"></script>
 <meta name="theme-color" content="#166534">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1291,8 +1293,8 @@ body {
               <div class="empresa-portada-content">
                 <div class="empresa-portada-logo"></div>
                 <div class="empresa-portada-info">
-                  <div class="empresa-portada-nombre" id="portadaNombre">PampaAgro ERP</div>
-                  <div class="empresa-portada-sub" id="portadaSub">Panel Ejecutivo</div>
+                  <div class="empresa-portada-nombre" id="portadaNombre"></div>
+                  <div class="empresa-portada-sub" id="portadaSub"></div>
                   <div class="empresa-portada-datos">
                     <span>📊 <strong id="portadaCuit">Gestión integral</strong></span>
                     <span>🌾 <strong id="portadaDireccion">Agricultura y ganadería</strong></span>
@@ -2388,7 +2390,7 @@ body {
             <div>
               <div class="form-group"><label class="form-label">Razón Social</label><input class="form-input" id="empresaNombreInput" value=""></div>
               <div class="form-group"><label class="form-label">CUIT</label><input class="form-input" id="empresaCuitInput" value=""></div>
-              <div class="form-group"><label class="form-label">Condición IVA</label><select class="form-select" id="empresaIvaInput"><option>Responsable Inscripto</option></select></div>
+              <div class="form-group"><label class="form-label">Condición IVA</label><select class="form-select" id="empresaIvaInput"><option value="">Seleccionar...</option><option>Responsable Inscripto</option></select></div>
               <div class="form-group"><label class="form-label">Inicio de Actividades</label><input class="form-input" id="empresaInicioInput" value=""></div>
             </div>
             <div>
@@ -2708,15 +2710,15 @@ const state = {
   empleados: [],
   documentos: [],
   empresa: {
-    nombre: 'PampaAgro ERP',
-    cuit: '30-00000000-0',
-    condicionIva: 'Responsable Inscripto',
-    inicioActividades: '01/01/2024',
-    direccion: 'Sede principal',
-    telefono: 'Sin datos',
-    email: 'soporte@pampaagro.com',
-    iibr: '000-000000-0',
-    subtitulo: 'Panel Ejecutivo',
+    nombre: '',
+    cuit: '',
+    condicionIva: '',
+    inicioActividades: '',
+    direccion: '',
+    telefono: '',
+    email: '',
+    iibr: '',
+    subtitulo: '',
     whatsappPropietario: '',
     whatsappAdministracion: '',
     whatsappIngeniero: ''
@@ -2740,6 +2742,19 @@ function seedEmptyStateForDelivery() {
   }
 }
 
+function limpiarPlaceholdersEmpresa(empresa = {}) {
+  const clean = { ...empresa };
+  if ((clean.nombre || '').trim() === 'PampaAgro ERP') clean.nombre = '';
+  if ((clean.cuit || '').trim() === '30-00000000-0') clean.cuit = '';
+  if ((clean.inicioActividades || '').trim() === '01/01/2024') clean.inicioActividades = '';
+  if ((clean.direccion || '').trim() === 'Sede principal') clean.direccion = '';
+  if ((clean.telefono || '').trim() === 'Sin datos') clean.telefono = '';
+  if ((clean.email || '').trim() === 'soporte@pampaagro.com') clean.email = '';
+  if ((clean.iibr || '').trim() === '000-000000-0') clean.iibr = '';
+  if ((clean.subtitulo || '').trim() === 'Panel Ejecutivo') clean.subtitulo = '';
+  return clean;
+}
+
 // Cargar desde localStorage si existe
 function loadState() {
   const saved = localStorage.getItem('nexoAgroERP');
@@ -2761,6 +2776,7 @@ function loadState() {
           }
         }
       });
+      state.empresa = limpiarPlaceholdersEmpresa(state.empresa || {});
     } catch(e) { console.error('Error cargando estado:', e); }
   } else if (CLEAN_DELIVERY_MODE) {
     seedEmptyStateForDelivery();
@@ -2771,7 +2787,7 @@ function loadState() {
     const subtituloLimpio = state.empresa.subtitulo
       .replace(/Sistema\s+de\s+Gesti[oó]n\s+Agropecuaria\s*·?\s*/i, '')
       .trim();
-    state.empresa.subtitulo = subtituloLimpio || 'Panel Ejecutivo';
+    state.empresa.subtitulo = subtituloLimpio;
   }
   
   // Migración: asegurar que los lotes tengan coordenadas
@@ -4039,13 +4055,13 @@ function getDefaultEmpresaCleanState() {
   return {
     nombre: '',
     cuit: '',
-    condicionIva: 'Responsable Inscripto',
+    condicionIva: '',
     inicioActividades: '',
     direccion: '',
     telefono: '',
     email: '',
     iibr: '',
-    subtitulo: 'Panel Ejecutivo',
+    subtitulo: '',
     whatsappPropietario: '',
     whatsappAdministracion: '',
     whatsappIngeniero: ''
@@ -6128,7 +6144,7 @@ function renderFormularioEmpresa() {
 
   if (nombre) nombre.value = emp.nombre || '';
   if (cuit) cuit.value = emp.cuit || '';
-  if (iva) iva.value = emp.condicionIva || 'Responsable Inscripto';
+  if (iva) iva.value = emp.condicionIva || '';
   if (inicio) inicio.value = emp.inicioActividades || '';
   if (direccion) direccion.value = emp.direccion || '';
   if (telefono) telefono.value = emp.telefono || '';
@@ -9511,6 +9527,7 @@ function generateValidLicenseKey() {
 
 // Validar clave de activación
 function validateLicenseKey(key) {
+  if (window.PampaLicensing) return window.PampaLicensing.validateLicenseFormat(key);
   console.log('Validando clave:', key);
   
   // Formato esperado: NEXO-XXXX-XXXX-XXXX (19 caracteres)
@@ -9620,6 +9637,7 @@ function activateTrial() {
 }
 
 function getTrialActivationLink() {
+  if (window.PampaTrialLinks) return window.PampaTrialLinks.getTrialLandingUrl('pampaagro');
   const baseUrl = `${window.location.origin}${window.location.pathname}`;
   return `${baseUrl}?trial=auto`;
 }
@@ -11284,5 +11302,6 @@ function setEl(id, txt) {
 })();
 </script>
 
+<script src="js/pampaia-source.js?v=pampaia-published-2"></script>
 </body>
 </html>

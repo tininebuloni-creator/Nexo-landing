@@ -1,10 +1,12 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pampa Precision ERP | Centro operativo</title>
   <link rel="manifest" href="./manifest.webmanifest">
+  <script src="./pampa-licensing.js"></script>
+  <script src="./pampa-trial-links.js"></script>
   <link rel="stylesheet" href="./leaflet/leaflet.css">
   <style>
     :root {
@@ -211,7 +213,7 @@
   <div class="shell">
     <aside class="sidebar">
       <div class="brand">
-        <img class="brand-mark" src="../logo2.png" alt="Logo Pampa Precision ERP">
+        <img class="brand-mark" src="../logo.jpg" alt="Logo Pampa Precision ERP">
         <div><strong>PampaPrecision</strong><small>TRIAL • 10 días</small></div>
       </div>
       <div class="sidebar-company"><div class="company-heading"><label for="sidebarCompanySelector">Empresa activa</label><button class="new-company" id="newCompany" type="button" aria-label="Cargar nueva empresa" title="Cargar nueva empresa">+</button></div><select id="sidebarCompanySelector" aria-label="Empresa activa en la barra lateral"><option>Pampa Agropecuaria S.A.</option><option>PampaPrecision Demo</option><option>Establecimiento La Esperanza</option></select></div>
@@ -231,8 +233,7 @@
         <button data-view="Rentabilidad"><b class="nav-icon">%</b><span>Rentabilidad</span></button>
         <button data-view="ARCA"><b class="nav-icon">A</b><span>ARCA</span></button>
         <button data-view="RRHH"><b class="nav-icon">H</b><span>RRHH</span></button>
-        <button data-view="Usuarios y roles"><b class="nav-icon">R</b><span>Usuarios y roles</span></button>
-        <button data-view="Auditoria"><b class="nav-icon">L</b><span>Auditoria</span></button>
+                <button data-view="Auditoria"><b class="nav-icon">L</b><span>Auditoria</span></button>
         <button data-view="Conectividad y sincronizacion"><b class="nav-icon">↕</b><span>Conectividad</span></button>
         <button data-view="Licencias"><b class="nav-icon">🔐</b><span>Licencias</span></button>
       </nav>
@@ -251,6 +252,8 @@
           <button class="button primary" id="newOrder">+ Nueva orden</button>
         </div>
       </header>
+
+      <section id="pampaia-dashboard-mount"></section>
 
       <section class="metrics" aria-label="Indicadores principales">
         <article class="metric"><div class="metric-label">Superficie activa</div><div class="metric-value" id="dashboardSurface">0 ha</div><div class="trend" id="dashboardSurfaceTrend">Sin lotes registrados</div></article>
@@ -1743,7 +1746,7 @@
         <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Rinde promedio</span><strong>8,6 t/ha</strong></article><article class="panel module-stat"><span>Costo operativo</span><strong>$ 412/ha</strong></article><article class="panel module-stat"><span>Datos integrados</span><strong>98,4%</strong></article></div><section class="panel"><div class="panel-head"><div><h2>Evolucion de rinde por lote</h2><p class="panel-caption">Comparativa de la campana 2025 / 2026</p></div><span class="eyebrow">Maiz</span></div><div class="chart large"><div class="bar-wrap"><div class="bar dim" style="height:55%"></div><span>L-04</span></div><div class="bar-wrap"><div class="bar selected" style="height:83%"></div><span>L-09</span></div><div class="bar-wrap"><div class="bar" style="height:69%"></div><span>L-12</span></div><div class="bar-wrap"><div class="bar dim" style="height:46%"></div><span>L-16</span></div><div class="bar-wrap"><div class="bar" style="height:63%"></div><span>L-21</span></div></div></section></section>`,
       'Usuarios y roles': `
         <header class="topbar"><div><div class="eyebrow">Workspace / Seguridad</div><h1>Usuarios y roles</h1></div><div class="toolbar"><button class="button" data-action="Configurar reporte WhatsApp">Configurar WhatsApp</button><button class="button" data-action="Enviar reporte WhatsApp">Enviar reporte</button><button class="button" data-action="Nuevo usuario">+ Nuevo usuario</button><button class="button primary" data-action="Nuevo rol">+ Nuevo rol</button></div></header>
-        <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Usuarios activos</span><strong>14</strong></article><article class="panel module-stat"><span>Roles definidos</span><strong>04</strong></article><article class="panel module-stat"><span>Sesiones abiertas</span><strong>08</strong></article></div><section class="panel"><div class="panel-head"><div><h2>Roles del sistema</h2><p class="panel-caption">Permisos organizados por responsabilidad operativa</p></div><span class="pill">Multi-tenant</span></div><table class="data-table"><thead><tr><th>Rol</th><th>Alcance</th><th>Permisos principales</th><th>Usuarios</th></tr></thead><tbody><tr><td><strong>Propietario/Responsable</strong><small>Control total del establecimiento</small></td><td>Todos los establecimientos</td><td>Configurar, aprobar, exportar, auditar</td><td>02</td></tr><tr><td><strong>Administracion</strong><small>Gestion administrativa y financiera</small></td><td>Todos los establecimientos</td><td>Compras, inventario, costos, reportes</td><td>04</td></tr><tr><td><strong>Ingeniero</strong><small>Precision y decisiones agronomicas</small></td><td>Campos asignados</td><td>Campos, lotes, mapas, prescripciones, analitica</td><td>03</td></tr><tr><td><strong>Operador</strong><small>Ejecucion de tareas de campo</small></td><td>Lotes asignados</td><td>Ver ordenes, registrar ejecuciones y consumos</td><td>05</td></tr></tbody></table></section><section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Matriz de acceso</h2><p class="panel-caption">Referencia rápida de permisos por módulo</p></div></div><table class="data-table"><thead><tr><th>Modulo</th><th>Propietario/Responsable</th><th>Administracion</th><th>Ingeniero</th><th>Operador</th></tr></thead><tbody><tr><td><strong>Campos y lotes</strong></td><td><span class="pill">Total</span></td><td><span class="pill">Ver</span></td><td><span class="pill">Total</span></td><td><span class="pill yellow">Asignados</span></td></tr><tr><td><strong>Operaciones</strong></td><td><span class="pill">Total</span></td><td><span class="pill">Ver</span></td><td><span class="pill">Planificar</span></td><td><span class="pill">Ejecutar</span></td></tr><tr><td><strong>Inventario y costos</strong></td><td><span class="pill">Total</span></td><td><span class="pill">Total</span></td><td><span class="pill yellow">Consultar</span></td><td><span class="pill yellow">Consumir</span></td></tr><tr><td><strong>Usuarios y auditoria</strong></td><td><span class="pill">Total</span></td><td><span class="pill yellow">Consultar</span></td><td><span class="pill red">No</span></td><td><span class="pill red">No</span></td></tr></tbody></table></section></section>`,
+        <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Usuarios activos</span><strong>14</strong></article><article class="panel module-stat"><span>Roles definidos</span><strong>04</strong></article><article class="panel module-stat"><span>Sesiones abiertas</span><strong>08</strong></article></div><section class="panel"><div class="panel-head"><div><h2>Roles del sistema</h2><p class="panel-caption">Modulos habilitados por responsabilidad operativa</p></div><span class="pill">Multi-tenant</span></div><table class="data-table"><thead><tr><th>Rol</th><th>Alcance</th><th>Modulos habilitados</th><th>Usuarios</th></tr></thead><tbody><tr><td><strong>Propietario/Responsable</strong><small>Control total del establecimiento</small></td><td>Todos los establecimientos</td><td>Configurar, aprobar, exportar, auditar</td><td>02</td></tr><tr><td><strong>Administracion</strong><small>Gestion administrativa y financiera</small></td><td>Todos los establecimientos</td><td>Compras, inventario, costos, reportes</td><td>04</td></tr><tr><td><strong>Ingeniero</strong><small>Precision y decisiones agronomicas</small></td><td>Campos asignados</td><td>Campos, lotes, mapas, prescripciones, analitica</td><td>03</td></tr><tr><td><strong>Operador</strong><small>Ejecucion de tareas de campo</small></td><td>Lotes asignados</td><td>Ver ordenes, registrar ejecuciones y consumos</td><td>05</td></tr></tbody></table></section></section>`,
       'Telemetria y clima': `
         <header class="topbar"><div><div class="eyebrow">Workspace / Datos de maquinaria</div><h1>Telemetria y clima</h1></div><div class="toolbar"><button class="button" data-action="Cargar observaciones clima">+ Observaciones clima</button><button class="button primary" data-action="Cargar eventos telemetria">+ Eventos de maquinaria</button></div></header>
         <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Dispositivos activos</span><strong>06</strong></article><article class="panel module-stat"><span>Eventos recibidos hoy</span><strong>12.480</strong></article><article class="panel module-stat"><span>Estaciones clima</span><strong>03</strong></article></div><div class="layout"><section class="panel"><div class="panel-head"><div><h2>Maquinaria conectada</h2><p class="panel-caption">Ultima posicion y disponibilidad</p></div><span class="pill">Ingesta activa</span></div><table class="data-table"><thead><tr><th>Dispositivo</th><th>Maquina</th><th>Ultimo evento</th><th>Combustible</th><th>Estado</th></tr></thead><tbody><tr><td><strong>GPS-001</strong></td><td>Tractor John Deere 6155</td><td>Hace 2 min</td><td>18,4 L/h</td><td><span class="pill">Online</span></td></tr><tr><td><strong>GPS-002</strong></td><td>Pulverizadora PLA 2500</td><td>Hace 8 min</td><td>12,1 L/h</td><td><span class="pill">Online</span></td></tr><tr><td><strong>GPS-003</strong></td><td>Cosechadora Case 8250</td><td>Hace 42 min</td><td>24,6 L/h</td><td><span class="pill yellow">Sin señal</span></td></tr></tbody></table></section><section class="panel"><div class="panel-head"><div><h2>Condiciones actuales</h2><p class="panel-caption">Estacion La Esperanza</p></div><span class="eyebrow">Actualizado</span></div><div class="module-grid" style="grid-template-columns:1fr 1fr"><article class="module-stat"><span>Temperatura</span><strong>24,8 C</strong></article><article class="module-stat"><span>Humedad</span><strong>61%</strong></article><article class="module-stat"><span>Viento</span><strong>11,2 km/h</strong></article><article class="module-stat"><span>Lluvia 24 h</span><strong>3,4 mm</strong></article></div></section></div></section>`,
@@ -1928,21 +1931,6 @@
       const operational = `\n\nCampos: ${registeredFields.length}\nLotes georreferenciados: ${registeredLots.length}\nSuperficie declarada: ${registeredFieldDetails.reduce((total, field) => total + Number(field.surface || 0), 0).toLocaleString('es-AR')} ha`;
       const alerts = `\n\nAlertas: 2 requieren atención hoy\nÓrdenes en curso: 18\nCumplimiento operativo: 86,2%`;
       return `${header}${operational}${reportType === 'Alertas y pendientes' ? alerts : ''}\n\nGenerado por Pampa Precision ERP · ${new Date().toLocaleString('es-AR')}`;
-    }
-
-    function loadUsersAndRolesModule() {
-      const page = main.querySelector('.module-page');
-      if (!page || page.querySelector('#whatsappRoutingRows')) return;
-      const section = document.createElement('section');
-      section.className = 'panel';
-      section.style.marginTop = '19px';
-      section.innerHTML = '<div class="panel-head"><div><h2>Reportes por WhatsApp</h2><p class="panel-caption">Distribución manual de reportes operativos por usuario</p></div><span class="pill">WhatsApp Web</span></div><table class="data-table"><thead><tr><th>Usuario</th><th>Rol</th><th>Destino configurado</th><th>Estado</th></tr></thead><tbody id="whatsappRoutingRows"></tbody></table>';
-      page.append(section);
-      const rows = section.querySelector('#whatsappRoutingRows');
-      rows.innerHTML = registeredUsers.map(user => {
-        const recipient = whatsappUserRecipients.find(item => item.user === user);
-        return `<tr><td><strong>${user}</strong></td><td>${recipient?.role || 'Sin asignar'}</td><td>${recipient ? `+${recipient.phone}` : 'Sin configurar'}</td><td><span class="pill ${recipient ? '' : 'yellow'}">${recipient ? 'Listo para enviar' : 'Pendiente'}</span></td></tr>`;
-      }).join('');
     }
 
     function showFieldsAndLotsModule() {
@@ -2249,9 +2237,6 @@
         setMetricValues(['0', '0', '0']);
         emptyRows('.data-table tbody', 5);
         main.querySelectorAll('.module-stat strong').forEach(metric => { if (/^(24,8 C|61%|11,2 km\/h|3,4 mm)$/.test(metric.textContent)) metric.textContent = 'Sin datos'; });
-      } else if (view === 'Usuarios y roles') {
-        setMetricValues(['0', '0', '0']);
-        emptyRows('.data-table tbody', 4);
       }
     }
 
@@ -2279,7 +2264,6 @@
           if (button.dataset.view === 'Plan de equipamiento') loadEquipmentPlanModule();
           if (button.dataset.view === 'Precision') initializePrecisionMap();
           if (button.dataset.view === 'Auditoria') bindAuditFilter();
-          if (button.dataset.view === 'Usuarios y roles') loadUsersAndRolesModule();
           if (button.dataset.view === 'ARCA') loadArcaModule();
           if (button.dataset.view === 'Licencias') loadLicensesModule();
             if (button.dataset.view === 'Conectividad y sincronizacion') loadConnectivityModule();
@@ -2336,5 +2320,9 @@
     document.querySelector('#deepCleanupButton').addEventListener('click', runDeepCleanup);
     bindDashboardActions();
   </script>
+<script src="pampaia-source.js?v=pampaia-published-2"></script>
 </body>
 </html>
+
+
+

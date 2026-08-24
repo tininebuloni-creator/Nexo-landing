@@ -3,7 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pampa N - S.I.A. | Tambo</title>
+  <title>NEXO Tambo</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <script src="./pampa-licensing.js"></script>
+  <script src="./pampa-trial-links.js"></script>
+  <meta name="theme-color" content="#f59e0b" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -72,7 +76,7 @@
     .logo-icon {
       width: 140px;
       height: 140px;
-      background: #1a1f2a url('logo2.png') center/cover no-repeat;
+      background: #1a1f2a url('logo.png') center/cover no-repeat;
       border: 1px solid var(--border-light);
       border-radius: 16px;
       display: flex;
@@ -135,7 +139,7 @@
       height: 136px;
       border-radius: 16px;
       border: 1px solid rgba(255, 255, 255, 0.45);
-      background: rgba(255, 255, 255, 0.18) url('logo2.png') center/cover no-repeat;
+      background: rgba(255, 255, 255, 0.18) url('logo.png') center/cover no-repeat;
       box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
     }
     .empresa-hero-title {
@@ -1019,7 +1023,7 @@
               <div class="empresa-hero-main">
                 <div class="empresa-hero-logo" aria-label="Logo empresa"></div>
                 <div>
-                  <div class="empresa-hero-title" id="dashboardEmpresaNombre">Pampa N - S.I.A.</div>
+                  <div class="empresa-hero-title" id="dashboardEmpresaNombre">Agropecuaria NEXO</div>
                   <div class="empresa-hero-sub" id="dashboardEmpresaSub">Panel operativo de la empresa</div>
                 </div>
               </div>
@@ -1157,7 +1161,7 @@
               <div class="form-grid">
                 <div class="field">
                   <label class="sr-only" for="empresaNombreInput">Nombre de la empresa</label>
-                  <input id="empresaNombreInput" type="text" placeholder="Pampa N - S.I.A." aria-label="Nombre de la empresa" />
+                  <input id="empresaNombreInput" type="text" placeholder="Agropecuaria NEXO" aria-label="Nombre de la empresa" />
                 </div>
                 <div class="field">
                   <label for="empresaCuitInput">CUIT</label>
@@ -2485,7 +2489,7 @@
       insumosSanidad: [],
       mantenimiento: [],
       empresa: {
-        nombre: 'Pampa N - S.I.A.',
+        nombre: 'Agropecuaria NEXO',
         cuit: '30-00000000-0',
         direccion: '',
         telefono: '',
@@ -2621,6 +2625,7 @@
       },
       M: {
         roles: ['propietario', 'ingeniero', 'veterinario', 'operador', 'administracion'],
+        unlimitedRoles: true,
         roleCaps: { propietario: 2, ingeniero: 1, veterinario: 1, operador: 4, administracion: 2 },
         modules: [
           'empresa', 'dashboard', 'reportes',
@@ -4245,6 +4250,10 @@
       return policy?.roleCaps || null;
     }
 
+    function hasUnlimitedRolesForLicense() {
+      return Boolean(getLicensePolicy()?.unlimitedRoles);
+    }
+
     function getRoleSeatUsage() {
       const caps = getRoleCapsForLicense();
       const deviceId = getDeviceId();
@@ -4297,6 +4306,20 @@
 
       card.classList.remove('is-hidden');
       const roles = getAllowedRolesForLicense();
+      if (hasUnlimitedRolesForLicense()) {
+        const totalUsed = roles.reduce((acc, role) => acc + ((usage.active?.[role] || []).length), 0);
+        summary.textContent = `Asientos en uso: ${totalUsed} · Sin límite de roles Premium`;
+        body.innerHTML = roles.map((role) => {
+          const label = ROLE_PERMISSIONS[role]?.name || role;
+          const occupied = (usage.active?.[role] || []).length;
+          const own = (usage.active?.[role] || []).some((row) => `${row?.deviceId || ''}` === usage.deviceId);
+          const status = own
+            ? '<span class="pill ok">Asignado en este equipo</span>'
+            : '<span class="pill ok">Sin límite</span>';
+          return `<div class="role-seats-row"><strong>${label}</strong><span>${occupied}</span><span>${status}</span></div>`;
+        }).join('');
+        return;
+      }
       const totalCap = roles.reduce((acc, role) => acc + Number(caps[role] || 0), 0);
       const totalUsed = roles.reduce((acc, role) => acc + ((usage.active?.[role] || []).length), 0);
       summary.textContent = `Asientos en uso: ${totalUsed}/${totalCap}`;
@@ -4563,6 +4586,7 @@
     }
 
     function getTrialBaseUrl() {
+      if (window.PampaTrialLinks) return window.PampaTrialLinks.getTrialLandingUrl('pampatambo').replace(/\/\?trial=auto$/, '');
       const configured = `${byId('trialPublicBaseUrl')?.value || localStorage.getItem(TRIAL_PUBLIC_BASE_URL_KEY) || ''}`.trim().replace(/\/$/, '');
       if (configured) return configured;
       return DEFAULT_TRIAL_PUBLIC_BASE_URL;
@@ -4610,6 +4634,13 @@
     }
 
     async function sendTrialLinkByWhatsApp() {
+      if (window.PampaTrialLinks) {
+        const trialUrl = window.PampaTrialLinks.getTrialLandingUrl('pampatambo');
+        const message = `Hola. Te comparto el acceso de prueba de PampaTambo (${TRIAL_DAYS} días):\n${trialUrl}`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank', 'noopener');
+        byId('licenseActivationMsg').textContent = 'Link de trial de nexo-landing abierto para enviar por WhatsApp.';
+        return;
+      }
       const base = getTrialBaseUrl();
       if (byId('trialPublicBaseUrl')) {
         localStorage.setItem(TRIAL_PUBLIC_BASE_URL_KEY, byId('trialPublicBaseUrl').value.trim());
@@ -4868,11 +4899,14 @@
           if (!opt.dataset.baseLabel) opt.dataset.baseLabel = opt.textContent || opt.value;
           let seatBlocked = false;
           const cap = usage.caps?.[role];
-          if (cap) {
+          if (cap && !hasUnlimitedRolesForLicense()) {
             const occupied = (usage.active?.[role] || []).length;
             const hasOwnSeat = (usage.active?.[role] || []).some((row) => `${row?.deviceId || ''}` === usage.deviceId);
             seatBlocked = !hasOwnSeat && occupied >= cap;
             opt.textContent = `${opt.dataset.baseLabel} (${occupied}/${cap})`;
+          } else if (hasUnlimitedRolesForLicense() && usage.caps?.[role]) {
+            const occupied = (usage.active?.[role] || []).length;
+            opt.textContent = `${opt.dataset.baseLabel} (${occupied}, sin límite)`;
           } else {
             opt.textContent = opt.dataset.baseLabel;
           }
@@ -5385,7 +5419,7 @@
 
     function renderEmpresaDashboard() {
       const emp = state.empresa || {};
-      byId('dashboardEmpresaNombre').textContent = emp.nombre || 'Pampa N - S.I.A.';
+      byId('dashboardEmpresaNombre').textContent = emp.nombre || 'Agropecuaria NEXO';
       byId('dashboardEmpresaSub').textContent = 'Panel operativo de la empresa';
       byId('dashboardEmpresaCuit').textContent = emp.cuit || 'Sin definir';
       byId('dashboardEmpresaDireccion').textContent = emp.direccion || 'Sin definir';
@@ -5451,7 +5485,7 @@
       const egresos = Number((state.finanzas || []).filter((x) => normalizeSignal(x.tipo || x.movimiento || '').includes('EGR')).reduce((acc, row) => acc + toNumber(row?.monto || row?.importe, 0), 0));
       const saldo = ingresos - egresos;
       return [
-        `Reporte operativo Pampa N - S.I.A. Tambo (${hoy})`,
+        `Reporte operativo NEXO Tambo (${hoy})`,
         `Animales: ${(state.animales || []).length}`,
         `Producción diaria (litros): ${litrosHoy.toFixed(2)}`,
         `Costos cargados: ${(state.costos || []).length}`,
@@ -9388,5 +9422,11 @@
     startAutoSync();
     loadData();
   </script>
+<script src="pampaia-source.js?v=pampaia-published-2"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+  }
+</script>
 </body>
 </html>
