@@ -1,0 +1,25 @@
+{
+  "name": "PampaGanaderia ERP",
+  "short_name": "PampaERP",
+  "description": "Gestión agropecuaria offline-first",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0f1419",
+  "theme_color": "#0f1419",
+  "lang": "es-AR",
+  "icons": [
+    {
+      "src": "logo2.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo2.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
