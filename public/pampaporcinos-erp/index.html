@@ -15,7 +15,7 @@
 <script src="./pampa-licensing.js"></script>
 <script src="./pampa-trial-links.js"></script>
 <script src="./pampa-offline-core.js"></script>
-<script src="./pampa-search.js"></script>
+<script src="./pampa-search.js?v=2"></script>
 
 <!-- Google Drive API -->
 <script src="https://apis.google.com/js/api.js"></script>
@@ -2633,6 +2633,13 @@ function applyLicenseAccess(){
 
 function initLicense(){
  const overlay=$('licenseActivationOverlay');
+ const params=new URLSearchParams(window.location.search);
+ if(params.get('trial')==='auto' && !storedLicense()){
+  const now=new Date();
+  const expiresAt=new Date(now.getTime()+10*24*60*60*1000).toISOString();
+  localStorage.setItem(LICENSE_KEY,JSON.stringify({key:'NEXO-MTRI-AL10-0001',code:'M',version:'premium',type:'trial',expiresAt,activatedAt:now.toISOString()}));
+  window.history.replaceState({},document.title,`${window.location.pathname}${window.location.hash}`);
+ }
  if(!LICENSE_REQUIRED){
   if(overlay) overlay.style.display='none';
   applyLicenseAccess();
