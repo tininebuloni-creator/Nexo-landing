@@ -3,14 +3,18 @@
     return String(value || '').toLocaleLowerCase('es-AR').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   }
 
+  const aliases = {
+    rrhh: 'rrhh empleados personal recursos humanos asistencia liquidaciones',
+    empleados: 'rrhh empleados personal recursos humanos asistencia liquidaciones',
+    personal: 'rrhh empleados personal recursos humanos asistencia liquidaciones'
+  };
+
   function mountSearch() {
     if (document.getElementById('pampaGlobalSearch')) return;
-    const navigation = document.querySelector('.sidebar-nav, .nav, aside nav');
+    const navigation = document.querySelector('.sidebar-nav, .nav, aside nav, aside.sidebar, .sidebar');
     if (!navigation) return;
-    const navigationItems = [...navigation.querySelectorAll('[data-view], [data-module]')];
-    const contentItems = [...document.querySelectorAll('.view h2, .view h3, .view label, .view button, main h2, main h3')];
-    const items = [...new Set([...navigationItems, ...contentItems])].filter((item) => (item.textContent || '').trim());
-    if (!items.length) return;
+    const navigationItems = () => [...navigation.querySelectorAll('[data-view], [data-module]')];
+    const contentItems = () => [...document.querySelectorAll('.view h1, .view h2, .view h3, .view h4, .view label, .view button, .view td, .view th, .view option, .module h1, .module h2, .module h3, .module h4, .module label, .module button, .module td, .module th, .module option, [id^="mod-"] h1, [id^="mod-"] h2, [id^="mod-"] h3, [id^="mod-"] h4, [data-searchable]')];
     const wrapper = document.createElement('div');
     wrapper.id = 'pampaGlobalSearch';
     wrapper.innerHTML = '<label for="pampaGlobalSearchInput">Buscar en todo el ERP</label><input id="pampaGlobalSearchInput" type="search" placeholder="Buscar módulo, campo o acción..." autocomplete="off"><div id="pampaGlobalSearchCount" aria-live="polite"></div><div id="pampaGlobalSearchResults" role="listbox" hidden></div>';
@@ -26,15 +30,28 @@
       results.replaceChildren();
       const count = wrapper.querySelector('#pampaGlobalSearchCount');
       if (!query) { results.hidden = true; count.textContent = ''; return; }
-      const matches = items.filter((item) => normalize(item.textContent).includes(query)).slice(0, 12);
+      const items = [...new Set([...navigationItems(), ...contentItems()])].filter((item) => (item.textContent || '').trim());
+      const matches = items.filter((item) => {
+        const text = normalize(item.textContent);
+        const module = normalize(item.dataset?.view || item.dataset?.module || '');
+        return text.includes(query) || module.includes(query) || (aliases[query] && aliases[query].includes(module));
+      }).slice(0, 20);
       count.textContent = `${matches.length} coincidencia(s)`;
       matches.forEach((item) => {
         const button = document.createElement('button');
         button.type = 'button';
-        const view = item.closest('.view')?.querySelector('h2')?.textContent?.trim();
+        const view = item.closest('.view, .module, [id^="mod-"]')?.querySelector('h1, h2')?.textContent?.trim();
         button.textContent = `${item.textContent.trim().replace(/\s+/g, ' ')}${view && view !== item.textContent.trim() ? ` · ${view}` : ''}`;
         button.setAttribute('role', 'option');
-        button.addEventListener('click', () => { item.click(); input.value = ''; results.hidden = true; });
+        button.addEventListener('click', () => {
+          const directTarget = item.matches('[data-view], [data-module]') ? item : null;
+          const view = item.closest('.view, .module, [id^="mod-"]');
+          const viewTarget = view ? navigation.querySelector(`[data-view="${view.id}"], [data-module="${view.id}"]`) : null;
+          (directTarget || viewTarget || item).click();
+          input.value = '';
+          count.textContent = '';
+          results.hidden = true;
+        });
         results.appendChild(button);
       });
       results.hidden = matches.length === 0;
