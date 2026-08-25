@@ -34,7 +34,7 @@
       const matches = items.filter((item) => {
         const text = normalize(item.textContent);
         const module = normalize(item.dataset?.view || item.dataset?.module || '');
-        return text.includes(query) || module.includes(query) || (aliases[query] && aliases[query].includes(module));
+        return text.includes(query) || module.includes(query) || Boolean(module && aliases[query] && aliases[query].includes(module));
       }).slice(0, 20);
       count.textContent = `${matches.length} coincidencia(s)`;
       matches.forEach((item) => {
