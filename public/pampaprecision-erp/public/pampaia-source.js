@@ -26,8 +26,24 @@
     const demo = document.createElement('section');
     demo.id = 'pampaIATrialInputDemos';
     demo.style.cssText = 'position:relative;z-index:1;margin-top:14px;padding:14px;border:1px solid rgba(245,158,11,.35);border-radius:10px;background:rgba(245,158,11,.08);';
-    demo.innerHTML = '<div style="font-size:10px;color:#fbbf24;letter-spacing:.9px;font-family:var(--font-mono);text-transform:uppercase">Demo del trial: voz y escaneo</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:10px"><article style="padding:12px;border-radius:8px;background:rgba(0,0,0,.16)"><strong style="color:#fff">🎙️ Carga por voz</strong><p style="margin:7px 0;color:#d6e5db;font-size:12px;line-height:1.45">Ejemplo: “Anotá 40 litros de gasoil en Lote Norte Maíz”.</p><button type="button" class="pampaia-btn" id="pampaIATrialVoiceDemo">▶ Procesar dictado de ejemplo</button><div id="pampaIATrialVoiceResult" style="margin-top:9px;color:#b8d1c2;font-size:12px"></div></article><article style="padding:12px;border-radius:8px;background:rgba(0,0,0,.16)"><strong style="color:#fff">📷 Escaneo de remito</strong><p style="margin:7px 0;color:#d6e5db;font-size:12px;line-height:1.45">Remito de fertilizante precargado para ver la extracción de datos.</p><button type="button" class="pampaia-btn" id="pampaIATrialScanDemo">Escanear remito de ejemplo</button><div id="pampaIATrialScanResult" style="margin-top:9px;color:#b8d1c2;font-size:12px"></div></article></div><p style="margin:11px 0 0;color:#9fc0ad;font-size:11px">Datos demostrativos del trial. El micrófono, la cámara y el OCR real siguen disponibles desde las acciones habituales de PampaIA.</p>';
+    demo.innerHTML = '<div style="font-size:10px;color:#fbbf24;letter-spacing:.9px;font-family:var(--font-mono);text-transform:uppercase">Demo del trial: voz y escaneo</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:10px"><article style="padding:12px;border-radius:8px;background:rgba(0,0,0,.16)"><strong style="color:#fff">🎙️ Carga por voz</strong><p style="margin:7px 0;color:#d6e5db;font-size:12px;line-height:1.45">Ejemplo: “Anotá 40 litros de gasoil en Lote Norte Maíz”.</p><div style="display:flex;gap:7px;flex-wrap:wrap"><button type="button" class="pampaia-btn" id="pampaIATrialVoicePlay">🔊 Escuchar dictado</button><button type="button" class="pampaia-btn" id="pampaIATrialVoiceDemo">Procesar dictado</button></div><div id="pampaIATrialVoiceResult" style="margin-top:9px;color:#b8d1c2;font-size:12px"></div></article><article style="padding:12px;border-radius:8px;background:rgba(0,0,0,.16)"><strong style="color:#fff">📷 Escaneo de remito</strong><p style="margin:7px 0;color:#d6e5db;font-size:12px;line-height:1.45">Remito de fertilizante precargado para ver la extracción de datos.</p><button type="button" class="pampaia-btn" id="pampaIATrialScanDemo">Escanear remito de ejemplo</button><div id="pampaIATrialScanResult" style="margin-top:9px;color:#b8d1c2;font-size:12px"></div></article></div><p style="margin:11px 0 0;color:#9fc0ad;font-size:11px">Datos demostrativos del trial. El botón 🎤 Dictar toma tu voz y la transcribe; este botón 🔊 reproduce el audio de ejemplo. La cámara y el OCR real siguen disponibles desde las acciones habituales de PampaIA.</p>';
     panel.appendChild(demo);
+    demo.querySelector('#pampaIATrialVoicePlay').addEventListener('click', () => {
+      const result = demo.querySelector('#pampaIATrialVoiceResult');
+      const text = 'Anotá 40 litros de gasoil en Lote Norte Maíz.';
+      if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) {
+        result.textContent = 'Este navegador no permite reproducir la locución de ejemplo.';
+        return;
+      }
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'es-AR';
+      utterance.rate = 0.9;
+      utterance.onstart = () => { result.textContent = 'Reproduciendo dictado demostrativo...'; };
+      utterance.onend = () => { result.textContent = 'Dictado escuchado. Ahora podés procesarlo para ver la carga estructurada.'; };
+      utterance.onerror = () => { result.textContent = 'No se pudo reproducir el dictado en este navegador.'; };
+      window.speechSynthesis.speak(utterance);
+    });
     demo.querySelector('#pampaIATrialVoiceDemo').addEventListener('click', () => {
       const log = { recordedAt: new Date().toISOString(), lot: 'Lote_Norte_Maiz', input: '40 litros de gasoil', category: 'Combustible', demo: true };
       localStorage.setItem('pampa-precision-trial-voice-demo', JSON.stringify(log));
