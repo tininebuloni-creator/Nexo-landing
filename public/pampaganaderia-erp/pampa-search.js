@@ -75,9 +75,8 @@
     style.textContent = '#pampaGlobalSearch label{display:block;color:#94a3b8;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px}#pampaGlobalSearch input{width:100%;box-sizing:border-box;border:1px solid rgba(148,163,184,.35);border-radius:6px;padding:8px 9px;background:#fff;color:#18221d;font:inherit;font-size:12px}#pampaGlobalSearchCount{min-height:16px;margin-top:4px;color:#94a3b8;font-size:10px}#pampaGlobalSearchResults{position:absolute;left:0;right:0;top:78px;max-height:260px;overflow:auto;background:#fff;border:1px solid #dbe4ee;border-radius:6px;box-shadow:0 8px 22px rgba(15,23,42,.2)}#pampaGlobalSearchResults button{display:block;width:100%;border:0;border-bottom:1px solid #eef2f7;padding:9px;text-align:left;background:#fff;color:#17231d;font:inherit;font-size:12px;cursor:pointer}#pampaGlobalSearchResults button:hover{background:#eef7ef}';
     document.head.appendChild(style);
     const companyBlock = navigation.querySelector('.sidebar-company, [data-module="empresa"], [data-view="empresa"]');
-    const companySection = companyBlock?.closest('.nav-section');
     if (companyBlock?.classList.contains('sidebar-company')) companyBlock.insertAdjacentElement('afterend', wrapper);
-    else if (companySection) companySection.insertAdjacentElement('afterend', wrapper);
+    else if (companyBlock) companyBlock.insertAdjacentElement('afterend', wrapper);
     else navigation.prepend(wrapper);
     const input = wrapper.querySelector('input');
     const results = wrapper.querySelector('[role="listbox"]');
