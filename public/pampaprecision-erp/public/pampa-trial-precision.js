@@ -4,6 +4,7 @@
 
   const cacheKey = 'pampa-license-cache';
   const syncKey = 'pampa-license-sync-time';
+  const landingTrialKey = 'pampa-precision-nexo-landing-trial';
   const current = (() => {
     try { return JSON.parse(localStorage.getItem(cacheKey) || 'null'); } catch { return null; }
   })();
@@ -19,6 +20,7 @@
     }));
     localStorage.setItem(syncKey, now.toISOString());
   }
+  localStorage.setItem(landingTrialKey, 'true');
 
   window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.hash}`);
 
