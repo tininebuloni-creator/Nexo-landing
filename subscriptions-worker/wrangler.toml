@@ -1,0 +1,11 @@
+name = "nexo-subscriptions"
+main = "worker.js"
+compatibility_date = "2026-08-25"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "nexo-subscriptions"
+database_id = "43cffa6b-6d78-46e3-b2c9-eb1a7d651997"
+
+[triggers]
+crons = ["0 13 * * *"]
