@@ -4852,10 +4852,12 @@ start();
 <script>
   (function () {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('trial') === 'auto' && !localStorage.getItem('PampaPorcinosLicense')) {
-      const now = new Date();
-      const expiresAt = new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000).toISOString();
-      localStorage.setItem('PampaPorcinosLicense', JSON.stringify({ key: 'NEXO-MTRI-AL10-0001', code: 'M', version: 'premium', type: 'trial', expiresAt, activatedAt: now.toISOString() }));
+    if (params.get('trial') === 'auto') {
+      if (!localStorage.getItem('PampaPorcinosLicense')) {
+        const now = new Date();
+        const expiresAt = new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000).toISOString();
+        localStorage.setItem('PampaPorcinosLicense', JSON.stringify({ key: 'NEXO-MTRI-AL10-0001', code: 'M', version: 'premium', type: 'trial', expiresAt, activatedAt: now.toISOString() }));
+      }
       window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.hash}`);
       if (typeof applyLicenseAccess === 'function') applyLicenseAccess();
     }
