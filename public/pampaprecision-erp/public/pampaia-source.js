@@ -12,6 +12,32 @@
     return total;
   }, 0);
 
+  const isLandingTrialDemo = () => {
+    try {
+      const license = JSON.parse(localStorage.getItem('pampa-license-cache') || '{}').license;
+      return license?.type === 'trial' && localStorage.getItem('pampa-precision-nexo-landing-trial') === 'true';
+    } catch {
+      return false;
+    }
+  };
+
+  function mountTrialInputDemos(panel) {
+    if (!isLandingTrialDemo() || panel.querySelector('#pampaIATrialInputDemos')) return;
+    const demo = document.createElement('section');
+    demo.id = 'pampaIATrialInputDemos';
+    demo.style.cssText = 'position:relative;z-index:1;margin-top:14px;padding:14px;border:1px solid rgba(245,158,11,.35);border-radius:10px;background:rgba(245,158,11,.08);';
+    demo.innerHTML = '<div style="font-size:10px;color:#fbbf24;letter-spacing:.9px;font-family:var(--font-mono);text-transform:uppercase">Demo del trial: voz y escaneo</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:10px"><article style="padding:12px;border-radius:8px;background:rgba(0,0,0,.16)"><strong style="color:#fff">🎙️ Carga por voz</strong><p style="margin:7px 0;color:#d6e5db;font-size:12px;line-height:1.45">Ejemplo: “Anotá 40 litros de gasoil en Lote Norte Maíz”.</p><button type="button" class="pampaia-btn" id="pampaIATrialVoiceDemo">▶ Procesar dictado de ejemplo</button><div id="pampaIATrialVoiceResult" style="margin-top:9px;color:#b8d1c2;font-size:12px"></div></article><article style="padding:12px;border-radius:8px;background:rgba(0,0,0,.16)"><strong style="color:#fff">📷 Escaneo de remito</strong><p style="margin:7px 0;color:#d6e5db;font-size:12px;line-height:1.45">Remito de fertilizante precargado para ver la extracción de datos.</p><button type="button" class="pampaia-btn" id="pampaIATrialScanDemo">Escanear remito de ejemplo</button><div id="pampaIATrialScanResult" style="margin-top:9px;color:#b8d1c2;font-size:12px"></div></article></div><p style="margin:11px 0 0;color:#9fc0ad;font-size:11px">Datos demostrativos del trial. El micrófono, la cámara y el OCR real siguen disponibles desde las acciones habituales de PampaIA.</p>';
+    panel.appendChild(demo);
+    demo.querySelector('#pampaIATrialVoiceDemo').addEventListener('click', () => {
+      const log = { recordedAt: new Date().toISOString(), lot: 'Lote_Norte_Maiz', input: '40 litros de gasoil', category: 'Combustible', demo: true };
+      localStorage.setItem('pampa-precision-trial-voice-demo', JSON.stringify(log));
+      demo.querySelector('#pampaIATrialVoiceResult').innerHTML = '<strong style="color:#fff">Dictado interpretado</strong><br>Lote: Lote_Norte_Maiz · Insumo: gasoil · Cantidad: 40 L · Categoría: combustible.<br><small>Registro demostrativo guardado localmente.</small>';
+    });
+    demo.querySelector('#pampaIATrialScanDemo').addEventListener('click', () => {
+      demo.querySelector('#pampaIATrialScanResult').innerHTML = '<strong style="color:#fff">Remito extraído</strong><table style="width:100%;margin-top:7px;border-collapse:collapse;font-size:11px"><tr><td>Proveedor</td><td><strong>Fertilizantes Centro</strong></td></tr><tr><td>Comprobante</td><td>REM-0008-00452</td></tr><tr><td>Producto</td><td>Urea granulada</td></tr><tr><td>Cantidad</td><td>8.750 kg</td></tr><tr><td>Importe</td><td>USD 6.920</td></tr></table><small>Resultado demostrativo: revisar antes de registrar en una operación real.</small>';
+    });
+  }
+
   function render(type) {
     const state = getState();
     const insights = document.querySelector('#pampaiaPanel #pampaiaInsights');
@@ -69,6 +95,7 @@
     const dashboardSummary = dashboard.querySelector('.dashboard-home-layout') || dashboard.querySelector('.dashboard-top + .dashboard-shortcuts') || dashboard.querySelector('.dashboard-top');
     if (dashboardSummary) dashboardSummary.insertAdjacentElement('afterend', panel);
     else dashboard.appendChild(panel);
+    mountTrialInputDemos(panel);
     document.body.insertAdjacentHTML('beforeend', "<div id=\"pampaV10Overlay\" aria-hidden=\"true\"><div id=\"pampaV10Modal\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"pampaV10Title\">\n  <div style=\"display:flex;justify-content:space-between;align-items:center\"><div><h2 id=\"pampaV10Title\" style=\"margin:0\">Configuración de PampaIA</h2><small>Servicio y dispositivo</small></div><button type=\"button\" class=\"btn\" onclick=\"pampaV10CloseConfig()\" aria-label=\"Cerrar configuración\">X</button></div>\n  <div class=\"pv10-tabs\"><button type=\"button\" id=\"pv10tAI\" class=\"pv10-tab active\" onclick=\"pampaV10Tab('ai')\">PampaIA</button><button type=\"button\" id=\"pv10tDev\" class=\"pv10-tab\" onclick=\"pampaV10Tab('dev')\">Dispositivo</button></div>\n  <section id=\"pv10sAI\" class=\"pv10-sec active\"><h3>PampaIA</h3><div class=\"pv10-field\"><label for=\"pv10AIUrl\">Endpoint de IA</label><input id=\"pv10AIUrl\" placeholder=\"/api/ia\"></div><div class=\"pv10-field\"><label for=\"pv10AIMode\">Modo</label><select id=\"pv10AIMode\"><option value=\"server\">IA del servidor</option><option value=\"hybrid\">Híbrida: local + servidor</option></select></div><div class=\"pv10-actions\"><button type=\"button\" class=\"btn btn-primary\" onclick=\"pampaV10Save()\">Guardar</button><button type=\"button\" class=\"btn\" onclick=\"pampaV10TestAI()\">Probar IA</button></div><div id=\"pv10AIStatus\" class=\"pv10-status\">Sin probar.</div></section>\n  <section id=\"pv10sDev\" class=\"pv10-sec\"><h3>Dispositivo</h3><div class=\"pv10-field\"><label for=\"pv10DeviceId\">ID único</label><input id=\"pv10DeviceId\" readonly></div><div id=\"pv10DevStatus\" class=\"pv10-status\">-</div><button type=\"button\" class=\"btn\" onclick=\"pampaV10RefreshDevice()\">Actualizar estado</button></section>\n  <p style=\"font-size:11px;color:#64748b\">Las claves y permisos se administran exclusivamente en el backend.</p>\n</div></div>");
     panel.querySelectorAll('[data-pampaia]').forEach((button) => button.addEventListener('click', () => render(button.dataset.pampaia)));
     panel.querySelectorAll('.pampaia-btn').forEach((button) => {
