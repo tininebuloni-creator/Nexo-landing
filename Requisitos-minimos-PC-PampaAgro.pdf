@@ -1,0 +1,88 @@
+%PDF-1.4
+%PDF
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 3910 >>
+stream
+0.07 0.24 0.23 rg 0 730 595 112 re f
+0.91 0.73 0.29 rg 0 730 8 112 re f
+BT /F2 25 Tf 1 1 1 rg 1 0 0 1 38 795 Tm (REQUISITOS DE PC) Tj ET
+BT /F1 12 Tf 0.83 0.9 0.89 rg 1 0 0 1 38 772 Tm (PampaAgro ERP Desktop - especificacion para operar con fluidez) Tj ET
+BT /F2 15 Tf 0.07 0.24 0.23 rg 1 0 0 1 38 700 Tm (Configuracion recomendada) Tj ET
+1 0.97 0.87 rg 38 646 519 42 re f
+0.87 0.71 0.27 rg 38 646 6 42 re f
+BT /F2 10.5 Tf 0.31 0.22 0 rg 1 0 0 1 56 672 Tm (PC recomendada: Intel Core i5 8.a gen. o superior, o AMD Ryzen 5 3500U o superior;) Tj ET
+BT /F1 10.5 Tf 0.31 0.22 0 rg 1 0 0 1 56 656 Tm (16 GB de RAM; SSD de 512 GB; Windows 11 de 64 bits y pantalla Full HD.) Tj ET
+BT /F2 15 Tf 0.07 0.24 0.23 rg 1 0 0 1 38 617 Tm (Requisitos de hardware y sistema) Tj ET
+0.07 0.24 0.23 rg 38 582 519 23 re f
+BT /F2 8.5 Tf 1 1 1 rg 1 0 0 1 47 590 Tm (COMPONENTE) Tj ET
+BT /F2 8.5 Tf 1 1 1 rg 1 0 0 1 194 590 Tm (MINIMO ACEPTABLE) Tj ET
+BT /F2 8.5 Tf 1 1 1 rg 1 0 0 1 380 590 Tm (RECOMENDADO) Tj ET
+0.84 0.88 0.86 RG 38 540 m 557 540 l S
+BT /F2 8.8 Tf 0.09 0.13 0.15 rg 1 0 0 1 47 564 Tm (Sistema operativo) Tj ET
+BT /F1 8.6 Tf 0.09 0.13 0.15 rg 1 0 0 1 194 564 Tm (Windows 10/11, 64 bits) Tj ET
+BT /F1 8.6 Tf 0.09 0.13 0.15 rg 1 0 0 1 380 564 Tm (Windows 11, 64 bits) Tj ET
+0.95 0.97 0.96 rg 38 498 519 42 re f
+0.84 0.88 0.86 RG 38 498 m 557 498 l S
+BT /F2 8.8 Tf 0.09 0.13 0.15 rg 1 0 0 1 47 522 Tm (Procesador) Tj ET
+BT /F1 8.6 Tf 0.09 0.13 0.15 rg 1 0 0 1 194 522 Tm (Core i3 8.a gen. / Ryzen 3 3000) Tj ET
+BT /F1 8.6 Tf 0.09 0.13 0.15 rg 1 0 0 1 380 522 Tm (Core i5 8.a gen. / Ryzen 5 3500U o superior) Tj ET
+0.84 0.88 0.86 RG 38 456 m 557 456 l S
+BT /F2 8.8 Tf 0.09 0.13 0.15 rg 1 0 0 1 47 480 Tm (Memoria RAM) Tj ET
+BT /F1 8.6 Tf 0.09 0.13 0.15 rg 1 0 0 1 194 480 Tm (8 GB) Tj ET
+BT /F1 8.6 Tf 0.09 0.13 0.15 rg 1 0 0 1 380 480 Tm (16 GB) Tj ET
+0.95 0.97 0.96 rg 38 414 519 42 re f
+0.84 0.88 0.86 RG 38 414 m 557 414 l S
+BT /F2 8.8 Tf 0.09 0.13 0.15 rg 1 0 0 1 47 438 Tm (Almacenamiento) Tj ET
+BT /F1 8.6 Tf 0.09 0.13 0.15 rg 1 0 0 1 194 438 Tm (SSD 256 GB con 60 GB libres) Tj ET
+BT /F1 8.6 Tf 0.09 0.13 0.15 rg 1 0 0 1 380 438 Tm (SSD 512 GB con 100 GB libres) Tj ET
+0.84 0.88 0.86 RG 38 372 m 557 372 l S
+BT /F2 8.8 Tf 0.09 0.13 0.15 rg 1 0 0 1 47 396 Tm (Graficos) Tj ET
+BT /F1 8.6 Tf 0.09 0.13 0.15 rg 1 0 0 1 194 396 Tm (Integrados con DirectX 11 / WebGL) Tj ET
+BT /F1 8.6 Tf 0.09 0.13 0.15 rg 1 0 0 1 380 396 Tm (No requiere placa de video dedicada) Tj ET
+0.95 0.97 0.96 rg 38 330 519 42 re f
+0.84 0.88 0.86 RG 38 330 m 557 330 l S
+BT /F2 8.8 Tf 0.09 0.13 0.15 rg 1 0 0 1 47 354 Tm (Pantalla) Tj ET
+BT /F1 8.6 Tf 0.09 0.13 0.15 rg 1 0 0 1 194 354 Tm (1366 x 768) Tj ET
+BT /F1 8.6 Tf 0.09 0.13 0.15 rg 1 0 0 1 380 354 Tm (1920 x 1080 \(Full HD\)) Tj ET
+0.84 0.88 0.86 RG 38 288 m 557 288 l S
+BT /F2 8.8 Tf 0.09 0.13 0.15 rg 1 0 0 1 47 312 Tm (Internet) Tj ET
+BT /F1 8.6 Tf 0.09 0.13 0.15 rg 1 0 0 1 194 312 Tm (Para IA, actualizaciones y sync futura) Tj ET
+BT /F1 8.6 Tf 0.09 0.13 0.15 rg 1 0 0 1 380 312 Tm (Conexion estable de 10 Mbps o mas) Tj ET
+BT /F2 15 Tf 0.07 0.24 0.23 rg 1 0 0 1 38 262 Tm (Consideraciones) Tj ET
+BT /F1 10 Tf 0.09 0.13 0.15 rg 1 0 0 1 38 239 Tm (La aplicacion se distribuye para Windows x64 y usa Electron. No utiliza IA local ni requiere GPU dedicada.) Tj ET
+BT /F1 9.2 Tf 0.09 0.13 0.15 rg 1 0 0 1 38 218 Tm (Build actual: instalador de 169.9 MB y aplicacion desplegada de 224.6 MB. El espacio adicional cubre Windows,) Tj ET
+BT /F1 9.2 Tf 0.09 0.13 0.15 rg 1 0 0 1 38 204 Tm (cache, exportaciones PDF/Excel, documentos adjuntos y datos offline. La sincronizacion de archivos esta pendiente) Tj ET
+BT /F1 9.2 Tf 0.09 0.13 0.15 rg 1 0 0 1 38 190 Tm (de integracion, por lo que no agrega una carga local comprobada.) Tj ET
+0.84 0.88 0.86 RG 38 155 m 557 155 l S
+BT /F1 8.5 Tf 0.31 0.39 0.4 rg 1 0 0 1 38 138 Tm (Documento generado el 25/08/2026 para PampaAgro ERP Desktop.) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000014 00000 n 
+0000000063 00000 n 
+0000000120 00000 n 
+0000000256 00000 n 
+0000004218 00000 n 
+0000004288 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+4363
+%%EOF
