@@ -9,7 +9,59 @@
     personal: 'rrhh empleados personal recursos humanos asistencia liquidaciones'
   };
 
+  function extractRecordText(value) {
+    if (value === null || value === undefined) return '';
+    if (['string', 'number', 'boolean'].includes(typeof value)) return ` ${value}`;
+    if (Array.isArray(value)) return value.map(extractRecordText).join('');
+    if (typeof value === 'object') return Object.values(value).map(extractRecordText).join('');
+    return '';
+  }
+
+  function mountNativeSearch() {
+    const input = document.getElementById('globalSearch');
+    const moduleSelect = document.getElementById('globalSearchModule');
+    const results = document.getElementById('globalSearchResults');
+    if (!input || !moduleSelect || !results) return false;
+    const getState = () => { try { return state; } catch { return globalThis.state || {}; } };
+    const getModules = () => { try { return modules; } catch { return Object.keys(getState()); } };
+    const getModuleNames = () => { try { return moduleNames; } catch { return {}; } };
+    const search = () => {
+      const query = normalize(input.value).trim();
+      results.replaceChildren();
+      if (query.length < 2) return;
+      const names = getModuleNames();
+      const availableModules = getModules();
+      const selected = moduleSelect.value === 'todos' ? availableModules : [moduleSelect.value];
+      let count = 0;
+      selected.forEach((moduleName) => {
+        const records = getState()?.[moduleName];
+        if (!Array.isArray(records)) return;
+        records.forEach((record, index) => {
+          const recordText = normalize(extractRecordText(record));
+          if (!recordText.includes(query)) return;
+          const item = document.createElement('div');
+          item.className = 'search-result';
+          item.style.cursor = 'pointer';
+          item.innerHTML = `<strong>${names[moduleName] || moduleName}</strong><br>${extractRecordText(record).trim().slice(0, 120)}...`;
+          item.addEventListener('click', () => {
+            results.replaceChildren();
+            input.value = '';
+            if (typeof globalThis.abrirRegistroDesdeBusqueda === 'function') globalThis.abrirRegistroDesdeBusqueda(moduleName, index);
+            else if (typeof globalThis.switchModule === 'function') globalThis.switchModule(moduleName);
+          });
+          results.appendChild(item);
+          count += 1;
+        });
+      });
+      if (!count) { const empty = document.createElement('div'); empty.className = 'search-result'; empty.textContent = 'Sin resultados'; results.appendChild(empty); }
+    };
+    input.addEventListener('input', search);
+    moduleSelect.addEventListener('change', search);
+    return true;
+  }
+
   function mountSearch() {
+    if (mountNativeSearch()) return;
     if (document.getElementById('pampaGlobalSearch')) return;
     const navigation = document.querySelector('.sidebar-nav, .nav, aside nav, aside.sidebar, .sidebar');
     if (!navigation) return;
