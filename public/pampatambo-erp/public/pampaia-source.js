@@ -113,7 +113,38 @@
     recognition.onerror = () => { if (status) status.textContent = 'No se pudo tomar el dictado.'; };
     recognition.start();
   };
-  window.pampaIAOpenCamera = () => document.getElementById(panelId)?.querySelector('#pampaIACamera')?.click();
+  window.pampaIAOpenCamera = async () => {
+    const panel = document.getElementById(panelId);
+    const answer = panel?.querySelector('#pampaIAAnswer');
+    if (!navigator.mediaDevices?.getUserMedia) {
+      panel?.querySelector('#pampaIACamera')?.click();
+      return;
+    }
+    const overlay = document.createElement('div');
+    overlay.id = 'pampaIACameraModal';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:100001;background:rgba(15,23,42,.88);display:flex;align-items:center;justify-content:center;padding:18px;';
+    overlay.innerHTML = '<div style="width:min(620px,100%);background:#fff;border-radius:12px;padding:16px"><strong style="display:block;margin-bottom:10px">Sacar foto para OCR</strong><video autoplay playsinline style="display:block;width:100%;max-height:60vh;object-fit:contain;background:#111;border-radius:8px"></video><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button type="button" class="btn" data-camera-cancel>Cancelar</button><button type="button" class="btn btn-primary" data-camera-capture>Capturar y analizar</button></div></div>';
+    document.body.appendChild(overlay);
+    const video = overlay.querySelector('video');
+    let stream;
+    const close = () => { stream?.getTracks().forEach((track) => track.stop()); overlay.remove(); };
+    overlay.querySelector('[data-camera-cancel]').addEventListener('click', close);
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+      video.srcObject = stream;
+      overlay.querySelector('[data-camera-capture]').addEventListener('click', () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth || 1280;
+        canvas.height = video.videoHeight || 720;
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => { close(); if (blob) window.pampaIAProcessDocument(new File([blob], 'captura-camera.jpg', { type: 'image/jpeg' })); }, 'image/jpeg', .9);
+      });
+    } catch (error) {
+      close();
+      if (answer) answer.innerHTML = '<strong>No se pudo abrir la cámara</strong><br><small>' + String(error.message || 'Permiso de cámara rechazado.') + '<br>Podés elegir una imagen desde el dispositivo.</small>';
+      panel?.querySelector('#pampaIACamera')?.click();
+    }
+  };
   window.pampaIAProcessDocument = async (file) => {
     if (!file) return;
     const panel = document.getElementById(panelId);

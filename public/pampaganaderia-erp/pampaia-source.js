@@ -66,7 +66,7 @@
     const wrapper = document.createElement('div');
     wrapper.innerHTML = "<section class=\"pampaia-panel\" id=\"pampaiaPanel\">\n          <div class=\"pampaia-head\">\n            <div class=\"pampaia-brand\">\n              <div class=\"pampaia-icon\">✦</div>\n              <div><div class=\"pampaia-title\">PampaIA</div><div class=\"pampaia-sub\">Inteligencia para administración y operación · conectada a los datos del ERP</div></div>\n            </div>\n            <div style=\"display:flex;align-items:center;gap:8px;flex-wrap:wrap\">\n              <button type=\"button\" class=\"btn\" onclick=\"pampaV10OpenConfig()\" style=\"font-size:12px;padding:7px 10px\">⚙️ Configurar PampaIA</button>\n              <div class=\"pampaia-role\" id=\"pampaiaRole\">IA GERENCIAL</div>\n            </div>\n          </div>\n          <div class=\"pampaia-grid\">\n            <div class=\"pampaia-summary\">\n              <div style=\"display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap\">\n                <div class=\"pampaia-label\">Análisis inteligente de hoy</div>\n              </div>\n              <div class=\"pampaia-insights\" id=\"pampaiaInsights\">\n                <div class=\"pampaia-insight\"><span class=\"pampaia-dot\"></span><span>Operación lista para analizar. PampaIA toma como base los registros cargados en el ERP.</span></div>\n                <div class=\"pampaia-insight\"><span class=\"pampaia-dot warn\"></span><span>Las recomendaciones se actualizan según el rol y los módulos habilitados.</span></div>\n                <div class=\"pampaia-insight\"><span class=\"pampaia-dot\"></span><span>Podés consultar finanzas, operación, maquinaria, inventario y productividad.</span></div>\n              </div>\n              <div class=\"pampaia-actions\">\n                <button class=\"pampaia-btn\" onclick=\"pampaIAAnalizar('empresa')\">🏢 Analizar empresa</button>\n                <button class=\"pampaia-btn\" onclick=\"pampaIAAnalizar('operacion')\">🚜 Analizar operación</button>\n                <button class=\"pampaia-btn\" onclick=\"pampaIAAnalizar('finanzas')\">💰 Analizar finanzas</button>\n                <button class=\"pampaia-btn\" onclick=\"pampaIAAnalizar('riesgos')\">⚠️ Detectar riesgos</button>\n              </div>\n            </div>\n            <div class=\"pampaia-chat\">\n              <div class=\"pampaia-label\">Consultá a PampaIA</div>\n              <div class=\"pampaia-question\">\n<div class=\"pampaia-input-tools\" style=\"display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;\">\n  <button type=\"button\" class=\"btn\" id=\"pampaIAMic\" onclick=\"pampaIAToggleVoice()\">🎤 Dictar</button>\n  <button type=\"button\" class=\"btn\" onclick=\"document.getElementById('pampaIAFile').click()\">📄 Cargar PDF / Factura</button>\n  <button type=\"button\" class=\"btn\" onclick=\"pampaIAOpenCamera()\">📷 Sacar foto</button>\n  <input id=\"pampaIAFile\" type=\"file\" accept=\".pdf,.png,.jpg,.jpeg\" style=\"display:none\" onchange=\"pampaIAProcessDocument(this.files[0])\">\n  <input id=\"pampaIACamera\" type=\"file\" accept=\"image/*\" capture=\"environment\" style=\"display:none\" onchange=\"pampaIAProcessDocument(this.files[0])\">\n  <input id=\"pampaIACameraDesktop\" type=\"file\" accept=\"image/*\" capture=\"environment\" style=\"display:none\" onchange=\"pampaIAProcessDocument(this.files[0])\">\n</div>\n<div id=\"pampaIAVoiceStatus\" style=\"font-size:12px;margin-top:6px;color:#64748b;\"></div>\n<input id=\"pampaIAQuestion\" placeholder=\"Ej.: ¿Dónde estoy gastando de más?\" onkeydown=\"if(event.key==='Enter') pampaIAResponder()\"><button onclick=\"pampaIAResponder()\">Consultar</button></div>\n              <div class=\"pampaia-answer\" id=\"pampaIAAnswer\">Elegí una consulta o escribí una pregunta. La respuesta respetará el rol activo.</div>\n              <div class=\"pampaia-foot\">✓ Funcional con los datos cargados en este ERP. Las respuestas actuales son análisis locales por reglas; la conexión a un modelo de IA permitirá lenguaje natural y predicción avanzada.</div>\n            </div>\n          </div>\n        </section>";
     const panel = wrapper.firstElementChild;
-    const dashboardSummary = dashboard.querySelector('.dashboard-home-layout') || dashboard.querySelector('.dashboard-hero');
+    const dashboardSummary = dashboard.querySelector('.dashboard-home-layout') || dashboard.querySelector('.dashboard-top + .dashboard-shortcuts') || dashboard.querySelector('.dashboard-top');
     if (dashboardSummary) dashboardSummary.insertAdjacentElement('afterend', panel);
     else dashboard.appendChild(panel);
     document.body.insertAdjacentHTML('beforeend', "<div id=\"pampaV10Overlay\" aria-hidden=\"true\"><div id=\"pampaV10Modal\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"pampaV10Title\">\n  <div style=\"display:flex;justify-content:space-between;align-items:center\"><div><h2 id=\"pampaV10Title\" style=\"margin:0\">Configuración de PampaIA</h2><small>Servicio y dispositivo</small></div><button type=\"button\" class=\"btn\" onclick=\"pampaV10CloseConfig()\" aria-label=\"Cerrar configuración\">X</button></div>\n  <div class=\"pv10-tabs\"><button type=\"button\" id=\"pv10tAI\" class=\"pv10-tab active\" onclick=\"pampaV10Tab('ai')\">PampaIA</button><button type=\"button\" id=\"pv10tDev\" class=\"pv10-tab\" onclick=\"pampaV10Tab('dev')\">Dispositivo</button></div>\n  <section id=\"pv10sAI\" class=\"pv10-sec active\"><h3>PampaIA</h3><div class=\"pv10-field\"><label for=\"pv10AIUrl\">Endpoint de IA</label><input id=\"pv10AIUrl\" placeholder=\"/api/ia\"></div><div class=\"pv10-field\"><label for=\"pv10AIMode\">Modo</label><select id=\"pv10AIMode\"><option value=\"server\">IA del servidor</option><option value=\"hybrid\">Híbrida: local + servidor</option></select></div><div class=\"pv10-actions\"><button type=\"button\" class=\"btn btn-primary\" onclick=\"pampaV10Save()\">Guardar</button><button type=\"button\" class=\"btn\" onclick=\"pampaV10TestAI()\">Probar IA</button></div><div id=\"pv10AIStatus\" class=\"pv10-status\">Sin probar.</div></section>\n  <section id=\"pv10sDev\" class=\"pv10-sec\"><h3>Dispositivo</h3><div class=\"pv10-field\"><label for=\"pv10DeviceId\">ID único</label><input id=\"pv10DeviceId\" readonly></div><div id=\"pv10DevStatus\" class=\"pv10-status\">-</div><button type=\"button\" class=\"btn\" onclick=\"pampaV10RefreshDevice()\">Actualizar estado</button></section>\n  <p style=\"font-size:11px;color:#64748b\">Las claves y permisos se administran exclusivamente en el backend.</p>\n</div></div>");
@@ -113,7 +113,38 @@
     recognition.onerror = () => { if (status) status.textContent = 'No se pudo tomar el dictado.'; };
     recognition.start();
   };
-  window.pampaIAOpenCamera = () => document.getElementById(panelId)?.querySelector('#pampaIACamera')?.click();
+  window.pampaIAOpenCamera = async () => {
+    const panel = document.getElementById(panelId);
+    const answer = panel?.querySelector('#pampaIAAnswer');
+    if (!navigator.mediaDevices?.getUserMedia) {
+      panel?.querySelector('#pampaIACamera')?.click();
+      return;
+    }
+    const overlay = document.createElement('div');
+    overlay.id = 'pampaIACameraModal';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:100001;background:rgba(15,23,42,.88);display:flex;align-items:center;justify-content:center;padding:18px;';
+    overlay.innerHTML = '<div style="width:min(620px,100%);background:#fff;border-radius:12px;padding:16px"><strong style="display:block;margin-bottom:10px">Sacar foto para OCR</strong><video autoplay playsinline style="display:block;width:100%;max-height:60vh;object-fit:contain;background:#111;border-radius:8px"></video><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button type="button" class="btn" data-camera-cancel>Cancelar</button><button type="button" class="btn btn-primary" data-camera-capture>Capturar y analizar</button></div></div>';
+    document.body.appendChild(overlay);
+    const video = overlay.querySelector('video');
+    let stream;
+    const close = () => { stream?.getTracks().forEach((track) => track.stop()); overlay.remove(); };
+    overlay.querySelector('[data-camera-cancel]').addEventListener('click', close);
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+      video.srcObject = stream;
+      overlay.querySelector('[data-camera-capture]').addEventListener('click', () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth || 1280;
+        canvas.height = video.videoHeight || 720;
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => { close(); if (blob) window.pampaIAProcessDocument(new File([blob], 'captura-camera.jpg', { type: 'image/jpeg' })); }, 'image/jpeg', .9);
+      });
+    } catch (error) {
+      close();
+      if (answer) answer.innerHTML = '<strong>No se pudo abrir la cámara</strong><br><small>' + String(error.message || 'Permiso de cámara rechazado.') + '<br>Podés elegir una imagen desde el dispositivo.</small>';
+      panel?.querySelector('#pampaIACamera')?.click();
+    }
+  };
   window.pampaIAProcessDocument = async (file) => {
     if (!file) return;
     const panel = document.getElementById(panelId);
