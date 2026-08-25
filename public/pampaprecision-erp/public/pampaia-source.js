@@ -38,6 +38,28 @@
     });
   }
 
+  function mountTrialVersionMatrix(panel) {
+    if (!isLandingTrialDemo() || panel.querySelector('#pampaIATrialVersionMatrix')) return;
+    const matrix = document.createElement('section');
+    matrix.id = 'pampaIATrialVersionMatrix';
+    matrix.style.cssText = 'position:relative;z-index:1;margin-top:14px;padding:14px;border:1px solid rgba(159,192,173,.35);border-radius:10px;background:rgba(0,0,0,.14);';
+    matrix.innerHTML = '<div style="font-size:10px;color:#9fc0ad;letter-spacing:.9px;font-family:var(--font-mono);text-transform:uppercase">IA por versión · recorrido demostrativo</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:10px"><article style="padding:12px;border-radius:8px;background:rgba(255,255,255,.04)"><strong style="color:#fff">SMALL · Básica</strong><p style="margin:7px 0;color:#d6e5db;font-size:12px;line-height:1.45">Asistente descriptivo: consulta stock, resume novedades y alerta desvíos simples.</p><button type="button" class="pampaia-btn" data-trial-ai="small">Ver ejemplo asistencial</button></article><article style="padding:12px;border-radius:8px;background:rgba(255,255,255,.04)"><strong style="color:#fff">MEDIUM · Profesional</strong><p style="margin:7px 0;color:#d6e5db;font-size:12px;line-height:1.45">IA predictiva: anticipa quiebres, costos y mantenimiento por uso.</p><button type="button" class="pampaia-btn" data-trial-ai="medium">Ver alertas predictivas</button></article><article style="padding:12px;border-radius:8px;background:rgba(255,255,255,.04)"><strong style="color:#fff">LARGE · Premium</strong><p style="margin:7px 0;color:#d6e5db;font-size:12px;line-height:1.45">IA prescriptiva: zonifica, recomienda dosis variable y compara campos.</p><button type="button" class="pampaia-btn" data-trial-ai="large">Ver prescripción por zonas</button></article></div><div id="pampaIATrialVersionResult" style="margin-top:11px;padding:11px;border-radius:7px;background:rgba(0,0,0,.16);color:#d6e5db;font-size:12px">Elegí una versión para ver cómo usaría los datos demostrativos del trial.</div><p style="margin:10px 0 0;color:#9fc0ad;font-size:11px">Las alertas de WhatsApp requieren configurar la cuenta oficial. Las predicciones mejoran con historial real; la zonificación Premium usa las 25 subzonas demostrativas del lote.</p>';
+    panel.appendChild(matrix);
+    const result = matrix.querySelector('#pampaIATrialVersionResult');
+    matrix.querySelectorAll('[data-trial-ai]').forEach((button) => button.addEventListener('click', () => {
+      const mode = button.dataset.trialAi;
+      if (mode === 'small') {
+        result.innerHTML = '<strong style="color:#fff">Ejemplo Small</strong><br>Resumen del día: se cargó urea para Lote_Norte_Maiz y quedó una prescripción variable pendiente de aplicación. El dictado y las consultas locales ya se pueden probar arriba.<br><small>WhatsApp: requiere configurar la cuenta oficial antes de enviar mensajes reales.</small>';
+      } else if (mode === 'medium') {
+        result.innerHTML = '<strong style="color:#fff">Ejemplo Medium</strong><br>Predicción de mantenimiento: revisar PUL-02 antes de la próxima aplicación. Costo proyectado del lote: USD 22.245 en insumos y servicios registrados; comparar contra la proyección de ingreso antes de cosecha.<br><small>Es una proyección demostrativa: el cálculo real necesita consumos, horas máquina e historial del establecimiento.</small>';
+      } else {
+        result.innerHTML = '<strong style="color:#fff">Ejemplo Large</strong><br>La grilla de Lote_Norte_Maiz separa 25 subzonas de alto, medio y bajo potencial. La dosis de urea varía según rinde y NDVI; abrí Precision para ver la prescripción sobre el mapa.<br><small>La comparación multi-campo se habilita al cargar campañas reales de más de un establecimiento.</small>';
+        const precisionButton = [...document.querySelectorAll('.nav button')].find((item) => item.dataset.view === 'Precision');
+        precisionButton?.click();
+      }
+    }));
+  }
+
   function render(type) {
     const state = getState();
     const insights = document.querySelector('#pampaiaPanel #pampaiaInsights');
@@ -96,6 +118,7 @@
     if (dashboardSummary) dashboardSummary.insertAdjacentElement('afterend', panel);
     else dashboard.appendChild(panel);
     mountTrialInputDemos(panel);
+    mountTrialVersionMatrix(panel);
     document.body.insertAdjacentHTML('beforeend', "<div id=\"pampaV10Overlay\" aria-hidden=\"true\"><div id=\"pampaV10Modal\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"pampaV10Title\">\n  <div style=\"display:flex;justify-content:space-between;align-items:center\"><div><h2 id=\"pampaV10Title\" style=\"margin:0\">Configuración de PampaIA</h2><small>Servicio y dispositivo</small></div><button type=\"button\" class=\"btn\" onclick=\"pampaV10CloseConfig()\" aria-label=\"Cerrar configuración\">X</button></div>\n  <div class=\"pv10-tabs\"><button type=\"button\" id=\"pv10tAI\" class=\"pv10-tab active\" onclick=\"pampaV10Tab('ai')\">PampaIA</button><button type=\"button\" id=\"pv10tDev\" class=\"pv10-tab\" onclick=\"pampaV10Tab('dev')\">Dispositivo</button></div>\n  <section id=\"pv10sAI\" class=\"pv10-sec active\"><h3>PampaIA</h3><div class=\"pv10-field\"><label for=\"pv10AIUrl\">Endpoint de IA</label><input id=\"pv10AIUrl\" placeholder=\"/api/ia\"></div><div class=\"pv10-field\"><label for=\"pv10AIMode\">Modo</label><select id=\"pv10AIMode\"><option value=\"server\">IA del servidor</option><option value=\"hybrid\">Híbrida: local + servidor</option></select></div><div class=\"pv10-actions\"><button type=\"button\" class=\"btn btn-primary\" onclick=\"pampaV10Save()\">Guardar</button><button type=\"button\" class=\"btn\" onclick=\"pampaV10TestAI()\">Probar IA</button></div><div id=\"pv10AIStatus\" class=\"pv10-status\">Sin probar.</div></section>\n  <section id=\"pv10sDev\" class=\"pv10-sec\"><h3>Dispositivo</h3><div class=\"pv10-field\"><label for=\"pv10DeviceId\">ID único</label><input id=\"pv10DeviceId\" readonly></div><div id=\"pv10DevStatus\" class=\"pv10-status\">-</div><button type=\"button\" class=\"btn\" onclick=\"pampaV10RefreshDevice()\">Actualizar estado</button></section>\n  <p style=\"font-size:11px;color:#64748b\">Las claves y permisos se administran exclusivamente en el backend.</p>\n</div></div>");
     panel.querySelectorAll('[data-pampaia]').forEach((button) => button.addEventListener('click', () => render(button.dataset.pampaia)));
     panel.querySelectorAll('.pampaia-btn').forEach((button) => {
