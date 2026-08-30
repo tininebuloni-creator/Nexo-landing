@@ -12,8 +12,11 @@
 <meta name="apple-mobile-web-app-title" content="PampaGanaderia">
 <link rel="apple-touch-icon" href="logo2.png">
 <link rel="manifest" href="manifest.webmanifest">
+<script src="pampa-license-key.js"></script>
+<script src="pampa-license-verify.js"></script>
 <script src="pampa-licensing.js"></script>
 <script src="pampa-offline-core.js"></script>
+<script src="pampa-search.js?v=2"></script>
 <script src="pampa-trial-links.js"></script>
 
 <!-- Google Drive API -->
@@ -23,9 +26,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="node_modules/jspdf/dist/jspdf.umd.min.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="../node_modules/jspdf/dist/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="leaflet/leaflet.css" />
+<link rel="stylesheet" href="pampa-brand.css">
+    <script src="leaflet/leaflet.js"></script>
     <style>
 /* === CSS VARIABLES === */
 :root {
@@ -1153,7 +1157,7 @@ body {
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <div class="logo-icon"></div>
+      <div class="brand-container"><div class="logo-icon"></div><span class="brand-badge">℠</span></div>
       <div>
         <div class="logo-text">PampaGanaderia ERP</div>
         <div class="logo-sub">v1.0.1</div>
@@ -1197,15 +1201,14 @@ body {
 
       </div>
       <div class="nav-section">
-        
-        <div class="nav-section-title">Ganadería</div>
-        <div class="nav-item" data-module="hacienda"><span class="nav-icon">🐄</span> Hacienda</div>
-        <div class="nav-item" data-module="alimentacion"><span class="nav-icon">🌾</span> Alimentación</div>
-      </div>
-      <div class="nav-section">
         <div class="nav-section-title">Campos y lotes</div>
         <div class="nav-item" data-module="campos"><span class="nav-icon">🗺️</span> Campos</div>
         <div class="nav-item" data-module="lotes"><span class="nav-icon">📍</span> Lotes georreferenciados</div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Ganadería</div>
+        <div class="nav-item" data-module="hacienda"><span class="nav-icon">🐄</span> Hacienda</div>
+        <div class="nav-item" data-module="alimentacion"><span class="nav-icon">🌾</span> Alimentación</div>
       </div>
       <div class="nav-section">
         <div class="nav-section-title">Equipos</div>
@@ -1268,10 +1271,10 @@ body {
           <span class="sync-text">Offline</span>
         </div>
         <select class="topbar-btn" id="roleSelector" onchange="cambiarRol(this.value)" style="background:var(--bg-tertiary);color:var(--text-primary);border:1px solid var(--border);padding:6px 12px;border-radius:6px;cursor:pointer;font-family:var(--font-main);font-size:12px;">
-          <option value="propietario">👑 Administrador/Propietario</option>
-          <option value="administracion">🩺 Ingeniero/Veterinario</option>
-          <option value="ingeniero">👷 Operador</option>
-          <option value="oficina">🧾 Operador de Oficina</option>
+          <option value="propietario">👑 Propietario / Responsable</option>
+          <option value="administracion">🧾 Administración</option>
+          <option value="ingeniero">🩺 Ingeniero / Veterinario</option>
+          <option value="oficina">👷 Operario de campo</option>
         </select>
         <button class="topbar-btn" onclick="gestionarRolesLicencia()">⚙️ Roles</button>
         <span id="roleTrialHint" style="display:none;font-size:11px;color:var(--blue);padding:6px 8px;border:1px dashed var(--blue);border-radius:6px;white-space:nowrap;">Cambio de rol habilitado</span>
@@ -1308,10 +1311,10 @@ body {
             <div class="dashboard-date-chip"><span>HOY</span><strong id="portadaFecha"></strong></div>
             <div class="dashboard-top-actions-grid">
               <select class="dashboard-role-select" id="roleSelectorDashboard" onchange="cambiarRol(this.value)">
-                <option value="propietario">👑 Administrador/Propietario</option>
-                <option value="administracion">🩺 Ingeniero/Veterinario</option>
-                <option value="ingeniero">👷 Operador</option>
-                <option value="oficina">🧾 Operador de Oficina</option>
+                <option value="propietario">👑 Propietario / Responsable</option>
+                <option value="administracion">🧾 Administración</option>
+                <option value="ingeniero">🩺 Ingeniero / Veterinario</option>
+                <option value="oficina">👷 Operario de campo</option>
               </select>
               <button class="dashboard-action-btn" onclick="gestionarRolesLicencia()">⚙️ Roles</button>
               <span id="roleTrialHintDashboard" style="display:none;font-size:11px;color:var(--blue);padding:6px 8px;border:1px dashed var(--blue);border-radius:6px;">Cambio de rol habilitado</span>
@@ -1438,7 +1441,7 @@ body {
             </div>
             <div style="max-height:400px;overflow-y:auto;">
               <table class="data-table">
-                <thead><tr><th>Fecha</th><th>Tipo</th><th>Categoría</th><th>Cantidad</th><th>Detalle</th><th></th></tr></thead>
+                <thead><tr><th>Fecha</th><th>Tipo</th><th>Categoría</th><th>Cantidad</th><th>Detalle</th><th>Carta de Porte</th><th></th></tr></thead>
                 <tbody id="haciendaBody"></tbody>
               </table>
             </div>
@@ -1584,6 +1587,7 @@ body {
                 <th>Código</th>
                 <th>Producto</th>
                 <th>Categoría</th>
+                <th>Campaña de origen</th>
                 <th>Stock</th>
                 <th>Unidad</th>
                 <th>Costo Unit.</th>
@@ -1637,10 +1641,12 @@ body {
                 <th>Fecha</th>
                 <th>Categoría</th>
                 <th>Alimento</th>
+                <th>Peso prom.</th>
                 <th>Ración/Cab</th>
                 <th>Cabezas</th>
                 <th>Días</th>
                 <th>Cantidad Total</th>
+                <th>Costo Total</th>
                 <th>Observaciones</th>
               </tr>
             </thead>
@@ -1754,10 +1760,17 @@ body {
             <select class="form-select" name="estadoPago"><option value="NO_APLICA">Tasa no informada</option><option value="PENDIENTE">Pago pendiente</option><option value="PAGADO">Pago acreditado</option><option value="CUENTA_CORRIENTE">Cuenta corriente</option></select>
             <button class="topbar-btn" id="fiscalCotizarTasa" type="button">Cotizar tasa municipal</button>
             <button class="topbar-btn" id="fiscalGuardarPreDut" type="button">📝 Guardar Pre-DUT e imprimir</button>
+            <button class="topbar-btn" id="fiscalGenerarCartaPorte" type="button">🚚 Generar Carta de Porte</button>
             <button class="topbar-btn primary" type="submit">Validar y emitir DUT</button>
           </form>
           <p id="fiscalResultadoDut" class="tag" style="display:none;"></p>
           <p id="fiscalResultadoTasa" class="text-muted"></p>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <div class="card-header"><div class="card-title">🚚 Cartas de Porte generadas</div></div>
+          <p class="text-muted">Documento de transporte generado localmente a partir de los datos del DUT. No reemplaza la Carta de Porte oficial ante ARCA/SENASA cuando esa integración esté disponible.</p>
+          <div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Número</th><th>Origen</th><th>Destino</th><th>Transportista</th><th>Fecha</th><th>Estado</th><th>Acción</th></tr></thead><tbody id="fiscalCartasPorteBody"></tbody></table></div>
         </div>
 
         <div class="card" style="margin-top:16px;">
@@ -2300,12 +2313,22 @@ body {
             <div class="card-title">📋 Reportes Disponibles</div>
             <div style="display:flex;gap:8px;">
               <button class="topbar-btn" onclick="abrirWhatsAppReporteModal()" style="display:inline-flex;align-items:center;">
-                <span class="wa-mini-icon">WA</span>Enviar por WhatsApp
+                <span class="wa-mini-icon">WA</span>Enviar cambios por WhatsApp
               </button>
               <button class="topbar-btn primary" onclick="generarReporteCompleto()">📊 Reporte Completo</button>
             </div>
           </div>
           <div class="grid-3">
+            <div class="report-card" onclick="abrirWhatsAppReporteModal('cambiosDiarios')">
+              <div style="font-size:24px;margin-bottom:8px;">🕘</div>
+              <div style="font-weight:600;">Cambios diarios</div>
+              <div style="font-size:11px;color:var(--text-dim);">Nacimientos, movimientos y novedades del día</div>
+            </div>
+            <div class="report-card" onclick="abrirWhatsAppReporteModal('cambiosInstantaneos')">
+              <div style="font-size:24px;margin-bottom:8px;">⚡</div>
+              <div style="font-weight:600;">Cambios instantáneos</div>
+              <div style="font-size:11px;color:var(--text-dim);">Últimos cambios registrados</div>
+            </div>
             <div class="report-card" onclick="generarReporte('balance')">
               <div style="font-size:24px;margin-bottom:8px;">📊</div>
               <div style="font-weight:600;">Balance General</div>
@@ -2356,14 +2379,14 @@ body {
         <input type="text" class="activation-input" id="activationKey" placeholder="Pegue aquí su token de licencia">
         <div class="activation-error" id="activationError">Clave de activación inválida</div>
         <button class="activation-btn" onclick="activateLicense()">Activar Licencia</button>
-        <button class="activation-btn-secondary" onclick="activateTrial()">Iniciar Prueba Gratis (7 días)</button>
+        <button class="activation-btn-secondary" onclick="activateTrial()">Iniciar Prueba Gratis (10 días)</button>
         <button class="activation-btn-secondary" onclick="sendTrialLinkByWhatsApp()">Enviar Link Trial por WhatsApp</button>
         <button class="activation-btn-secondary" onclick="copyTrialLink()">Copiar Link Trial</button>
       </div>
       <div class="activation-info">
         Ingrese la clave de activación proporcionada al comprar el software.<br>
         Guarde este token en un lugar seguro: será necesario si cambia de equipo o reinstala Windows.<br>
-        O inicie una prueba gratis por 7 días para evaluar el sistema.<br>
+        O inicie una prueba gratis por 10 días para evaluar el sistema.<br>
         También puede compartir un enlace de trial por WhatsApp para activación automática.
       </div>
     </div>
@@ -2532,10 +2555,12 @@ body {
 /* === ESTADO GLOBAL === */
 const state = {
   campos: [],
+  lotes: [],
   boletosMarca: [],
   fiscalDutHistorial: [],
   fiscalNotificaciones: [],
   fiscalDutQueue: [],
+  fiscalCartasPorte: [],
   iaQueue: [],
   inventario: [],
   movimientoStock: [],
@@ -3105,10 +3130,10 @@ function abrirRolesLicenciaModal() {
             <div class="form-group" style="margin:0;">
               <label class="form-label">Perfil base</label>
               <select class="form-select" id="rolesLicenciaPerfil">
-                <option value="propietario">👑 Administrador/Propietario</option>
-                <option value="administracion">🩺 Ingeniero/Veterinario</option>
-                <option value="ingeniero" selected>👷 Operador</option>
-                <option value="oficina">🧾 Operador de Oficina</option>
+                <option value="propietario">👑 Propietario / Responsable</option>
+                <option value="administracion">🧾 Administración</option>
+                <option value="ingeniero" selected>🩺 Ingeniero / Veterinario</option>
+                <option value="oficina">👷 Operario de campo</option>
               </select>
             </div>
             <button class="btn btn-primary" id="rolesLicenciaAgregarBtn" onclick="agregarRolLicenciaDesdeModal()">Agregar rol</button>
@@ -3754,6 +3779,8 @@ function formatMoney(value) {
 
 function getReporteTypesForWhatsApp() {
   return [
+    { value: 'cambiosDiarios', label: 'Reporte operativo diario completo' },
+    { value: 'cambiosInstantaneos', label: 'Reporte operativo instantáneo completo' },
     { value: 'balance', label: 'Balance General' },
     { value: 'resultados', label: 'Estado de Resultados' },
     { value: 'stockGanadero', label: 'Stock Ganadero' },
@@ -3769,7 +3796,7 @@ function getReporteLabel(tipo) {
   return found ? found.label : tipo;
 }
 
-function buildReporteResumenWhatsApp(tipo) {
+function buildReporteResumenWhatsApp(tipo, detalleInstantaneo = '') {
   const fecha = new Date().toLocaleString('es-AR');
   const cajaIngresos = (state.caja || []).filter(m => m.tipo === 'Ingreso').reduce((sum, m) => sum + parseImporteNumero(m.importe), 0);
   const cajaEgresos = (state.caja || []).filter(m => m.tipo === 'Egreso').reduce((sum, m) => sum + parseImporteNumero(m.importe), 0);
@@ -3779,6 +3806,26 @@ function buildReporteResumenWhatsApp(tipo) {
   const saldoBancos = bancosIngresos - bancosEgresos;
 
   let detalle = '';
+
+  if (tipo === 'cambiosDiarios' || tipo === 'cambiosInstantaneos') {
+    const hoy = new Date().toISOString().slice(0, 10);
+    const esDelDia = item => !item?.fecha || String(item.fecha).slice(0, 10) === hoy;
+    const limite = tipo === 'cambiosDiarios' ? Infinity : 20;
+    const nacimientos = (state.hacienda || []).filter(item => item.tipo === 'Nacimiento' && (tipo === 'cambiosInstantaneos' || esDelDia(item))).slice(0, limite);
+    const animalesNacidos = (state.animalesTrazabilidad || []).filter(item => item.fechaNacimiento && (tipo === 'cambiosInstantaneos' || String(item.fechaNacimiento).slice(0, 10) === hoy)).slice(0, limite);
+    const siembras = (state.siembra || []).filter(esDelDia).slice(0, limite);
+    const alimentacion = (state.alimentacion || []).filter(esDelDia).slice(0, limite);
+    const sanitarios = (state.eventosSanitarios || []).filter(esDelDia).slice(0, limite);
+    const lineas = [];
+    nacimientos.forEach(item => lineas.push(`• Nacimiento: ${item.cantidad || 1} ternero(s) · lote: ${item.destino || item.lote || 'sin lote'} · caravana: ${item.caravana || item.rfidTag || 'sin caravana'}`));
+    animalesNacidos.forEach(item => lineas.push(`• Alta animal nacido: ${item.idAnimal || '-'} · caravana: ${item.rfidTag || 'sin caravana'} · lote/origen: ${item.predioOrigen || 'sin lote'}`));
+    siembras.forEach(item => lineas.push(`• Siembra: ${item.cultivo || '-'} ${item.variedad || ''} · lote: ${item.lote || '-'}`));
+    alimentacion.forEach(item => lineas.push(`• Alimentación: ${item.producto || '-'} · ${item.cabezas || 0} cabezas · total: ${item.cantidadTotal || 0} kg`));
+    sanitarios.forEach(item => lineas.push(`• Sanidad: ${item.tipoVacunaMedicamento || '-'} · animal: ${item.idAnimal || '-'} · veterinario: ${item.veterinarioResponsable || '-'}`));
+    if (tipo === 'cambiosInstantaneos' && detalleInstantaneo) lineas.unshift(`• Descripción: ${detalleInstantaneo}`);
+    detalle = lineas.length ? lineas.join('\n') : `• Sin cambios ${tipo === 'cambiosDiarios' ? 'registrados hoy' : 'recientes'}.`;
+    return `📋 *${getReporteLabel(tipo)}*\nUsuario: ${currentRole || 'Usuario actual'}\nEmpresa: ${state?.empresa?.nombre || 'PampaGanaderia ERP'}\nFecha: ${fecha}\n\n${detalle}`;
+  }
 
   switch (tipo) {
     case 'balance':
@@ -3856,16 +3903,16 @@ function actualizarWhatsAppReporteMensaje() {
 
   const contactos = getWhatsAppRoleContacts();
   telefonoEl.value = contactos[rolEl.value] || '';
-  mensajeEl.value = buildReporteResumenWhatsApp(tipoEl.value);
+  mensajeEl.value = buildReporteResumenWhatsApp(tipoEl.value, document.getElementById('waReporteDetalle')?.value || '');
 }
 
-function abrirWhatsAppReporteModal() {
+function abrirWhatsAppReporteModal(reporteInicial = 'balance') {
   const roles = Object.keys(rolePermissions || {});
   const reportes = getReporteTypesForWhatsApp();
   const contactos = getWhatsAppRoleContacts();
 
   const defaultRol = roles.find(r => r !== currentRole) || currentRole;
-  const defaultReporte = 'balance';
+  const defaultReporte = reportes.some(rep => rep.value === reporteInicial) ? reporteInicial : 'balance';
 
   const rolesOptions = roles.map((rol) => {
     const selected = rol === defaultRol ? 'selected' : '';
@@ -3891,6 +3938,10 @@ function abrirWhatsAppReporteModal() {
           <div class="form-group">
             <label class="form-label">Reporte</label>
             <select class="form-select" id="waReporteTipo" onchange="actualizarWhatsAppReporteMensaje()">${reporteOptions}</select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Descripción del cambio instantáneo</label>
+            <input class="form-input" id="waReporteDetalle" type="text" placeholder="Ej.: Nacieron 2 terneros en lote X, caravana XX" oninput="actualizarWhatsAppReporteMensaje()">
           </div>
           <div class="form-group">
             <label class="form-label">Rol destino</label>
@@ -3932,6 +3983,13 @@ function enviarWhatsAppReporte() {
   const telefonoRaw = (telefonoEl.value || '').trim();
   const telefono = telefonoRaw.replace(/[^0-9]/g, '');
   const mensaje = (mensajeEl.value || '').trim();
+  const tipo = document.getElementById('waReporteTipo')?.value || '';
+  const detalle = document.getElementById('waReporteDetalle')?.value.trim() || '';
+  if (tipo === 'cambiosInstantaneos' && !detalle) {
+    showToast('Describí el cambio instantáneo antes de enviarlo', 'error');
+    document.getElementById('waReporteDetalle')?.focus();
+    return;
+  }
 
   if (!telefono || telefono.length < 10) {
     showToast('Ingresá un teléfono válido para WhatsApp', 'error');
@@ -4167,7 +4225,7 @@ const formConfigs = {
       { name: 'superficie', label: 'Superficie (ha)', type: 'number' },
       { name: 'tipoSuelo', label: 'Tipo de Suelo', type: 'text' },
       { name: 'ambiente', label: 'Ambiente', type: 'select', options: ['Alto', 'Medio', 'Bajo'] },
-      { name: 'campana', label: 'Campaña Actual', type: 'text' },
+      { name: 'campana', label: 'Campaña', type: 'select' },
       { name: 'latitud', label: 'Latitud', type: 'number', step: 'any', placeholder: 'Ej: -33.125' },
       { name: 'longitud', label: 'Longitud', type: 'number', step: 'any', placeholder: 'Ej: -64.350' }
     ]
@@ -4183,6 +4241,7 @@ const formConfigs = {
       { name: 'categoria', label: 'Categoría', type: 'select', options: ['Insumos Agrícolas', 'Insumos Ganaderos', 'Alimentación', 'Repuestos y Herramientas', 'Combustibles', 'Productos Terminados'], required: true },
       { name: 'stock', label: 'Stock Inicial', type: 'number', required: true },
       { name: 'unidad', label: 'Unidad', type: 'select', options: ['kg', 'litros', 'unidades', 'toneladas', 'dosis'], required: true },
+      { name: 'campana', label: 'Campaña de origen', type: 'select' },
       { name: 'costoUnit', label: 'Costo Unitario', type: 'number', required: true },
       { name: 'stockMinimo', label: 'Stock Mínimo', type: 'number', required: true }
     ]
@@ -4192,10 +4251,14 @@ const formConfigs = {
     fields: [
       { name: 'fecha', label: 'Fecha', type: 'date', required: true },
       { name: 'categoria', label: 'Categoría Animal', type: 'select', options: ['Terneros', 'Novillos', 'Vaquillonas', 'Toros', 'Vacas', 'Todos'], required: true },
-      { name: 'producto', label: 'Alimento', type: 'select', required: true, dynamicOptions: 'inventario', filterCategory: 'Alimentación' },
+      { name: 'producto', label: 'Alimento', type: 'datalist', required: true, source: 'alimentos', fallbackOptions: ['Maíz', 'Silo de maíz', 'Sorgo', 'Balanceado', 'Rollos de avena', 'Rollos de alfalfa', 'Rollos de moha'] },
+      { name: 'pesoPromedio', label: 'Peso promedio por animal (kg)', type: 'number', required: true, min: 0 },
       { name: 'racion', label: 'Ración por Cabeza (kg)', type: 'number', required: true },
       { name: 'cabezas', label: 'Cabezas', type: 'number', required: true },
       { name: 'dias', label: 'Días', type: 'number', required: true },
+      { name: 'costoUnitario', label: 'Costo por kg ($)', type: 'number', min: 0 },
+      { name: 'cantidadTotal', label: 'Total de alimento (kg)', type: 'number', readonly: true },
+      { name: 'costoTotal', label: 'Costo total de la ración ($)', type: 'number', readonly: true },
       { name: 'observaciones', label: 'Observaciones', type: 'text' }
     ]
   },
@@ -4263,6 +4326,12 @@ const formConfigs = {
       { name: 'cantidad', label: 'Cantidad', type: 'number', required: true },
       { name: 'detalle', label: 'Detalle', type: 'text' },
       { name: 'destino', label: 'Destino/Origen', type: 'text' },
+      { name: 'cartaPorteNumero', label: 'Carta de Porte', type: 'text', placeholder: 'Se genera al registrar una venta' },
+      { name: 'cartaPorteOrigen', label: 'Origen de carga', type: 'text' },
+      { name: 'cartaPorteDestino', label: 'Destino de carga', type: 'text' },
+      { name: 'cartaPorteTransportista', label: 'Transportista', type: 'text' },
+      { name: 'cartaPorteVehiculo', label: 'Vehículo / dominio', type: 'text' },
+      { name: 'cartaPorteEstado', label: 'Estado Carta de Porte', type: 'select', options: ['Pendiente', 'Generada', 'Presentada'] },
       { name: 'valor', label: 'Valor ($)', type: 'text' }
     ]
   },
@@ -4295,8 +4364,8 @@ const formConfigs = {
       { name: 'idEvento', label: 'ID_Evento', type: 'text', required: true, autoNumber: { prefix: 'SAN-', pad: 5 } },
       { name: 'idAnimal', label: 'ID_Animal', type: 'select', required: true, dynamicOptions: 'animalesTrazabilidad' },
       { name: 'fecha', label: 'Fecha', type: 'date', required: true },
-      { name: 'tipoVacunaMedicamento', label: 'Tipo_Vacuna_Medicamento', type: 'text', required: true },
-      { name: 'veterinarioResponsable', label: 'Veterinario_Responsable', type: 'text', required: true },
+      { name: 'tipoVacunaMedicamento', label: 'Tipo de vacuna / medicamento', type: 'select', options: ['Vacuna antiaftosa', 'Vacuna brucelosis', 'Vacuna clostridial', 'Vacuna respiratoria', 'Antiparasitario', 'Antibiótico', 'Antiinflamatorio', 'Tratamiento sanitario'], required: true },
+      { name: 'veterinarioResponsable', label: 'Veterinario responsable', type: 'select', dynamicOptions: 'empleados', required: true },
       { name: 'carenciaDias', label: 'Carencia (días)', type: 'number' },
       { name: 'estado', label: 'Estado', type: 'select', options: ['Aplicado', 'En observación', 'Cumplió carencia'], required: true }
     ]
@@ -4307,11 +4376,11 @@ const formConfigs = {
       { name: 'numero', label: 'N° Orden', type: 'text', required: true, autoNumber: { prefix: 'OT-', pad: 3 } },
       { name: 'equipo', label: 'Equipo', type: 'select', required: true, dynamicOptions: 'maquinarias' },
       { name: 'tipo', label: 'Tipo', type: 'select', options: ['Preventivo', 'Correctivo', 'Service'], required: true },
-      { name: 'descripcion', label: 'Descripción', type: 'select', options: [], required: true, isDynamic: true, optionsByType: { 'Preventivo': ['Engrase de piezas móviles', 'Limpieza de inyectores', 'Ajuste de cadenas/correas', 'Cambio periódico de fluidos', 'Cuchillas, discos, rejas, púas, correas, cadenas y mangueras', 'Neumáticos / Cadenas'], 'Correctivo': ['Reparación de motor', 'Reparación de transmisión', 'Reparación de frenos', 'Reparación de neumáticos', 'Soldadura', 'Reemplazo de piezas', 'Otra reparación'], 'Service': ['Revisión general', 'Cambio de aceite', 'Reemplazo de filtros', 'Lubricación', 'Alineación', 'Diagnóstico', 'Service completo'] } },
+      { name: 'descripcion', label: 'Descripción', type: 'select', options: ['Engrase de piezas móviles', 'Limpieza de inyectores', 'Ajuste de cadenas/correas', 'Cambio de aceite'], required: true, isDynamic: true, optionsByType: { 'Preventivo': ['Engrase de piezas móviles', 'Limpieza de inyectores', 'Ajuste de cadenas/correas', 'Cambio periódico de fluidos', 'Cuchillas, discos, rejas, púas, correas, cadenas y mangueras', 'Neumáticos / Cadenas'], 'Correctivo': ['Reparación de motor', 'Reparación de transmisión', 'Reparación de frenos', 'Reparación de neumáticos', 'Soldadura', 'Reemplazo de piezas', 'Otra reparación'], 'Service': ['Revisión general', 'Cambio de aceite', 'Reemplazo de filtros', 'Lubricación', 'Alineación', 'Diagnóstico', 'Service completo'] } },
       { name: 'fecha', label: 'Fecha', type: 'date', required: true },
       { name: 'costo', label: 'Costo ($)', type: 'text', required: true },
       { name: 'estado', label: 'Estado', type: 'select', options: ['Pendiente', 'En curso', 'Completado'], required: true },
-      { name: 'operador', label: 'Operador', type: 'datalist', source: 'operadores' }
+      { name: 'operador', label: 'Operador', type: 'select', source: 'operadores' }
     ]
   },
   empleados: {
@@ -4363,6 +4432,7 @@ const formConfigs = {
     title: 'Nuevo Cheque por Cobrar',
     fields: [
       { name: 'numero', label: 'N° Cheque', type: 'text', required: true, autoNumber: { prefix: 'CH-', pad: 5 } },
+      { name: 'tipoCheque', label: 'Tipo de cheque', type: 'select', options: ['Cheque físico', 'E-Cheq'], required: true },
       { name: 'banco', label: 'Banco', type: 'select', options: ['Banco Nación', 'Banco Galicia', 'Banco Macro', 'Banco Córdoba', 'Otros'], required: true },
       { name: 'origen', label: 'Origen (Quien emite)', type: 'text', required: true },
       { name: 'importe', label: 'Importe ($)', type: 'text', required: true },
@@ -4375,6 +4445,7 @@ const formConfigs = {
     title: 'Nuevo Cheque Emitido',
     fields: [
       { name: 'numero', label: 'N° Cheque', type: 'text', required: true, autoNumber: { prefix: 'CHE-', pad: 5 } },
+      { name: 'tipoCheque', label: 'Tipo de cheque', type: 'select', options: ['Cheque físico', 'E-Cheq'], required: true },
       { name: 'banco', label: 'Banco', type: 'select', options: ['Banco Nación', 'Banco Galicia', 'Banco Macro', 'Banco Córdoba', 'Otros'], required: true },
       { name: 'destino', label: 'Destino (A favor de)', type: 'text', required: true },
       { name: 'importe', label: 'Importe ($)', type: 'text', required: true },
@@ -4471,12 +4542,28 @@ function parseFechaComparable(value) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function getCampaignOptions() {
+  const baseYear = new Date().getFullYear() - 1;
+  const recent = Array.from({ length: 4 }, (_, index) => {
+    const start = baseYear - index;
+    return `${start}/${start + 1}`;
+  });
+  const saved = (state.campañas || []).map(item => item.campana).filter(Boolean);
+  return [...new Set([...saved, ...recent])];
+}
+
 function openModal(module, editIndex = null) {
   const config = formConfigs[module];
   let html = `<form id="modalForm">`;
 
   config.fields.forEach(field => {
+    if (field.name === 'campana' && ['campañas', 'lotes', 'inventario'].includes(module)) {
+      field = { ...field, type: 'select', options: getCampaignOptions() };
+    }
     let value = editIndex !== null ? (state[module][editIndex][field.name] || '') : '';
+    if (field.source === 'operadores') {
+      field = { ...field, type: 'select', options: [...new Set([...(state.operadores || []), 'Propietario / Responsable', 'Ingeniero / Veterinario', 'Operario de campo', 'Administración'])] };
+    }
 
     // Si es un campo de fecha y es un nuevo registro, poner la fecha de hoy
     if (field.type === 'date' && editIndex === null) {
@@ -4543,6 +4630,12 @@ function openModal(module, editIndex = null) {
         if (field.filterCategory) {
           opciones = opciones.filter(opt => opt.categoria === field.filterCategory);
         }
+        if (!opciones.length && Array.isArray(field.fallbackOptions)) {
+          opciones = field.fallbackOptions;
+        }
+        if (value && !opciones.some(opt => (typeof opt === 'object' ? (opt.nombre || opt.codigo) : opt) === value)) {
+          opciones = [value, ...opciones];
+        }
         
         if (opciones.length === 0) {
           html += `<option value="">-- No hay ${field.dynamicOptions} disponibles --</option>`;
@@ -4605,6 +4698,16 @@ function openModal(module, editIndex = null) {
       const listId = 'list_' + field.name + '_' + Date.now();
       let opciones = state[field.source] || [];
 
+      if (module === 'alimentacion' && field.name === 'producto') {
+        const alimentosInventario = (state.inventario || [])
+          .filter(item => item.categoria === 'Alimentación')
+          .map(item => item.producto || item.nombre || item.codigo)
+          .filter(Boolean);
+        opciones = [...new Set([...field.fallbackOptions, ...alimentosInventario])];
+      } else if (!opciones.length && Array.isArray(field.fallbackOptions)) {
+        opciones = field.fallbackOptions;
+      }
+
       if (field.name === 'cultivo' && ['campañas', 'siembra', 'cosecha'].includes(module)) {
         opciones = getCultivosDisponibles();
       }
@@ -4623,16 +4726,59 @@ function openModal(module, editIndex = null) {
       html += `</datalist>`;
     } else {
       const isAutoNumber = field.autoNumber && editIndex === null;
-      const readonlyAttr = isAutoNumber ? 'readonly style="background:var(--bg-tertiary);cursor:not-allowed;font-family:var(--font-mono);font-weight:600;"' : '';
+      const readonlyAttr = field.readonly || isAutoNumber ? 'readonly style="background:var(--bg-tertiary);cursor:not-allowed;font-family:var(--font-mono);font-weight:600;"' : '';
       const hint = isAutoNumber ? '<div style="font-size:11px;color:var(--text-dim);margin-top:4px;">🔢 Generado automáticamente</div>' : '';
       html += `<input class="form-input" type="${field.type}" name="${field.name}" value="${value}" ${field.required ? 'required' : ''} ${readonlyAttr}>${hint}`;
     }
     html += `</div>`;
   });
+  if (module === 'lotes') {
+    html += '<button type="button" class="topbar-btn" id="useCurrentLocation">Usar mi ubicación actual</button>';
+  }
   html += '</form>';
   
   document.getElementById('modalBody').innerHTML = html;
   document.getElementById('modalOverlay').classList.add('active');
+
+  if (module === 'alimentacion') {
+    const updateFeedingTotals = () => {
+      const productValue = document.querySelector('[name="producto"]')?.value || '';
+      const product = state.inventario.find(item => item.codigo === productValue || item.producto === productValue);
+      const ration = Number(document.querySelector('[name="racion"]')?.value) || 0;
+      const heads = Number(document.querySelector('[name="cabezas"]')?.value) || 0;
+      const days = Number(document.querySelector('[name="dias"]')?.value) || 0;
+      const quantity = ration * heads * days;
+      const unitCost = Number(product?.costoUnit) || 0;
+      const unitCostInput = document.querySelector('[name="costoUnitario"]');
+      const quantityInput = document.querySelector('[name="cantidadTotal"]');
+      const costInput = document.querySelector('[name="costoTotal"]');
+      if (unitCostInput && product && !unitCostInput.matches(':focus')) unitCostInput.value = unitCost ? unitCost.toFixed(2) : '';
+      if (quantityInput) quantityInput.value = quantity ? quantity.toFixed(2) : '';
+      const selectedUnitCost = Number(unitCostInput?.value) || unitCost;
+      if (costInput) costInput.value = quantity && selectedUnitCost ? (quantity * selectedUnitCost).toFixed(2) : '';
+    };
+    ['producto', 'racion', 'cabezas', 'dias', 'costoUnitario'].forEach(name => {
+      document.querySelector(`[name="${name}"]`)?.addEventListener('input', updateFeedingTotals);
+      document.querySelector(`[name="${name}"]`)?.addEventListener('change', updateFeedingTotals);
+    });
+    updateFeedingTotals();
+  }
+
+  if (module === 'lotes') {
+    document.getElementById('useCurrentLocation')?.addEventListener('click', () => {
+      if (!navigator.geolocation) {
+        showToast('Este navegador no permite obtener la ubicación actual', 'error');
+        return;
+      }
+      navigator.geolocation.getCurrentPosition((position) => {
+        const latitude = document.querySelector('[name="latitud"]');
+        const longitude = document.querySelector('[name="longitud"]');
+        if (latitude) latitude.value = position.coords.latitude.toFixed(6);
+        if (longitude) longitude.value = position.coords.longitude.toFixed(6);
+        showToast('Ubicación actual cargada', 'success');
+      }, () => showToast('No se pudo obtener la ubicación actual', 'error'), { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+    });
+  }
 
   // Auto-numeración dinámica (prefijo depende de otro campo, ej: categoría en inventario)
   if (editIndex === null) {
@@ -4730,9 +4876,9 @@ function openModal(module, editIndex = null) {
   if (module === 'mantenimiento') {
     const tipoSelect = document.querySelector('select[name="tipo"]');
     if (tipoSelect) {
-      tipoSelect.addEventListener('change', actualizarDescripcionPorTipo);
+      tipoSelect.addEventListener('change', () => actualizarDescripcionPorTipo(module));
       // Ejecutar al abrir para cargar las opciones iniciales
-      actualizarDescripcionPorTipo();
+      actualizarDescripcionPorTipo(module);
     }
   }
 }
@@ -4806,6 +4952,11 @@ function saveModal() {
       return;
     }
     data.rfidTag = normalizarRFIDTag(animal.rfidTag);
+  }
+
+  if (moduloActual === 'hacienda' && data.tipo === 'Venta') {
+    data.cartaPorteNumero = data.cartaPorteNumero || `CP-${new Date().getFullYear()}-${Date.now().toString().slice(-8)}`;
+    data.cartaPorteEstado = data.cartaPorteEstado || 'Generada';
   }
   
   // Guardar o actualizar el registro
@@ -4918,7 +5069,7 @@ function actualizarSelectoresDinamicos() {
   });
 }
 
-function actualizarDescripcionPorTipo() {
+function actualizarDescripcionPorTipo(module = 'mantenimiento') {
   // Actualiza las opciones de descripción basadas en el tipo de mantenimiento seleccionado
   const tipoSelect = document.querySelector('select[name="tipo"]');
   const descripcionSelect = document.querySelector('select[name="descripcion"]');
@@ -4926,7 +5077,7 @@ function actualizarDescripcionPorTipo() {
   if (!tipoSelect || !descripcionSelect) return;
   
   const tipoSeleccionado = tipoSelect.value;
-  const config = formConfigs[currentModal.module];
+  const config = formConfigs[module];
   const descripcionField = config.fields.find(f => f.name === 'descripcion');
   
   if (!descripcionField || !descripcionField.optionsByType) return;
@@ -5125,16 +5276,33 @@ function procesarEfectosPostSave(module, data, editIndex) {
   if (module === 'alimentacion' && data.producto && data.cabezas && data.racion && data.dias) {
     const cantidadTotal = parseFloat(data.racion) * parseFloat(data.cabezas) * parseFloat(data.dias);
     const idx = editIndex !== null ? editIndex : state.alimentacion.length - 1;
+    const producto = state.inventario.find(item => item.codigo === data.producto || item.producto === data.producto);
+    const costoUnitario = parseFloat(data.costoUnitario) || parseFloat(producto?.costoUnit) || 0;
+    const costoTotal = cantidadTotal * costoUnitario;
     if (state.alimentacion && state.alimentacion[idx]) {
       state.alimentacion[idx].cantidadTotal = cantidadTotal;
+      state.alimentacion[idx].costoUnitario = costoUnitario;
+      state.alimentacion[idx].costoTotal = costoTotal;
     }
-    const producto = state.inventario.find(p => p.codigo === data.producto);
-    if (producto) {
+    if (producto && editIndex === null) {
       producto.stock = Math.max(0, producto.stock - cantidadTotal);
       state.movimientoStock.unshift({
         fecha: data.fecha, producto: data.producto, tipo: 'Salida',
         cantidad: cantidadTotal, motivo: 'Alimentación',
         observaciones: `Alimentación ${data.categoria} - ${data.cabezas} cabezas × ${data.racion} kg × ${data.dias} días`
+      });
+    }
+    if (editIndex === null && costoTotal > 0) {
+      if (!Array.isArray(state.costos)) state.costos = [];
+      state.costos.unshift({
+        fecha: data.fecha,
+        categoria: 'Alimentación',
+        concepto: `${data.producto} · ${data.cabezas} cabezas × ${data.dias} días`,
+        importe: costoTotal,
+        destino: data.categoria,
+        pesoPromedio: Number(data.pesoPromedio) || 0,
+        cantidadTotal,
+        tipo: 'Costo de producción'
       });
     }
   }
@@ -5953,7 +6121,7 @@ function safeRender(label, fn) {
 
 function renderTables() {
   // Asegurar arrays base para evitar undefined.map en localStorage viejos
-  ['campos','campañas','lotes','siembra','cosecha','aplicaciones','inventario','maquinarias','cargacombustible','costosOperativos','hacienda','animalesTrazabilidad','historialMovimientos','eventosSanitarios','trazabilidadSyncQueue','alimentacion','mantenimiento','caja','bancos','cuentasBancarias','chequesCobrar','chequesCubrir','creditos','flujo','costos','empleados','documentos','fiscalDutHistorial','fiscalNotificaciones','fiscalDutQueue'].forEach(k => {
+  ['campos','campañas','lotes','siembra','cosecha','aplicaciones','inventario','maquinarias','cargacombustible','costosOperativos','hacienda','animalesTrazabilidad','historialMovimientos','eventosSanitarios','trazabilidadSyncQueue','alimentacion','mantenimiento','caja','bancos','cuentasBancarias','chequesCobrar','chequesCubrir','creditos','flujo','costos','empleados','documentos','fiscalDutHistorial','fiscalNotificaciones','fiscalDutQueue','fiscalCartasPorte'].forEach(k => {
     if (!Array.isArray(state[k])) state[k] = [];
   });
 
@@ -6000,7 +6168,7 @@ function renderTables() {
       const campanaColors = {
         'Soja 1ª': 'green', 'Soja 2ª': 'green', 'Maíz Tardío': 'blue', 'Trigo': 'orange', 'Girasol': 'purple'
       };
-      lotesBody.innerHTML = state.lotes.map((l, i) => `
+      lotesBody.innerHTML = (state.lotes || []).map((l, i) => `
         <tr onclick="openModal('lotes', ${i})" style="cursor:pointer;">
           <td>${l.codigo||''}</td>
           <td>${l.nombre||''}</td>
@@ -6038,6 +6206,7 @@ function renderTables() {
         <td>${h.categoria}</td>
         <td>${h.cantidad}</td>
         <td>${h.detalle || ''} ${h.destino ? '→ ' + h.destino : ''}</td>
+        <td>${h.cartaPorteNumero || '-'}</td>
         <td>${h.valor || ''}</td>
       </tr>
     `).join('');
@@ -6059,10 +6228,12 @@ function renderTables() {
           <td>${a.fecha}</td>
           <td><span class="tag blue">${a.categoria}</span></td>
           <td>${nombreProducto}</td>
+          <td>${a.pesoPromedio || 0} kg</td>
           <td>${a.racion} kg</td>
           <td>${a.cabezas}</td>
           <td>${a.dias}</td>
           <td><strong>${(a.cantidadTotal || 0).toLocaleString('es-AR')} kg</strong></td>
+          <td><strong>$${Number(a.costoTotal || 0).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</strong></td>
           <td>${a.observaciones || '-'}</td>
         </tr>
       `;
@@ -6225,7 +6396,7 @@ function renderTables() {
   if (chequesCobrarBody) {
     chequesCobrarBody.innerHTML = state.chequesCobrar.map((c, i) => `
       <tr onclick="openModal('chequesCobrar', ${i})" style="cursor:pointer;">
-        <td>${c.numero}</td><td>${c.banco}</td><td>${c.origen}</td><td>${c.importe}</td><td>${c.vencimiento}</td><td><span class="tag ${c.estado === 'Cobrado' ? 'green' : c.estado === 'Rechazado' ? 'red' : 'orange'}">${c.estado}</span></td>
+        <td>${c.numero}</td><td>${c.tipoCheque || '-'}</td><td>${c.banco}</td><td>${c.origen}</td><td>${c.importe}</td><td>${c.vencimiento}</td><td><span class="tag ${c.estado === 'Cobrado' ? 'green' : c.estado === 'Rechazado' ? 'red' : 'orange'}">${c.estado}</span></td>
       </tr>
     `).join('');
   }
@@ -6235,7 +6406,7 @@ function renderTables() {
   if (chequesCubrirBody) {
     chequesCubrirBody.innerHTML = state.chequesCubrir.map((c, i) => `
       <tr onclick="openModal('chequesCubrir', ${i})" style="cursor:pointer;">
-        <td>${c.numero}</td><td>${c.banco}</td><td>${c.destino}</td><td>${c.importe}</td><td>${c.vencimiento}</td><td><span class="tag ${c.estado === 'Cobrado' ? 'green' : c.estado === 'Anulado' ? 'red' : 'orange'}">${c.estado}</span></td>
+        <td>${c.numero}</td><td>${c.tipoCheque || '-'}</td><td>${c.banco}</td><td>${c.destino}</td><td>${c.importe}</td><td>${c.vencimiento}</td><td><span class="tag ${c.estado === 'Cobrado' ? 'green' : c.estado === 'Anulado' ? 'red' : 'orange'}">${c.estado}</span></td>
       </tr>
     `).join('');
   }
@@ -6351,6 +6522,7 @@ function renderInventario() {
         <td>${item.codigo}</td>
         <td>${item.producto}</td>
         <td><span class="tag blue">${item.categoria}</span></td>
+        <td>${item.campana || 'Sin campaña'}</td>
         <td><strong>${item.stock.toLocaleString()}</strong></td>
         <td>${item.unidad}</td>
         <td>$${item.costoUnit.toLocaleString()}</td>
@@ -7475,14 +7647,13 @@ observer.observe(document.getElementById('content'), { subtree: true, attributes
 /* === INICIALIZACIÓN === */
 var appInitialized = false;
 // Verificar licencia antes de inicializar la app
-initLicenseSystem();
-
-// Si la licencia es válida, inicializar la aplicación
-if (checkLicense()) {
-  initializeAppAfterLicense();
-} else {
-  console.log('PampaGanaderia ERP: Esperando activación de licencia');
-}
+initLicenseSystem().then(async () => {
+  if (await checkLicense()) {
+    initializeAppAfterLicense();
+  } else {
+    console.log('PampaGanaderia ERP: Esperando activación de licencia');
+  }
+});
 
 /* === GENERACIÓN DE REPORTES PDF === */
 function generarReporte(tipo) {
@@ -8046,7 +8217,7 @@ function inicializarMapaLotes() {
 
 // Mostrar un lote específico en el mapa
 function verLoteEnMapa(index) {
-  const lote = state.lotes[index];
+  const lote = (state.lotes || [])[index];
   if (!lote || !lote.latitud || !lote.longitud) {
     showToast('Este lote no tiene coordenadas cargadas', 'error');
     return;
@@ -8092,7 +8263,7 @@ function mostrarTodosLosLotes() {
   
   // Agregar marcadores para cada lote
   const bounds = [];
-  state.lotes.forEach((lote, i) => {
+  (state.lotes || []).forEach((lote, i) => {
     if (lote.latitud && lote.longitud) {
       const marker = L.marker([lote.latitud, lote.longitud]).addTo(mapaLotes);
       marker.bindPopup(`
@@ -8117,6 +8288,7 @@ function mostrarTodosLosLotes() {
 // === SISTEMA DE LICENCIAMIENTO ===
 
 const TRIAL_DAYS = 10;
+
 appInitialized = false;
 
 function buildTrialPath() {
@@ -8589,34 +8761,44 @@ function validateLicenseKey(key) {
   return true;
 }
 
-// Activar licencia firmada en Electron; conservar formato antiguo solo para navegador.
+// Activar licencia: solo tokens firmados, en Electron y en la PWA.
 async function activateLicense() {
   const keyInput = document.getElementById('activationKey');
   const errorMsg = document.getElementById('activationError');
   const rawKey = keyInput.value.trim();
-  const key = window.electronAPI ? rawKey.replace(/\s+/g, '') : rawKey.toUpperCase();
+  // El token es base64url y distingue mayusculas: no se puede normalizar a mayusculas.
+  const key = rawKey.replace(/\s+/g, '');
 
   let signedLicense = null;
   if (window.electronAPI?.verifyLicenseToken) {
     signedLicense = window.electronAPI.verifyLicenseToken(key);
   }
+  if (!signedLicense && window.PampaLicenseSigned) {
+    const result = await window.PampaLicenseSigned.verifyLicense(key, { product: 'pampa-ganaderia' });
+    if (result.valid) {
+      signedLicense = {
+        type: 'signed',
+        key: result.token,
+        plan: result.plan,
+        maxUsers: result.maxUsers,
+        customer: result.customer,
+        licenseId: result.licenseId,
+        expiresAt: result.expiresAt,
+        daysLeft: result.daysLeft,
+        expiringSoon: result.expiringSoon,
+        activatedAt: new Date().toISOString()
+      };
+    }
+  }
 
-  if (window.electronAPI && !signedLicense) {
+  // Solo licencias firmadas: el formato NEXO- sin firma quedo discontinuado.
+  if (!signedLicense) {
     errorMsg.style.display = 'block';
     errorMsg.textContent = 'Licencia inválida, alterada o vencida. Use un token emitido por Pampa N S.I.A.';
     return;
   }
-
-  if (!window.electronAPI && !validateLicenseKey(key)) {
-    errorMsg.style.display = 'block';
-    errorMsg.textContent = 'Clave de activación inválida. Formato esperado: NEXO-XXXX-XXXX-XXXX';
-    return;
-  }
   
-  // Deducir plan desde la clave
-  const planCode = key.split('-')[1]?.[0]?.toUpperCase();
-  const planMap = { B: 'basica', P: 'profesional', M: 'premium' };
-  const detected = signedLicense?.plan || planMap[planCode] || 'basica';
+  const detected = signedLicense.plan;
   const planDetected = limitarPlanPorPack(detected);
 
   if (detected !== planDetected) {
@@ -8624,13 +8806,8 @@ async function activateLicense() {
   }
 
   // Guardar licencia
-  const license = signedLicense || {
-    type: 'full',
-    key: key,
-    plan: planDetected,
-    activatedAt: new Date().toISOString(),
-    deviceId: generateDeviceId()
-  };
+  const license = signedLicense;
+  license.deviceId = license.deviceId || generateDeviceId();
   license.plan = planDetected;
   localStorage.setItem('nexoAgroLicense', JSON.stringify(license));
   
@@ -8659,7 +8836,7 @@ function activateTrial() {
 
   const trialLicense = {
     type: 'trial',
-    key: 'TRIAL-7DIAS',
+    key: 'TRIAL-10DIAS',
     activatedAt: now.toISOString(),
     expiresAt: end.toISOString(),
     deviceId: generateDeviceId()
@@ -8700,11 +8877,7 @@ function deactivateLicense() {
 }
 
 // Verificar si la licencia es válida
-function checkLicense() {
-  if (!window.electronAPI) {
-    return true;
-  }
-
+async function checkLicense() {
   const license = getLicenseData();
 
   if (!license) {
@@ -8721,18 +8894,24 @@ function checkLicense() {
     return true;
   }
 
-  if (!license.key || !validateLicenseKey(license.key)) {
-    if (license.type === 'signed' && window.electronAPI?.verifyLicenseToken) {
-      const verified = window.electronAPI.verifyLicenseToken(license.key);
-      if (verified) {
-        license.plan = limitarPlanPorPack(verified.plan);
-        license.maxUsers = verified.maxUsers;
-        return true;
-      }
-    }
+  // Toda licencia guardada se revalida contra la firma, tambien en la PWA.
+  let verified = null;
+  if (window.electronAPI?.verifyLicenseToken) {
+    verified = window.electronAPI.verifyLicenseToken(license.key);
+  }
+  if (!verified && window.PampaLicenseSigned) {
+    const result = await window.PampaLicenseSigned.verifyLicense(license.key, { product: 'pampa-ganaderia' });
+    verified = result.valid ? result : null;
+  }
+
+  if (!verified) {
+    localStorage.removeItem('nexoAgroLicense');
     return false;
   }
 
+  license.plan = limitarPlanPorPack(verified.plan);
+  license.maxUsers = verified.maxUsers;
+  localStorage.setItem('nexoAgroLicense', JSON.stringify(license));
   return true;
 }
 
@@ -8805,7 +8984,7 @@ function updateLicenseBadge() {
       }
     }
 
-    if (validateLicenseKey(license.key)) {
+    if (license.plan || license.type === 'signed') {
         const planLabels = { basica: 'Básica', profesional: 'Profesional', premium: 'Premium' };
         const planLabel = planLabels[getLicensePlan()] || 'Full';
         badgeContainer.innerHTML = `
@@ -8859,18 +9038,10 @@ function initializeAppAfterLicense() {
 }
 
 // Inicializar sistema de licencia al cargar la página
-function initLicenseSystem() {
+async function initLicenseSystem() {
   maybeAutoActivateTrialFromQuery();
 
-  if (!window.electronAPI) {
-    const overlay = document.getElementById('activationOverlay');
-    if (overlay) {
-      overlay.style.display = 'none';
-    }
-    return;
-  }
-
-  if (!checkLicense()) {
+  if (!(await checkLicense())) {
     showActivationScreen();
   } else {
     updateLicenseBadge();
@@ -9868,6 +10039,44 @@ function marcarPagoMunicipal(index) {
   showToast('Pago marcado como acreditado. El DUT puede sincronizarse.', 'success');
 }
 
+function renderFiscalCartasPorte() {
+  const body = document.getElementById('fiscalCartasPorteBody');
+  if (!body) return;
+  const cartas = Array.isArray(state.fiscalCartasPorte) ? state.fiscalCartasPorte : [];
+  body.innerHTML = cartas.length ? cartas.slice().reverse().map(carta => {
+    const index = state.fiscalCartasPorte.indexOf(carta);
+    return `<tr><td>${carta.numero}</td><td>${carta.renspaOrigen || '-'}</td><td>${carta.renspaDestino || '-'}</td><td>${carta.cuitTransportista || '-'}</td><td>${carta.fecha || ''}</td><td><span class="tag ${carta.estado === 'Generada' ? 'green' : ''}">${carta.estado || 'Generada'}</span></td><td><button class="topbar-btn" type="button" onclick="imprimirCartaPorte(${index})">🖨️ Imprimir</button></td></tr>`;
+  }).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--text-dim);padding:16px;">No hay cartas de porte generadas</td></tr>';
+}
+
+async function generarCartaPorte() {
+  const formulario = document.getElementById('fiscalFormDut');
+  if (!formulario || !formulario.reportValidity()) return;
+  const datos = Object.fromEntries(new FormData(formulario).entries());
+  try {
+    const respuesta = await fiscalJson('/api/logistica/generar-carta-porte', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
+    if (!Array.isArray(state.fiscalCartasPorte)) state.fiscalCartasPorte = [];
+    state.fiscalCartasPorte.push(respuesta.cartaPorte);
+    saveState();
+    renderFiscalCartasPorte();
+    guardarOperacionFiscal('Carta de Porte', respuesta.cartaPorte.numero, respuesta.cartaPorte.estado, 'Generada localmente desde los datos del DUT.');
+    imprimirCartaPorte(state.fiscalCartasPorte.length - 1);
+    setEl('fiscalResultadoDut', `Carta de Porte ${respuesta.cartaPorte.numero} generada.`);
+    showToast('Carta de Porte generada localmente.', 'success');
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+}
+
+function imprimirCartaPorte(index) {
+  const carta = state.fiscalCartasPorte?.[index];
+  if (!carta) return;
+  const ventana = window.open('', '_blank', 'width=420,height=650');
+  if (!ventana) return showToast('El navegador bloqueó la ventana de impresión.', 'error');
+  ventana.document.write(`<html><head><title>Carta de Porte ${carta.numero}</title><style>body{font-family:Arial,sans-serif;text-align:center;padding:18px}table{width:100%;text-align:left;border-collapse:collapse}td{padding:6px;border-bottom:1px solid #ddd}.notice{margin:14px 0;padding:10px;border:1px solid #d97706;background:#fff7ed}</style></head><body><h2>CARTA DE PORTE ${carta.numero}</h2><div class="notice">DOCUMENTO GENERADO LOCALMENTE - NO REEMPLAZA LA CARTA DE PORTE OFICIAL DE ARCA/SENASA</div><table>${[['Origen', carta.renspaOrigen],['Destino', carta.renspaDestino],['Cabezas', carta.cantidadCabezas],['Categoría', carta.categoriaId],['Transportista (CUIT)', carta.cuitTransportista],['Camión', carta.patenteChasis],['Fecha', carta.fecha],['Estado', carta.estado]].map(row => `<tr><td><b>${row[0]}</b></td><td>${row[1] || ''}</td></tr>`).join('')}</table><script>window.onload=()=>window.print();<\/script></body></html>`);
+  ventana.document.close();
+}
+
 async function sincronizarDutPendientes() {
   if (!navigator.onLine) {
     showToast('Sin conexión: los DUT quedan preparados localmente.', 'info');
@@ -9989,6 +10198,8 @@ document.getElementById('fiscalActualizarPanel')?.addEventListener('click', asyn
 
 document.getElementById('fiscalActualizarConfiguracion')?.addEventListener('click', actualizarFiscalGanadero);
 document.getElementById('fiscalSincronizarDut')?.addEventListener('click', sincronizarDutPendientes);
+document.getElementById('fiscalGenerarCartaPorte')?.addEventListener('click', generarCartaPorte);
+document.getElementById('fiscalGenerarCartaPorte')?.addEventListener('click', generarCartaPorte);
 document.getElementById('fiscalGuardarPreDut')?.addEventListener('click', () => {
   const formulario = document.getElementById('fiscalFormDut');
   if (!formulario || !formulario.reportValidity()) return;
@@ -10031,6 +10242,7 @@ document.querySelector('.sidebar-nav')?.addEventListener('click', evento => {
 actualizarFiscalGanadero();
 actualizarRegistroFiscal();
 renderFiscalDutQueue();
+renderFiscalCartasPorte();
 setInterval(actualizarFiscalGanadero, 5000);
 </script>
 
@@ -10051,7 +10263,7 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 
-<script src="pampaia-source.js?v=pampaia-published-2"></script>
+<script src="pampaia-source.js?v=pampaia-published-6"></script>
 
 <script src="ia-agro.js"></script>
 
