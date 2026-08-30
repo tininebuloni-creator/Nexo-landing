@@ -13,8 +13,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="leaflet/leaflet.css" />
+<link rel="stylesheet" href="pampa-brand.css">
+  <script src="leaflet/leaflet.js"></script>
   <style>
     :root {
       --bg-primary: #0f1419;
@@ -909,7 +910,7 @@
   <div class="app">
     <aside class="sidebar">
       <div class="sidebar-header">
-        <div class="logo-icon" aria-label="Logo PampaTambo"></div>
+        <div class="brand-container"><div class="logo-icon" aria-label="Logo PampaTambo"></div><span class="brand-badge">℠</span></div>
         <div class="logo-text">PampaTambo</div>
         <div class="logo-sub">Soluciones agropecuarias</div>
         <button class="mobile-menu-btn" id="btnMobileMenu" type="button">☰ Menú</button>
@@ -1042,11 +1043,11 @@
               <button class="btn" id="btnAbrirReportes">WhatsApp reportes</button>
               <button class="btn" id="btnLimpiezaBasica">Limpieza básica</button>
               <select id="roleSelector" class="btn">
-                <option value="propietario">Rol: Propietario</option>
-                <option value="administracion">Rol: Administracion</option>
-                <option value="ingeniero">Rol: Ingeniero</option>
-                <option value="veterinario">Rol: Veterinario</option>
-                <option value="operador">Rol: Operador</option>
+                <option value="propietario">Rol: Propietario / Responsable</option>
+                <option value="administracion">Rol: Administración</option>
+                <option value="ingeniero">Rol: Ingeniero / Veterinario</option>
+                <option value="veterinario">Rol: Ingeniero / Veterinario</option>
+                <option value="operador">Rol: Operario de campo</option>
               </select>
               <button class="btn" id="btnActivarLicencia">Activar licencia</button>
               <div id="licenseStatus">Licencia: sin activar</div>
@@ -1105,13 +1106,30 @@
             <div style="padding:14px 16px; display:grid; gap:12px;">
               <div class="form-grid">
                 <div class="field">
+                  <label for="reportTypeSelect">Tipo de reporte</label>
+                  <select id="reportTypeSelect">
+                    <option value="cambiosDiarios">Reporte operativo diario completo</option>
+                    <option value="cambiosInstantaneos">Reporte operativo instantáneo completo</option>
+                    <option value="reporteOperativo">Reporte operativo completo</option>
+                    <option value="produccion">Producción y ordeñe</option>
+                    <option value="sanidad">Sanidad y tratamientos</option>
+                    <option value="alimentacion">Alimentación y rollos</option>
+                    <option value="finanzas">Finanzas</option>
+                    <option value="costos">Costos de producción</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="reportInstantDetail">Descripción del cambio instantáneo</label>
+                  <input id="reportInstantDetail" type="text" placeholder="Ej.: Nacieron 2 terneros en lote X, caravana XX">
+                </div>
+                <div class="field">
                   <label for="reportRoleSelect">Rol destino</label>
                   <select id="reportRoleSelect">
-                    <option value="propietario">Propietario</option>
-                    <option value="administracion">Administracion</option>
-                    <option value="ingeniero">Ingeniero</option>
-                    <option value="veterinario">Veterinario</option>
-                    <option value="operador">Operador</option>
+                    <option value="propietario">Propietario / Responsable</option>
+                    <option value="administracion">Administración</option>
+                    <option value="ingeniero">Ingeniero / Veterinario</option>
+                    <option value="veterinario">Ingeniero / Veterinario</option>
+                    <option value="operador">Operario de campo</option>
                   </select>
                 </div>
                 <div class="field">
@@ -1189,19 +1207,19 @@
                       <input id="empresaWhatsAppPropietarioInput" type="text" placeholder="54911..." />
                     </div>
                     <div class="field">
-                      <label for="empresaWhatsAppAdministracionInput">Administracion</label>
+                      <label for="empresaWhatsAppAdministracionInput">Administración</label>
                       <input id="empresaWhatsAppAdministracionInput" type="text" placeholder="54911..." />
                     </div>
                     <div class="field">
-                      <label for="empresaWhatsAppIngenieroInput">Ingeniero</label>
+                      <label for="empresaWhatsAppIngenieroInput">Ingeniero / Veterinario</label>
                       <input id="empresaWhatsAppIngenieroInput" type="text" placeholder="54911..." />
                     </div>
                     <div class="field">
-                      <label for="empresaWhatsAppVeterinarioInput">Veterinario</label>
+                      <label for="empresaWhatsAppVeterinarioInput">Ingeniero / Veterinario</label>
                       <input id="empresaWhatsAppVeterinarioInput" type="text" placeholder="54911..." />
                     </div>
                     <div class="field">
-                      <label for="empresaWhatsAppOperadorInput">Operador</label>
+                      <label for="empresaWhatsAppOperadorInput">Operario de campo</label>
                       <input id="empresaWhatsAppOperadorInput" type="text" placeholder="54911..." />
                     </div>
                   </div>
@@ -1983,6 +2001,19 @@
             <div style="padding: 12px 16px; display:grid; gap:8px;" id="arcaResumenFlow"></div>
           </div>
 
+          <div class="card" id="arcaOperacionFiscalCard">
+            <div class="card-header">
+              <div class="card-title">🔐 Estado fiscal ARCA / LEL</div>
+              <button class="btn" type="button" onclick="actualizarEstadoFiscalTambo()">Actualizar</button>
+            </div>
+            <div class="kpi-grid" style="margin-bottom:12px;">
+              <div class="kpi"><div class="label">Preparación ARCA</div><div class="value" id="arcaFiscalPreparacion">--</div><div class="sub" id="arcaFiscalEntorno">Consultando backend</div></div>
+              <div class="kpi blue"><div class="label">Cola fiscal</div><div class="value" id="arcaFiscalCola">--</div><div class="sub" id="arcaFiscalColaDetalle">Operaciones pendientes</div></div>
+              <div class="kpi orange"><div class="label">Retenciones LUME</div><div class="value" id="arcaFiscalRetenciones">--</div><div class="sub" id="arcaFiscalRetencionesDetalle">Libro fiscal</div></div>
+            </div>
+            <div class="muted" id="arcaFiscalAviso">El estado se consulta al backend local; una simulación no equivale a emisión oficial.</div>
+          </div>
+
           <div class="card arca-section" id="arca-lume">
             <div class="card-header">
               <div class="card-title">🥛 Liquidación de leche / LUME</div>
@@ -2006,6 +2037,7 @@
                     <th>Descuentos</th>
                     <th>Neto</th>
                     <th>Fecha cobro</th>
+                    <th>ARCA</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
@@ -2032,6 +2064,7 @@
                     <th>Precio/kg</th>
                     <th>Importe</th>
                     <th>Comprobante</th>
+                    <th>Carta de Porte</th>
                     <th>Cobrado</th>
                     <th>Acciones</th>
                   </tr>
@@ -2565,7 +2598,7 @@
 
     const ROLE_PERMISSIONS = {
       propietario: {
-        name: 'Propietario',
+        name: 'Propietario / Responsable',
         modules: ['empresa', 'dashboard', 'reportes', 'campos', 'hacienda', 'instalaciones', 'inventario', 'mantenimiento', 'auditoria', 'animales', 'toros', 'guachera', 'recria', 'alimentos', 'ordenes', 'entregas', 'costosOperativos', 'costos', 'finanzas', 'arca', 'rentabilidad', 'rrhh', 'reproduccion', 'partos', 'produccion', 'sanidad'],
         canCreate: true,
         canEdit: true,
@@ -2575,7 +2608,7 @@
         canClearAudit: true,
       },
       administracion: {
-        name: 'Administracion',
+        name: 'Administración',
         modules: ['empresa', 'dashboard', 'reportes', 'campos', 'hacienda', 'instalaciones', 'inventario', 'mantenimiento', 'auditoria', 'animales', 'toros', 'guachera', 'recria', 'alimentos', 'ordenes', 'entregas', 'costosOperativos', 'costos', 'finanzas', 'arca', 'rentabilidad', 'rrhh', 'reproduccion', 'partos', 'produccion'],
         canCreate: true,
         canEdit: true,
@@ -2585,7 +2618,7 @@
         canClearAudit: false,
       },
       ingeniero: {
-        name: 'Ingeniero',
+        name: 'Ingeniero / Veterinario',
         modules: ['empresa', 'dashboard', 'reportes', 'campos', 'hacienda', 'instalaciones', 'inventario', 'mantenimiento', 'alimentos', 'ordenes', 'entregas', 'costosOperativos', 'finanzas', 'arca', 'rentabilidad', 'rrhh', 'animales', 'toros', 'guachera', 'recria', 'reproduccion', 'partos', 'produccion'],
         canCreate: true,
         canEdit: true,
@@ -2595,7 +2628,7 @@
         canClearAudit: false,
       },
       veterinario: {
-        name: 'Veterinario',
+        name: 'Ingeniero / Veterinario',
         modules: ['empresa', 'dashboard', 'reportes', 'hacienda', 'animales', 'toros', 'guachera', 'recria', 'reproduccion', 'partos', 'produccion', 'sanidad', 'ordenes', 'entregas', 'inventario', 'mantenimiento', 'costosOperativos'],
         canCreate: true,
         canEdit: true,
@@ -2605,7 +2638,7 @@
         canClearAudit: false,
       },
       operador: {
-        name: 'Operador',
+        name: 'Operario de campo',
         modules: ['empresa', 'dashboard', 'reportes', 'campos', 'hacienda', 'inventario', 'mantenimiento', 'animales', 'toros', 'guachera', 'recria', 'alimentos', 'reproduccion', 'partos', 'produccion', 'ordenes', 'entregas', 'sanidad', 'costosOperativos', 'finanzas', 'arca', 'rentabilidad'],
         canCreate: true,
         canEdit: true,
@@ -2999,6 +3032,10 @@
         { key: 'descuentos', label: 'Descuentos', type: 'number' },
         { key: 'neto', label: 'Neto', type: 'number' },
         { key: 'fecha_cobro', label: 'Fecha cobro', type: 'date' },
+        { key: 'porcentaje_tambero', label: '% tambero asociado', type: 'number' },
+        { key: 'tipo_inscripcion_tambero', label: 'Inscripción fiscal tambero', type: 'select', options: ['SIN_DECLARAR', 'MONOTRIBUTO', 'RESPONSABLE_INSCRIPTO', 'AUTONOMO'] },
+        { key: 'estado_sisa', label: 'Estado SISA', type: 'select', options: ['1', '2', '3', 'INACTIVO'], required: true },
+        { key: 'provincia_compradora', label: 'Provincia compradora (IIBB)', type: 'text' },
         { key: 'observaciones', label: 'Observaciones', type: 'textarea', full: true }
       ],
       ventasHacienda: [
@@ -3011,6 +3048,12 @@
         { key: 'precio_kg', label: 'Precio/kg', type: 'number' },
         { key: 'importe', label: 'Importe', type: 'number', required: true },
         { key: 'comprobante', label: 'Documento/Comprobante', type: 'text' },
+        { key: 'carta_porte_numero', label: 'Carta de Porte', type: 'text', placeholder: 'Se genera al guardar' },
+        { key: 'carta_porte_origen', label: 'Origen de carga', type: 'text' },
+        { key: 'carta_porte_destino', label: 'Destino de carga', type: 'text' },
+        { key: 'carta_porte_transportista', label: 'Transportista', type: 'text' },
+        { key: 'carta_porte_vehiculo', label: 'Vehículo / dominio', type: 'text' },
+        { key: 'carta_porte_estado', label: 'Estado Carta de Porte', type: 'select', options: ['Pendiente', 'Generada', 'Presentada'] },
         { key: 'cobrado', label: 'Cobrado', type: 'select', options: ['SI', 'NO', 'PARCIAL'] },
         { key: 'observaciones', label: 'Observaciones', type: 'textarea', full: true }
       ],
@@ -3043,10 +3086,13 @@
       comprobantesArca: [
         { key: 'fecha', label: 'Fecha', type: 'date', required: true },
         { key: 'tipo_comprobante', label: 'Tipo de comprobante', type: 'text', required: true },
-        { key: 'punto_venta', label: 'Punto de venta', type: 'text' },
+        { key: 'punto_venta', label: 'Punto de venta Web Services', type: 'text', required: true },
         { key: 'numero_comprobante', label: 'N.º comprobante', type: 'text', required: true },
         { key: 'razon_social', label: 'Proveedor/Cliente', type: 'text', required: true },
         { key: 'cuit', label: 'CUIT', type: 'text' },
+        { key: 'condicion_iva_receptor', label: 'Condición IVA receptor', type: 'select', options: ['RESPONSABLE_INSCRIPTO', 'MONOTRIBUTO', 'EXENTO', 'CONSUMIDOR_FINAL'], required: true },
+        { key: 'receptor_nombre', label: 'Nombre receptor (consumidor final)', type: 'text' },
+        { key: 'receptor_domicilio', label: 'Domicilio receptor (consumidor final)', type: 'text' },
         { key: 'concepto', label: 'Concepto', type: 'text' },
         { key: 'neto', label: 'Neto', type: 'number' },
         { key: 'iva', label: 'IVA', type: 'number' },
@@ -4723,6 +4769,13 @@
       }
     }
 
+    async function maybeStartTrialOnEntry() {
+      const params = new URLSearchParams(window.location.search || '');
+      if (params.get('trial') === 'auto' || params.get('trial_token')) return;
+      if (loadLicenseData()) return;
+      await activateTrial();
+    }
+
     async function activateLicenseFromInput() {
       const input = byId('licenseInput')?.value || '';
       try {
@@ -5499,14 +5552,29 @@
       };
     }
 
-    function buildQuickReportMessage() {
+    function buildQuickReportMessage(type = 'cambiosDiarios', instantDetail = '') {
       const hoy = new Date().toLocaleString('es-AR');
-      const litrosHoy = Number((state.ordenes || []).reduce((acc, row) => acc + toNumber(row?.litros, 0), 0));
+      const fechaHoy = new Date().toISOString().slice(0, 10);
+      const recientes = row => type === 'cambiosInstantaneos' || !row?.fecha || String(row.fecha).slice(0, 10) === fechaHoy;
+      const limite = type === 'cambiosInstantaneos' ? 20 : Infinity;
+      const nacimientos = (state.animales || []).filter(row => recientes(row) && ['Nacimiento', 'nacimiento', 'Alta'].includes(row?.tipo)).slice(0, limite);
+      const sanidad = (state.sanidad || []).filter(recientes).slice(0, limite);
+      const alimentacion = (state.alimentos || []).filter(recientes).slice(0, limite);
+      const rollos = alimentacion.filter(row => /rollo/i.test(`${row?.producto || row?.alimento || row?.item || ''}`));
+      const litrosHoy = Number((state.ordenes || []).filter(recientes).reduce((acc, row) => acc + toNumber(row?.litros, 0), 0));
       const ingresos = Number((state.finanzas || []).filter((x) => normalizeSignal(x.tipo || x.movimiento || '').includes('ING')).reduce((acc, row) => acc + toNumber(row?.monto || row?.importe, 0), 0));
       const egresos = Number((state.finanzas || []).filter((x) => normalizeSignal(x.tipo || x.movimiento || '').includes('EGR')).reduce((acc, row) => acc + toNumber(row?.monto || row?.importe, 0), 0));
       const saldo = ingresos - egresos;
       return [
-        `Reporte operativo NEXO Tambo (${hoy})`,
+        `Reporte ${({ cambiosInstantaneos: 'instantáneo', cambiosDiarios: 'diario', reporteOperativo: 'operativo completo', produccion: 'de producción', sanidad: 'de sanidad', alimentacion: 'de alimentación', finanzas: 'financiero', costos: 'de costos' })[type] || 'diario'} NEXO Tambo (${hoy})`,
+        ...(type === 'cambiosInstantaneos' && instantDetail ? [`Descripción: ${instantDetail}`] : []),
+        `Nacimientos: ${nacimientos.length}`,
+        ...nacimientos.map(row => `- Nacimiento: ${row.cantidad || 1} · lote: ${row.lote || row.destino || 'sin lote'} · caravana: ${row.caravana || row.rfid || 'sin caravana'}`),
+        `Eventos sanitarios: ${sanidad.length}`,
+        ...sanidad.slice(0, 5).map(row => `- Sanidad: ${row.producto || row.tipo || 'evento'} · animal: ${row.animal || row.caravana || '-'}`),
+        `Eventos de alimentación: ${alimentacion.length}`,
+        `Ingreso de rollos: ${rollos.length}`,
+        ...rollos.slice(0, 5).map(row => `- Rollo: ${row.producto || row.alimento || row.item} · cantidad: ${row.cantidad || row.kg || '-'}`),
         `Animales: ${(state.animales || []).length}`,
         `Producción diaria (litros): ${litrosHoy.toFixed(2)}`,
         `Costos cargados: ${(state.costos || []).length}`,
@@ -5553,7 +5621,7 @@
       if (phonePreview) phonePreview.value = contacts[selectedRole] || '';
       const msg = byId('reportMessage');
       if (msg && !msg.value.trim()) {
-        msg.value = buildQuickReportMessage();
+        msg.value = buildQuickReportMessage(byId('reportTypeSelect')?.value || 'cambiosDiarios');
       }
     }
 
@@ -5566,7 +5634,7 @@
     function generarReporteRapido() {
       const box = byId('reportMessage');
       if (!box) return;
-      box.value = buildQuickReportMessage();
+      box.value = buildQuickReportMessage(byId('reportTypeSelect')?.value || 'cambiosDiarios', byId('reportInstantDetail')?.value || '');
       byId('reportWhatsappStatus').textContent = 'Reporte generado.';
     }
 
@@ -5579,6 +5647,12 @@
       const role = normalizeRole(byId('reportRoleSelect')?.value || '');
       const phone = getEmpresaWhatsAppRoles()[role] || '';
       const message = (byId('reportMessage')?.value || '').trim();
+      const reportType = byId('reportTypeSelect')?.value || '';
+      if (reportType === 'cambiosInstantaneos' && !byId('reportInstantDetail')?.value.trim()) {
+        byId('reportWhatsappStatus').textContent = 'Describí el cambio instantáneo antes de enviarlo.';
+        byId('reportInstantDetail')?.focus();
+        return;
+      }
       if (!phone) {
         byId('reportWhatsappStatus').textContent = 'El rol seleccionado no tiene WhatsApp cargado. Completalo en Empresa.';
         return;
@@ -6076,11 +6150,22 @@
         .toUpperCase();
     }
 
+    function isPartialState(value) {
+      const norm = normalizeSignal(value);
+      return norm === 'PARCIAL' || norm === 'PARTIAL';
+    }
+
+    function isSettledState(value) {
+      const norm = normalizeSignal(value);
+      return ['SI', 'PAGADO', 'COBRADO', 'COBRADA', 'ENTREGADO', 'OK'].includes(norm);
+    }
+
     function estadoPill(value) {
       const text = value || '';
       const norm = normalizeSignal(text);
       if (norm === 'ACTIVO' || norm === 'LACTANCIA' || norm === 'VACIA') return '<span class="pill ok">' + text + '</span>';
-      if (norm === 'SECA' || norm === 'SERVIDA' || norm === 'DESCANSO') return '<span class="pill warn">' + text + '</span>';
+      if (norm === 'SECA' || norm === 'SERVIDA' || norm === 'DESCANSO' || norm === 'PENDIENTE' || norm === 'PARCIAL' || norm === 'PARTIAL') return '<span class="pill warn">' + text + '</span>';
+      if (norm === 'COBRADO' || norm === 'PAGADO' || norm === 'SI') return '<span class="pill ok">' + text + '</span>';
       return '<span class="pill bad">' + text + '</span>';
     }
 
@@ -7030,7 +7115,11 @@
           <td>${formatMoney(row.descuentos)}</td>
           <td><strong>${formatMoney(row.neto)}</strong></td>
           <td>${row.fecha_cobro || ''}</td>
+          <td>${estadoPill(row.estado_arca || 'SIN_ENVIAR')}${row.resumen_fiscal ? `<small>IVA ret. ${formatMoney(row.resumen_fiscal.retenciones?.iva_sisa || 0)}<br>Neto banco ${formatMoney(row.resumen_fiscal.neto_estimado_tambo || 0)}</small>` : ''}</td>
           <td>
+            <button class="btn" onclick="calcularRetencionesLiquidacionLeche('${row.id}')">Calcular fiscal</button>
+            <button class="btn" onclick="simularLiquidacionLecheArca('${row.id}')">Simular ARCA</button>
+            <button class="btn" onclick="encolarLiquidacionLecheArca('${row.id}')">${row.estado_arca === 'PENDIENTE_ARCA' ? 'Ver cola' : 'Encolar ARCA'}</button>
             <button class="btn" onclick="editRow('liquidacionesLeche','${row.id}')">Editar</button>
             <button class="btn" onclick="deleteRow('liquidacionesLeche','${row.id}')">Borrar</button>
           </td>
@@ -7048,6 +7137,7 @@
           <td>${formatMoney(row.precio_kg)}</td>
           <td><strong>${formatMoney(row.importe)}</strong></td>
           <td>${row.comprobante || ''}</td>
+          <td>${row.carta_porte_numero || '-'}</td>
           <td>${estadoPill(row.cobrado || 'NO')}</td>
           <td>
             <button class="btn" onclick="editRow('ventasHacienda','${row.id}')">Editar</button>
@@ -7145,14 +7235,14 @@
       const litrosLiquidadosMes = liquidaciones.filter(inCurrentMonth).reduce((acc, row) => acc + Number(row?.litros_liquidados || 0), 0);
       const netoCobradoMes = liquidaciones
         .filter((row) => inCurrentMonth(row) && `${row?.fecha_cobro || ''}`)
-        .reduce((acc, row) => acc + Number(row?.neto || 0), 0);
+        .reduce((acc, row) => acc + Number(row?.resumen_fiscal?.neto_estimado_tambo ?? row?.neto ?? 0), 0);
 
-      const pagosPendCompras = compras.filter((row) => normalizeSignal(row.pagado) !== 'SI').length;
-      const pagosPendGastos = gastos.filter((row) => normalizeSignal(row.pagado) !== 'SI').length;
+      const pagosPendCompras = compras.filter((row) => !isSettledState(row.pagado)).length;
+      const pagosPendGastos = gastos.filter((row) => !isSettledState(row.pagado)).length;
       const cobrosPend = cobrosPagos.filter((row) => {
         const tipo = normalizeSignal(row.tipo);
         const estado = normalizeSignal(row.estado);
-        return tipo === 'COBRO' && !['COBRADO', 'SI'].includes(estado);
+        return tipo === 'COBRO' && !isSettledState(estado);
       }).length;
 
       byId('kpiArcaOrdeneMes').textContent = `${litrosOrdeneMes.toFixed(1)} L`;
@@ -7172,6 +7262,79 @@
           <div class="finance-flow-row"><div class="finance-flow-head"><span>Litros liquidados</span><strong>${litrosLiquidadosMes.toFixed(1)} L</strong></div><div class="muted">Diferencia vs entregado: ${diffLiquida.toFixed(1)} L</div></div>
           <div class="finance-flow-row"><div class="finance-flow-head"><span>Importe cobrado</span><strong>${formatMoney(netoCobradoMes)}</strong></div></div>
         `;
+      }
+      actualizarEstadoFiscalTambo();
+    }
+
+    async function actualizarEstadoFiscalTambo() {
+      const setText = (id, value) => { const element = byId(id); if (element) element.textContent = value; };
+      try {
+        const [estado, cola, retenciones] = await Promise.all([
+          request('/fiscal/arca/estado'),
+          request('/fiscal/cola'),
+          request('/fiscal/retenciones')
+        ]);
+        const configurada = Boolean(estado?.listoParaSolicitarToken);
+        const pendientes = (cola || []).filter((item) => ['PENDIENTE_ARCA', 'EN_PROCESO'].includes(item.estado)).length;
+        const totalRetenciones = (retenciones || []).reduce((total, item) => total
+          + Number(item.retencion_iva_sisa || 0)
+          + Number(item.retencion_ganancias_sisa || 0)
+          + Number(item.retencion_iibb || 0)
+          + Number(item.retencion_suss_tambero || 0), 0);
+        setText('arcaFiscalPreparacion', configurada ? 'Lista' : 'Pendiente');
+        setText('arcaFiscalEntorno', estado?.configuracion?.entorno || 'Sin entorno');
+        setText('arcaFiscalCola', pendientes);
+        setText('arcaFiscalColaDetalle', `${(cola || []).length} operación(es) registradas`);
+        setText('arcaFiscalRetenciones', formatMoney(totalRetenciones));
+        setText('arcaFiscalRetencionesDetalle', `${(retenciones || []).length} LUME(s) en libro fiscal`);
+        setText('arcaFiscalAviso', estado?.emisionOficialDisponible ? 'Emisión oficial habilitada.' : (estado?.motivo || 'Emisión oficial no habilitada.'));
+      } catch (error) {
+        setText('arcaFiscalPreparacion', 'Sin conexión');
+        setText('arcaFiscalEntorno', 'Backend fiscal no disponible');
+        setText('arcaFiscalCola', '--');
+        setText('arcaFiscalRetenciones', '--');
+        setText('arcaFiscalAviso', error.message || 'No se pudo consultar el backend fiscal.');
+      }
+    }
+
+    async function encolarLiquidacionLecheArca(id) {
+      try {
+        const resultado = await request(`/fiscal/lel/${encodeURIComponent(id)}/encolar`, { method: 'POST' });
+        showToast(resultado.queued ? 'Liquidación encolada para ARCA.' : 'La liquidación ya está pendiente en la cola fiscal.');
+        await loadData();
+      } catch (error) {
+        showToast(error.message || 'No se pudo encolar la liquidación fiscal.');
+      }
+    }
+
+    async function calcularRetencionesLiquidacionLeche(id) {
+      const liquidacion = (state.liquidacionesLeche || []).find((row) => `${row.id}` === `${id}`);
+      if (!liquidacion) return showToast('No se encontró la liquidación de leche.');
+      if (!liquidacion.estado_sisa) return showToast('Cargá el Estado SISA al editar la liquidación antes de calcular.', 'error');
+      try {
+        const resultado = await request(`/fiscal/lel/${encodeURIComponent(id)}/calcular-retenciones`, {
+          method: 'POST',
+          body: JSON.stringify({
+            estadoSisa: liquidacion.estado_sisa,
+            provinciaCompradora: liquidacion.provincia_compradora,
+            porcentajeTambero: liquidacion.porcentaje_tambero,
+            tipoInscripcionTambero: liquidacion.tipo_inscripcion_tambero
+          })
+        });
+        showToast(`Fiscal calculado. Neto banco: ${formatMoney(resultado.resumenFiscal.neto_estimado_tambo)}.`);
+        await loadData();
+      } catch (error) {
+        showToast(error.message || 'No se pudo calcular la liquidación fiscal.', 'error');
+      }
+    }
+
+    async function simularLiquidacionLecheArca(id) {
+      try {
+        const resultado = await request(`/fiscal/lel/${encodeURIComponent(id)}/simular`, { method: 'POST' });
+        showToast(`Simulación completada: ${resultado.resultado.identificador}. No fue enviada a ARCA.`, 'info');
+        await loadData();
+      } catch (error) {
+        showToast(error.message || 'No se pudo simular la liquidación LEL.', 'error');
       }
     }
 
@@ -8319,7 +8482,7 @@
             <div class="coord-tools-head">
               <span class="muted">Coordenadas automáticas: hacé clic en el mini mapa o usá geolocalización.</span>
               <div class="coord-tools-actions">
-                <button type="button" class="btn" id="btnGeoLocation">Usar mi ubicación</button>
+                <button type="button" class="btn" id="btnGeoLocation">Usar mi ubicación actual</button>
                 <button type="button" class="btn" id="btnCoordFromMainMap">Usar centro del mapa</button>
               </div>
             </div>
@@ -8795,6 +8958,8 @@
         if (!payload.importe || Number(payload.importe) === 0) {
           payload.importe = kg * precioKg;
         }
+        payload.carta_porte_numero = payload.carta_porte_numero || `CP-${new Date().getFullYear()}-${Date.now().toString().slice(-8)}`;
+        payload.carta_porte_estado = payload.carta_porte_estado || 'Generada';
       }
 
       if (type === 'comprasInsumos') {
@@ -9284,6 +9449,7 @@
     byId('btnAbrirReportes')?.addEventListener('click', () => openModule('reportes'));
     byId('reportRoleSelect')?.addEventListener('change', refreshReportRolePhone);
     byId('btnGenerarReporteRapido')?.addEventListener('click', generarReporteRapido);
+    byId('reportTypeSelect')?.addEventListener('change', generarReporteRapido);
     byId('btnEnviarReporteWhatsApp')?.addEventListener('click', enviarReporteWhatsApp);
     byId('btnQuickWhatsApp')?.addEventListener('click', openQuickWhatsAppModal);
     byId('btnCloseQuickWhatsApp')?.addEventListener('click', closeQuickWhatsAppModal);
@@ -9458,6 +9624,7 @@
       byId('trialPublicBaseUrl').value = localStorage.getItem(TRIAL_PUBLIC_BASE_URL_KEY) || DEFAULT_TRIAL_PUBLIC_BASE_URL;
     }
     maybeAutoActivateTrialFromQuery();
+    maybeStartTrialOnEntry().catch(() => {});
     state.auditoria = loadAuditLogs();
     currentRole = normalizeRole(localStorage.getItem(ROLE_STORAGE_KEY) || 'propietario');
     byId('roleSelector').addEventListener('change', (event) => setRole(event.target.value));
