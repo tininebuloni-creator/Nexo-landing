@@ -20,8 +20,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="leaflet/leaflet.css" />
+<link rel="stylesheet" href="pampa-brand.css">
+    <script src="leaflet/leaflet.js"></script>
     <style>
 /* === CSS VARIABLES === */
 :root {
@@ -418,7 +419,7 @@ body {
   position: fixed;
   top: 10px;
   left: 10px;
-  z-index: 2100;
+  z-index: 2300;
   border: 1px solid var(--border);
   background: var(--bg-secondary);
   color: var(--text-primary);
@@ -434,7 +435,7 @@ body {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
-  z-index: 2050;
+  z-index: 2100;
 }
 
 .sidebar-backdrop.active {
@@ -643,6 +644,11 @@ body {
 }
 .modal-close:hover { background: var(--bg-tertiary); color: var(--text-primary); }
 .modal-body { padding: 20px; }
+#mainModal { display: flex; flex-direction: column; overflow: hidden; }
+#mainModal #modalBody { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-bottom: 28px; }
+#mainModal .modal-footer { flex: 0 0 auto; position: relative; z-index: 20; background: var(--bg-secondary); }
+#modalBody #modalForm.modal-form-siembra { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 16px; }
+#modalBody #modalForm.modal-form-siembra > .form-group:nth-last-child(-n+2) { margin-bottom: 0; }
 .modal-footer {
   padding: 16px 20px;
   border-top: 1px solid var(--border);
@@ -979,7 +985,7 @@ body {
     top: 0;
     bottom: 0;
     width: min(86vw, 320px);
-    z-index: 2000;
+    z-index: 2200;
     transition: left 0.25s ease;
     border-right: 1px solid var(--border);
     border-top: none;
@@ -999,6 +1005,7 @@ body {
     padding: 56px 16px 16px;
   }
   .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  #modalBody #modalForm.modal-form-siembra { grid-template-columns: 1fr; }
 }
 
 /* === REPORT CARDS === */
@@ -1015,6 +1022,10 @@ body {
   background: var(--bg-card-hover);
   transform: translateY(-2px);
 }
+
+/* === ARCA/SENASA: tabs Ganadero / Agrícola === */
+.fiscal-tab-btn.active { background: var(--green); color: #fff; }
+.fiscal-tab-content { display: block; }
 
 /* === PAMPAIA / CAPA DE INTELIGENCIA === */
 .pampaia-panel{margin:0 0 18px;background:linear-gradient(135deg,#102a1d 0%,#123b27 55%,#0f5132 100%);border:1px solid rgba(245,158,11,.28);border-radius:14px;padding:18px;box-shadow:0 10px 28px rgba(0,0,0,.18);position:relative;overflow:hidden}.pampaia-panel:after{content:'✦';position:absolute;right:28px;top:-18px;font-size:150px;color:rgba(245,158,11,.06);pointer-events:none}.pampaia-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;position:relative;z-index:1}.pampaia-brand{display:flex;gap:12px;align-items:center}.pampaia-icon{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.35);font-size:22px}.pampaia-title{font-size:18px;font-weight:800;color:#fff}.pampaia-sub{font-size:11px;color:#b8d1c2;margin-top:3px}.pampaia-role{font-size:10px;color:#fbbf24;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.28);padding:5px 8px;border-radius:999px;font-family:var(--font-mono);text-transform:uppercase}.pampaia-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:14px;margin-top:14px;position:relative;z-index:1}.pampaia-summary,.pampaia-chat{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px}.pampaia-label{font-size:10px;color:#9fc0ad;text-transform:uppercase;letter-spacing:.9px;font-family:var(--font-mono);margin-bottom:9px}.pampaia-insights{display:grid;gap:8px}.pampaia-insight{display:flex;gap:9px;align-items:flex-start;padding:9px;background:rgba(0,0,0,.12);border-radius:8px;font-size:12px;color:#e7f3ec}.pampaia-dot{width:7px;height:7px;border-radius:50%;margin-top:4px;flex:0 0 7px;background:#22c55e}.pampaia-dot.warn{background:#f59e0b}.pampaia-dot.risk{background:#ef4444}.pampaia-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}.pampaia-btn{border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.07);color:#fff;border-radius:7px;padding:8px 10px;font-size:11px;font-weight:700;cursor:pointer}.pampaia-btn:hover{border-color:#f59e0b;color:#fbbf24}.pampaia-question{display:flex;gap:7px;margin-top:8px}.pampaia-question input{flex:1;min-width:0;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:7px;padding:9px 10px;font-size:11px;outline:none}.pampaia-question button{border:0;background:#f59e0b;color:#102a1d;border-radius:7px;padding:0 12px;font-weight:800;cursor:pointer}.pampaia-answer{margin-top:9px;padding:9px 10px;border-left:3px solid #f59e0b;background:rgba(245,158,11,.08);border-radius:0 7px 7px 0;color:#eaf5ee;font-size:11px;line-height:1.45;min-height:34px}.pampaia-foot{margin-top:9px;font-size:9px;color:#7fa38e}.pampaia-report-btn{float:right;margin-top:-3px;border:1px solid rgba(245,158,11,.3);background:transparent;color:#fbbf24;border-radius:6px;padding:5px 8px;font-size:10px;cursor:pointer}@media(max-width:900px){.pampaia-grid{grid-template-columns:1fr}.pampaia-head{flex-direction:column}}
@@ -1055,6 +1066,8 @@ body {
 
 
 <link rel="manifest" href="./manifest.webmanifest">
+<script src="js/pampa-license-key.js"></script>
+<script src="js/pampa-license-verify.js"></script>
 <script src="js/pampa-licensing.js"></script>
 <script src="js/pampa-offline-core.js"></script>
 <script src="js/pampa-search.js?v=2"></script>
@@ -1133,7 +1146,7 @@ body {
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <div class="logo-icon"></div>
+      <div class="brand-container"><div class="logo-icon"></div><span class="brand-badge">℠</span></div>
       <div>
         <div class="logo-text">PampaAgro ERP</div>
         <div class="logo-sub">v1.0.1</div>
@@ -1144,6 +1157,7 @@ body {
         <div class="nav-section-title">Principal</div>
         <div class="nav-item active" data-module="dashboard"><span class="nav-icon">📊</span> Dashboard</div>
         <div class="nav-item" data-module="empresa"><span class="nav-icon">🏢</span> Empresa</div>
+        <div class="nav-item" data-module="fiscal"><span class="nav-icon">📋</span> ARCA/SENASA</div>
       </div>
       <div class="global-search">
         <input
@@ -1274,12 +1288,12 @@ body {
           <span class="sync-text">Offline</span>
         </div>
         <select class="topbar-btn" id="roleSelector" onchange="cambiarRol(this.value)" style="background:var(--bg-tertiary);color:var(--text-primary);border:1px solid var(--border);padding:6px 12px;border-radius:6px;cursor:pointer;font-family:var(--font-main);font-size:12px;">
-          <option value="propietario">👑 Administrador/Propietario</option>
-          <option value="administracion">🩺 Ingeniero/Veterinario</option>
-          <option value="ingeniero">👷 Operador</option>
-          <option value="oficina">🧾 Operador de Oficina</option>
+          <option value="propietario">👑 Propietario / Responsable</option>
+          <option value="administracion">🧾 Administración</option>
+          <option value="ingeniero">🩺 Ingeniero / Veterinario</option>
+          <option value="oficina">👷 Operario de campo</option>
         </select>
-        <button id="topbarTrialButton" class="topbar-btn" onclick="enviarTrialPorWhatsApp()" style="display:none;background:rgba(245,158,11,0.12);color:var(--green);border:1px solid var(--green);">▶ Activar trial ahora</button>
+        <button id="topbarTrialButton" class="topbar-btn" onclick="activateTrial()" style="display:none;background:rgba(245,158,11,0.12);color:var(--green);border:1px solid var(--green);">▶ Activar trial ahora</button>
         <button class="topbar-btn" onclick="gestionarRolesLicencia()">⚙️ Roles</button>
         <span id="roleTrialHint" style="display:none;font-size:11px;color:var(--blue);padding:6px 8px;border:1px dashed var(--blue);border-radius:6px;white-space:nowrap;">Cambio de rol habilitado</span>
       </div>
@@ -1322,10 +1336,10 @@ body {
             </div>
             <div class="dashboard-top-actions-grid">
               <select class="dashboard-role-select" id="roleSelectorDashboard" onchange="cambiarRol(this.value)">
-                <option value="propietario">👑 Administrador/Propietario</option>
-                <option value="administracion">🩺 Ingeniero/Veterinario</option>
-                <option value="ingeniero">👷 Operador</option>
-                <option value="oficina">🧾 Operador de Oficina</option>
+                <option value="propietario">👑 Propietario / Responsable</option>
+                <option value="administracion">🧾 Administración</option>
+                <option value="ingeniero">🩺 Ingeniero / Veterinario</option>
+                <option value="oficina">👷 Operario de campo</option>
               </select>
               <button class="dashboard-action-btn" onclick="gestionarRolesLicencia()">⚙️ Roles</button>
               <span id="roleTrialHintDashboard" style="display:none;font-size:11px;color:var(--blue);padding:6px 8px;border:1px dashed var(--blue);border-radius:6px;">Cambio de rol habilitado</span>
@@ -1524,6 +1538,19 @@ body {
           <div class="kpi blue"><div class="kpi-label">Superficie Total</div><div class="kpi-value">Sin datos</div><div class="kpi-sub">Cargar registros</div></div>
           <div class="kpi purple"><div class="kpi-label">Alquileres</div><div class="kpi-value">Sin datos</div><div class="kpi-sub">Cargar registros</div></div>
         </div>
+        <div class="card" style="margin-top:16px;">
+          <div class="card-header">
+            <div class="card-title">📄 Contratos de Arrendamiento</div>
+            <button class="topbar-btn primary" onclick="openModal('contratoArrendamiento')">+ Nuevo Contrato</button>
+          </div>
+          <p class="text-muted">Un contrato debe estar en estado "Aprobado" y vigente para poder emitir la Carta de Porte Electrónica (CPE) del campo alquilado asociado.</p>
+          <table class="data-table">
+            <thead>
+              <tr><th>Campo</th><th>CUIT Dueño</th><th>Modalidad</th><th>Vigencia</th><th>Estado</th><th>Acciones</th></tr>
+            </thead>
+            <tbody id="contratosArrendamientoBody"></tbody>
+          </table>
+        </div>
       </div>
 
       <!-- MODULE: LOTES -->
@@ -1631,6 +1658,7 @@ body {
             <div style="display:flex;gap:8px;">
               <button class="topbar-btn" onclick="openImportModal('cosecha')">📁 Importar</button>
               <button class="topbar-btn primary" onclick="openModal('cosecha')">+ Nueva Cosecha</button>
+              <button class="topbar-btn" onclick="openModal('ventaCereal')">Registrar venta de cereal</button>
             </div>
           </div>
           <table class="data-table">
@@ -1672,6 +1700,7 @@ body {
               <div style="display:flex;gap:8px;">
                 <button class="topbar-btn" onclick="openImportModal('hacienda')">📁 Importar</button>
                 <button class="topbar-btn primary" onclick="openModal('hacienda')">+ Nuevo Movimiento</button>
+                <button class="topbar-btn" onclick="openModal('ventaHacienda')">Registrar venta de hacienda</button>
               </div>
             </div>
             <div style="max-height:400px;overflow-y:auto;">
@@ -1822,6 +1851,7 @@ body {
                 <th>Código</th>
                 <th>Producto</th>
                 <th>Categoría</th>
+                <th>Campaña de origen</th>
                 <th>Stock</th>
                 <th>Unidad</th>
                 <th>Costo Unit.</th>
@@ -1832,6 +1862,19 @@ body {
               </tr>
             </thead>
             <tbody id="inventarioBody"></tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🤝 Stock de Terceros (Aparcería)</div>
+          </div>
+          <p class="text-muted">Grano que corresponde al dueño del campo por contratos de Alquiler/Mediería a Porcentaje. No es stock propio: se descuenta al liquidarlo (LPG de canje) o al enviarlo a su acopio.</p>
+          <table class="data-table">
+            <thead>
+              <tr><th>Producto</th><th>CUIT Dueño</th><th>Kilos pendientes</th></tr>
+            </thead>
+            <tbody id="stockTercerosBody"></tbody>
           </table>
         </div>
 
@@ -1851,6 +1894,7 @@ body {
                 <th>Tipo</th>
                 <th>Cantidad</th>
                 <th>Motivo</th>
+                <th>Respaldo fiscal</th>
                 <th>Observaciones</th>
               </tr>
             </thead>
@@ -2289,10 +2333,28 @@ body {
       <!-- MODULE: COSTOS -->
       <div class="module" id="mod-costos">
         <div class="kpi-grid">
-          <div class="kpi green"><div class="kpi-label">Costo/Ha Soja</div><div class="kpi-value">$0</div><div class="kpi-sub">Sin datos cargados</div></div>
-          <div class="kpi blue"><div class="kpi-label">Costo/Ha Maíz</div><div class="kpi-value">$0</div><div class="kpi-sub">Sin datos cargados</div></div>
-          <div class="kpi purple"><div class="kpi-label">Costo/Kg Carne</div><div class="kpi-value">$0</div><div class="kpi-sub">Sin datos cargados</div></div>
-          <div class="kpi orange"><div class="kpi-label">Costo Operativo Mes</div><div class="kpi-value">$0</div><div class="kpi-sub">Sin datos cargados</div></div>
+          <div class="kpi green"><div class="kpi-label">Costo Agrícola</div><div class="kpi-value" id="costosKpiTotal">$0</div><div class="kpi-sub" id="costosKpiTotalSub">Sin datos cargados</div></div>
+          <div class="kpi blue"><div class="kpi-label">Costo Promedio/Ha</div><div class="kpi-value" id="costosKpiPorHa">$0</div><div class="kpi-sub" id="costosKpiPorHaSub">Sin hectáreas registradas</div></div>
+          <div class="kpi purple"><div class="kpi-label">Cultivos con Costo</div><div class="kpi-value" id="costosKpiCultivos">0</div><div class="kpi-sub" id="costosKpiCultivosSub">Sin imputaciones</div></div>
+          <div class="kpi orange"><div class="kpi-label">Costos sin Cultivo</div><div class="kpi-value" id="costosKpiSinCultivo">$0</div><div class="kpi-sub">Revisar lote o cultivo</div></div>
+        </div>
+        <div class="card" style="margin-top:16px; margin-bottom:16px;">
+          <div class="card-header"><div class="card-title">🧾 Impuestos y retenciones</div></div>
+          <div class="dashboard-kpi-grid" style="margin-top:12px;">
+            <div class="kpi green"><div class="kpi-label">Débito fiscal</div><div class="kpi-value" id="impuestosDebitoKpi">$0</div><div class="kpi-sub" id="impuestosDebitoSub">Sin ventas con IVA</div></div>
+            <div class="kpi blue"><div class="kpi-label">Crédito fiscal</div><div class="kpi-value" id="impuestosCreditoKpi">$0</div><div class="kpi-sub" id="impuestosCreditoSub">Sin compras con IVA discriminado</div></div>
+            <div class="kpi purple"><div class="kpi-label">Retenciones</div><div class="kpi-value" id="impuestosRetencionesKpi">$0</div><div class="kpi-sub" id="impuestosRetencionesSub">Sin retenciones registradas</div></div>
+            <div class="kpi orange"><div class="kpi-label">Neto fiscal</div><div class="kpi-value" id="impuestosNetoKpi">$0</div><div class="kpi-sub" id="impuestosNetoSub">Sin liquidación</div></div>
+          </div>
+          <div style="overflow-x:auto;margin-top:12px;">
+            <table class="data-table"><thead><tr><th>Tipo</th><th>Comprobante</th><th>IVA</th><th>Retenciones</th><th>Neto</th><th>Origen</th></tr></thead><tbody id="costosImpuestosBody"></tbody></table>
+          </div>
+        </div>
+        <div class="card" style="margin-top:0; margin-bottom:16px;">
+          <div class="card-header"><div class="card-title">📅 Resumen contable por período</div></div>
+          <div style="overflow-x:auto;">
+            <table class="data-table"><thead><tr><th>Período</th><th>Costos</th><th>Impuestos</th><th>Total</th></tr></thead><tbody id="resumenContableBody"></tbody></table>
+          </div>
         </div>
         <div class="grid-2">
           <div class="card">
@@ -2300,9 +2362,13 @@ body {
             <div class="chart-container" style="height:250px;"><canvas id="chartCostoCultivo"></canvas></div>
           </div>
           <div class="card">
-            <div class="card-header"><div class="card-title">📊 Desglose Costo Soja/Ha</div></div>
+            <div class="card-header"><div class="card-title" id="costosDesgloseTitulo">📊 Desglose de Costos</div></div>
             <div class="chart-container" style="height:250px;"><canvas id="chartDesglose"></canvas></div>
           </div>
+        </div>
+        <div class="card" style="margin-top:16px;">
+          <div class="card-header"><div class="card-title">Detalle por Cultivo</div></div>
+          <div class="table-wrap"><table class="data-table"><thead><tr><th>Cultivo</th><th>Hectáreas</th><th>Siembra</th><th>Cosecha</th><th>Otros directos</th><th>Costo Total</th><th>Costo/Ha</th></tr></thead><tbody id="costosPorCultivoBody"></tbody></table></div>
         </div>
       </div>
 
@@ -2431,6 +2497,252 @@ body {
         </div>
       </div>
 
+      <!-- MODULE: FISCAL GANADERO -->
+      <div class="module" id="mod-fiscal">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📋 ARCA/SENASA</div>
+            <span class="tag green">Conexión compartida</span>
+          </div>
+          <p class="text-muted">Un solo Ticket de Acceso (WSAA) por servicio, compartido entre los submodulos Ganadero (DUT/wsigsa) y Agrícola (WSCPE/WSFEv1).</p>
+          <div class="actions" style="gap:8px;">
+            <button class="topbar-btn fiscal-tab-btn active" id="fiscalTabBtnGanadero" type="button" onclick="cambiarTabFiscal('ganadero')">🐄 Ganadero</button>
+            <button class="topbar-btn fiscal-tab-btn" id="fiscalTabBtnAgricola" type="button" onclick="cambiarTabFiscal('agricola')">🌾 Agrícola</button>
+          </div>
+        </div>
+
+        <div id="fiscalTabGanadero" class="fiscal-tab-content">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📋 Fiscal ganadero</div>
+            <span class="tag green">Gestión local</span>
+          </div>
+          <p class="text-muted">Boletos de marca, Documento Único de Tránsito y estado de ARCA/SENASA.</p>
+          <div class="dashboard-kpi-grid" style="margin-bottom:16px;">
+            <div class="kpi"><div class="kpi-label">Peso vivo</div><div class="kpi-value" id="fiscalPesoActual">-- kg</div><div class="kpi-sub" id="fiscalEstadoBalanza">Sin conexión</div></div>
+            <div class="kpi"><div class="kpi-label">Estado ARCA/SENASA</div><div class="kpi-value" id="fiscalEstadoAfip">--</div><div class="kpi-sub" id="fiscalTokenAfip">--</div></div>
+            <div class="kpi"><div class="kpi-label">Última caravana</div><div class="kpi-value" id="fiscalCaravana">--</div><div class="kpi-sub">Lector RFID</div></div>
+          </div>
+        </div>
+
+        <div class="dashboard-two-column" style="margin-top:16px;">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">✅ Control de cumplimiento</div>
+              <button class="topbar-btn" id="fiscalActualizarPanel" type="button">Actualizar</button>
+            </div>
+            <div id="fiscalChecklist" class="alert-list">
+              <div class="alert-item"><span>Estado de credenciales ARCA/SENASA</span><span class="tag">Pendiente</span></div>
+              <div class="alert-item"><span>Boletos de marca vigentes</span><span class="tag">Sin consultar</span></div>
+              <div class="alert-item"><span>RENSPA de origen y destino</span><span class="tag">Validación manual</span></div>
+              <div class="alert-item"><span>Documentación del transporte</span><span class="tag">Revisar antes de emitir</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">📊 Resumen fiscal</div></div>
+            <div class="kpi-grid" style="margin:0;">
+              <div class="kpi"><div class="kpi-label">Boletos activos</div><div class="kpi-value" id="fiscalBoletosActivos">0</div></div>
+              <div class="kpi"><div class="kpi-label">DUT registrados</div><div class="kpi-value" id="fiscalDutRegistrados">0</div></div>
+              <div class="kpi"><div class="kpi-label">Notificaciones</div><div class="kpi-value" id="fiscalNotificaciones">0</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="fiscalConexionCard" style="margin-top:16px;">
+          <div class="card-header">
+            <div class="card-title">🔐 Conexión segura ARCA / SENASA</div>
+            <span class="tag" id="fiscalConfigEstado">Pendiente de configuración</span>
+          </div>
+          <p class="text-muted">Las claves privadas se cargan en el servidor o instalador seguro. Nunca se guardan en el navegador.</p>
+          <div class="grid-2" style="margin-top:14px;">
+            <div>
+              <div class="form-group"><label class="form-label">Entorno</label><input class="form-input" id="fiscalConfigEntorno" value="HOMOLOGACIÓN" readonly></div>
+              <div class="form-group"><label class="form-label">CUIT del productor</label><input class="form-input" id="fiscalConfigCuit" placeholder="Se informa en el servidor" readonly></div>
+              <div class="form-group"><label class="form-label">Servicio ARCA</label><input class="form-input" id="fiscalConfigServicio" value="wsigsa" readonly></div>
+            </div>
+            <div>
+              <div class="form-group"><label class="form-label">Certificado</label><input class="form-input" id="fiscalConfigCertificado" value="No verificado" readonly></div>
+              <div class="form-group"><label class="form-label">Clave privada</label><input class="form-input" id="fiscalConfigClave" value="No verificada" readonly></div>
+              <div class="form-group"><label class="form-label">WSDL SENASA / SIGSA</label><input class="form-input" id="fiscalConfigSigsa" value="No configurado" readonly></div>
+            </div>
+          </div>
+          <div class="actions" style="margin-top:12px;">
+            <button class="topbar-btn" id="fiscalActualizarConfiguracion" type="button">Verificar configuración</button>
+            <span class="text-muted" id="fiscalConfigAyuda">Validando conexión con el backend fiscal...</span>
+          </div>
+        </div>
+
+        <div class="dashboard-two-column" style="margin-top:16px;">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Boleto de marca</div></div>
+            <div class="form-grid">
+              <input class="form-input" id="fiscalNroBoleto" placeholder="Número de boleto">
+              <select class="form-select" id="fiscalTipoGanado"><option value="BOVINO">Bovino</option><option value="EQUINO">Equino</option><option value="PORCINO">Porcino</option><option value="OVINO">Ovino</option></select>
+              <input class="form-input" id="fiscalVencimientoBoleto" type="date">
+            </div>
+            <button class="topbar-btn primary" id="fiscalRegistrarBoleto" type="button">Registrar boleto</button>
+            <button class="topbar-btn" id="fiscalValidarBoleto" type="button">Validar boleto</button>
+            <span class="tag" id="fiscalEstadoBoleto">Sin validar</span>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><div class="card-title">Control de balanza</div></div>
+            <div class="form-grid">
+              <input class="form-input" id="fiscalCaravanaInput" placeholder="Caravana RFID">
+              <input class="form-input" id="fiscalPesoDestino" type="number" placeholder="Peso destino (kg)">
+            </div>
+            <button class="topbar-btn" id="fiscalRegistrarPesaje" type="button">Registrar pesada</button>
+            <button class="topbar-btn" id="fiscalAuditarMerma" type="button">Auditar merma</button>
+            <p id="fiscalResultadoBalanza" class="text-muted"></p>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <div class="card-header"><div class="card-title">Emitir Documento Único de Tránsito</div></div>
+          <form id="fiscalFormDut" class="form-grid">
+            <input class="form-input" name="renspaOrigen" placeholder="RENSPA origen" required>
+            <input class="form-input" name="renspaDestino" placeholder="RENSPA destino" required>
+            <input class="form-input" name="nroBoleto" id="fiscalDutBoleto" placeholder="Boleto de marca" required>
+            <select class="form-select" name="categoriaId"><option value="1">Novillo</option><option value="2">Vaquillona</option><option value="3">Ternero</option><option value="4">Porcinos capón</option></select>
+            <input class="form-input" name="cantidadCabezas" type="number" min="1" placeholder="Cantidad de cabezas" required>
+            <input class="form-input" name="patenteChasis" placeholder="Patente del camión" required>
+            <input class="form-input" name="cuitTransportista" placeholder="CUIT transportista" required>
+            <input class="form-input" name="emailTransportista" type="email" placeholder="Email del transportista" required>
+            <input class="form-input" name="fechaCarga" type="date" title="Fecha de carga" required>
+            <input class="form-input" name="fechaVencimiento" type="datetime-local" title="Vencimiento del DUT" required>
+            <input class="form-input" name="municipioId" placeholder="Municipio / localidad">
+            <input class="form-input" name="arancelMunicipal" type="number" min="0" step="0.01" placeholder="Tasa municipal">
+            <select class="form-select" name="estadoPago"><option value="NO_APLICA">Tasa no informada</option><option value="PENDIENTE">Pago pendiente</option><option value="PAGADO">Pago acreditado</option><option value="CUENTA_CORRIENTE">Cuenta corriente</option></select>
+            <button class="topbar-btn" id="fiscalCotizarTasa" type="button">Cotizar tasa municipal</button>
+            <button class="topbar-btn" id="fiscalGuardarPreDut" type="button">📝 Guardar Pre-DUT e imprimir</button>
+            <button class="topbar-btn" id="fiscalGenerarCartaPorte" type="button">🚚 Generar Carta de Porte</button>
+            <button class="topbar-btn primary" type="submit">Validar y emitir DUT</button>
+          </form>
+          <p id="fiscalResultadoDut" class="tag" style="display:none;"></p>
+          <p id="fiscalResultadoTasa" class="text-muted"></p>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <div class="card-header"><div class="card-title">🚚 Cartas de Porte generadas</div></div>
+          <p class="text-muted">Documento de transporte generado localmente a partir de los datos del DUT. No reemplaza la Carta de Porte oficial ante ARCA/SENASA cuando esa integración esté disponible.</p>
+          <div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Número</th><th>Origen</th><th>Destino</th><th>Transportista</th><th>Fecha</th><th>Estado</th><th>Acción</th></tr></thead><tbody id="fiscalCartasPorteBody"></tbody></table></div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <div class="card-header"><div class="card-title">📡 Mis viajes / Pre-DUT y comprobantes</div><button class="topbar-btn" id="fiscalSincronizarDut" type="button">Sincronizar pendientes</button></div>
+          <p class="text-muted">Los datos se preparan sin señal y se envían al recuperar conexión. La emisión oficial requiere respuesta de SENASA.</p>
+          <div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Identificador</th><th>Vigencia</th><th>Pago</th><th>Estado</th><th>Acción</th></tr></thead><tbody id="fiscalDutQueueBody"></tbody></table></div>
+          <div id="fiscalQrViewer" style="display:none;margin-top:16px;text-align:center;"><div class="card-title">Comprobante DUT</div><img id="fiscalQrImage" alt="Código QR oficial del DUT" style="max-width:220px;max-height:220px;margin:12px auto;display:none;"><p id="fiscalQrText" class="text-muted"></p><a id="fiscalDutDownload" class="topbar-btn" download="dut-comprobante">Descargar comprobante</a></div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <div class="card-header"><div class="card-title">⏰ Alertas de vencimiento y cierre</div><button class="topbar-btn" id="fiscalPedirNotificaciones" type="button">Activar avisos</button></div>
+          <div id="fiscalAlertasDut" class="alert-list"><div class="alert-item"><span>Sin alertas</span><span class="tag green">OK</span></div></div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <div class="card-header"><div class="card-title">Notificar chofer</div></div>
+          <form id="fiscalFormNotificacion" class="form-grid">
+            <input class="form-input" name="nombreTransportista" placeholder="Nombre del chofer" required>
+            <input class="form-input" name="emailTransportista" type="email" placeholder="Email del chofer" required>
+            <input class="form-input" name="patenteChasis" placeholder="Patente del camión" required>
+            <button class="topbar-btn primary" type="submit">Enviar notificación</button>
+          </form>
+          <p id="fiscalResultadoNotificacion" class="text-muted"></p>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <div class="card-header"><div class="card-title">📚 Registro fiscal local</div></div>
+          <div style="overflow-x:auto;">
+            <table class="data-table">
+              <thead><tr><th>Boleto</th><th>Tipo</th><th>Vencimiento</th><th>Estado</th></tr></thead>
+              <tbody id="fiscalBoletosBody"></tbody>
+            </table>
+          </div>
+          <div style="overflow-x:auto;margin-top:16px;">
+            <table class="data-table">
+              <thead><tr><th>Fecha</th><th>Operación</th><th>Identificador</th><th>Estado</th><th>Detalle</th></tr></thead>
+              <tbody id="fiscalDutBody"></tbody>
+            </table>
+          </div>
+        </div>
+        </div>
+
+        <div id="fiscalTabAgricola" class="fiscal-tab-content" style="display:none;">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🌾 Fiscal agrícola</div>
+              <button class="topbar-btn" id="agricolaActualizarPanel" type="button" onclick="actualizarFiscalAgricola()">Actualizar</button>
+            </div>
+            <p class="text-muted">Carta de Porte Electrónica (WSCPE) y Liquidación Primaria de Granos (WSFEv1) de cereales.</p>
+            <div class="dashboard-kpi-grid" style="margin-bottom:16px;">
+              <div class="kpi"><div class="kpi-label">Estado ARCA (WSCPE)</div><div class="kpi-value" id="agricolaEstadoArca">--</div><div class="kpi-sub" id="agricolaTokenArca">--</div></div>
+              <div class="kpi"><div class="kpi-label">CPE emitidas</div><div class="kpi-value" id="agricolaCpeEmitidas">0</div></div>
+              <div class="kpi"><div class="kpi-label">LPG emitidas</div><div class="kpi-value" id="agricolaLpgEmitidas">0</div></div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:16px;">
+            <div class="card-header"><div class="card-title">🚚 Autorizar Carta de Porte Electrónica (WSCPE)</div></div>
+            <form id="agricolaFormCpe" class="form-grid">
+              <select class="form-select" name="campoCodigo" id="agricolaCpeCampo" required><option value="">-- Campo --</option></select>
+              <input class="form-input" name="kilosTotales" type="number" min="1" placeholder="Kilos cargados en el camión" required>
+              <input class="form-input" name="patente" placeholder="Patente del camión" required>
+              <select class="form-select" name="tipoCPE"><option value="CPE Automotor">CPE Automotor</option><option value="CPE Ferroviario">CPE Ferroviario</option></select>
+              <input class="form-input" name="sucursal" placeholder="Sucursal de emisión (no puede ser 0)">
+              <input class="form-input" name="cuitCliente" placeholder="CUIT cliente/comprador (si aplica)">
+              <button class="topbar-btn primary" type="submit">Autorizar CPE</button>
+            </form>
+            <p id="agricolaResultadoCpe" class="tag" style="display:none;"></p>
+          </div>
+
+          <div class="card" style="margin-top:16px;">
+            <div class="card-header"><div class="card-title">📦 Cartas de Porte de granos</div><button class="topbar-btn" id="agricolaSincronizarCola" type="button" onclick="sincronizarColaAgricola()">Sincronizar pendientes</button></div>
+            <div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>CTG</th><th>Estado</th><th>Kilos origen</th><th>Kilos destino</th><th>Acción</th></tr></thead><tbody id="agricolaCpeBody"></tbody></table></div>
+          </div>
+
+          <div class="card" style="margin-top:16px;">
+            <div class="card-header"><div class="card-title">💰 Emitir Liquidación Primaria de Granos (LPG)</div></div>
+            <form id="agricolaFormLpg" class="form-grid">
+              <select class="form-select" name="productoCodigo" id="agricolaLpgProducto"><option value="">-- Producto vendido (Inventario) --</option></select>
+              <input class="form-input" name="kilosVendidos" type="number" min="1" step="0.01" placeholder="Kilos vendidos (descuenta stock)">
+              <input class="form-input" name="puntoVenta" type="number" min="1" placeholder="Punto de venta (no puede ser 0)" required>
+              <input class="form-input" name="cuitComprador" placeholder="CUIT del acopio/comprador" required>
+              <input class="form-input" name="importeNeto" type="number" min="1" step="0.01" placeholder="Importe neto ($)" required>
+              <input class="form-input" name="codigoGranoSISA" placeholder="Código de grano SISA (ej: 19 = Soja)">
+              <select class="form-select" name="esOperador"><option value="no">Productor directo</option><option value="si">Operador/Intermediario</option></select>
+              <select class="form-select" name="inscriptoGanancias"><option value="si">Inscripto en Ganancias</option><option value="no">No inscripto</option></select>
+              <button class="topbar-btn primary" type="submit">Emitir LPG</button>
+            </form>
+            <p id="agricolaResultadoLpg" class="tag" style="display:none;"></p>
+          </div>
+
+          <div class="card" style="margin-top:16px;">
+            <div class="card-header"><div class="card-title">📄 Liquidaciones de granos emitidas</div></div>
+            <div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Comprobante</th><th>CAE</th><th>Estado SISA</th><th>Retenciones</th><th>Neto a cobrar</th></tr></thead><tbody id="agricolaLpgBody"></tbody></table></div>
+          </div>
+
+          <div class="card" style="margin-top:16px;">
+            <div class="card-header"><div class="card-title">👷 Liquidaciones de contratistas (cosecha/flete)</div></div>
+            <p class="text-muted">Se agrupan automáticamente los viajes (CPE) del lote seleccionado.</p>
+            <form id="agricolaFormContratista" class="form-grid">
+              <select class="form-select" name="tipoServicio"><option value="FLETE">Flete (por tonelada)</option><option value="COSECHA_HA">Cosecha/Siembra ($/ha)</option><option value="COSECHA_PCT">Cosecha a porcentaje (qq)</option></select>
+              <select class="form-select" name="loteCodigo" id="agricolaContratistaLote"><option value="">-- Lote --</option></select>
+              <input class="form-input" name="contratistaCuit" placeholder="CUIT contratista">
+              <input class="form-input" name="tarifaPorTonelada" type="number" step="0.01" placeholder="Tarifa $/tonelada (flete)">
+              <input class="form-input" name="valorTarifa" type="number" step="0.01" placeholder="Tarifa $/ha (cosecha)">
+              <input class="form-input" name="superficieHa" type="number" step="0.01" placeholder="Superficie (ha)">
+              <input class="form-input" name="valorTarifaPorcentaje" type="number" step="0.01" placeholder="% de la cosecha (ej: 8)">
+              <input class="form-input" name="precioPorKg" type="number" step="0.01" placeholder="Precio por kg ($)">
+              <select class="form-select" name="proveedorInscripto"><option value="si">Inscripto en Ganancias</option><option value="no">No inscripto</option></select>
+              <button class="topbar-btn primary" type="submit">Liquidar</button>
+            </form>
+            <p id="agricolaResultadoContratista" class="tag" style="display:none;"></p>
+            <div style="overflow-x:auto;margin-top:12px;"><table class="data-table"><thead><tr><th>Servicio</th><th>Lote</th><th>Subtotal</th><th>IVA</th><th>Retención</th><th>Total a pagar</th></tr></thead><tbody id="agricolaContratistasBody"></tbody></table></div>
+          </div>
+        </div>
+      </div>
+
       <!-- MODULE: REPORTES -->
       <div class="module" id="mod-reportes">
         <div class="card">
@@ -2438,12 +2750,22 @@ body {
             <div class="card-title">📋 Reportes Disponibles</div>
             <div style="display:flex;gap:8px;">
               <button class="topbar-btn" onclick="abrirWhatsAppReporteModal()" style="display:inline-flex;align-items:center;">
-                <span class="wa-mini-icon">WA</span>Enviar por WhatsApp
+                <span class="wa-mini-icon">WA</span>Enviar cambios por WhatsApp
               </button>
               <button class="topbar-btn primary" onclick="generarReporteCompleto()">📊 Reporte Completo</button>
             </div>
           </div>
           <div class="grid-3">
+            <div class="report-card" onclick="abrirWhatsAppReporteModal('cambiosDiarios')">
+              <div style="font-size:24px;margin-bottom:8px;">🕘</div>
+              <div style="font-weight:600;">Cambios diarios</div>
+              <div style="font-size:11px;color:var(--text-dim);">Nacimientos, movimientos y novedades del día</div>
+            </div>
+            <div class="report-card" onclick="abrirWhatsAppReporteModal('cambiosInstantaneos')">
+              <div style="font-size:24px;margin-bottom:8px;">⚡</div>
+              <div style="font-weight:600;">Cambios instantáneos</div>
+              <div style="font-size:11px;color:var(--text-dim);">Últimos cambios registrados</div>
+            </div>
             <div class="report-card" onclick="generarReporte('balance')">
               <div style="font-size:24px;margin-bottom:8px;">📊</div>
               <div style="font-weight:600;">Balance General</div>
@@ -2504,16 +2826,16 @@ body {
         <div class="activation-subtitle">Sistema de Gestión Agropecuaria</div>
       </div>
       <div class="activation-form">
-        <label class="activation-label">Clave de Activación</label>
-        <input type="text" class="activation-input" id="activationKey" placeholder="NEXO-XXXX-XXXX-XXXX" maxlength="22">
+        <label class="activation-label">Licencia de Activación</label>
+        <input type="text" class="activation-input" id="activationKey" placeholder="PAMPAN1..." autocomplete="off" spellcheck="false">
         <div class="activation-error" id="activationError">Clave de activación inválida</div>
         <button class="activation-btn" onclick="activateLicense()">Activar Licencia</button>
-        <button class="activation-btn-secondary" onclick="activateTrial()">Iniciar Prueba Gratis (7 días)</button>
-        <button class="activation-btn-secondary" onclick="enviarTrialPorWhatsApp()" style="margin-top: 8px;">Activar trial ahora</button>
+        <button class="activation-btn-secondary" onclick="activateTrial()">Iniciar Prueba Gratis (10 días)</button>
+        <button class="activation-btn-secondary" onclick="enviarTrialPorWhatsApp()" style="margin-top: 8px;">Compartir link trial por WhatsApp</button>
       </div>
       <div class="activation-info">
         Ingrese la clave de activación proporcionada al comprar el software.<br>
-        O inicie una prueba gratis por 7 días para evaluar el sistema.
+        O inicie una prueba gratis por 10 días para evaluar el sistema.
       </div>
     </div>
   </div>
@@ -2545,7 +2867,6 @@ body {
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn" onclick="abrirConfiguracionModulosPlan()">Configurar Módulos por Plan</button>
         <button class="btn btn-danger" onclick="deactivateLicense()">Desactivar Licencia</button>
         <button class="btn btn-primary" onclick="closeLicenseModal()">Cerrar</button>
       </div>
@@ -2644,9 +2965,19 @@ const state = {
   campos: [],
   campañas: [],
   lotes: [],
+  contratosArrendamiento: [],
+  ordenesPago: [],
+  boletosMarca: [],
+  fiscalDutHistorial: [],
+  fiscalNotificaciones: [],
+  fiscalDutQueue: [],
+  fiscalCartasPorte: [],
+  lpgEmitidasLocal: [],
   siembra: [],
   aplicaciones: [],
   cosecha: [],
+  ventasCereal: [],
+  ventasHacienda: [],
   inventario: [],
   movimientoStock: [],
   maquinarias: [],
@@ -2711,6 +3042,11 @@ const state = {
   creditos: [],
   empleados: [],
   documentos: [],
+  boletosMarca: [],
+  fiscalDutHistorial: [],
+  fiscalNotificaciones: [],
+  fiscalDutQueue: [],
+  fiscalCartasPorte: [],
   empresa: {
     nombre: '',
     cuit: '',
@@ -3036,37 +3372,37 @@ function detectClavePrimaria(modulo) {
 }
 
 /* === NAVEGACIÓN === */
-const modules = ['dashboard','campos','lotes','campañas','aplicaciones','siembra','cosecha','inventario','hacienda','alimentacion','maquinarias','cargacombustible','costosOperativos','mantenimiento','empleados','caja','bancos','cuentasBancarias','cheques','creditos','flujo','costos','rentabilidad','empresa','reportes','documentos'];
+const modules = ['dashboard','campos','lotes','campañas','aplicaciones','siembra','cosecha','inventario','hacienda','alimentacion','fiscal','maquinarias','cargacombustible','costosOperativos','mantenimiento','empleados','caja','bancos','cuentasBancarias','cheques','creditos','flujo','costos','rentabilidad','empresa','reportes','documentos'];
 const moduleNames = {
   dashboard:'Dashboard',campos:'Campos',lotes:'Lotes',campañas:'Campañas',
   aplicaciones:'Aplicaciones',siembra:'Siembra',cosecha:'Cosecha',inventario:'Inventario',movimientoStock:'Movimientos de Stock',hacienda:'Hacienda',alimentacion:'Alimentación',maquinarias:'Maquinarias',cargacombustible:'Cargas de Combustible',costosOperativos:'Costos Operativos',
   animalesTrazabilidad:'Animales (Trazabilidad)',historialMovimientos:'Historial de Movimientos',eventosSanitarios:'Eventos Sanitarios',
   mantenimiento:'Mantenimiento',empleados:'Empleados',caja:'Caja',bancos:'Bancos',
   cuentasBancarias:'Cuentas Bancarias',chequesCobrar:'Cheques por Cobrar',chequesCubrir:'Cheques por Cubrir',creditos:'Créditos',
-  flujo:'Flujo de Fondos',costos:'Costos',rentabilidad:'Rentabilidad',empresa:'Empresa',reportes:'Reportes',documentos:'Documentos'
+  flujo:'Flujo de Fondos',costos:'Costos',rentabilidad:'Rentabilidad',empresa:'Empresa',fiscal:'ARCA/SENASA',reportes:'Reportes',documentos:'Documentos'
 };
 
 // Definición de roles y permisos
 const rolePermissions = {
   propietario: {
-    nombre: 'Administrador/Propietario',
+    nombre: 'Propietario / Responsable',
     icono: '👑',
-    modulos: ['dashboard','campos','lotes','campañas','aplicaciones','siembra','aplicaciones','cosecha','inventario','movimientoStock','hacienda','alimentacion','maquinarias','cargacombustible','costosOperativos','mantenimiento','empleados','caja','bancos','cuentasBancarias','cheques','chequesCobrar','chequesCubrir','creditos','flujo','costos','rentabilidad','empresa','reportes','documentos']
+    modulos: ['dashboard','campos','lotes','campañas','aplicaciones','siembra','aplicaciones','cosecha','inventario','movimientoStock','hacienda','alimentacion','fiscal','maquinarias','cargacombustible','costosOperativos','mantenimiento','empleados','caja','bancos','cuentasBancarias','cheques','chequesCobrar','chequesCubrir','creditos','flujo','costos','rentabilidad','empresa','reportes','documentos']
   },
   administracion: {
-    nombre: 'Ingeniero/Veterinario',
-    icono: '🩺',
-    modulos: ['dashboard','campos','lotes','campañas','siembra','aplicaciones','cosecha','hacienda','alimentacion','reportes']
+    nombre: 'Administración',
+    icono: '🧾',
+    modulos: ['dashboard','campos','lotes','campañas','siembra','aplicaciones','cosecha','hacienda','alimentacion','fiscal','reportes']
   },
   ingeniero: {
-    nombre: 'Operarios de Campo',
-    icono: '👷',
-    modulos: ['dashboard','campos','lotes','campañas','siembra','aplicaciones','cosecha','hacienda','alimentacion','maquinarias','cargacombustible','costosOperativos','mantenimiento','reportes']
+    nombre: 'Ingeniero / Veterinario',
+    icono: '🩺',
+    modulos: ['dashboard','campos','lotes','campañas','siembra','aplicaciones','cosecha','hacienda','alimentacion','fiscal','maquinarias','cargacombustible','costosOperativos','mantenimiento','reportes']
   },
   oficina: {
-    nombre: 'Operadores de Oficina',
-    icono: '🧾',
-    modulos: ['dashboard','caja','bancos','cuentasBancarias','cheques','chequesCobrar','chequesCubrir','creditos','flujo','costos','rentabilidad','documentos','reportes']
+    nombre: 'Operario de campo',
+    icono: '👷',
+    modulos: ['dashboard','fiscal','caja','bancos','cuentasBancarias','cheques','chequesCobrar','chequesCubrir','creditos','flujo','costos','rentabilidad','documentos','reportes']
   }
 };
 
@@ -3084,8 +3420,6 @@ const PLAN_ROLE_LIMITS = {
 function getEffectiveLicensePlan() {
   const plan = getLicensePlan();
   if (plan) return plan;
-  // En navegador/desarrollo sin licencia formal, la app opera como Premium.
-  if (!window.electronAPI) return 'premium';
   return 'basica';
 }
 
@@ -3204,10 +3538,10 @@ function abrirRolesLicenciaModal() {
             <div class="form-group" style="margin:0;">
               <label class="form-label">Perfil base</label>
               <select class="form-select" id="rolesLicenciaPerfil">
-                <option value="propietario">👑 Administrador/Propietario</option>
-                <option value="administracion">🩺 Ingeniero/Veterinario</option>
-                <option value="ingeniero" selected>👷 Operador</option>
-                <option value="oficina">🧾 Operador de Oficina</option>
+                <option value="propietario">👑 Propietario / Responsable</option>
+                <option value="administracion">🧾 Administración</option>
+                <option value="ingeniero" selected>🩺 Ingeniero / Veterinario</option>
+                <option value="oficina">👷 Operario de campo</option>
               </select>
             </div>
             <button class="btn btn-primary" id="rolesLicenciaAgregarBtn" onclick="agregarRolLicenciaDesdeModal()">Agregar rol</button>
@@ -3523,6 +3857,10 @@ function switchModule(id) {
   // Calcular rentabilidad al activar el módulo
   if (id === 'rentabilidad') {
     setTimeout(() => inicializarModuloRentabilidad(), 100);
+  }
+  // Refrescar el panel Fiscal (submódulo Ganadero) al activar el módulo
+  if (id === 'fiscal') {
+    setTimeout(() => { actualizarFiscalGanadero(); actualizarRegistroFiscal(); }, 100);
   }
 }
 
@@ -3843,8 +4181,50 @@ function formatMoney(value) {
   return '$' + num.toLocaleString('es-AR');
 }
 
+function renderOperacionesARCA() {
+  const body = document.getElementById('arcaOperacionesBody');
+  if (!body) return;
+  const rows = Array.isArray(state.arcaOperaciones) ? state.arcaOperaciones : [];
+  body.innerHTML = rows.length ? rows.map(item => `<tr><td>${item.fecha || '-'}</td><td>${item.tipo || '-'}</td><td>${item.referencia || '-'}</td><td>${item.destinatario || '-'}</td><td>${formatMoney(item.importe)}</td><td><span class="tag ${item.estado === 'Presentada' ? 'green' : 'orange'}">${item.estado || 'Pendiente de enviar'}</span></td></tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:18px;">Sin operaciones fiscales registradas.</td></tr>';
+}
+
+function verificarConfiguracionARCA() {
+  const cuit = document.getElementById('arcaCuit')?.value.trim() || '';
+  const entorno = document.getElementById('arcaEntorno')?.value || 'Homologación';
+  const servicio = document.getElementById('arcaServicio')?.value || 'wsfe';
+  const estado = document.getElementById('arcaEstado');
+  const ayuda = document.getElementById('arcaAyuda');
+  localStorage.setItem('pampaAgroArcaConfig', JSON.stringify({ cuit, entorno, servicio }));
+  if (estado) { estado.textContent = cuit ? 'Configuración local completa' : 'Falta CUIT'; estado.className = cuit ? 'tag green' : 'tag orange'; }
+  if (ayuda) ayuda.textContent = cuit ? `Configuración guardada para ${entorno} · ${servicio}. La presentación oficial requiere credenciales del backend.` : 'Ingresá el CUIT del productor para completar la configuración local.';
+}
+
+function sincronizarColaARCA() {
+  const pendientes = (state.arcaOperaciones || []).filter(item => item.estado === 'Pendiente de enviar');
+  showToast(pendientes.length ? `${pendientes.length} operación(es) pendiente(s): se requiere backend ARCA para presentarlas.` : 'No hay operaciones fiscales pendientes.', pendientes.length ? 'info' : 'success');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const config = JSON.parse(localStorage.getItem('pampaAgroArcaConfig') || '{}');
+  if (document.getElementById('arcaCuit')) document.getElementById('arcaCuit').value = config.cuit || '';
+  if (document.getElementById('arcaEntorno') && config.entorno) document.getElementById('arcaEntorno').value = config.entorno;
+  if (document.getElementById('arcaServicio') && config.servicio) document.getElementById('arcaServicio').value = config.servicio;
+  renderOperacionesARCA();
+  document.getElementById('arcaOperacionForm')?.addEventListener('submit', event => {
+    event.preventDefault();
+    const data = Object.fromEntries(new FormData(event.currentTarget).entries());
+    state.arcaOperaciones.unshift({ ...data, importe: Number(data.importe) || 0, estado: 'Pendiente de enviar' });
+    saveState();
+    renderOperacionesARCA();
+    event.currentTarget.reset();
+    showToast('Operación ARCA guardada en la cola local', 'success');
+  });
+});
+
 function getReporteTypesForWhatsApp() {
   return [
+    { value: 'cambiosDiarios', label: 'Reporte operativo diario completo' },
+    { value: 'cambiosInstantaneos', label: 'Reporte operativo instantáneo completo' },
     { value: 'balance', label: 'Balance General' },
     { value: 'resultados', label: 'Estado de Resultados' },
     { value: 'costoLote', label: 'Costo por Lote' },
@@ -3862,7 +4242,7 @@ function getReporteLabel(tipo) {
   return found ? found.label : tipo;
 }
 
-function buildReporteResumenWhatsApp(tipo) {
+function buildReporteResumenWhatsApp(tipo, detalleInstantaneo = '') {
   const fecha = new Date().toLocaleString('es-AR');
   const cajaIngresos = (state.caja || []).filter(m => m.tipo === 'Ingreso').reduce((sum, m) => sum + parseImporteNumero(m.importe), 0);
   const cajaEgresos = (state.caja || []).filter(m => m.tipo === 'Egreso').reduce((sum, m) => sum + parseImporteNumero(m.importe), 0);
@@ -3872,6 +4252,26 @@ function buildReporteResumenWhatsApp(tipo) {
   const saldoBancos = bancosIngresos - bancosEgresos;
 
   let detalle = '';
+
+  if (tipo === 'cambiosDiarios' || tipo === 'cambiosInstantaneos') {
+    const hoy = new Date().toISOString().slice(0, 10);
+    const esDelDia = item => !item?.fecha || String(item.fecha).slice(0, 10) === hoy;
+    const limite = tipo === 'cambiosInstantaneos' ? 20 : Infinity;
+    const nacimientos = (state.hacienda || []).filter(item => item.tipo === 'Nacimiento' && (tipo === 'cambiosInstantaneos' || esDelDia(item))).slice(0, limite);
+    const animalesNacidos = (state.animalesTrazabilidad || []).filter(item => item.fechaNacimiento && (tipo === 'cambiosInstantaneos' || String(item.fechaNacimiento).slice(0, 10) === hoy)).slice(0, limite);
+    const siembras = (state.siembra || []).filter(esDelDia).slice(0, limite);
+    const alimentacion = (state.alimentacion || []).filter(esDelDia).slice(0, limite);
+    const sanitarios = (state.eventosSanitarios || []).filter(esDelDia).slice(0, limite);
+    const lineas = [];
+    if (tipo === 'cambiosInstantaneos' && detalleInstantaneo) lineas.push(`• Descripción: ${detalleInstantaneo}`);
+    nacimientos.forEach(item => lineas.push(`• Nacimiento: ${item.cantidad || 1} ternero(s) · lote: ${item.destino || item.lote || 'sin lote'} · caravana: ${item.caravana || item.rfidTag || 'sin caravana'}`));
+    animalesNacidos.forEach(item => lineas.push(`• Alta animal nacido: ${item.idAnimal || '-'} · caravana: ${item.rfidTag || 'sin caravana'} · lote/origen: ${item.predioOrigen || 'sin lote'}`));
+    siembras.forEach(item => lineas.push(`• Siembra: ${item.cultivo || '-'} ${item.variedad || ''} · lote: ${item.lote || '-'}`));
+    alimentacion.forEach(item => lineas.push(`• Alimentación: ${item.producto || '-'} · ${item.cabezas || 0} cabezas · total: ${item.cantidadTotal || 0} kg`));
+    sanitarios.forEach(item => lineas.push(`• Sanidad: ${item.tipoVacunaMedicamento || '-'} · animal: ${item.idAnimal || '-'} · responsable: ${item.veterinarioResponsable || '-'}`));
+    detalle = lineas.length ? lineas.join('\n') : `• Sin cambios ${tipo === 'cambiosDiarios' ? 'registrados hoy' : 'recientes'}.`;
+    return `📋 *${getReporteLabel(tipo)}*\nUsuario: ${rolePermissions[currentRole]?.nombre || currentRole || 'Usuario actual'}\nEmpresa: ${state?.empresa?.nombre || 'PampaAgro ERP'}\nFecha: ${fecha}\n\n${detalle}`;
+  }
 
   switch (tipo) {
     case 'balance':
@@ -3956,7 +4356,7 @@ function actualizarWhatsAppReporteMensaje() {
 
   const contactos = getWhatsAppRoleContacts();
   telefonoEl.value = contactos[rolEl.value] || '';
-  mensajeEl.value = buildReporteResumenWhatsApp(tipoEl.value);
+  mensajeEl.value = buildReporteResumenWhatsApp(tipoEl.value, document.getElementById('waReporteDetalle')?.value || '');
 }
 
 function abrirWhatsAppReporteModal() {
@@ -3991,6 +4391,10 @@ function abrirWhatsAppReporteModal() {
           <div class="form-group">
             <label class="form-label">Reporte</label>
             <select class="form-select" id="waReporteTipo" onchange="actualizarWhatsAppReporteMensaje()">${reporteOptions}</select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Descripción del cambio instantáneo</label>
+            <input class="form-input" id="waReporteDetalle" type="text" placeholder="Ej.: Nacieron 2 terneros en lote X, caravana XX" oninput="actualizarWhatsAppReporteMensaje()">
           </div>
           <div class="form-group">
             <label class="form-label">Rol destino</label>
@@ -4032,6 +4436,13 @@ function enviarWhatsAppReporte() {
   const telefonoRaw = (telefonoEl.value || '').trim();
   const telefono = telefonoRaw.replace(/[^0-9]/g, '');
   const mensaje = (mensajeEl.value || '').trim();
+  const tipo = document.getElementById('waReporteTipo')?.value || '';
+  const detalle = document.getElementById('waReporteDetalle')?.value.trim() || '';
+  if (tipo === 'cambiosInstantaneos' && !detalle) {
+    showToast('Describí el cambio instantáneo antes de enviarlo', 'error');
+    document.getElementById('waReporteDetalle')?.focus();
+    return;
+  }
 
   if (!telefono || telefono.length < 10) {
     showToast('Ingresá un teléfono válido para WhatsApp', 'error');
@@ -4237,6 +4648,7 @@ function initDesktopAutoUpdateUI() {
 
 /* === MODAL SYSTEM === */
 let currentModal = { module: null, editIndex: null };
+let cpePendienteParaVenta = null;
 let ultimoRFIDEscaneado = '';
 
 const formConfigs = {
@@ -4249,13 +4661,36 @@ const formConfigs = {
       { name: 'superficie', label: 'Superficie (ha)', type: 'number' },
       { name: 'propietario', label: 'Propietario', type: 'text' },
       { name: 'contrato', label: 'Tipo Contrato', type: 'select', options: ['Propio', 'Alquiler', 'Mediería'] },
+      { name: 'numeroPlantaSisa', label: 'N° Planta/Localidad SISA (si es propio)', type: 'text', placeholder: 'Código declarado en SISA' },
+      { name: 'cuitDueno', label: 'CUIT dueño del campo (si es alquilado)', type: 'text', placeholder: '20-00000000-0' },
+      { name: 'codigoContratoSisa', label: 'Código de contrato SISA', type: 'text', placeholder: 'Opcional, evita bloqueos de ARCA' },
+      { name: 'contratoModalidad', label: 'Modalidad del contrato', type: 'select', options: ['Fijo en pesos', 'Porcentaje'] },
+      { name: 'porcentajeGranoDueno', label: '% de grano del dueño (si es Porcentaje)', type: 'number', step: 'any' },
       { name: 'valor', label: 'Valor', type: 'text' }
+    ]
+  },
+  contratoArrendamiento: {
+    title: 'Nuevo Contrato de Arrendamiento',
+    fields: [
+      { name: 'campo', label: 'Campo', type: 'select', required: true, dynamicOptions: 'campos' },
+      { name: 'cuitDueno', label: 'CUIT dueño del campo', type: 'text', required: true, placeholder: '20-00000000-0' },
+      { name: 'inscriptoGanancias', label: '¿Dueño inscripto en Ganancias?', type: 'select', options: ['Sí', 'No'], required: true },
+      { name: 'esPersonaJuridica', label: 'Si NO inscripto: ¿es persona jurídica?', type: 'select', options: ['No', 'Sí'] },
+      { name: 'destinoAgropecuarioExplicitado', label: '¿Destino agropecuario explicitado en el contrato?', type: 'select', options: ['Sí', 'No'], required: true },
+      { name: 'modalidad', label: 'Modalidad', type: 'select', options: ['Fijo en pesos', 'Porcentaje'], required: true },
+      { name: 'importeMensual', label: 'Importe mensual (si es Fijo en pesos)', type: 'number', step: '0.01' },
+      { name: 'quintalesPorHectarea', label: 'Quintales/ha (si es Porcentaje/canje)', type: 'number', step: 'any' },
+      { name: 'porcentajeGranoDueno', label: '% de grano del dueño (si es Porcentaje)', type: 'number', step: 'any' },
+      { name: 'codigoContratoSisa', label: 'Código de contrato SISA', type: 'text' },
+      { name: 'fechaInicio', label: 'Fecha inicio', type: 'date', required: true },
+      { name: 'fechaFin', label: 'Fecha fin', type: 'date', required: true },
+      { name: 'estado', label: 'Estado', type: 'select', options: ['Borrador', 'Aprobado', 'Vencido', 'Rescindido'], required: true }
     ]
   },
   campañas: {
     title: 'Nueva Campaña',
     fields: [
-      { name: 'campana', label: 'Campaña (ej: 2025/2026)', type: 'text', required: true },
+      { name: 'campana', label: 'Campaña', type: 'select', required: true },
       { name: 'cultivo', label: 'Cultivo', type: 'datalist', source: 'cultivosCatalogo', required: true },
       { name: 'inicio', label: 'Inicio', type: 'text', required: true },
       { name: 'cierre', label: 'Cierre', type: 'text', required: true },
@@ -4274,7 +4709,7 @@ const formConfigs = {
       { name: 'superficie', label: 'Superficie (ha)', type: 'number' },
       { name: 'tipoSuelo', label: 'Tipo de Suelo', type: 'text' },
       { name: 'ambiente', label: 'Ambiente', type: 'select', options: ['Alto', 'Medio', 'Bajo'] },
-      { name: 'campana', label: 'Campaña Actual', type: 'text' },
+      { name: 'campana', label: 'Campaña', type: 'select' },
       { name: 'latitud', label: 'Latitud', type: 'number', step: 'any', placeholder: 'Ej: -33.125' },
       { name: 'longitud', label: 'Longitud', type: 'number', step: 'any', placeholder: 'Ej: -64.350' }
     ]
@@ -4285,13 +4720,13 @@ const formConfigs = {
       { name: 'fecha', label: 'Fecha', type: 'date', required: true },
       { name: 'lote', label: 'Lote', type: 'select', required: true, dynamicOptions: 'lotes' },
       { name: 'cultivo', label: 'Cultivo', type: 'datalist', source: 'cultivosCatalogo' },
-      { name: 'variedad', label: 'Variedad', type: 'datalist', source: 'variedadesSiembra' },
+      { name: 'variedad', label: 'Variedad', type: 'select', source: 'variedadesSiembra' },
       { name: 'producto', label: 'Semilla/Insumo', type: 'select', required: true, dynamicOptions: 'inventario', filterCategory: 'Insumos Agrícolas' },
       { name: 'dosis', label: 'Dosis', type: 'text' },
       { name: 'cantidadUsada', label: 'Cantidad Usada', type: 'number', required: true },
       { name: 'ha', label: 'Hectáreas', type: 'number' },
       { name: 'costo', label: 'Costo Total', type: 'text' },
-      { name: 'operador', label: 'Operador', type: 'datalist', source: 'operadores' }
+      { name: 'operador', label: 'Operador', type: 'select', source: 'operadores' }
     ]
   },
   aplicaciones: {
@@ -4415,7 +4850,39 @@ const formConfigs = {
       { name: 'producto', label: 'Producto Cosechado', type: 'select', required: true, dynamicOptions: 'inventario', filterCategory: 'Productos Terminados' },
       { name: 'destino', label: 'Destino', type: 'text' },
       { name: 'costo', label: 'Costo', type: 'text' },
-      { name: 'operador', label: 'Operador', type: 'datalist', source: 'operadores' }
+      { name: 'operador', label: 'Operador', type: 'select', source: 'operadores' }
+    ]
+  },
+  ventaCereal: {
+    title: 'Registrar Venta de Cereal',
+    fields: [
+      { name: 'fecha', label: 'Fecha', type: 'date', required: true },
+      { name: 'lote', label: 'Lote de origen', type: 'select', required: true, dynamicOptions: 'lotes' },
+      { name: 'cultivo', label: 'Cereal', type: 'select', options: ['Soja', 'Maíz', 'Trigo', 'Girasol', 'Sorgo'], required: true },
+      { name: 'cantidadKg', label: 'Cantidad (kg)', type: 'number', required: true, min: 0 },
+      { name: 'precioKg', label: 'Precio por kg ($)', type: 'number', required: true, min: 0, step: '0.01' },
+      { name: 'comprador', label: 'Comprador', type: 'text', required: true },
+      { name: 'cartaPorteNumero', label: 'Carta de Porte', type: 'text', placeholder: 'Se genera al guardar' },
+      { name: 'cartaPorteOrigen', label: 'Origen de carga', type: 'text' },
+      { name: 'cartaPorteDestino', label: 'Destino de carga', type: 'text' },
+      { name: 'cartaPorteTransportista', label: 'Transportista', type: 'text' },
+      { name: 'cartaPorteVehiculo', label: 'Vehículo / dominio', type: 'text' }
+    ]
+  },
+  ventaHacienda: {
+    title: 'Registrar Venta de Hacienda',
+    fields: [
+      { name: 'fecha', label: 'Fecha', type: 'date', required: true },
+      { name: 'categoria', label: 'Categoría', type: 'select', options: ['Terneros', 'Novillos', 'Vaquillonas', 'Toros', 'Vacas'], required: true },
+      { name: 'cantidad', label: 'Cabezas', type: 'number', required: true, min: 1 },
+      { name: 'caravana', label: 'Caravana / referencia', type: 'text' },
+      { name: 'comprador', label: 'Comprador', type: 'text', required: true },
+      { name: 'valor', label: 'Importe ($)', type: 'number', required: true, min: 0 },
+      { name: 'cartaPorteNumero', label: 'Carta de Porte', type: 'text', placeholder: 'Se genera al guardar' },
+      { name: 'cartaPorteOrigen', label: 'Origen de carga', type: 'text' },
+      { name: 'cartaPorteDestino', label: 'Destino de carga', type: 'text' },
+      { name: 'cartaPorteTransportista', label: 'Transportista', type: 'text' },
+      { name: 'cartaPorteVehiculo', label: 'Vehículo / dominio', type: 'text' }
     ]
   },
   inventario: {
@@ -4426,6 +4893,7 @@ const formConfigs = {
       { name: 'categoria', label: 'Categoría', type: 'select', options: ['Insumos Agrícolas', 'Insumos Ganaderos', 'Alimentación', 'Repuestos y Herramientas', 'Combustibles', 'Productos Terminados'], required: true },
       { name: 'stock', label: 'Stock Inicial', type: 'number', required: true },
       { name: 'unidad', label: 'Unidad', type: 'select', options: ['kg', 'litros', 'unidades', 'toneladas', 'dosis'], required: true },
+      { name: 'campana', label: 'Campaña de origen', type: 'select' },
       { name: 'costoUnit', label: 'Costo Unitario', type: 'number', required: true },
       { name: 'stockMinimo', label: 'Stock Mínimo', type: 'number', required: true }
     ]
@@ -4449,8 +4917,8 @@ const formConfigs = {
       { name: 'producto', label: 'Producto', type: 'select', required: true, dynamicOptions: 'inventario' },
       { name: 'tipo', label: 'Tipo de Movimiento', type: 'select', options: ['Entrada', 'Salida'], required: true },
       { name: 'cantidad', label: 'Cantidad', type: 'number', required: true },
-      { name: 'motivo', label: 'Motivo', type: 'select', options: ['Compra', 'Venta', 'Consumo', 'Ajuste', 'Devolución', 'Merma'], required: true },
-      { name: 'observaciones', label: 'Observaciones', type: 'text' }
+      { name: 'motivo', label: 'Motivo', type: 'select', options: ['Compra', 'Venta', 'Consumo', 'Ajuste de Stock por Merma/Consumo', 'Devolución', 'Merma'], required: true },
+      { name: 'observaciones', label: 'Observaciones', type: 'text', required: false }
     ]
   },
   maquinarias: {
@@ -4480,7 +4948,7 @@ const formConfigs = {
       { name: 'cantidad', label: 'Cantidad (Litros)', type: 'number', required: true },
       { name: 'costoUnitario', label: 'Costo Unitario ($/L)', type: 'number', required: true },
       { name: 'costoTotal', label: 'Costo Total ($)', type: 'text' },
-      { name: 'operador', label: 'Operador/Responsable', type: 'datalist', source: 'operadores' },
+      { name: 'operador', label: 'Operador/Responsable', type: 'select', source: 'operadores' },
       { name: 'observaciones', label: 'Observaciones', type: 'text' }
     ]
   },
@@ -4554,7 +5022,7 @@ const formConfigs = {
       { name: 'fecha', label: 'Fecha', type: 'date', required: true },
       { name: 'costo', label: 'Costo ($)', type: 'text', required: true },
       { name: 'estado', label: 'Estado', type: 'select', options: ['Pendiente', 'En curso', 'Completado'], required: true },
-      { name: 'operador', label: 'Operador', type: 'datalist', source: 'operadores' }
+      { name: 'operador', label: 'Operador', type: 'select', source: 'operadores' }
     ]
   },
   empleados: {
@@ -4786,17 +5254,13 @@ function getCultivoSugeridoPorLote(loteValue) {
 
 function actualizarDatalistVariedadSiembra() {
   const cultivoInput = document.querySelector('input[name="cultivo"]');
-  const variedadInput = document.querySelector('input[name="variedad"]');
+  const variedadInput = document.querySelector('select[name="variedad"]');
   if (!cultivoInput || !variedadInput) return;
 
-  const listId = variedadInput.getAttribute('list');
-  if (!listId) return;
-
-  const datalist = document.getElementById(listId);
-  if (!datalist) return;
-
   const variedades = getVariedadesDisponibles(cultivoInput.value);
-  datalist.innerHTML = variedades.map((v) => `<option value="${v}">`).join('');
+  const currentValue = variedadInput.value;
+  variedadInput.innerHTML = '<option value="">Seleccionar variedad</option>' + variedades.map((v) => `<option value="${v}">${v}</option>`).join('');
+  if (variedades.includes(currentValue)) variedadInput.value = currentValue;
 }
 
 function autocompletarCultivoCosechaPorLote() {
@@ -4836,6 +5300,16 @@ function autocompletarCultivoCosechaPorLote() {
   }
 }
 
+function getCampaignOptions() {
+  const baseYear = new Date().getFullYear() - 1;
+  const recent = Array.from({ length: 4 }, (_, index) => {
+    const start = baseYear - index;
+    return `${start}/${start + 1}`;
+  });
+  const saved = (state.campañas || []).map(item => item.campana).filter(Boolean);
+  return [...new Set([...saved, ...recent])];
+}
+
 function openModal(module, editIndex = null) {
   const config = formConfigs[module];
   if (!config) return;
@@ -4851,9 +5325,26 @@ function openModal(module, editIndex = null) {
     modal.style.maxWidth = '600px';
   }
   
-  let html = '<form id="modalForm">';
+  let html = `<form id="modalForm" class="modal-form-${module}">`;
   config.fields.forEach(field => {
+    if (field.name === 'campana' && ['campañas', 'lotes', 'inventario'].includes(module)) {
+      field = { ...field, type: 'select', options: getCampaignOptions() };
+    }
+    if (field.name === 'variedad' && module === 'siembra') {
+      field = { ...field, type: 'select', options: getVariedadesDisponibles() };
+    }
     let value = editIndex !== null ? (state[module][editIndex][field.name] || '') : '';
+    if (field.source === 'operadores') {
+      const operators = [...new Set([
+        ...(state.operadores || []),
+        'Propietario / Responsable',
+        'Ingeniero / Veterinario',
+        'Operario de campo',
+        'Administración'
+      ])];
+      if (value && !operators.includes(value)) operators.push(value);
+      field = { ...field, type: 'select', options: operators };
+    }
 
     // Si es un campo de fecha y es un nuevo registro, poner la fecha de hoy
     if (field.type === 'date' && editIndex === null) {
@@ -4911,6 +5402,7 @@ function openModal(module, editIndex = null) {
     if (field.type === 'select') {
       const dinamicoAttr = field.dynamicOptions ? ` data-dynamic-source="${field.dynamicOptions}" data-filter-category="${field.filterCategory || ''}"` : '';
       html += `<select class="form-select" name="${field.name}" ${field.required ? 'required' : ''}${dinamicoAttr}>`;
+      if (field.source === 'operadores') html += '<option value="">Seleccionar operador</option>';
       
       // Si tiene dynamicOptions, generar opciones desde state
       if (field.dynamicOptions) {
@@ -5006,10 +5498,31 @@ function openModal(module, editIndex = null) {
     }
     html += `</div>`;
   });
+  if (module === 'lotes') {
+    html += '<button type="button" class="topbar-btn" id="useCurrentLocation">Usar mi ubicación actual</button>';
+  }
   html += '</form>';
   
   document.getElementById('modalBody').innerHTML = html;
   document.getElementById('modalOverlay').classList.add('active');
+
+  if (module === 'ventaCereal') sincronizarUltimaCpeConVentas();
+
+  if (module === 'lotes') {
+    document.getElementById('useCurrentLocation')?.addEventListener('click', () => {
+      if (!navigator.geolocation) {
+        showToast('Este navegador no permite obtener la ubicación actual', 'error');
+        return;
+      }
+      navigator.geolocation.getCurrentPosition((position) => {
+        const latitude = document.querySelector('[name="latitud"]');
+        const longitude = document.querySelector('[name="longitud"]');
+        if (latitude) latitude.value = position.coords.latitude.toFixed(6);
+        if (longitude) longitude.value = position.coords.longitude.toFixed(6);
+        showToast('Ubicación actual cargada', 'success');
+      }, () => showToast('No se pudo obtener la ubicación actual', 'error'), { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+    });
+  }
 
   // Auto-numeración dinámica (prefijo depende de otro campo, ej: categoría en inventario)
   if (editIndex === null) {
@@ -5193,6 +5706,17 @@ function saveModal() {
     }
   }
 
+  if (moduloActual === 'ventaCereal' && data.cpeCtg) {
+    const ventaConLaMismaCpe = (state.ventasCereal || []).some((venta, index) => {
+      if (currentModal.editIndex !== null && index === currentModal.editIndex) return false;
+      return venta.cpeCtg === data.cpeCtg;
+    });
+    if (ventaConLaMismaCpe) {
+      showToast(`La CPE ${data.cpeCtg} ya está vinculada a otra venta.`, 'error');
+      return;
+    }
+  }
+
   if (moduloActual === 'historialMovimientos' || moduloActual === 'eventosSanitarios') {
     data.idAnimal = String(data.idAnimal || '').trim().toUpperCase();
     const animal = getAnimalTrazadoById(data.idAnimal);
@@ -5202,19 +5726,29 @@ function saveModal() {
     }
     data.rfidTag = normalizarRFIDTag(animal.rfidTag);
   }
+
+  if (moduloActual === 'ventaCereal' || moduloActual === 'ventaHacienda') {
+    data.cartaPorteNumero = data.cartaPorteNumero || `CP-${new Date().getFullYear()}-${Date.now().toString().slice(-8)}`;
+    data.cartaPorteEstado = data.cpeEstadoFiscal || 'Generada localmente';
+  }
   
   // Guardar o actualizar el registro
+  const moduloGuardado = { ventaCereal: 'ventasCereal', ventaHacienda: 'ventasHacienda', contratoArrendamiento: 'contratosArrendamiento' }[currentModal.module] || currentModal.module;
   if (currentModal.editIndex !== null) {
     // Editar registro existente
-    state[currentModal.module][currentModal.editIndex] = data;
+    state[moduloGuardado][currentModal.editIndex] = data;
     showToast('Registro actualizado', 'success');
   } else {
     // Crear nuevo registro
-    if (!state[currentModal.module]) {
-      state[currentModal.module] = [];
+    if (!state[moduloGuardado]) {
+      state[moduloGuardado] = [];
     }
-    state[currentModal.module].push(data);
+    state[moduloGuardado].push(data);
     showToast('Registro creado', 'success');
+  }
+
+  if (moduloActual === 'ventaCereal' && data.cpeCtg === cpePendienteParaVenta?.ctg) {
+    cpePendienteParaVenta = null;
   }
 
   if (esModuloTrazabilidad) {
@@ -5231,6 +5765,153 @@ function saveModal() {
   try { actualizarSelectoresDinamicos(); } catch(e) { console.error('actualizarSelectoresDinamicos error:', e); }
   try { closeModal(); } catch(e) { console.error('closeModal error:', e); }
   try { renderTables(); } catch(e) { console.error('renderTables error:', e); }
+}
+
+async function autoCompletarVentaDesdeCpe({ loteId, ctg, kilosOrigen, kilosDestino, patente, campoCodigo, compradorCuit, estadoFiscal, estadoInterno, cierreLogistico } = {}) {
+  if (currentModal.module !== 'ventaCereal') return false;
+
+  const form = document.getElementById('modalForm');
+  if (!form) return false;
+
+  const fallbackCpe = { loteId, ctg, kilosOrigen, kilosDestino, patente, campoCodigo, compradorCuit, estadoFiscal, estadoInterno, cierreLogistico };
+  let cpe = (ctg || loteId) ? fallbackCpe : (cpePendienteParaVenta || fallbackCpe);
+
+  if (!cpe.ctg && !cpe.loteId) {
+    try {
+      const base = await fiscalApiBase();
+      const respuesta = await fetch(`${base}/api/fiscal/cartas-porte-cpe`);
+      const datos = await respuesta.json();
+      const lista = Array.isArray(datos.cartasPorteCPE) ? datos.cartasPorteCPE : [];
+      const ultimo = lista.slice().reverse().find(item => item && (item.ctg || item.loteId || item.kilosOrigen || item.kilosDestino));
+      if (ultimo) cpe = ultimo;
+    } catch (error) {
+      console.warn('No se pudo completar la venta con la última CPE:', error);
+      return false;
+    }
+  }
+
+  const setIfEmpty = (name, value) => {
+    const input = form.querySelector(`[name="${name}"]`);
+    if (!input) return;
+    const raw = String(value ?? '').trim();
+    if (!input.value && raw) input.value = raw;
+  };
+  const setHidden = (name, value) => {
+    let input = form.querySelector(`[name="${name}"]`);
+    if (!input) {
+      input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = name;
+      form.appendChild(input);
+    }
+    input.value = String(value ?? '');
+  };
+
+  const kilos = Number(cpe.kilosDestino ?? cpe.kilosOrigen ?? cpe.kilos ?? 0);
+  const lote = cpe.loteId || cpe.lote || cpe.campoCodigo || '';
+  const numeroCtg = cpe.ctg || cpe.numero || '';
+  const patenteCpe = cpe.patente || cpe.patenteChasis || '';
+
+  if (lote) setIfEmpty('lote', lote);
+  if (numeroCtg) setIfEmpty('cartaPorteNumero', numeroCtg);
+  if (kilos > 0) setIfEmpty('cantidadKg', String(kilos));
+  if (patenteCpe) setIfEmpty('cartaPorteVehiculo', patenteCpe);
+  if (cpe.compradorCuit) setIfEmpty('comprador', `CUIT ${cpe.compradorCuit}`);
+  setHidden('cpeCtg', numeroCtg);
+  setHidden('cpeEstadoFiscal', cpe.estadoFiscal || cpe.estado || 'AUTORIZADO');
+  setHidden('cpeEstadoLogistico', cpe.cierreLogistico || cpe.estadoInterno || 'EN_TRANSITO');
+  cpePendienteParaVenta = cpe;
+
+  if (cpe.campoCodigo) {
+    const campo = state.campos?.find(item => String(item.codigo) === String(cpe.campoCodigo));
+    const origenInput = form.querySelector('[name="cartaPorteOrigen"]');
+    if (campo && origenInput && !origenInput.value) {
+      origenInput.value = campo.nombre || campo.codigo || '';
+    }
+  }
+
+  const cultivoInput = form.querySelector('[name="cultivo"]');
+  if (cultivoInput && !cultivoInput.value && lote) {
+    const loteInfo = state.lotes?.find(item => String(item.codigo) === String(lote));
+    if (loteInfo && loteInfo.cultivo) cultivoInput.value = loteInfo.cultivo;
+  }
+
+  return Boolean(numeroCtg || lote || kilos > 0);
+}
+
+async function sincronizarUltimaCpeConVentas() {
+  if (currentModal.module !== 'ventaCereal') return false;
+  return autoCompletarVentaDesdeCpe();
+}
+
+async function registrarVentaDesdeCpe(ctg) {
+  try {
+    const base = await fiscalApiBase();
+    const respuesta = await fetch(`${base}/api/fiscal/cartas-porte-cpe`);
+    const datos = await respuesta.json();
+    const cpe = (datos.cartasPorteCPE || []).find(item => item.ctg === ctg);
+    if (!cpe) throw new Error(`No se encontró la CPE ${ctg}.`);
+    openModal('ventaCereal');
+    await autoCompletarVentaDesdeCpe(cpe);
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+}
+
+function vincularLpgAVentas(lpg, cpes) {
+  const ctgs = Array.isArray(lpg.ctgsVinculados) ? lpg.ctgsVinculados : [];
+  const cpesPorCtg = new Map((cpes || []).map(cpe => [cpe.ctg, cpe]));
+  const ventasPorCtg = new Map();
+
+  (state.ventasCereal || []).forEach(venta => {
+    const ctg = venta.cpeCtg || venta.cartaPorteNumero;
+    if (!ctgs.includes(ctg)) return;
+    const ventas = ventasPorCtg.get(ctg) || [];
+    ventas.push(venta);
+    ventasPorCtg.set(ctg, ventas);
+  });
+
+  const ventasVinculables = [];
+  const ctgsSinVenta = [];
+  const ctgsDuplicados = [];
+  ctgs.forEach(ctg => {
+    const ventas = ventasPorCtg.get(ctg) || [];
+    if (ventas.length === 1) ventasVinculables.push({ ctg, venta: ventas[0], cpe: cpesPorCtg.get(ctg) });
+    else if (ventas.length === 0) ctgsSinVenta.push(ctg);
+    else ctgsDuplicados.push(ctg);
+  });
+
+  const kilosTotales = ventasVinculables.reduce((total, item) => total + Number(item.cpe?.kilosDestino || item.venta.cantidadKg || 0), 0);
+  const totales = {
+    importeNeto: Number(lpg.liquidacion?.importeNeto || 0),
+    ivaDebito: Number(lpg.liquidacion?.iva?.ivaOperacion || 0),
+    retenciones: Number(lpg.liquidacion?.totalRetenciones || 0),
+    netoACobrar: Number(lpg.liquidacion?.netoACobrar || 0)
+  };
+  const acumulados = { importeNeto: 0, ivaDebito: 0, retenciones: 0, netoACobrar: 0 };
+
+  ventasVinculables.forEach((item, index) => {
+    const kilos = Number(item.cpe?.kilosDestino || item.venta.cantidadKg || 0);
+    const proporcion = kilosTotales > 0 ? kilos / kilosTotales : 1 / ventasVinculables.length;
+    const asignar = key => {
+      if (index === ventasVinculables.length - 1) return Math.round((totales[key] - acumulados[key]) * 100) / 100;
+      const importe = Math.round(totales[key] * proporcion * 100) / 100;
+      acumulados[key] += importe;
+      return importe;
+    };
+
+    item.venta.lpgNumeroComprobante = lpg.numeroComprobante;
+    item.venta.lpgCae = lpg.cae;
+    item.venta.lpgEstadoSisa = lpg.estadoSisa;
+    item.venta.lpgFecha = lpg.fecha;
+    item.venta.lpgKilosLiquidados = kilos;
+    item.venta.lpgImporteNetoAsignado = asignar('importeNeto');
+    item.venta.lpgIvaDebitoAsignado = asignar('ivaDebito');
+    item.venta.lpgRetencionesAsignadas = asignar('retenciones');
+    item.venta.lpgNetoCobrarAsignado = asignar('netoACobrar');
+  });
+
+  return { ventasVinculadas: ventasVinculables.length, ctgsSinVenta, ctgsDuplicados };
 }
 
 function actualizarSelectoresDinamicos() {
@@ -5651,17 +6332,45 @@ function procesarEfectosPostSave(module, data, editIndex) {
     }
   }
 
-  // Sumar al stock al registrar cosecha
+  // Sumar al stock al registrar cosecha, dividiendo en Stock Propio / Stock de Terceros si el campo es
+  // Alquiler o Mediería a Porcentaje (aparcería): el dueño de la tierra tiene derecho a su % de grano.
   if (module === 'cosecha' && data.producto && data.totalKg) {
     const producto = state.inventario.find(p => p.codigo === data.producto);
     if (producto) {
       const cantidadCosechada = parseFloat(data.totalKg);
+      const lote = state.lotes.find(l => l.codigo === data.lote);
+      const campoLote = lote ? state.campos.find(c => c.codigo === lote.campo || c.nombre === lote.campo) : null;
+      const esAparceriaPorcentaje = campoLote
+        && ['Alquiler', 'Mediería'].includes(campoLote.contrato)
+        && campoLote.contratoModalidad === 'Porcentaje'
+        && Number(campoLote.porcentajeGranoDueno) > 0
+        && campoLote.cuitDueno;
+
       producto.stock += cantidadCosechada;
-      state.movimientoStock.unshift({
-        fecha: data.fecha, producto: data.producto, tipo: 'Entrada',
-        cantidad: cantidadCosechada, motivo: 'Cosecha',
-        observaciones: `Cosecha ${data.cultivo} - Lote ${data.lote}`
-      });
+
+      if (esAparceriaPorcentaje) {
+        const cuitDueno = campoLote.cuitDueno;
+        const kilosDueno = Math.round(cantidadCosechada * (Number(campoLote.porcentajeGranoDueno) / 100) * 100) / 100;
+        const kilosPropio = Math.round((cantidadCosechada - kilosDueno) * 100) / 100;
+        if (!producto.stockTerceros) producto.stockTerceros = {};
+        producto.stockTerceros[cuitDueno] = Math.round(((producto.stockTerceros[cuitDueno] || 0) + kilosDueno) * 100) / 100;
+        state.movimientoStock.unshift({
+          fecha: data.fecha, producto: data.producto, tipo: 'Entrada',
+          cantidad: kilosPropio, motivo: 'Cosecha',
+          observaciones: `Cosecha ${data.cultivo} - Lote ${data.lote} (Stock Propio, ${100 - campoLote.porcentajeGranoDueno}%)`
+        });
+        state.movimientoStock.unshift({
+          fecha: data.fecha, producto: data.producto, tipo: 'Entrada',
+          cantidad: kilosDueno, motivo: 'Cosecha - Aparcería',
+          observaciones: `Cosecha ${data.cultivo} - Lote ${data.lote} (Stock de Terceros, dueño CUIT ${cuitDueno}, ${campoLote.porcentajeGranoDueno}%)`
+        });
+      } else {
+        state.movimientoStock.unshift({
+          fecha: data.fecha, producto: data.producto, tipo: 'Entrada',
+          cantidad: cantidadCosechada, motivo: 'Cosecha',
+          observaciones: `Cosecha ${data.cultivo} - Lote ${data.lote}`
+        });
+      }
     }
   }
 
@@ -6439,7 +7148,7 @@ function safeRender(label, fn) {
 
 function renderTables() {
   // Asegurar arrays base para evitar undefined.map en localStorage viejos
-  ['campos','campañas','lotes','siembra','cosecha','aplicaciones','inventario','maquinarias','cargacombustible','costosOperativos','hacienda','animalesTrazabilidad','historialMovimientos','eventosSanitarios','trazabilidadSyncQueue','alimentacion','mantenimiento','caja','bancos','cuentasBancarias','chequesCobrar','chequesCubrir','creditos','flujo','costos','empleados','documentos'].forEach(k => {
+  ['campos','campañas','lotes','contratosArrendamiento','ordenesPago','boletosMarca','fiscalDutHistorial','fiscalNotificaciones','fiscalDutQueue','fiscalCartasPorte','lpgEmitidasLocal','siembra','cosecha','aplicaciones','inventario','maquinarias','cargacombustible','costosOperativos','hacienda','animalesTrazabilidad','historialMovimientos','eventosSanitarios','trazabilidadSyncQueue','alimentacion','mantenimiento','caja','bancos','cuentasBancarias','chequesCobrar','chequesCubrir','creditos','flujo','costos','empleados','documentos'].forEach(k => {
     if (!Array.isArray(state[k])) state[k] = [];
   });
 
@@ -6457,6 +7166,31 @@ function renderTables() {
       `).join('');
     }
   });
+
+  safeRender('contratosArrendamiento', () => {
+    const body = document.getElementById('contratosArrendamientoBody');
+    if (!body) return;
+    const hoy = new Date();
+    body.innerHTML = state.contratosArrendamiento.length ? state.contratosArrendamiento.map((c, i) => {
+      const vencido = c.fechaFin && hoy > new Date(c.fechaFin);
+      const estadoReal = vencido && c.estado === 'Aprobado' ? 'Vencido' : (c.estado || 'Borrador');
+      const clase = estadoReal === 'Aprobado' ? 'green' : (estadoReal === 'Vencido' || estadoReal === 'Rescindido' ? '' : 'orange');
+      const botonLpg = c.modalidad === 'Porcentaje' && estadoReal === 'Aprobado'
+        ? `<button class="topbar-btn" onclick="event.stopPropagation(); generarLpgDeCanje(${i})">🌾 LPG de Canje</button>`
+        : '';
+      return `<tr onclick="openModal('contratoArrendamiento', ${i})" style="cursor:pointer;">
+          <td>${c.campo||''}</td><td>${c.cuitDueno||''}</td><td>${c.modalidad||''}</td><td>${c.fechaInicio||''} a ${c.fechaFin||''}</td><td><span class="tag ${clase}">${estadoReal}</span></td>
+          <td><button class="topbar-btn" onclick="event.stopPropagation(); emitirOrdenPagoContrato(${i})">💵 Orden de Pago</button> ${botonLpg}</td>
+        </tr>`;
+    }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:16px;">No hay contratos cargados</td></tr>';
+  });
+
+  safeRender('fiscalGanadero', () => {
+    renderFiscalPanel(state.boletosMarca || []);
+    renderFiscalDutQueue();
+    renderFiscalCartasPorte();
+  });
+
 
   safeRender('campañas', () => {
     const campanasBody = document.getElementById('campanasBody');
@@ -6839,7 +7573,7 @@ function renderInventario() {
   inventarioBody.innerHTML = inventarioFiltrado.map((item, i) => {
     // Calcular estado del stock
     let estadoTag = '';
-    let valorTotal = item.stock * item.costoUnit;
+    let valorTotal = (item.stock || 0) * (item.costoUnit || 0);
     
     if (item.stock === 0) {
       estadoTag = '<span class="tag red">Sin Stock</span>';
@@ -6854,11 +7588,12 @@ function renderInventario() {
         <td>${item.codigo}</td>
         <td>${item.producto}</td>
         <td><span class="tag blue">${item.categoria}</span></td>
-        <td><strong>${item.stock.toLocaleString()}</strong></td>
+        <td>${item.campana || 'Sin campaña'}</td>
+        <td><strong>${(item.stock || 0).toLocaleString()}</strong></td>
         <td>${item.unidad}</td>
-        <td>$${item.costoUnit.toLocaleString()}</td>
+        <td>$${(item.costoUnit || 0).toLocaleString()}</td>
         <td>$${valorTotal.toLocaleString()}</td>
-        <td>${item.stockMinimo.toLocaleString()}</td>
+        <td>${(item.stockMinimo || 0).toLocaleString()}</td>
         <td>${estadoTag}</td>
         <td>
           <button onclick="event.stopPropagation(); openMovimientoStock('${item.codigo}')" class="topbar-btn" style="padding:4px 8px;font-size:11px;">📦 Movimiento</button>
@@ -6872,7 +7607,853 @@ function renderInventario() {
   
   // Renderizar movimientos de stock
   renderMovimientoStock();
+  renderStockTerceros();
 }
+
+function renderStockTerceros() {
+  const body = document.getElementById('stockTercerosBody');
+  if (!body) return;
+  const filas = [];
+  state.inventario.forEach(item => {
+    Object.entries(item.stockTerceros || {}).forEach(([cuitDueno, kilos]) => {
+      if (Number(kilos) > 0) filas.push({ producto: item.producto, cuitDueno, kilos: Number(kilos) });
+    });
+  });
+  body.innerHTML = filas.length
+    ? filas.map(f => `<tr><td>${f.producto}</td><td>${f.cuitDueno}</td><td>${f.kilos.toLocaleString()}</td></tr>`).join('')
+    : '<tr><td colspan="3" style="text-align:center;color:var(--text-dim);padding:16px;">No hay stock de terceros pendiente</td></tr>';
+}
+
+// Resuelve la URL base del servidor local (Electron). No disponible en modo navegador/PWA sin este puente.
+async function fiscalApiBase() {
+  if (!window.electronAPI?.getServerUrl) {
+    throw new Error('Esta función requiere la app de escritorio (Electron); no está disponible en este modo.');
+  }
+  const { ok, url } = await window.electronAPI.getServerUrl();
+  if (!ok || !url) throw new Error('El servidor local todavía no está listo. Reintentá en unos segundos.');
+  return url;
+}
+
+// Dispara el calculo de retenciones RG830 (Ganancias) + situacion de IVA al emitir la Orden de Pago del alquiler.
+async function emitirOrdenPagoContrato(index) {
+  const contrato = state.contratosArrendamiento[index];
+  if (!contrato) return;
+  const importeTexto = prompt(`Importe del período a pagar al dueño (CUIT ${contrato.cuitDueno}) en $:`, '');
+  const importe = Number(importeTexto);
+  if (!importeTexto || !importe || importe <= 0) return;
+  try {
+    const base = await fiscalApiBase();
+    const respuesta = await fetch(`${base}/api/fiscal/contratos/calcular-retencion`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        importe,
+        inscriptoGanancias: contrato.inscriptoGanancias === 'Sí',
+        esPersonaJuridica: contrato.esPersonaJuridica === 'Sí',
+        destinoAgropecuarioExplicitado: contrato.destinoAgropecuarioExplicitado === 'Sí'
+      })
+    });
+    const datos = await respuesta.json();
+    if (!respuesta.ok) throw new Error(datos.message || 'No se pudo calcular la retención.');
+    if (!Array.isArray(state.ordenesPago)) state.ordenesPago = [];
+    state.ordenesPago.unshift({
+      tipo: 'Alquiler rural', campo: contrato.campo, cuitDueno: contrato.cuitDueno,
+      importe, retencionGanancias: datos.ganancias.retencion, netoAPagar: datos.ganancias.neto,
+      ivaExento: datos.iva.exento, fecha: new Date().toISOString().slice(0, 10)
+    });
+
+    // Conexión con Costos: el alquiler es un costo directo del campo (costo hundido si es propio, OPEX si es alquilado).
+    if (!Array.isArray(state.costos)) state.costos = [];
+    state.costos.push({
+      fecha: new Date().toISOString().slice(0, 10), lote: contrato.campo,
+      concepto: 'Alquiler rural', monto: importe, categoria: 'Arrendamiento'
+    });
+
+    // Conexión con Finanzas: egreso al dueño (neto) + egreso de la retención a depositar en ARCA.
+    if (!Array.isArray(state.caja)) state.caja = [];
+    state.caja.push({
+      fecha: new Date().toISOString().slice(0, 10), concepto: `Alquiler rural - Campo ${contrato.campo} (CUIT ${contrato.cuitDueno})`,
+      tipo: 'Egreso', importe: String(Math.round(datos.ganancias.neto)), categoria: 'Otros', referencia: `OP-${Date.now()}`
+    });
+    if (datos.ganancias.retencion > 0) {
+      state.caja.push({
+        fecha: new Date().toISOString().slice(0, 10), concepto: `Retención Ganancias RG830 - Alquiler Campo ${contrato.campo}`,
+        tipo: 'Egreso', importe: String(Math.round(datos.ganancias.retencion)), categoria: 'Impuestos', referencia: `OP-${Date.now()}-RET`
+      });
+    }
+
+    saveState();
+    renderTables();
+    showToast(`Orden de Pago generada. Retención Ganancias: $${datos.ganancias.retencion.toLocaleString()}. Neto a pagar: $${datos.ganancias.neto.toLocaleString()}.`, 'success');
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+}
+
+// Emite una LPG de canje: valoriza el Stock de Terceros del dueño y la vincula a las CPE del lote ya confirmadas.
+async function generarLpgDeCanje(index) {
+  const contrato = state.contratosArrendamiento[index];
+  if (!contrato) return;
+  const precioTexto = prompt('Precio por kg para valorizar el canje ($):', '');
+  const precioPorKg = Number(precioTexto);
+  if (!precioTexto || !precioPorKg || precioPorKg <= 0) return;
+  const kilosDueno = state.inventario.reduce((suma, item) => suma + Number((item.stockTerceros || {})[contrato.cuitDueno] || 0), 0);
+  if (!kilosDueno) { showToast('No hay stock de terceros pendiente para el dueño de este contrato.', 'info'); return; }
+  try {
+    const base = await fiscalApiBase();
+    const cpeResp = await fetch(`${base}/api/fiscal/cartas-porte-cpe`);
+    const cpeDatos = await cpeResp.json();
+    const ctgs = (cpeDatos.cartasPorteCPE || [])
+      .filter(r => r.loteId === contrato.campo && r.kilosDestino !== null && r.kilosDestino !== undefined && r.cierreLogistico === 'Cerrado')
+      .map(r => r.ctg);
+    if (!ctgs.length) { showToast('No hay Cartas de Porte confirmadas en destino para el lote de este contrato.', 'error'); return; }
+    const respuesta = await fetch(`${base}/api/fiscal/lpg/emitir`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ puntoVenta: 1, tipo: 'LPG', cuitComprador: contrato.cuitDueno, importeNeto: kilosDueno * precioPorKg, ctgsVinculados: ctgs })
+    });
+    const datos = await respuesta.json();
+    if (!respuesta.ok || !datos.success) throw new Error(datos.message || 'No se pudo emitir la LPG de canje.');
+    state.inventario.forEach(item => { if (item.stockTerceros?.[contrato.cuitDueno]) item.stockTerceros[contrato.cuitDueno] = 0; });
+
+    // Conexión con Costos: el alquiler pagado en especie (canje) es igual costo de arrendamiento del campo.
+    // No genera movimiento de Caja: no hay dinero de por medio, es pago en grano (canje/compraventa primaria).
+    if (!Array.isArray(state.costos)) state.costos = [];
+    state.costos.push({
+      fecha: new Date().toISOString().slice(0, 10), lote: contrato.campo,
+      concepto: `Alquiler en especie (canje ${kilosDueno.toLocaleString()} kg)`, monto: kilosDueno * precioPorKg, categoria: 'Arrendamiento'
+    });
+
+    saveState();
+    renderTables();
+    showToast(`LPG de Canje emitida (CAE ${datos.cae}). Se netea contra la deuda de alquiler del contrato.`, 'success');
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+}
+
+// === SUBMÓDULO GANADERO (DUT / Boletos de marca) — comparte la conexión WSAA con el submódulo Agrícola ===
+async function fiscalJson(url, options) {
+  const base = await fiscalApiBase();
+  const respuesta = await fetch(base + url, options);
+  const datos = await respuesta.json();
+  if (!respuesta.ok) throw new Error(datos.message || 'La operación no pudo completarse.');
+  return datos;
+}
+
+function pagoMunicipalPuedeContinuar(datos) {
+  const importe = Number(datos.arancelMunicipal || 0);
+  const estado = String(datos.estadoPago || 'NO_APLICA').toUpperCase();
+  return importe <= 0 || ['PAGADO', 'VEP', 'TRANSFERENCIA', 'CUENTA_CORRIENTE'].includes(estado);
+}
+
+function ordenarPanelConexionFiscal() {
+  const moduloFiscal = document.getElementById('mod-fiscal');
+  const cardConexion = document.getElementById('fiscalConexionCard');
+  if (!moduloFiscal || !cardConexion) return;
+  if (moduloFiscal.firstElementChild !== cardConexion) {
+    moduloFiscal.insertBefore(cardConexion, moduloFiscal.firstElementChild);
+  }
+  cardConexion.style.marginTop = '0';
+}
+
+async function actualizarFiscalGanadero() {
+  ordenarPanelConexionFiscal();
+  setEl('fiscalConfigAyuda', 'Validando conexión con el backend fiscal...');
+  try {
+    const peso = await fiscalJson('/api/balanza/peso-vivo');
+    const caravana = await fiscalJson('/api/balanza/rfid-actual');
+    setEl('fiscalPesoActual', `${Number(peso.peso || 0).toFixed(1)} kg`);
+    setEl('fiscalEstadoBalanza', Number(peso.peso) > 10 ? 'Balanza conectada' : 'Balanza vacía');
+    setEl('fiscalCaravana', caravana.caravana === 'SIN_LECTURA' ? '--' : caravana.caravana || '--');
+  } catch (error) {
+    setEl('fiscalPesoActual', '-- kg');
+    setEl('fiscalEstadoBalanza', 'Sin conexión');
+  }
+  try {
+    const afip = await fiscalJson('/api/sistema/telemetria-afip');
+    setEl('fiscalEstadoAfip', afip.entorno || '--');
+    setEl('fiscalTokenAfip', afip.activo ? `${afip.minutosRestantes} minutos restantes` : 'Requiere credenciales');
+    renderFiscalConfiguracion(afip);
+  } catch (error) {
+    setEl('fiscalEstadoAfip', 'Sin conexión');
+    renderFiscalConfiguracion({ entorno: 'SIN CONEXIÓN' });
+  }
+}
+
+function renderFiscalConfiguracion(estado = {}) {
+  const backendDisponible = estado.servicioDisponible === true;
+  const configurado = Boolean(estado.certificadoConfigurado && estado.claveConfigurada && estado.cuitConfigurado);
+  setEl('fiscalConfigEntorno', estado.entorno || 'HOMOLOGACIÓN');
+  setEl('fiscalConfigCuit', estado.cuitConfigurado ? 'Configurado en servidor' : 'Pendiente en servidor');
+  setEl('fiscalConfigServicio', estado.servicio || 'wsigsa');
+  setEl('fiscalConfigCertificado', estado.certificadoConfigurado ? 'Detectado en servidor' : 'Pendiente de instalador');
+  setEl('fiscalConfigClave', estado.claveConfigurada ? 'Detectada en servidor' : 'Pendiente de instalador');
+  setEl('fiscalConfigSigsa', estado.sigsaConfigurado ? 'Configurado' : 'Pendiente de configuración');
+  const estadoEl = document.getElementById('fiscalConfigEstado');
+  if (estadoEl) {
+    estadoEl.textContent = configurado ? 'Configuración completa' : 'Pendiente de configuración';
+    estadoEl.className = `tag ${configurado ? 'green' : ''}`;
+  }
+  if (configurado) {
+    setEl('fiscalConfigAyuda', 'Backend fiscal conectado y configuración completa.');
+  } else if (backendDisponible) {
+    setEl('fiscalConfigAyuda', 'Backend fiscal conectado. Faltan certificados y/o datos de configuración.');
+  } else if (estado.entorno === 'SIN CONEXIÓN') {
+    setEl('fiscalConfigAyuda', 'Sin conexión al backend fiscal.');
+  } else {
+    setEl('fiscalConfigAyuda', 'No se pudo confirmar el estado del backend fiscal. Reintentá con "Verificar configuración".');
+  }
+}
+
+function fiscalEstado(texto, correcto = false) {
+  const estado = document.getElementById('fiscalEstadoBoleto');
+  if (estado) { estado.textContent = texto; estado.className = `tag ${correcto ? 'green' : ''}`; }
+}
+
+function renderFiscalPanel(boletos = state.boletosMarca || []) {
+  const hoy = new Date();
+  const vigentes = boletos.filter(boleto => boleto.estado !== false && (!boleto.fechaVencimiento || new Date(boleto.fechaVencimiento) >= hoy));
+  setEl('fiscalBoletosActivos', vigentes.length);
+  setEl('fiscalDutRegistrados', (state.fiscalDutHistorial || []).length);
+  setEl('fiscalNotificaciones', (state.fiscalNotificaciones || []).length);
+
+  const boletosBody = document.getElementById('fiscalBoletosBody');
+  if (boletosBody) {
+    boletosBody.innerHTML = boletos.length
+      ? boletos.map(boleto => {
+          const vigente = boleto.estado !== false && (!boleto.fechaVencimiento || new Date(boleto.fechaVencimiento) >= hoy);
+          return `<tr><td>${boleto.nroBoleto || ''}</td><td>${boleto.tipoGanado || ''}</td><td>${boleto.fechaVencimiento || ''}</td><td><span class="tag ${vigente ? 'green' : ''}">${vigente ? 'Vigente' : 'Vencido/inactivo'}</span></td></tr>`;
+        }).join('')
+      : '<tr><td colspan="4" style="text-align:center;color:var(--text-dim);padding:16px;">No hay boletos registrados</td></tr>';
+  }
+
+  const dutBody = document.getElementById('fiscalDutBody');
+  if (dutBody) {
+    const historial = state.fiscalDutHistorial || [];
+    dutBody.innerHTML = historial.length
+      ? historial.slice().reverse().map(item => `<tr><td>${item.fecha || ''}</td><td>${item.operacion || 'DUT'}</td><td>${item.identificador || ''}</td><td><span class="tag ${item.estado === 'Confirmado' ? 'green' : ''}">${item.estado || 'Pendiente'}</span></td><td>${item.detalle || ''}</td></tr>`).join('')
+      : '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:16px;">No hay operaciones fiscales registradas</td></tr>';
+  }
+
+  const checklist = document.getElementById('fiscalChecklist');
+  if (checklist) {
+    const afipActivo = document.getElementById('fiscalTokenAfip')?.textContent && !document.getElementById('fiscalTokenAfip').textContent.includes('Requiere');
+    checklist.innerHTML = `
+      <div class="alert-item"><span>Estado de credenciales ARCA/SENASA</span><span class="tag ${afipActivo ? 'green' : ''}">${afipActivo ? 'Disponible' : 'Requiere credenciales'}</span></div>
+      <div class="alert-item"><span>Boletos de marca vigentes</span><span class="tag ${vigentes.length ? 'green' : ''}">${vigentes.length} vigentes</span></div>
+      <div class="alert-item"><span>RENSPA de origen y destino</span><span class="tag">Validar antes de emitir</span></div>
+      <div class="alert-item"><span>Documentación del transporte</span><span class="tag">Revisar antes de emitir</span></div>`;
+  }
+}
+
+async function actualizarRegistroFiscal() {
+  try {
+    const respuesta = await fiscalJson('/api/boletos-marca');
+    state.boletosMarca = Array.isArray(respuesta.boletos) ? respuesta.boletos : [];
+    saveState();
+  } catch (error) {
+    state.boletosMarca = Array.isArray(state.boletosMarca) ? state.boletosMarca : [];
+  }
+  renderFiscalPanel(state.boletosMarca);
+}
+
+function guardarOperacionFiscal(operacion, identificador, estado, detalle) {
+  if (!Array.isArray(state.fiscalDutHistorial)) state.fiscalDutHistorial = [];
+  state.fiscalDutHistorial.push({ fecha: new Date().toISOString().slice(0, 10), operacion, identificador, estado, detalle });
+  saveState();
+  renderFiscalPanel(state.boletosMarca || []);
+}
+
+function renderFiscalDutQueue() {
+  const body = document.getElementById('fiscalDutQueueBody');
+  if (!body) return;
+  const queue = Array.isArray(state.fiscalDutQueue) ? state.fiscalDutQueue : [];
+  body.innerHTML = queue.length ? queue.map((item, index) => `
+    <tr>
+      <td>${item.dteNumero || item.nroBoleto || item.id}</td>
+      <td>${item.fechaCarga || ''} / ${item.fechaVencimiento || ''}</td>
+      <td>${item.estadoPago || 'NO_APLICA'}${item.estadoPago === 'PENDIENTE' ? ` <button class="topbar-btn" type="button" onclick="marcarPagoMunicipal(${index})">Marcar acreditado</button>` : ''}</td>
+      <td><span class="tag ${item.estado === 'Emitido' ? 'green' : ''}">${item.estado || 'Pendiente'}</span></td>
+      <td>${item.estado === 'Pendiente' ? `<button class="topbar-btn primary" type="button" onclick="completarFormularioDut(${index})">↻ Completar DUT</button><button class="topbar-btn" type="button" onclick="imprimirPreDut(${index})">🖨️ Imprimir orden</button>` : ''}${item.qrCodeData ? `<button class="topbar-btn primary" type="button" onclick="mostrarComprobanteDut(${index})">📄 Ver DUT oficial</button>` : ''}${item.estado === 'Emitido' ? ` <button class="topbar-btn" type="button" onclick="imprimirDutOficial(${index})">🖨️ Imprimir DUT</button><button class="topbar-btn" type="button" onclick="cerrarDutLocal(${index})">Preparar cierre</button>` : ''}</td>
+    </tr>`).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:16px;">No hay DUT pendientes</td></tr>';
+  renderFiscalAlertas();
+}
+
+function renderFiscalAlertas() {
+  const contenedor = document.getElementById('fiscalAlertasDut');
+  if (!contenedor) return;
+  const ahora = Date.now();
+  const alertas = (state.fiscalDutQueue || []).flatMap(item => {
+    if (item.estado === 'Cerrado local' || item.estado === 'Cerrado') return [];
+    const vencimiento = new Date(item.fechaVencimiento || '').getTime();
+    const identificador = item.dteNumero || item.id;
+    const resultado = [];
+    if (item.estado === 'Emitido') resultado.push({ texto: `DUT ${identificador} sigue abierto: confirmar cierre en destino.`, clase: '' });
+    if (Number.isFinite(vencimiento)) {
+      const horas = (vencimiento - ahora) / 3600000;
+      if (horas < 0) resultado.push({ texto: `DUT ${identificador} vencido: ${item.fechaVencimiento}.`, clase: '' });
+      else if (horas <= 24) resultado.push({ texto: `DUT ${identificador} vence en menos de 24 horas.`, clase: '' });
+    }
+    return resultado;
+  });
+  contenedor.innerHTML = alertas.length
+    ? alertas.map(alerta => `<div class="alert-item"><span>${alerta.texto}</span><span class="tag">Revisar</span></div>`).join('')
+    : '<div class="alert-item"><span>No hay vencimientos ni DUT abiertos.</span><span class="tag green">OK</span></div>';
+  if (alertas.length && 'Notification' in window && Notification.permission === 'granted') {
+    const firma = alertas.map(alerta => alerta.texto).join('|');
+    if (localStorage.getItem('fiscalUltimaAlerta') !== firma) {
+      new Notification('PampaAgro: alerta DUT', { body: alertas[0].texto });
+      localStorage.setItem('fiscalUltimaAlerta', firma);
+    }
+  }
+}
+
+function encolarDutOffline(datos, motivo = 'Sin conexión') {
+  if (!Array.isArray(state.fiscalDutQueue)) state.fiscalDutQueue = [];
+  const item = { ...datos, id: `DUT-${Date.now()}`, estado: 'Pendiente', detalle: motivo, creadoEn: new Date().toISOString() };
+  item.preDutQrData = generarQrPreDut(item);
+  state.fiscalDutQueue.push(item);
+  saveState();
+  renderFiscalDutQueue();
+  guardarOperacionFiscal('DUT', item.id, 'Pendiente', motivo);
+  return item;
+}
+
+function completarFormularioDut(index) {
+  const item = state.fiscalDutQueue?.[index];
+  const formulario = document.getElementById('fiscalFormDut');
+  if (!item || !formulario) return;
+
+  Object.entries(item).forEach(([nombre, valor]) => {
+    const campo = formulario.elements.namedItem(nombre);
+    if (campo && typeof valor !== 'object') campo.value = valor ?? '';
+  });
+  formulario.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.getElementById('fiscalResultadoDut').textContent = `DUT completado desde ${item.id}. Revisá la tasa y confirmá la emisión.`;
+  document.getElementById('fiscalResultadoDut').className = 'tag';
+  showToast(`Datos del ${item.id} cargados en el formulario DUT.`, 'success');
+}
+
+function generarQrPreDut(item) {
+  const payload = JSON.stringify({
+    tipo: 'PRE-DUT',
+    id: item.id,
+    origen: item.renspaOrigen,
+    destino: item.renspaDestino,
+    cabezas: Number(item.cantidadCabezas || 0),
+    categoria: item.categoriaId,
+    chofer: item.cuitTransportista,
+    camion: item.patenteChasis,
+    creadoEn: item.creadoEn
+  });
+  if (typeof qrcode !== 'function') return payload;
+  const codigo = qrcode(0, 'M');
+  codigo.addData(payload);
+  codigo.make();
+  return codigo.createDataURL(6, 0);
+}
+
+function imprimirPreDut(index) {
+  const item = state.fiscalDutQueue?.[index];
+  if (!item) return;
+  const qr = item.preDutQrData || generarQrPreDut(item);
+  const ventana = window.open('', '_blank', 'width=420,height=650');
+  if (!ventana) return showToast('El navegador bloqueó la ventana de impresión.', 'error');
+  ventana.document.write(`<html><head><title>Orden de Carga ${item.id}</title><style>body{font-family:Arial,sans-serif;text-align:center;padding:18px}img{width:230px;height:230px}table{width:100%;text-align:left;border-collapse:collapse}td{padding:6px;border-bottom:1px solid #ddd}.notice{margin:14px 0;padding:10px;border:1px solid #d97706;background:#fff7ed}</style></head><body><h2>ORDEN DE CARGA PROVISIONAL</h2><div class="notice">PRE-DUT INTERNO - NO REEMPLAZA EL DUT OFICIAL DE SENASA</div><img src="${qr.startsWith('data:image/') ? qr : ''}" alt="QR Pre-DUT"><table>${[['Origen', item.renspaOrigen],['Destino', item.renspaDestino],['Cabezas', item.cantidadCabezas],['Categoría', item.categoriaId],['Chofer', item.cuitTransportista],['Camión', item.patenteChasis],['Creado', item.creadoEn]].map(row => `<tr><td><b>${row[0]}</b></td><td>${row[1] || ''}</td></tr>`).join('')}</table><p>Presentar el DUT oficial cuando sea emitido.</p>${String.fromCharCode(60, 115, 99, 114, 105, 112, 116, 62)}window.onload=()=>window.print();${String.fromCharCode(60, 47, 115, 99, 114, 105, 112, 116, 62)}${String.fromCharCode(60, 47, 98, 111, 100, 121, 62, 60, 47, 104, 116, 109, 108, 62)}`);
+  ventana.document.close();
+}
+
+function mostrarComprobanteDut(index) {
+  const item = state.fiscalDutQueue?.[index];
+  if (!item?.qrCodeData) return;
+  const viewer = document.getElementById('fiscalQrViewer');
+  const image = document.getElementById('fiscalQrImage');
+  const text = document.getElementById('fiscalQrText');
+  const download = document.getElementById('fiscalDutDownload');
+  if (!viewer || !image || !text || !download) return;
+  const esImagen = item.qrCodeData.startsWith('data:image/');
+  image.src = esImagen ? item.qrCodeData : '';
+  image.style.display = esImagen ? 'block' : 'none';
+  text.textContent = esImagen ? 'QR oficial recibido de SENASA.' : `Identificador DUT: ${item.qrCodeData}. El QR oficial estará disponible cuando el servicio devuelva el comprobante.`;
+  download.href = item.comprobanteUrl || item.qrCodeData;
+  viewer.style.display = 'block';
+}
+
+function imprimirDutOficial(index) {
+  const item = state.fiscalDutQueue?.[index];
+  if (!item) return;
+  if (item.comprobanteUrl) {
+    const ventana = window.open(item.comprobanteUrl, '_blank');
+    if (ventana) ventana.focus();
+    return;
+  }
+  mostrarComprobanteDut(index);
+  showToast('El servicio no devolvió un PDF oficial; se muestra el comprobante disponible.', 'info');
+}
+
+function cerrarDutLocal(index) {
+  const item = state.fiscalDutQueue?.[index];
+  if (!item) return;
+  item.estado = 'Cerrado local';
+  item.cerradoEn = new Date().toISOString();
+  saveState();
+  renderFiscalDutQueue();
+  guardarOperacionFiscal('Cierre DUT', item.dteNumero || item.id, item.estado, 'Cierre preparado localmente; falta enviar a SENASA.');
+}
+
+function marcarPagoMunicipal(index) {
+  const item = state.fiscalDutQueue?.[index];
+  if (!item) return;
+  item.estadoPago = 'PAGADO';
+  item.detalle = 'Pago municipal acreditado localmente; pendiente de sincronización.';
+  saveState();
+  renderFiscalDutQueue();
+  showToast('Pago marcado como acreditado. El DUT puede sincronizarse.', 'success');
+}
+
+function renderFiscalCartasPorte() {
+  const body = document.getElementById('fiscalCartasPorteBody');
+  if (!body) return;
+  const cartas = Array.isArray(state.fiscalCartasPorte) ? state.fiscalCartasPorte : [];
+  body.innerHTML = cartas.length ? cartas.slice().reverse().map(carta => {
+    const index = state.fiscalCartasPorte.indexOf(carta);
+    return `<tr><td>${carta.numero}</td><td>${carta.renspaOrigen || '-'}</td><td>${carta.renspaDestino || '-'}</td><td>${carta.cuitTransportista || '-'}</td><td>${carta.fecha || ''}</td><td><span class="tag ${carta.estado === 'Generada' ? 'green' : ''}">${carta.estado || 'Generada'}</span></td><td><button class="topbar-btn" type="button" onclick="imprimirCartaPorte(${index})">🖨️ Imprimir</button></td></tr>`;
+  }).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--text-dim);padding:16px;">No hay cartas de porte generadas</td></tr>';
+}
+
+async function generarCartaPorte() {
+  const formulario = document.getElementById('fiscalFormDut');
+  if (!formulario || !formulario.reportValidity()) return;
+  const datos = Object.fromEntries(new FormData(formulario).entries());
+  try {
+    const respuesta = await fiscalJson('/api/logistica/generar-carta-porte', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
+    if (!Array.isArray(state.fiscalCartasPorte)) state.fiscalCartasPorte = [];
+    state.fiscalCartasPorte.push(respuesta.cartaPorte);
+    saveState();
+    renderFiscalCartasPorte();
+    guardarOperacionFiscal('Carta de Porte', respuesta.cartaPorte.numero, respuesta.cartaPorte.estado, 'Generada localmente desde los datos del DUT.');
+    imprimirCartaPorte(state.fiscalCartasPorte.length - 1);
+    setEl('fiscalResultadoDut', `Carta de Porte ${respuesta.cartaPorte.numero} generada.`);
+    showToast('Carta de Porte generada localmente.', 'success');
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+}
+
+function imprimirCartaPorte(index) {
+  const carta = state.fiscalCartasPorte?.[index];
+  if (!carta) return;
+  const ventana = window.open('', '_blank', 'width=420,height=650');
+  if (!ventana) return showToast('El navegador bloqueó la ventana de impresión.', 'error');
+  ventana.document.write(`<html><head><title>Carta de Porte ${carta.numero}</title><style>body{font-family:Arial,sans-serif;text-align:center;padding:18px}table{width:100%;text-align:left;border-collapse:collapse}td{padding:6px;border-bottom:1px solid #ddd}.notice{margin:14px 0;padding:10px;border:1px solid #d97706;background:#fff7ed}</style></head><body><h2>CARTA DE PORTE ${carta.numero}</h2><div class="notice">DOCUMENTO GENERADO LOCALMENTE - NO REEMPLAZA LA CARTA DE PORTE OFICIAL DE ARCA/SENASA</div><table>${[['Origen', carta.renspaOrigen],['Destino', carta.renspaDestino],['Cabezas', carta.cantidadCabezas],['Categoría', carta.categoriaId],['Transportista (CUIT)', carta.cuitTransportista],['Camión', carta.patenteChasis],['Fecha', carta.fecha],['Estado', carta.estado]].map(row => `<tr><td><b>${row[0]}</b></td><td>${row[1] || ''}</td></tr>`).join('')}</table>${String.fromCharCode(60, 115, 99, 114, 105, 112, 116, 62)}window.onload=()=>window.print();${String.fromCharCode(60, 47, 115, 99, 114, 105, 112, 116, 62)}${String.fromCharCode(60, 47, 98, 111, 100, 121, 62, 60, 47, 104, 116, 109, 108, 62)}`);
+  ventana.document.close();
+}
+
+async function sincronizarDutPendientes() {
+  if (!navigator.onLine) {
+    showToast('Sin conexión: los DUT quedan preparados localmente.', 'info');
+    return;
+  }
+  const pendientes = (state.fiscalDutQueue || []).filter(item => item.estado === 'Pendiente' && pagoMunicipalPuedeContinuar(item));
+  if (!pendientes.length) {
+    showToast('No hay DUT listos para sincronizar. Revisá pagos pendientes.', 'info');
+    renderFiscalDutQueue();
+    return;
+  }
+  try {
+    const respuesta = await fiscalJson('/api/logistica/emitir-dut-lote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ duts: pendientes }) });
+    (respuesta.resultados || []).forEach(resultado => {
+      const item = pendientes.find(pendiente => pendiente.id === resultado.id);
+      if (!item) return;
+      if (resultado.success) {
+        item.estado = 'Emitido';
+        item.dteNumero = resultado.dteGenerado || resultado.data?.dteNumero || item.id;
+        item.qrCodeData = resultado.data?.qrCodeData || resultado.data?.qr || item.dteNumero;
+        item.comprobanteUrl = resultado.data?.comprobanteUrl || resultado.data?.pdfUrl || '';
+        guardarOperacionFiscal('DUT', item.dteNumero, 'Confirmado', 'Emitido en sincronización por lote.');
+      } else {
+        item.detalle = resultado.message || 'No se pudo emitir el DUT.';
+      }
+    });
+  } catch (error) {
+    pendientes.forEach(item => { item.detalle = error.message; });
+  }
+  saveState();
+  renderFiscalDutQueue();
+}
+
+document.getElementById('fiscalRegistrarBoleto')?.addEventListener('click', async () => {
+  try {
+    const datos = await fiscalJson('/api/boletos-marca', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+      nroBoleto: document.getElementById('fiscalNroBoleto').value.trim(),
+      tipoGanado: document.getElementById('fiscalTipoGanado').value,
+      fechaVencimiento: document.getElementById('fiscalVencimientoBoleto').value
+    }) });
+    fiscalEstado(datos.message || 'Boleto registrado.', true);
+    actualizarRegistroFiscal();
+  } catch (error) { fiscalEstado(error.message); }
+});
+
+document.getElementById('fiscalValidarBoleto')?.addEventListener('click', async () => {
+  try {
+    const numero = encodeURIComponent(document.getElementById('fiscalNroBoleto').value.trim());
+    const datos = await fiscalJson(`/api/boletos-marca/${numero}`);
+    fiscalEstado(datos.message || 'Boleto válido.', true);
+  } catch (error) { fiscalEstado(error.message); }
+});
+
+document.getElementById('fiscalFormDut')?.addEventListener('submit', async evento => {
+  evento.preventDefault();
+  const resultado = document.getElementById('fiscalResultadoDut');
+  resultado.style.display = 'inline-block';
+  const formulario = evento.currentTarget;
+  const datos = Object.fromEntries(new FormData(formulario).entries());
+  if (!navigator.onLine) {
+    encolarDutOffline(datos, pagoMunicipalPuedeContinuar(datos) ? 'Sin conexión' : 'Pago municipal pendiente');
+    resultado.textContent = pagoMunicipalPuedeContinuar(datos) ? 'DUT preparado offline. Se enviará al recuperar conexión.' : 'DUT preparado, pero retenido hasta acreditar la tasa municipal.';
+    resultado.className = 'tag';
+    return;
+  }
+  try {
+    const tasa = await fiscalJson('/api/fiscal/tasa-municipal/validar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
+    await fiscalJson(`/api/boletos-marca/${encodeURIComponent(datos.nroBoleto)}`);
+    const respuesta = await fiscalJson('/api/logistica/emitir-dut', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
+    resultado.textContent = `${respuesta.message || `DUT emitido: ${respuesta.dteGenerado || 'confirmado'}.`} Tasa: ${tasa.cotizacion?.importeTotal || 0}.`;
+    resultado.className = 'tag green';
+    guardarOperacionFiscal('DUT', respuesta.dteGenerado || datos.nroBoleto, 'Confirmado', respuesta.message || 'DUT emitido');
+    if (!Array.isArray(state.fiscalDutQueue)) state.fiscalDutQueue = [];
+    state.fiscalDutQueue.push({ ...datos, estado: 'Emitido', dteNumero: respuesta.dteGenerado || datos.nroBoleto, qrCodeData: respuesta.data?.qrCodeData || respuesta.data?.qr || respuesta.dteGenerado || datos.nroBoleto, comprobanteUrl: respuesta.data?.comprobanteUrl || respuesta.data?.pdfUrl || '' });
+    saveState();
+    renderFiscalDutQueue();
+  } catch (error) {
+    resultado.textContent = error.message; resultado.className = 'tag';
+    encolarDutOffline(datos, error.message);
+  }
+});
+
+document.getElementById('fiscalFormNotificacion')?.addEventListener('submit', async evento => {
+  evento.preventDefault();
+  try {
+    const datos = Object.fromEntries(new FormData(evento.currentTarget).entries());
+    const respuesta = await fiscalJson('/api/logistica/notificar-chofer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
+    setEl('fiscalResultadoNotificacion', respuesta.message || 'Notificación guardada.');
+    if (!Array.isArray(state.fiscalNotificaciones)) state.fiscalNotificaciones = [];
+    state.fiscalNotificaciones.push({ ...datos, fecha: new Date().toISOString().slice(0, 10) });
+    saveState();
+    renderFiscalPanel(state.boletosMarca || []);
+  } catch (error) { setEl('fiscalResultadoNotificacion', error.message); }
+});
+
+document.getElementById('fiscalRegistrarPesaje')?.addEventListener('click', async () => {
+  try {
+    const peso = Number(document.getElementById('fiscalPesoActual').textContent) || 0;
+    const caravana = document.getElementById('fiscalCaravanaInput').value.trim();
+    await fiscalJson('/api/balanza/registrar-animal', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pesajeLoteId: 1, caravanaId: caravana, pesoKg: peso }) });
+    setEl('fiscalResultadoBalanza', 'Pesada registrada correctamente.');
+  } catch (error) { setEl('fiscalResultadoBalanza', error.message); }
+});
+
+document.getElementById('fiscalAuditarMerma')?.addEventListener('click', async () => {
+  const resultado = document.getElementById('fiscalResultadoBalanza');
+  try {
+    const origen = Number(prompt('Peso de origen (kg):', '18450'));
+    const destino = Number(document.getElementById('fiscalPesoDestino').value);
+    const datos = await fiscalJson('/api/logistica/auditar-cierre-viaje', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pesoOrigen: origen, pesoDestino: destino, tolerancia: 4.5 }) });
+    resultado.textContent = datos.auditoria.alertaContable;
+  } catch (error) { resultado.textContent = error.message; }
+});
+
+document.getElementById('fiscalActualizarPanel')?.addEventListener('click', async () => {
+  await actualizarFiscalGanadero();
+  await actualizarRegistroFiscal();
+});
+
+document.getElementById('fiscalActualizarConfiguracion')?.addEventListener('click', actualizarFiscalGanadero);
+document.getElementById('fiscalSincronizarDut')?.addEventListener('click', sincronizarDutPendientes);
+document.getElementById('fiscalGenerarCartaPorte')?.addEventListener('click', generarCartaPorte);
+document.getElementById('fiscalGuardarPreDut')?.addEventListener('click', () => {
+  const formulario = document.getElementById('fiscalFormDut');
+  if (!formulario || !formulario.reportValidity()) return;
+  const datos = Object.fromEntries(new FormData(formulario).entries());
+  const item = encolarDutOffline(datos, pagoMunicipalPuedeContinuar(datos) ? 'Pre-DUT generado manualmente' : 'Pago municipal pendiente');
+  const index = state.fiscalDutQueue.indexOf(item);
+  imprimirPreDut(index);
+  setEl('fiscalResultadoDut', 'Pre-DUT guardado e impresión preparada.');
+});
+document.getElementById('fiscalCotizarTasa')?.addEventListener('click', async () => {
+  const datos = Object.fromEntries(new FormData(document.getElementById('fiscalFormDut')).entries());
+  const resultado = document.getElementById('fiscalResultadoTasa');
+  try {
+    const respuesta = await fiscalJson('/api/fiscal/tasa-municipal/cotizar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
+    resultado.textContent = `${respuesta.cotizacion.mensaje} Importe estimado: ${respuesta.cotizacion.importeTotal}. Modalidad: ${respuesta.cotizacion.modalidad}.`;
+  } catch (error) { resultado.textContent = error.message; }
+});
+document.getElementById('fiscalPedirNotificaciones')?.addEventListener('click', async () => {
+  if (!('Notification' in window)) return showToast('Este dispositivo no admite notificaciones push.', 'info');
+  const permiso = await Notification.requestPermission();
+  showToast(permiso === 'granted' ? 'Avisos de vencimiento activados.' : 'Avisos bloqueados por el dispositivo.', permiso === 'granted' ? 'success' : 'info');
+  renderFiscalAlertas();
+});
+
+// === SUBMÓDULO AGRÍCOLA (WSCPE / LPG / contratistas de granos) — comparte la conexión WSAA con el Ganadero ===
+function cambiarTabFiscal(tab) {
+  document.getElementById('fiscalTabGanadero').style.display = tab === 'ganadero' ? 'block' : 'none';
+  document.getElementById('fiscalTabAgricola').style.display = tab === 'agricola' ? 'block' : 'none';
+  document.getElementById('fiscalTabBtnGanadero').classList.toggle('active', tab === 'ganadero');
+  document.getElementById('fiscalTabBtnAgricola').classList.toggle('active', tab === 'agricola');
+  if (tab === 'agricola') actualizarFiscalAgricola();
+}
+
+function poblarSelectsAgricola() {
+  const selCampo = document.getElementById('agricolaCpeCampo');
+  if (selCampo) {
+    const actual = selCampo.value;
+    selCampo.innerHTML = '<option value="">-- Campo --</option>' + state.campos.map(c => `<option value="${c.codigo}">${c.codigo} - ${c.nombre}</option>`).join('');
+    selCampo.value = actual;
+  }
+  const selLote = document.getElementById('agricolaContratistaLote');
+  if (selLote) {
+    const actual = selLote.value;
+    selLote.innerHTML = '<option value="">-- Lote --</option>' + state.lotes.map(l => `<option value="${l.codigo}">${l.codigo} - ${l.nombre}</option>`).join('');
+    selLote.value = actual;
+  }
+  const selProducto = document.getElementById('agricolaLpgProducto');
+  if (selProducto) {
+    const actual = selProducto.value;
+    selProducto.innerHTML = '<option value="">-- Producto vendido (Inventario) --</option>' + state.inventario
+      .filter(p => p.categoria === 'Productos Terminados')
+      .map(p => `<option value="${p.codigo}">${p.codigo} - ${p.producto} (Stock: ${(p.stock || 0).toLocaleString()} ${p.unidad || ''})</option>`).join('');
+    selProducto.value = actual;
+  }
+}
+
+async function actualizarFiscalAgricola() {
+  poblarSelectsAgricola();
+  try {
+    const base = await fiscalApiBase();
+    const estado = await (await fetch(`${base}/api/fiscal/arca/estado`)).json();
+    setEl('agricolaEstadoArca', estado.entorno || '--');
+    setEl('agricolaTokenArca', estado.activo ? `${estado.minutosRestantes} minutos restantes` : (estado.certificadoConfigurado ? 'Requiere solicitar TA' : 'Requiere credenciales'));
+  } catch (error) {
+    setEl('agricolaEstadoArca', 'Sin conexión');
+    setEl('agricolaTokenArca', error.message);
+  }
+  await renderAgricolaCpe();
+  await renderAgricolaLpg();
+  await renderAgricolaContratistas();
+}
+
+async function renderAgricolaCpe() {
+  const body = document.getElementById('agricolaCpeBody');
+  if (!body) return;
+  try {
+    const base = await fiscalApiBase();
+    const datos = await (await fetch(`${base}/api/fiscal/cartas-porte-cpe`)).json();
+    const cpes = datos.cartasPorteCPE || [];
+    setEl('agricolaCpeEmitidas', cpes.length);
+    body.innerHTML = cpes.length ? cpes.slice().reverse().map(c => `
+      <tr><td>${c.ctg || '-'}</td><td><span class="tag ${c.estadoFiscal === 'APROBADO' ? 'green' : (c.estadoFiscal === 'OBSERVADO' ? 'orange' : '')}">${c.estado || c.estadoFiscal || ''}</span></td><td>${c.kilosOrigen ?? c.kilos ?? '-'}</td><td>${c.kilosDestino ?? '<span class="text-muted">Sin confirmar</span>'}</td><td>${c.kilosDestino == null ? `<button class="topbar-btn" type="button" onclick="confirmarArriboCpe('${c.ctg}')">Confirmar arribo</button>` : ''} <button class="topbar-btn" type="button" onclick="registrarVentaDesdeCpe('${c.ctg}')">Registrar venta</button></td></tr>
+    `).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:16px;">No hay Cartas de Porte de granos emitidas</td></tr>';
+  } catch (error) {
+    body.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:16px;">${error.message}</td></tr>`;
+  }
+}
+
+async function renderAgricolaLpg() {
+  const body = document.getElementById('agricolaLpgBody');
+  if (!body) return;
+  // No hay un GET dedicado de liquidacionesLPG; se muestran las cargadas en esta sesión.
+  const registros = state.lpgEmitidasLocal || [];
+  setEl('agricolaLpgEmitidas', registros.length);
+  body.innerHTML = registros.length ? registros.slice().reverse().map(r => `
+    <tr><td>${r.numeroComprobante || '-'}</td><td>${r.cae || '-'}</td><td>${r.estadoSisa || '-'}</td><td>$${(r.liquidacion?.totalRetenciones || 0).toLocaleString()}</td><td>$${(r.liquidacion?.netoACobrar || 0).toLocaleString()}</td></tr>
+  `).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:16px;">No hay liquidaciones de granos emitidas todavía</td></tr>';
+}
+
+async function renderAgricolaContratistas() {
+  const body = document.getElementById('agricolaContratistasBody');
+  if (!body) return;
+  try {
+    const base = await fiscalApiBase();
+    const datos = await (await fetch(`${base}/api/fiscal/contratistas/liquidaciones`)).json();
+    const liquidaciones = datos.liquidacionesContratistas || [];
+    body.innerHTML = liquidaciones.length ? liquidaciones.slice().reverse().map(l => `
+      <tr><td>${l.tipoServicio || ''}</td><td>${l.loteId || ''}</td><td>$${(l.subtotalNeto || 0).toLocaleString()}</td><td>$${(l.iva || 0).toLocaleString()}</td><td>$${(l.retencionGanancias || 0).toLocaleString()}</td><td>$${(l.totalAPagar || 0).toLocaleString()}</td></tr>
+    `).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:16px;">No hay liquidaciones de contratistas todavía</td></tr>';
+  } catch (error) {
+    body.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:16px;">${error.message}</td></tr>`;
+  }
+}
+
+async function confirmarArriboCpe(ctg) {
+  const kilosDestino = Number(prompt(`Kilos reales pesados en destino para la CPE ${ctg}:`, ''));
+  if (!kilosDestino || kilosDestino <= 0) return;
+  const precioPizarra = Number(prompt('Precio de pizarra por kg (opcional, para calcular la pérdida económica de la merma):', '') || 0);
+  try {
+    const base = await fiscalApiBase();
+    const respuesta = await fetch(`${base}/api/fiscal/cpe/confirmar-arribo`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ctg, kilosDestino, precioPizarra: precioPizarra || undefined })
+    });
+    const datos = await respuesta.json();
+    if (!respuesta.ok || !datos.success) throw new Error(datos.message || 'No se pudo confirmar el arribo.');
+    showToast(`Arribo confirmado. Merma: ${datos.kilosMerma} kg.`, 'success');
+    await renderAgricolaCpe();
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+}
+
+document.getElementById('agricolaFormCpe')?.addEventListener('submit', async (evento) => {
+  evento.preventDefault();
+  const formulario = evento.currentTarget;
+  const resultado = document.getElementById('agricolaResultadoCpe');
+  resultado.style.display = 'inline-block';
+  const datos = Object.fromEntries(new FormData(formulario).entries());
+  const campo = state.campos.find(c => c.codigo === datos.campoCodigo);
+  if (!campo) { resultado.textContent = 'Seleccioná un campo válido.'; resultado.className = 'tag'; return; }
+  try {
+    const base = await fiscalApiBase();
+    const respuesta = await fetch(`${base}/api/fiscal/cpe/autorizar`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ campo, kilosTotales: Number(datos.kilosTotales), patente: datos.patente, tipoCPE: datos.tipoCPE, sucursal: datos.sucursal, cuitCliente: datos.cuitCliente })
+    });
+    const respJson = await respuesta.json();
+    if (!respuesta.ok || !respJson.success) throw new Error(respJson.message || 'No se pudo autorizar la CPE.');
+    resultado.textContent = `CPE autorizada. CTG ${respJson.ctg}.`;
+    resultado.className = 'tag green';
+    formulario.reset();
+    await renderAgricolaCpe();
+    cpePendienteParaVenta = respJson;
+    if (currentModal.module === 'ventaCereal') {
+      await autoCompletarVentaDesdeCpe(respJson);
+    }
+  } catch (error) {
+    resultado.textContent = error.message;
+    resultado.className = 'tag';
+  }
+});
+
+document.getElementById('agricolaFormLpg')?.addEventListener('submit', async (evento) => {
+  evento.preventDefault();
+  const formulario = evento.currentTarget;
+  const resultado = document.getElementById('agricolaResultadoLpg');
+  resultado.style.display = 'inline-block';
+  const datos = Object.fromEntries(new FormData(formulario).entries());
+  try {
+    const base = await fiscalApiBase();
+    const cpeDatos = await (await fetch(`${base}/api/fiscal/cartas-porte-cpe`)).json();
+    const ctgs = (cpeDatos.cartasPorteCPE || []).filter(r => r.kilosDestino !== null && r.kilosDestino !== undefined && r.cierreLogistico === 'Cerrado').map(r => r.ctg);
+    if (!ctgs.length) throw new Error('No hay Cartas de Porte confirmadas en destino para vincular a la LPG.');
+    const respuesta = await fetch(`${base}/api/fiscal/lpg/emitir`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        puntoVenta: Number(datos.puntoVenta), cuitComprador: datos.cuitComprador, importeNeto: Number(datos.importeNeto),
+        codigoGranoSISA: datos.codigoGranoSISA, esOperador: datos.esOperador === 'si',
+        inscriptoGanancias: datos.inscriptoGanancias === 'si', ctgsVinculados: ctgs
+      })
+    });
+    const respJson = await respuesta.json();
+    if (!respuesta.ok || !respJson.success) throw new Error(respJson.message || 'No se pudo emitir la LPG.');
+    resultado.textContent = `LPG emitida. CAE ${respJson.cae}. Neto a cobrar: $${respJson.liquidacion.netoACobrar.toLocaleString()}.`;
+    resultado.className = 'tag green';
+    if (!Array.isArray(state.lpgEmitidasLocal)) state.lpgEmitidasLocal = [];
+    state.lpgEmitidasLocal.push(respJson);
+    const enlaceVentas = vincularLpgAVentas(respJson, cpeDatos.cartasPorteCPE || []);
+    const pendientesDeVenta = [...enlaceVentas.ctgsSinVenta, ...enlaceVentas.ctgsDuplicados];
+    if (pendientesDeVenta.length) {
+      showToast(`LPG emitida: ${enlaceVentas.ventasVinculadas} venta(s) vinculada(s). CTG pendientes: ${pendientesDeVenta.join(', ')}.`, 'info');
+    } else {
+      showToast(`LPG vinculada a ${enlaceVentas.ventasVinculadas} venta(s) de cereal.`, 'success');
+    }
+
+    // Conexión con Inventario: descontar el stock realmente vendido (si se informaron producto y kilos).
+    const kilosVendidos = Number(datos.kilosVendidos);
+    if (datos.productoCodigo && kilosVendidos > 0) {
+      const producto = state.inventario.find(p => p.codigo === datos.productoCodigo);
+      if (producto) {
+        producto.stock = Math.max(0, (producto.stock || 0) - kilosVendidos);
+        if (!Array.isArray(state.movimientoStock)) state.movimientoStock = [];
+        state.movimientoStock.unshift({
+          fecha: new Date().toISOString().slice(0, 10), producto: datos.productoCodigo, tipo: 'Salida',
+          cantidad: kilosVendidos, motivo: 'Venta', observaciones: `Venta LPG - Comprobante ${respJson.numeroComprobante}, CAE ${respJson.cae}`
+        });
+      }
+    }
+
+    // Conexión con Finanzas: registrar el ingreso neto en Caja.
+    if (!Array.isArray(state.caja)) state.caja = [];
+    state.caja.push({
+      fecha: new Date().toISOString().slice(0, 10), concepto: `Venta de granos (LPG ${respJson.numeroComprobante})`,
+      tipo: 'Ingreso', importe: String(Math.round(respJson.liquidacion.netoACobrar)), categoria: 'Ventas', referencia: respJson.numeroComprobante
+    });
+
+    saveState();
+    formulario.reset();
+    await renderAgricolaLpg();
+    await renderAgricolaCpe();
+    renderTables();
+  } catch (error) {
+    resultado.textContent = error.message;
+    resultado.className = 'tag';
+  }
+});
+
+document.getElementById('agricolaFormContratista')?.addEventListener('submit', async (evento) => {
+  evento.preventDefault();
+  const formulario = evento.currentTarget;
+  const resultado = document.getElementById('agricolaResultadoContratista');
+  resultado.style.display = 'inline-block';
+  const datos = Object.fromEntries(new FormData(formulario).entries());
+  try {
+    const base = await fiscalApiBase();
+    let respuesta;
+    if (datos.tipoServicio === 'FLETE') {
+      respuesta = await fetch(`${base}/api/fiscal/contratistas/liquidar-flete`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ loteId: datos.loteCodigo, contratistaCuit: datos.contratistaCuit, tarifaPorTonelada: Number(datos.tarifaPorTonelada), tipoFlete: 'LARGO', proveedorInscripto: datos.proveedorInscripto === 'si' })
+      });
+    } else {
+      const esPorcentaje = datos.tipoServicio === 'COSECHA_PCT';
+      respuesta = await fetch(`${base}/api/fiscal/contratistas/liquidar-labor`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          loteId: datos.loteCodigo, contratistaCuit: datos.contratistaCuit,
+          tipoTarifa: esPorcentaje ? 'PORCENTAJE_QQ' : 'PESOS_HA',
+          valorTarifa: Number(datos.valorTarifa), superficieHa: Number(datos.superficieHa),
+          valorTarifaPorcentaje: Number(datos.valorTarifaPorcentaje), precioPorKg: Number(datos.precioPorKg),
+          proveedorInscripto: datos.proveedorInscripto === 'si'
+        })
+      });
+    }
+    const respJson = await respuesta.json();
+    if (!respuesta.ok || (!respJson.success && respJson.error)) throw new Error(respJson.message || respJson.error || 'No se pudo liquidar.');
+    resultado.textContent = `Liquidación generada. Total a pagar: $${(respJson.totalAPagar || 0).toLocaleString()}.`;
+    resultado.className = 'tag green';
+
+    // Conexión con Costos: imputa el servicio como costo directo del lote (para el margen bruto en Rentabilidad).
+    if (!Array.isArray(state.costos)) state.costos = [];
+    state.costos.push({
+      fecha: new Date().toISOString().slice(0, 10), lote: datos.loteCodigo,
+      concepto: datos.tipoServicio === 'FLETE' ? 'Flete de cosecha' : (datos.tipoServicio === 'COSECHA_PCT' ? 'Cosecha a porcentaje' : 'Cosecha/Siembra por hectárea'),
+      monto: respJson.subtotalNeto || 0, categoria: 'Contratistas'
+    });
+    // Conexión con Finanzas: egreso por el total a pagar al contratista.
+    if (!Array.isArray(state.caja)) state.caja = [];
+    state.caja.push({
+      fecha: new Date().toISOString().slice(0, 10), concepto: `Liquidación contratista ${datos.contratistaCuit || ''} - ${datos.tipoServicio} - Lote ${datos.loteCodigo}`,
+      tipo: 'Egreso', importe: String(Math.round(respJson.totalAPagar || 0)), categoria: 'Otros', referencia: `LIQ-${Date.now()}`
+    });
+    saveState();
+    formulario.reset();
+    await renderAgricolaContratistas();
+    renderTables();
+  } catch (error) {
+    resultado.textContent = error.message;
+    resultado.className = 'tag';
+  }
+});
 
 function actualizarKPIsInventario() {
   const totalProductos = state.inventario.length;
@@ -6910,6 +8491,10 @@ function renderMovimientoStock() {
     const tipoTag = m.tipo === 'Entrada' 
       ? '<span class="tag green">Entrada</span>' 
       : '<span class="tag red">Salida</span>';
+    const motivosSinRespaldoFiscal = ['Ajuste de Stock por Merma/Consumo', 'Merma', 'Ajuste', 'Consumo'];
+    const respaldoTag = motivosSinRespaldoFiscal.includes(m.motivo)
+      ? '<span class="tag orange" title="Ajuste interno de inventario: no genera comprobante fiscal ni afecta ventas declaradas">Sin respaldo fiscal</span>'
+      : '<span class="tag green">Con comprobante</span>';
     
     return `
       <tr>
@@ -6918,6 +8503,7 @@ function renderMovimientoStock() {
         <td>${tipoTag}</td>
         <td><strong>${m.tipo === 'Salida' ? '-' : '+'}${m.cantidad.toLocaleString()}</strong></td>
         <td>${m.motivo}</td>
+        <td>${respaldoTag}</td>
         <td>${m.observaciones || '-'}</td>
       </tr>
     `;
@@ -7959,19 +9545,184 @@ function initFlujoChart() {
 }
 
 let chartCostoCultivo = null, chartDesglose = null;
+function obtenerCostosPorCultivo() {
+  const porLote = {};
+  const resultado = {};
+  const asegurarCultivo = (cultivo) => {
+    const nombre = String(cultivo || 'Sin cultivo asignado').trim() || 'Sin cultivo asignado';
+    if (!resultado[nombre]) resultado[nombre] = { ha: 0, siembra: 0, cosecha: 0, otros: 0, categorias: {} };
+    return resultado[nombre];
+  };
+  const registrar = (cultivo, tipo, importe, categoria) => {
+    const monto = parseMonto(importe || 0);
+    if (!monto) return;
+    const datos = asegurarCultivo(cultivo);
+    datos[tipo] += monto;
+    const nombreCategoria = categoria || (tipo === 'siembra' ? 'Siembra' : tipo === 'cosecha' ? 'Cosecha' : 'Otros directos');
+    datos.categorias[nombreCategoria] = (datos.categorias[nombreCategoria] || 0) + monto;
+  };
+
+  (state.siembra || []).forEach((siembra) => {
+    const cultivo = siembra.cultivo || 'Sin cultivo asignado';
+    if (siembra.lote) porLote[siembra.lote] = cultivo;
+    asegurarCultivo(cultivo).ha += Number(siembra.ha || 0);
+    registrar(cultivo, 'siembra', siembra.costo, 'Siembra');
+  });
+  (state.cosecha || []).forEach((cosecha) => {
+    const cultivo = cosecha.cultivo || porLote[cosecha.lote] || 'Sin cultivo asignado';
+    if (cosecha.lote && !porLote[cosecha.lote]) porLote[cosecha.lote] = cultivo;
+    registrar(cultivo, 'cosecha', cosecha.costo, 'Cosecha');
+  });
+  (state.costos || []).forEach((costo) => {
+    registrar(costo.cultivo || porLote[costo.lote], 'otros', costo.monto ?? costo.importe ?? costo.costo, costo.categoria || costo.concepto || 'Otros directos');
+  });
+  return resultado;
+}
+
+function actualizarResumenCostos() {
+  const porCultivo = obtenerCostosPorCultivo();
+  const filas = Object.entries(porCultivo).map(([cultivo, datos]) => {
+    const total = datos.siembra + datos.cosecha + datos.otros;
+    return { cultivo, ...datos, total, costoPorHa: datos.ha > 0 ? total / datos.ha : null };
+  }).sort((a, b) => b.total - a.total);
+  const total = filas.reduce((suma, fila) => suma + fila.total, 0);
+  const ha = filas.reduce((suma, fila) => suma + fila.ha, 0);
+  const sinCultivo = filas.find((fila) => fila.cultivo === 'Sin cultivo asignado')?.total || 0;
+  const fmt = (monto) => '$' + Math.round(monto).toLocaleString('es-AR');
+
+  setEl('costosKpiTotal', fmt(total));
+  setEl('costosKpiTotalSub', `${filas.length} cultivo${filas.length === 1 ? '' : 's'} imputado${filas.length === 1 ? '' : 's'}`);
+  setEl('costosKpiPorHa', ha > 0 ? fmt(total / ha) : '$0');
+  setEl('costosKpiPorHaSub', ha > 0 ? `${ha.toLocaleString('es-AR')} ha registradas` : 'Sin hectáreas registradas');
+  setEl('costosKpiCultivos', String(filas.filter((fila) => fila.cultivo !== 'Sin cultivo asignado').length));
+  setEl('costosKpiCultivosSub', filas.length ? 'Con costos registrados' : 'Sin imputaciones');
+  setEl('costosKpiSinCultivo', fmt(sinCultivo));
+
+  const cuerpo = document.getElementById('costosPorCultivoBody');
+  if (cuerpo) cuerpo.innerHTML = filas.length ? filas.map((fila) => `<tr><td>${fila.cultivo}</td><td>${fila.ha.toLocaleString('es-AR')}</td><td>${fmt(fila.siembra)}</td><td>${fmt(fila.cosecha)}</td><td>${fmt(fila.otros)}</td><td>${fmt(fila.total)}</td><td>${fila.costoPorHa === null ? '--' : fmt(fila.costoPorHa)}</td></tr>`).join('') : '<tr><td colspan="7" style="text-align:center;color:#64748b;">Sin costos agrícolas cargados.</td></tr>';
+  return filas;
+}
+
+function actualizarResumenContable() {
+  const parseMonto = (valor) => {
+    const numero = Number(String(valor ?? '').replace(/[$.]/g, '').replace(',', '.'));
+    return Number.isFinite(numero) ? numero : 0;
+  };
+  const fmt = (monto) => '$' + Math.round(monto).toLocaleString('es-AR');
+  const costos = Array.isArray(state.costos) ? state.costos : [];
+  const lpg = Array.isArray(state.lpgEmitidasLocal) ? state.lpgEmitidasLocal : [];
+
+  const mapa = {};
+  costos.forEach((item) => {
+    const fecha = String(item.fecha || '').slice(0, 7) || new Date().toISOString().slice(0, 7);
+    mapa[fecha] = mapa[fecha] || { costos: 0, impuestos: 0 };
+    mapa[fecha].costos += parseMonto(item.monto ?? item.importe ?? item.costo ?? 0);
+  });
+  lpg.forEach((item) => {
+    const fecha = String(item.fecha || new Date().toISOString()).slice(0, 7);
+    mapa[fecha] = mapa[fecha] || { costos: 0, impuestos: 0 };
+    mapa[fecha].impuestos += parseMonto(item.liquidacion?.totalRetenciones ?? 0) + parseMonto(item.liquidacion?.iva?.ivaOperacion ?? 0);
+  });
+
+  const filas = Object.entries(mapa).sort((a, b) => b[0].localeCompare(a[0])).map(([periodo, valores]) => ({
+    periodo,
+    costos: valores.costos,
+    impuestos: valores.impuestos,
+    total: valores.costos + valores.impuestos
+  }));
+
+  const cuerpo = document.getElementById('resumenContableBody');
+  if (cuerpo) {
+    cuerpo.innerHTML = filas.length
+      ? filas.map((fila) => `<tr><td>${fila.periodo}</td><td>${fmt(fila.costos)}</td><td>${fmt(fila.impuestos)}</td><td>${fmt(fila.total)}</td></tr>`).join('')
+      : '<tr><td colspan="4" style="text-align:center;color:#64748b;">Sin movimientos contables cargados.</td></tr>';
+  }
+  return filas;
+}
+
+function actualizarResumenImpuestos() {
+  const parseMonto = (valor) => {
+    const numero = Number(String(valor ?? '').replace(/[$.]/g, '').replace(',', '.'));
+    return Number.isFinite(numero) ? numero : 0;
+  };
+  const fmt = (monto) => '$' + Math.round(monto).toLocaleString('es-AR');
+  const lpg = Array.isArray(state.lpgEmitidasLocal) ? state.lpgEmitidasLocal : [];
+  const caja = Array.isArray(state.caja) ? state.caja : [];
+
+  let debitoFiscal = 0;
+  let retenciones = 0;
+  let netoFiscal = 0;
+  const filas = [];
+
+  lpg.forEach((item) => {
+    const liquidacion = item.liquidacion || {};
+    const iva = Number(liquidacion.iva?.ivaOperacion ?? liquidacion.iva ?? 0);
+    const ret = Number(liquidacion.totalRetenciones ?? liquidacion.ganancias?.retencionGanancias ?? 0);
+    const neto = Number(liquidacion.netoACobrar ?? 0);
+    debitoFiscal += iva;
+    retenciones += ret;
+    netoFiscal += neto;
+    filas.push({
+      tipo: 'LPG',
+      comprobante: item.numeroComprobante || item.cae || '—',
+      iva,
+      retenciones: ret,
+      neto,
+      origen: item.estadoSisa || 'Granos'
+    });
+  });
+
+  const pagoImpuestoDirecto = caja.filter((item) => item.categoria === 'Impuestos' || /retencion|impuesto/i.test(item.concepto || '')).reduce((sum, item) => sum + parseMonto(item.importe || 0), 0);
+  const creditoFiscal = 0;
+  const netoResumen = debitoFiscal - retenciones;
+
+  setEl('impuestosDebitoKpi', fmt(debitoFiscal));
+  setEl('impuestosDebitoSub', debitoFiscal > 0 ? `${filas.length} liquidación${filas.length === 1 ? '' : 'es'} con IVA` : 'Sin ventas con IVA');
+  setEl('impuestosCreditoKpi', fmt(creditoFiscal));
+  setEl('impuestosCreditoSub', creditoFiscal > 0 ? 'Crédito fiscal detectado' : 'Sin compras con IVA discriminado');
+  setEl('impuestosRetencionesKpi', fmt(retenciones + pagoImpuestoDirecto));
+  setEl('impuestosRetencionesSub', (retenciones + pagoImpuestoDirecto) > 0 ? 'Registro de retenciones y pagos fiscales' : 'Sin retenciones registradas');
+  setEl('impuestosNetoKpi', fmt(netoResumen));
+  setEl('impuestosNetoSub', debitoFiscal > 0 ? 'IVA bruto menos retenciones' : 'Sin liquidación');
+
+  const cuerpo = document.getElementById('costosImpuestosBody');
+  if (cuerpo) {
+    const registros = filas.length ? filas : [];
+    if (!registros.length) {
+      cuerpo.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;">Sin liquidaciones fiscales cargadas.</td></tr>';
+      return { debitoFiscal, creditoFiscal, retenciones: retenciones + pagoImpuestoDirecto, netoFiscal: netoResumen };
+    }
+    cuerpo.innerHTML = registros.map((fila) => `<tr><td>${fila.tipo}</td><td>${fila.comprobante}</td><td>${fmt(fila.iva)}</td><td>${fmt(fila.retenciones)}</td><td>${fmt(fila.neto)}</td><td>${fila.origen}</td></tr>`).join('');
+  }
+
+  return { debitoFiscal, creditoFiscal, retenciones: retenciones + pagoImpuestoDirecto, netoFiscal: netoResumen };
+}
+
 function initCostosCharts() {
   const ctx1 = document.getElementById('chartCostoCultivo');
   const ctx2 = document.getElementById('chartDesglose');
   if (!ctx1 || !ctx2) return;
+  actualizarResumenContable();
+  actualizarResumenImpuestos();
+  const filas = actualizarResumenCostos();
+  const colores = ['#10b981','#3b82f6','#f59e0b','#8b5cf6','#ef4444','#64748b'];
+  const etiquetas = filas.map((fila) => fila.cultivo);
+  const costosPorHa = filas.map((fila) => fila.costoPorHa || 0);
+  const desglose = filas.reduce((acumulado, fila) => {
+    Object.entries(fila.categorias).forEach(([categoria, importe]) => { acumulado[categoria] = (acumulado[categoria] || 0) + importe; });
+    return acumulado;
+  }, {});
+  const titulo = document.getElementById('costosDesgloseTitulo');
+  if (titulo) titulo.textContent = 'Desglose de Costos Agrícolas';
   if (!chartCostoCultivo) {
     chartCostoCultivo = new Chart(ctx1, {
       type: 'bar',
       data: {
-        labels: ['Soja','Maíz','Trigo','Girasol'],
+        labels: etiquetas,
         datasets: [{
           label: 'Costo/Ha',
-          data: [50000,58800,57000,42500],
-          backgroundColor: ['#10b981','#3b82f6','#f59e0b','#8b5cf6'],
+          data: costosPorHa,
+          backgroundColor: etiquetas.map((_, indice) => colores[indice % colores.length]),
           borderRadius: 6
         }]
       },
@@ -7985,15 +9736,20 @@ function initCostosCharts() {
         }
       }
     });
+  } else {
+    chartCostoCultivo.data.labels = etiquetas;
+    chartCostoCultivo.data.datasets[0].data = costosPorHa;
+    chartCostoCultivo.data.datasets[0].backgroundColor = etiquetas.map((_, indice) => colores[indice % colores.length]);
+    chartCostoCultivo.update();
   }
   if (!chartDesglose) {
     chartDesglose = new Chart(ctx2, {
       type: 'doughnut',
       data: {
-        labels: ['Semilla','Fertilizante','Fitosanitarios','Maquinaria','Combustible','Personal'],
+        labels: Object.keys(desglose),
         datasets: [{
-          data: [0,0,0,0,0,0],
-          backgroundColor: ['#10b981','#3b82f6','#f59e0b','#8b5cf6','#ef4444','#64748b'],
+          data: Object.values(desglose),
+          backgroundColor: Object.keys(desglose).map((_, indice) => colores[indice % colores.length]),
           borderWidth: 0
         }]
       },
@@ -8003,6 +9759,11 @@ function initCostosCharts() {
         plugins: { legend: { position: 'right', labels: { color: '#94a3b8', padding: 10, font: { size: 11 } } } }
       }
     });
+  } else {
+    chartDesglose.data.labels = Object.keys(desglose);
+    chartDesglose.data.datasets[0].data = Object.values(desglose);
+    chartDesglose.data.datasets[0].backgroundColor = Object.keys(desglose).map((_, indice) => colores[indice % colores.length]);
+    chartDesglose.update();
   }
 }
 
@@ -8017,15 +9778,15 @@ observer.observe(document.getElementById('content'), { subtree: true, attributes
 
 /* === INICIALIZACIÓN === */
 var appInitialized = false;
-// Verificar licencia antes de inicializar la app
-initLicenseSystem();
-
-// Si la licencia es válida, inicializar la aplicación
-if (checkLicense()) {
-  initializeAppAfterLicense();
-} else {
-  console.log('PampaAgro ERP: Esperando activación de licencia');
-}
+// Verificar licencia antes de inicializar la app.
+(async () => {
+  await initLicenseSystem();
+  if (await checkLicense()) {
+    initializeAppAfterLicense();
+  } else {
+    console.log('PampaAgro ERP: Esperando activación de licencia');
+  }
+})();
 
 
 /* === PAMPAIA === */
@@ -9208,7 +10969,7 @@ function mostrarTodosLosLotes() {
 
 // === SISTEMA DE LICENCIAMIENTO ===
 
-const TRIAL_DAYS = 7;
+const TRIAL_DAYS = 10;
 appInitialized = false;
 
 function getLicenseData() {
@@ -9248,133 +11009,8 @@ const PLAN_MODULES = {
   trial:        null  // trial = acceso completo durante el período
 };
 
-const PLAN_MODULE_LIMITS = {
-  basica: 4,
-  profesional: 6,
-  premium: 10,
-  trial: 10
-};
-
-const PLAN_MODULE_CONFIG_KEY = 'nexoAgroPlanModulesConfig';
-const ALWAYS_PLAN_MODULES = ['dashboard', 'reportes'];
-const FINANCE_MODULE_IDS = ['caja', 'bancos', 'costos', 'creditos', 'cuentasBancarias', 'cheques', 'flujo'];
-const FINANCE_REQUIRED_BY_PLAN = {
-  basica: ['caja', 'bancos', 'costos'],
-  profesional: ['caja', 'bancos', 'costos', 'creditos'],
-  premium: ['caja', 'bancos', 'costos', 'creditos'],
-  trial: ['caja', 'bancos', 'costos', 'creditos']
-};
-
-const PLAN_MODULE_CATALOG = [
-  { id: 'campos', label: 'Campos' },
-  { id: 'lotes', label: 'Lotes' },
-  { id: 'campañas', label: 'Campañas' },
-  { id: 'siembra', label: 'Siembra' },
-  { id: 'aplicaciones', label: 'Aplicaciones' },
-  { id: 'cosecha', label: 'Cosecha' },
-  { id: 'hacienda', label: 'Hacienda' },
-  { id: 'alimentacion', label: 'Alimentación' },
-  { id: 'maquinarias', label: 'Maquinarias' },
-  { id: 'cargacombustible', label: 'Cargas de Combustible' },
-  { id: 'costosOperativos', label: 'Costos Operativos' },
-  { id: 'mantenimiento', label: 'Mantenimiento' },
-  { id: 'inventario', label: 'Inventario' },
-  { id: 'empleados', label: 'Empleados' },
-  { id: 'caja', label: 'Caja' },
-  { id: 'bancos', label: 'Bancos' },
-  { id: 'cuentasBancarias', label: 'Cuentas Bancarias' },
-  { id: 'cheques', label: 'Cheques' },
-  { id: 'creditos', label: 'Créditos' },
-  { id: 'flujo', label: 'Flujo de Fondos' },
-  { id: 'costos', label: 'Costos' },
-  { id: 'rentabilidad', label: 'Rentabilidad' },
-  { id: 'documentos', label: 'Gestión de Documentos' },
-  { id: 'empresa', label: 'Empresa' }
-];
-
-function getPlanModuleLimit(plan) {
-  return PLAN_MODULE_LIMITS[plan] ?? 4;
-}
-
-function getPlanModuleCatalogIds() {
-  return PLAN_MODULE_CATALOG.map((m) => m.id);
-}
-
-function sanitizePlanSelectedModules(rawModules) {
-  const valid = new Set(getPlanModuleCatalogIds());
-  const source = Array.isArray(rawModules) ? rawModules : [];
-  const unique = [];
-
-  source.forEach((m) => {
-    if (typeof m !== 'string') return;
-    if (!valid.has(m)) return;
-    if (unique.includes(m)) return;
-    unique.push(m);
-  });
-
-  return unique;
-}
-
-function applyFinancePackRules(plan, selectedModules) {
-  const selected = sanitizePlanSelectedModules(selectedModules);
-  const wantsFinanzas = selected.some((m) => FINANCE_MODULE_IDS.includes(m));
-  if (!wantsFinanzas) return selected;
-
-  const required = FINANCE_REQUIRED_BY_PLAN[plan] || [];
-  required.forEach((m) => {
-    if (!selected.includes(m)) selected.push(m);
-  });
-  return selected;
-}
-
-function getDefaultPlanSelectedModules(plan) {
-  const limit = getPlanModuleLimit(plan);
-  const source = PLAN_MODULES[plan];
-  const raw = Array.isArray(source) ? source.filter((m) => !ALWAYS_PLAN_MODULES.includes(m)) : getPlanModuleCatalogIds();
-  return sanitizePlanSelectedModules(raw).slice(0, limit);
-}
-
-function normalizePlanSelectedModules(plan, selectedModules) {
-  const limit = getPlanModuleLimit(plan);
-  let selected = sanitizePlanSelectedModules(selectedModules);
-  selected = applyFinancePackRules(plan, selected);
-  if (selected.length > limit) {
-    selected = selected.slice(0, limit);
-  }
-  return selected;
-}
-
-function getPlanModulesConfig() {
-  let saved = {};
-  try {
-    const raw = localStorage.getItem(PLAN_MODULE_CONFIG_KEY);
-    if (raw) saved = JSON.parse(raw) || {};
-  } catch (e) {
-    saved = {};
-  }
-
-  const out = {};
-  ['basica', 'profesional', 'premium'].forEach((plan) => {
-    const fromSaved = saved?.[plan]?.selected;
-    const selected = fromSaved && Array.isArray(fromSaved)
-      ? normalizePlanSelectedModules(plan, fromSaved)
-      : getDefaultPlanSelectedModules(plan);
-    out[plan] = { selected };
-  });
-
-  return out;
-}
-
-function savePlanModulesConfig(config) {
-  localStorage.setItem(PLAN_MODULE_CONFIG_KEY, JSON.stringify(config));
-}
-
 function getAllowedModulesForPlan(plan) {
-  if (plan === 'trial') return null;
-  const config = getPlanModulesConfig();
-  const selected = config?.[plan]?.selected;
-  if (!Array.isArray(selected)) return PLAN_MODULES[plan];
-  return Array.from(new Set([...ALWAYS_PLAN_MODULES, ...selected]));
+  return PLAN_MODULES[plan] ?? PLAN_MODULES.basica;
 }
 
 function planTieneModulo(modulo) {
@@ -9382,115 +11018,6 @@ function planTieneModulo(modulo) {
   const permitidos = getAllowedModulesForPlan(plan);
   if (permitidos === null) return true;
   return permitidos.includes(modulo);
-}
-
-function abrirConfiguracionModulosPlan() {
-  cerrarConfiguracionModulosPlan();
-  const config = getPlanModulesConfig();
-
-  const renderPlanBlock = (plan, title) => {
-    const selected = config?.[plan]?.selected || [];
-    const limit = getPlanModuleLimit(plan);
-    const checks = PLAN_MODULE_CATALOG.map((mod) => {
-      const checked = selected.includes(mod.id) ? 'checked' : '';
-      return `
-        <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-secondary);">
-          <input type="checkbox" class="plan-module-check" data-plan="${plan}" value="${mod.id}" ${checked} onchange="actualizarContadorModulosPlan('${plan}')">
-          <span>${mod.label}</span>
-        </label>
-      `;
-    }).join('');
-
-    return `
-      <div style="border:1px solid var(--border);border-radius:8px;padding:12px;background:var(--bg-secondary);margin-bottom:12px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;">
-          <strong style="color:var(--text-primary);">${title}</strong>
-          <span id="planCounter-${plan}" style="font-size:12px;color:var(--text-dim);"></span>
-        </div>
-        <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">
-          Límite de módulos seleccionables: ${limit}. Incluye siempre Dashboard y Reportes.
-        </div>
-        <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px;">
-          Si activás Finanzas, se exigen automáticamente: ${FINANCE_REQUIRED_BY_PLAN[plan].join(', ')}.
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;">${checks}</div>
-      </div>
-    `;
-  };
-
-  const modalHTML = `
-    <div class="modal-overlay active" id="planModulesModal" onclick="if(event.target===this) cerrarConfiguracionModulosPlan()">
-      <div class="modal" style="max-width:920px;width:min(96vw,920px);">
-        <div class="modal-header">
-          <div class="modal-title">🧩 Configurar Módulos por Versión</div>
-          <button class="modal-close" onclick="cerrarConfiguracionModulosPlan()">×</button>
-        </div>
-        <div class="modal-body" style="max-height:70vh;overflow:auto;">
-          ${renderPlanBlock('basica', 'Básica')}
-          ${renderPlanBlock('profesional', 'Profesional')}
-          ${renderPlanBlock('premium', 'Premium')}
-        </div>
-        <div class="modal-footer">
-          <button class="btn" onclick="cerrarConfiguracionModulosPlan()">Cancelar</button>
-          <button class="btn btn-primary" onclick="guardarConfiguracionModulosPlan()">Guardar Configuración</button>
-        </div>
-      </div>
-    </div>
-  `;
-
-  document.body.insertAdjacentHTML('beforeend', modalHTML);
-  actualizarContadorModulosPlan('basica');
-  actualizarContadorModulosPlan('profesional');
-  actualizarContadorModulosPlan('premium');
-}
-
-function cerrarConfiguracionModulosPlan() {
-  const modal = document.getElementById('planModulesModal');
-  if (modal) modal.remove();
-}
-
-function getSelectedModulesFromPlanModal(plan) {
-  const checks = document.querySelectorAll(`.plan-module-check[data-plan="${plan}"]`);
-  const selected = [];
-  checks.forEach((ch) => {
-    if (ch.checked) selected.push(ch.value);
-  });
-  return sanitizePlanSelectedModules(selected);
-}
-
-function actualizarContadorModulosPlan(plan) {
-  const counter = document.getElementById(`planCounter-${plan}`);
-  if (!counter) return;
-  const limit = getPlanModuleLimit(plan);
-  const selected = getSelectedModulesFromPlanModal(plan);
-  const withFinanceRule = applyFinancePackRules(plan, selected);
-  const textExtra = withFinanceRule.length !== selected.length ? ` (Finanzas exige ${withFinanceRule.length})` : '';
-  counter.textContent = `Seleccionados: ${selected.length}/${limit}${textExtra}`;
-  counter.style.color = withFinanceRule.length > limit ? '#ef4444' : 'var(--text-dim)';
-}
-
-function guardarConfiguracionModulosPlan() {
-  const next = {};
-  const planTitles = { basica: 'Básica', profesional: 'Profesional', premium: 'Premium' };
-
-  for (const plan of ['basica', 'profesional', 'premium']) {
-    const limit = getPlanModuleLimit(plan);
-    const selected = getSelectedModulesFromPlanModal(plan);
-    const withFinanceRule = applyFinancePackRules(plan, selected);
-
-    if (withFinanceRule.length > limit) {
-      showToast(`Plan ${planTitles[plan]} excede límite (${withFinanceRule.length}/${limit}).`, 'error');
-      return;
-    }
-
-    next[plan] = { selected: withFinanceRule };
-  }
-
-  savePlanModulesConfig(next);
-  actualizarPermisos();
-  closeLicenseModal();
-  cerrarConfiguracionModulosPlan();
-  showToast('Configuración de módulos por versión guardada', 'success');
 }
 
 function getTrialRemainingDays(license) {
@@ -9562,37 +11089,107 @@ function validateLicenseKey(key) {
   return true;
 }
 
+async function verifySignedLicenseToken(token) {
+  if (!token) return null;
+
+  try {
+    // En Electron valida el proceso principal; en la PWA, WebCrypto.
+    if (window.electronAPI?.verifyLicenseToken) {
+      const fromElectron = await window.electronAPI.verifyLicenseToken(token);
+      if (fromElectron) return fromElectron;
+    }
+    if (window.PampaLicenseSigned) {
+      const result = await window.PampaLicenseSigned.verifyLicense(token, { product: 'pampa-agro' });
+      if (result.valid) {
+        return {
+          type: 'signed',
+          key: result.token,
+          plan: result.plan,
+          maxUsers: result.maxUsers,
+          customer: result.customer,
+          licenseId: result.licenseId,
+          issuedAt: result.issuedAt,
+          expiresAt: result.expiresAt,
+          daysLeft: result.daysLeft,
+          expiringSoon: result.expiringSoon,
+          activatedAt: new Date().toISOString()
+        };
+      }
+    }
+    return null;
+  } catch (error) {
+    console.warn('No se pudo verificar la licencia firmada:', error);
+    return null;
+  }
+}
+
+let subscriptionRefreshTimer = null;
+
+function getSubscriptionApiUrl() {
+  try {
+    const settings = window.electronAPI?.getAppSettings?.() || {};
+    return String(settings.subscriptionApiUrl || '').replace(/\/+$/, '');
+  } catch {
+    return '';
+  }
+}
+
+async function refreshSubscriptionAuthorization() {
+  const license = getLicenseData();
+  const apiUrl = getSubscriptionApiUrl();
+  if (!apiUrl || license?.type !== 'signed' || !license.licenseId) return false;
+
+  try {
+    const deviceId = license.deviceId || generateDeviceId();
+    const requestUrl = new URL(`${apiUrl}/v1/client/authorization`);
+    requestUrl.searchParams.set('licenseId', license.licenseId);
+    requestUrl.searchParams.set('deviceId', deviceId);
+
+    const response = await fetch(requestUrl, { cache: 'no-store' });
+    if (!response.ok) return false;
+    const body = await response.json();
+    const refreshed = await verifySignedLicenseToken(body?.token);
+    if (!refreshed || refreshed.licenseId !== license.licenseId) return false;
+
+    const changed = refreshed.expiresAt !== license.expiresAt;
+    localStorage.setItem('nexoAgroLicense', JSON.stringify({
+      ...refreshed,
+      activatedAt: license.activatedAt || refreshed.activatedAt,
+      deviceId,
+      lastSubscriptionSyncAt: new Date().toISOString()
+    }));
+    if (changed) showToast('Suscripción renovada automáticamente', 'success');
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function startSubscriptionRefresh() {
+  if (subscriptionRefreshTimer || !getSubscriptionApiUrl()) return;
+  subscriptionRefreshTimer = setInterval(async () => {
+    const refreshed = await refreshSubscriptionAuthorization();
+    if (refreshed) updateLicenseBadge();
+  }, 6 * 60 * 60 * 1000);
+}
+
 // Activar licencia
-function activateLicense() {
+async function activateLicense() {
   const keyInput = document.getElementById('activationKey');
   const errorMsg = document.getElementById('activationError');
-  const key = keyInput.value.trim().toUpperCase();
-  
-  console.log('Clave ingresada:', key);
-  console.log('Longitud:', key.length);
-  console.log('Partes:', key.split('-'));
-  
-  if (!validateLicenseKey(key)) {
+  const rawKey = keyInput.value.trim();
+  const license = await verifySignedLicenseToken(rawKey.replace(/\s+/g, ''));
+
+  // Solo se aceptan licencias firmadas: el formato NEXO- sin firma quedo discontinuado.
+  if (!license) {
     errorMsg.style.display = 'block';
-    errorMsg.textContent = 'Clave de activación inválida. Formato esperado: NEXO-XXXX-XXXX-XXXX';
-    errorMsg.innerHTML += '<br><small style="color: #64748b;">Abre la consola del navegador (F12) para ver detalles</small>';
+    errorMsg.textContent = 'Licencia inválida, alterada o vencida.';
     return;
   }
-  
-  // Deducir plan desde la clave
-  const planCode = key.split('-')[1]?.[0]?.toUpperCase();
-  const planMap = { B: 'basica', P: 'profesional', M: 'premium' };
-  const planDetected = planMap[planCode] || 'basica';
 
-  // Guardar licencia
-  const license = {
-    type: 'full',
-    key: key,
-    plan: planDetected,
-    activatedAt: new Date().toISOString(),
-    deviceId: generateDeviceId()
-  };
+  license.deviceId = license.deviceId || generateDeviceId();
   
+  errorMsg.style.display = 'none';
   localStorage.setItem('nexoAgroLicense', JSON.stringify(license));
   
   // Ocultar pantalla de activación
@@ -9621,7 +11218,7 @@ function activateTrial() {
 
   const trialLicense = {
     type: 'trial',
-    key: 'TRIAL-7DIAS',
+    key: 'TRIAL-10DIAS',
     activatedAt: now.toISOString(),
     expiresAt: end.toISOString(),
     deviceId: generateDeviceId()
@@ -9715,11 +11312,7 @@ function deactivateLicense() {
 }
 
 // Verificar si la licencia es válida
-function checkLicense() {
-  if (!window.electronAPI) {
-    return true;
-  }
-
+async function checkLicense() {
   const license = getLicenseData();
 
   if (!license) {
@@ -9736,10 +11329,18 @@ function checkLicense() {
     return true;
   }
 
-  if (!license.key || !validateLicenseKey(license.key)) {
+  // Cualquier licencia guardada se revalida contra la firma, tambien en la PWA.
+  const verified = await verifySignedLicenseToken(license.key);
+  if (!verified) {
+    localStorage.removeItem('nexoAgroLicense');
     return false;
   }
 
+  localStorage.setItem('nexoAgroLicense', JSON.stringify({
+    ...verified,
+    activatedAt: license.activatedAt || verified.activatedAt,
+    deviceId: license.deviceId || generateDeviceId()
+  }));
   return true;
 }
 
@@ -9819,7 +11420,7 @@ function updateLicenseBadge() {
       }
     }
 
-    if (validateLicenseKey(license.key)) {
+    if (license.type === 'signed') {
         const planLabels = { basica: 'Básica', profesional: 'Profesional', premium: 'Premium' };
         const planLabel = planLabels[getLicensePlan()] || 'Full';
         badgeContainer.innerHTML = `
@@ -9874,22 +11475,22 @@ function initializeAppAfterLicense() {
 }
 
 // Inicializar sistema de licencia al cargar la página
-function initLicenseSystem() {
+async function initLicenseSystem() {
   maybeAutoActivateTrialFromQuery();
   updateTrialBlueBanner();
 
-  if (!window.electronAPI) {
-    const overlay = document.getElementById('activationOverlay');
-    if (overlay) {
-      overlay.style.display = 'none';
-    }
-    return;
-  }
+  await refreshSubscriptionAuthorization();
 
-  if (!checkLicense()) {
-    showActivationScreen();
+  if (!await checkLicense()) {
+    const existingLicense = getLicenseData();
+    if (!existingLicense) {
+      activateTrial();
+    } else {
+      showActivationScreen();
+    }
   } else {
     updateLicenseBadge();
+    startSubscriptionRefresh();
   }
 }
 
