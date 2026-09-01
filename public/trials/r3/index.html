@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8">
@@ -7,7 +7,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <script src="./pampa-licensing.js"></script>
   <script src="./pampa-offline-core.js"></script>
-  <script src="./pampa-search.js?v=20260901-171352"></script>
+  <script src="./pampa-search.js?v=2"></script>
   <script src="./pampa-trial-links.js"></script>
   <link rel="stylesheet" href="./leaflet/leaflet.css">
 <link rel="stylesheet" href="./pampa-brand.css">
@@ -298,11 +298,11 @@
   <div id="modalRoot"></div>
   <div class="connection-status" id="connectionStatus" role="status"></div>
   <script src="./leaflet/leaflet.js"></script>
-  <script src="./offline-db.js?v=20260901-171352"></script>
-  <script src="./sync-manager.js?v=20260901-171352"></script>
-  <script src="./api-client.js?v=20260901-171352"></script>
-  <script src="./pampa-trial-precision.js?v=20260901-171352"></script>
-    <script src="./sync-handlers.js?v=20260901-171352"></script>
+  <script src="./offline-db.js?v=1"></script>
+  <script src="./sync-manager.js?v=1"></script>
+  <script src="./api-client.js?v=8"></script>
+  <script src="./pampa-trial-precision.js?v=1"></script>
+    <script src="./sync-handlers.js?v=1"></script>
   <script>
     const toast = document.querySelector('#toast');
     const modalRoot = document.querySelector('#modalRoot');
@@ -372,7 +372,7 @@
       event.returnValue = 'Tenés cambios locales sin respaldo. Descargá un respaldo antes de cerrar.';
     });
     updateConnectionStatus();
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=20260901-171352').catch(() => showToast('Modo offline local activo'));
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=74').catch(() => showToast('Modo offline local activo'));
     const userSelector = document.querySelector('#userSelector');
     function refreshUserOptions() {
       userSelector.innerHTML = registeredUsers.map(user => `<option>${user}</option>`).join('');
