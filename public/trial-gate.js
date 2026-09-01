@@ -74,5 +74,5 @@
   }
 
   if (isLanding) document.addEventListener('DOMContentLoaded', bindLandingLinks);
-  if (code) beginTrial(code);
+  if (code) document.addEventListener('DOMContentLoaded', function () { beginTrial(code); });
 }());
