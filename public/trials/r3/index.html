@@ -9,22 +9,30 @@
   <script src="./pampa-offline-core.js"></script>
   <script src="./pampa-search.js?v=2"></script>
   <script src="./pampa-trial-links.js"></script>
+  <script src="/shared/pampa-privacy-popup.js"></script>
+  <script src="/shared/pampa-onpremise-disclaimer.js"></script>
+  <script src="/shared/core-fiscal-arca/normative-update.browser.js"></script>
+  <script src="/shared/core-offline/report-voice.js"></script>
   <link rel="stylesheet" href="./leaflet/leaflet.css">
+  <link rel="stylesheet" href="/shared/share-styles/global.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./pampa-brand.css">
   <style>
     :root {
-      --ink: #15251e;
-      --muted: #68786e;
-      --line: #dce5dd;
-      --paper: #f4f7f2;
-      --panel: #ffffff;
-      --forest: #174936;
-      --leaf: #3c8c61;
-      --lime: #d7e96b;
-      --yellow: #f2c94c;
-      --red: #d96b57;
-      --blue: #3d79a8;
-      --shadow: 0 14px 38px rgba(30, 59, 44, .08);
+      --ink: #f1f5f9;
+      --muted: #94a3b8;
+      --line: #2d3548;
+      --paper: #0f1419;
+      --panel: #1e2433;
+      --forest: #1a1f2e;
+      --leaf: #f59e0b;
+      --lime: #fbbf24;
+      --yellow: #eab308;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --shadow: 0 10px 30px rgba(0, 0, 0, .22);
     }
 
     * { box-sizing: border-box; }
@@ -32,7 +40,7 @@
       margin: 0;
       color: var(--ink);
       background: var(--paper);
-      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      font-family: 'Inter', var(--pampa-font-sans);
       font-size: 14px;
     }
     button, select { font: inherit; }
@@ -168,8 +176,36 @@
     .chart.large { height: 245px; }
     .empty-action { margin-top: 5px; }
     @keyframes appear { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    main { background: var(--paper); }
+    .sidebar { border-right: 1px solid var(--line); }
+    .sidebar-company, .sidebar-context { border-color: rgba(245,158,11,.28); background: rgba(255,255,255,.045); }
+    .sidebar-company select, .sidebar-context select, .profile select { color: var(--ink); background: var(--panel); }
+    select, .button { border-color: var(--line); color: var(--ink); background: #252b3b; }
+    .button.primary { border-color: var(--leaf); background: var(--leaf); color: #15100a; }
+    .metric, .panel { border-color: var(--line); background: var(--panel); }
+    .metric { border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+    .metric-label { color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+    .metric-value { font-family: 'JetBrains Mono', monospace; color: var(--ink); }
+    .panel-caption, .metric-label, .data-table th, .data-table td small, .footnote { color: var(--muted); }
+    .data-table td { border-color: var(--line); }
+    .module-stat { background: var(--panel); }
+    .company-context { border-color: rgba(245,158,11,.32); background: rgba(245,158,11,.08); }
+    .company-context select { border-color: var(--line); color: var(--ink); background: #252b3b; }
+    .chart { border-color: var(--line); background: repeating-linear-gradient(to bottom, transparent 0 35px, #2d3548 36px 37px); }
+    .progress { background: #2d3548; }
+    .alert { background: rgba(234,179,8,.10); }
+    .alert.critical { background: rgba(239,68,68,.10); }
+    .alert.info { background: rgba(59,130,246,.10); }
+    .dashboard-alerts-focus { outline: 2px solid var(--yellow); outline-offset: 4px; animation: alertFocus 1.2s ease both; }
+    @keyframes alertFocus { 0%, 100% { box-shadow: var(--shadow); } 35% { box-shadow: 0 0 0 6px rgba(234,179,8,.18), var(--shadow); } }
+    .nav button:hover, .nav button.active { background: rgba(245,158,11,.14); }
+    .sidebar-fiscal-entry { width: calc(100% - 16px); margin: 0 8px 18px; border: 1px solid rgba(245,158,11,.45); border-radius: 8px; padding: 10px 12px; text-align: left; color: #f8d47a; background: rgba(245,158,11,.10); display: flex; align-items: center; gap: 12px; font-weight: 700; }
+    .sidebar-fiscal-entry:hover, .sidebar-fiscal-entry.active { color: #fff; background: rgba(245,158,11,.18); }
+    .pill { color: #fbbf24; background: rgba(245,158,11,.14); }
+    .pill.yellow { color: #facc15; background: rgba(234,179,8,.14); }
+    .pill.red { color: #f87171; background: rgba(239,68,68,.14); }
     .modal-backdrop { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 20px; background: rgba(21, 37, 30, .48); }
-    .modal { width: min(520px, 100%); padding: 24px; border-radius: 10px; background: var(--panel); box-shadow: 0 22px 70px rgba(12, 35, 24, .24); animation: appear .2s ease both; }
+    .modal { width: min(520px, 100%); max-height: calc(100vh - 40px); overflow-y: auto; padding: 24px; border-radius: 10px; background: var(--panel); box-shadow: 0 22px 70px rgba(12, 35, 24, .24); animation: appear .2s ease both; }
     .lpg-modal { width: min(1040px, 100%); max-height: calc(100vh - 40px); overflow: auto; padding: 18px 20px; }
     .lpg-modal .modal-head { margin-bottom: 12px; }
     .lpg-modal .modal h2 { font-size: 22px; }
@@ -208,41 +244,97 @@
     .operational-tools .button { padding: 5px 8px; font-size: 10px; }
     .offline-map { height: 285px; padding: 15px; position: relative; overflow: hidden; border: 1px solid #b8cda8; border-radius: 8px; background: #d7e5c2; }
     .offline-map:before { content: "MAPA LOCAL · SIN CONEXION"; position: absolute; right: 12px; top: 12px; z-index: 2; padding: 6px 8px; border-radius: 5px; color: #65765d; background: rgba(255,255,255,.88); font-size: 9px; font-weight: 800; letter-spacing: .8px; }
-    @media (max-width: 980px) { .sidebar { width: 72px; flex-basis: 72px; padding: 20px 10px; } .brand { margin: 0 auto 30px; } .brand-mark { width: 48px; height: 48px; flex-basis: 48px; } .sidebar-company, .nav-label, .nav button span { display: none; } .nav button { justify-content: center; padding: 13px 5px; } .nav-icon { width: auto; } .side-bottom { padding: 14px 0; } .side-bottom > :not(.profile) { display: none; } .profile { position: relative; justify-content: center; } .profile > div:last-child { position: absolute; left: 42px; bottom: 0; width: 145px; padding: 8px; border-radius: 6px; background: var(--forest); box-shadow: 0 8px 18px rgba(0,0,0,.18); } .profile select { width: 100%; max-width: none; } .metrics { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 680px) { .shell { display: block; } .sidebar { width: 100%; min-height: auto; height: auto; padding: 12px 16px; flex-direction: row; align-items: center; } .brand { flex-direction: row; gap: 8px; margin: 0 auto 0 0; text-align: left; } .brand-mark { width: 44px; height: 44px; flex-basis: 44px; } .sidebar-company { display: grid; width: 170px; margin: 0 10px 0 0; } .nav { display: flex; } .nav button { padding: 9px; } .nav button.active { background: rgba(255,255,255,.16); } .topbar { display: block; } .toolbar { margin-top: 18px; } .toolbar select, .toolbar .button { flex: 1; } main { padding: 23px 16px 35px; } .metrics { gap: 9px; } .metric { padding: 14px; } .metric-value { font-size: 23px; } .layout { display: block; } .panel { margin-bottom: 16px; } .lpg-modal, .sale-modal { width: 100%; max-height: calc(100vh - 20px); padding: 14px; } .lpg-modal .form-grid, .sale-modal .form-grid { grid-template-columns: 1fr 1fr; } }
+    .dashboard-hero { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(300px, .85fr); gap: 16px; margin-bottom: 18px; }
+    .empresa-portada { min-height: 300px; padding: 24px; border: 1px solid rgba(245,158,11,.28); border-radius: 12px; background: linear-gradient(135deg, #0f5132 0%, #14532d 48%, #1a7f3e 100%); box-shadow: 0 10px 28px rgba(0,0,0,.18); display: flex; align-items: center; justify-content: center; text-align: center; }
+    .empresa-portada-content { display: grid; gap: 14px; justify-items: center; }
+    .empresa-portada-logo { width: 170px; height: 112px; background: url('./logo2.png') center / contain no-repeat; }
+    .empresa-portada-nombre { color: #fff; font-size: 25px; font-weight: 800; }
+    .empresa-portada-sub { color: rgba(255,255,255,.8); font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+    .empresa-portada-datos { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 18px; color: rgba(255,255,255,.9); font-size: 11px; }
+    .empresa-portada-datos strong { color: #fff; }
+    .dashboard-operativity { padding: 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); box-shadow: var(--shadow); }
+    .dashboard-operativity-title { color: #64748b; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+    .dashboard-operativity-status { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 13px 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: #252b3b; color: var(--ink); font-size: 12px; font-weight: 700; }
+    .dashboard-operativity-status.online { color: #4ade80; }
+    .dashboard-operativity-status.offline { color: #facc15; }
+    .dashboard-operativity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .dashboard-operativity-grid label { display: grid; gap: 5px; color: var(--muted); font-size: 10px; font-weight: 700; }
+    .dashboard-operativity-grid select { width: 100%; min-width: 0; padding: 8px; font-size: 11px; }
+    .dashboard-operativity-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+    .dashboard-operativity-actions .button { padding: 9px 8px; font-size: 11px; }
+    .mobile-menu-button { display: none; position: fixed; top: 12px; left: 12px; z-index: 30; width: 42px; height: 42px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: var(--panel); box-shadow: var(--shadow); font-size: 22px; line-height: 1; }
+    .mobile-sidebar-backdrop { display: none; }
+    @media (max-width: 760px) { .dashboard-hero { grid-template-columns: 1fr; } .empresa-portada { min-height: 240px; } .dashboard-operativity-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 980px) {
+      .sidebar { width: 220px; flex-basis: 220px; padding: 20px 12px; }
+      .brand { margin: 0 0 24px; }
+      .brand-mark { width: 60px; height: 60px; flex-basis: 60px; }
+      .nav { gap: 6px; }
+      .nav button { padding: 10px 12px; }
+      .nav button span { display: inline; }
+      .side-bottom { padding-top: 12px; }
+      .metrics { grid-template-columns: repeat(2, 1fr); }
+    }
+    .mobile-version-label { display: none; color: var(--lime); font-size: 9px; font-style: normal; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+    @media (max-width: 680px) { .shell { display: block; } .mobile-menu-button { display: grid; place-items: center; } .mobile-sidebar-backdrop { display: block; position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,.52); opacity: 0; pointer-events: none; transition: opacity .2s ease; } body.mobile-sidebar-open .mobile-sidebar-backdrop { opacity: 1; pointer-events: auto; } .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 25; width: min(300px, 86vw); min-height: 100vh; height: 100vh; padding: 18px 14px; transform: translateX(-105%); transition: transform .22s ease; overflow-y: auto; box-shadow: 14px 0 36px rgba(0,0,0,.3); } body.mobile-sidebar-open .sidebar { transform: translateX(0); } .brand { flex-direction: row; gap: 8px; margin: 0 0 22px; text-align: left; } .brand-mark { width: 48px; height: 48px; flex-basis: 48px; } .brand small { display: block !important; } .mobile-version-label { display: block; } .sidebar-company { display: grid; width: auto; margin: 0 0 12px; } .sidebar-context { margin: 0 0 16px; } .nav-label { flex: none; margin: 12px 8px 6px; } .nav { display: grid; width: 100%; max-width: none; overflow: visible; gap: 4px; padding-bottom: 8px; } .nav button { width: 100%; padding: 10px 12px; } .nav button span { white-space: normal; } .nav button.active { background: rgba(245,158,11,.14); } .side-bottom { width: 100%; margin-top: auto; } .side-bottom > :not(.profile, .deep-cleanup) { display: block; } .profile { justify-content: flex-start; } .profile > div:last-child { width: 145px; } .topbar { display: block; padding-left: 60px; } .toolbar { flex-wrap: wrap; margin-top: 18px; } .toolbar select, .toolbar .button { flex: 1 1 140px; } main { padding: 23px 16px 35px; } .metrics { gap: 9px; } .metric { padding: 14px; } .metric-value { font-size: 23px; } .layout { display: block; } .panel { margin-bottom: 16px; } .lpg-modal, .sale-modal { width: 100%; max-height: calc(100vh - 20px); padding: 14px; } .lpg-modal .form-grid, .sale-modal .form-grid { grid-template-columns: 1fr 1fr; } }
+  </style>
+  <style>
+    .module-page, .topbar, .panel { min-width: 0; max-width: 100%; }
+    @media (max-width: 680px) {
+      body { overflow-x: hidden; }
+      .panel { overflow-x: auto; }
+      .data-table { min-width: 560px; }
+    }
+    @media print {
+      .sidebar, .topbar, .modal-backdrop, .connection-status, .toast, button, select, input, textarea { display: none !important; }
+      body, main { overflow: visible !important; background: #fff !important; color: #000 !important; }
+      main { display: block !important; padding: 0 !important; }
+      .panel, .metric { color: #000 !important; background: #fff !important; box-shadow: none !important; break-inside: avoid; }
+    }
   </style>
 </head>
 <body>
+  <button class="mobile-menu-button" id="mobileMenuButton" type="button" aria-label="Abrir menú" aria-expanded="false">☰</button>
+  <div class="mobile-sidebar-backdrop" id="mobileSidebarBackdrop" aria-hidden="true"></div>
   <div class="shell">
     <aside class="sidebar">
       <div class="brand">
         <div class="brand-container"><img class="brand-mark" src="./logo2.png" alt="Logo Pampa Precision ERP"><span class="brand-badge">℠</span></div>
-        <div><strong>PampaPrecision</strong><small>TRIAL • 10 días</small></div>
+        <div><strong>PampaPrecision</strong><small>TRIAL • 10 días</small><em class="mobile-version-label">Versión móvil</em></div>
       </div>
       <div class="sidebar-company"><div class="company-heading"><label for="sidebarCompanySelector">Empresa activa</label><button class="new-company" id="newCompany" type="button" aria-label="Cargar nueva empresa" title="Cargar nueva empresa">+</button></div><select id="sidebarCompanySelector" aria-label="Empresa activa en la barra lateral"><option>Pampa Agropecuaria S.A.</option><option>PampaPrecision Demo</option><option>Establecimiento La Esperanza</option></select></div>
-      <div class="sidebar-context"><label for="campaignSelector">Campaña activa</label><select id="campaignSelector" aria-label="Campaña activa"><option>2025 / 2026</option><option>2024 / 2025</option><option>2023 / 2024</option></select></div>
-      <div class="nav-label">Workspace</div>
+        <div class="sidebar-context"><label for="campaignSelector">Campaña activa</label><select id="campaignSelector" aria-label="Campaña activa"><option>2025 / 2026</option><option>2024 / 2025</option><option>2023 / 2024</option></select></div>
+        <button class="sidebar-fiscal-entry" data-view="ARCA"><b class="nav-icon">F</b><span>Fiscal agrario / ARCA</span></button>
+      <div class="nav-label">Inicio</div>
       <nav class="nav" aria-label="Navegacion principal">
-        <button class="active" data-view="Centro operativo"><b class="nav-icon">+</b><span>Centro operativo</span></button>
+          <button class="active" data-view="Centro operativo"><b class="nav-icon">+</b><span>Centro operativo</span></button>
+        <div class="nav-label">Produccion</div>
         <button data-view="Campos y lotes"><b class="nav-icon">G</b><span>Campos y lotes</span></button>
-        <button data-view="Agricola"><b class="nav-icon">C</b><span>Agricola</span></button>
+        <button data-view="Agricola"><b class="nav-icon">C</b><span>Campañas, siembra y cosecha</span></button>
+        <button data-view="Operaciones"><b class="nav-icon">O</b><span>Labores y aplicaciones</span></button>
+        <div class="nav-label">Agricultura de precision</div>
         <button data-view="Precision"><b class="nav-icon">P</b><span>Precision</span></button>
-        <button data-view="Inventario"><b class="nav-icon">I</b><span>Inventario</span></button>
-        <button data-view="Plan de equipamiento"><b class="nav-icon">E</b><span>Equipamiento</span></button>
-        <button data-view="Calibraciones"><b class="nav-icon">K</b><span>Calibraciones</span></button>
-        <button data-view="Telemetria y clima"><b class="nav-icon">T</b><span>Telemetria</span></button>
-        <button data-view="Analitica"><b class="nav-icon">A</b><span>Analitica</span></button>
+        <button data-view="Calibraciones"><b class="nav-icon">K</b><span>Calibraciones y calidad</span></button>
+        <button data-view="Telemetria y clima"><b class="nav-icon">T</b><span>Telemetría, GPS y clima</span></button>
+        <button data-view="Analitica"><b class="nav-icon">B</b><span>BI y analítica</span></button>
+        <div class="nav-label">Recursos e inventario</div>
+        <button data-view="Plan de equipamiento"><b class="nav-icon">E</b><span>Maquinaria y equipamiento</span></button>
+        <button data-view="Inventario"><b class="nav-icon">I</b><span>Inventario y compras</span></button>
+        <div class="nav-label">Administracion</div>
         <button data-view="Finanzas"><b class="nav-icon">$</b><span>Finanzas</span></button>
         <button data-view="Rentabilidad"><b class="nav-icon">%</b><span>Rentabilidad</span></button>
-        <button data-view="ARCA"><b class="nav-icon">A</b><span>ARCA</span></button>
         <button data-view="RRHH"><b class="nav-icon">H</b><span>RRHH</span></button>
-                <button data-view="Auditoria"><b class="nav-icon">L</b><span>Auditoria</span></button>
+        <div class="nav-label">Reportes</div>
+        <button data-view="Reportes"><b class="nav-icon">R</b><span>Reportes</span></button>
+        <div class="nav-label">Sistema</div>
+        <button data-view="Usuarios y roles"><b class="nav-icon">U</b><span>Usuarios y roles</span></button>
+        <button data-view="Auditoria"><b class="nav-icon">L</b><span>Auditoria</span></button>
         <button data-view="Conectividad y sincronizacion"><b class="nav-icon">↕</b><span>Conectividad</span></button>
         <button data-view="Licencias"><b class="nav-icon">🔐</b><span>Licencias</span></button>
       </nav>
       <div class="side-bottom">
         <div class="side-context-summary">Contexto productivo<br><strong>Multi-establecimiento</strong></div>
-        <div class="profile"><div class="avatar">MR</div><div><select id="userSelector" aria-label="Usuario activo"><option>Marina R.</option><option>Lucas B.</option><option>Sofia M.</option></select><br><select id="roleSelector" aria-label="Rol actual"><option>Propietario/Responsable</option><option>Administracion</option><option>Ingeniero</option><option>Operador</option></select></div></div>
+        <div class="profile"><div class="avatar">MR</div><div><select id="userSelector" aria-label="Usuario activo"><option>Marina R.</option><option>Lucas B.</option><option>Sofia M.</option></select><br><select id="roleSelector" aria-label="Rol actual"><option>Propietario / Responsable</option><option>Administración</option><option>Ingeniero / Veterinario</option><option>Operario de campo</option></select></div></div>
         <button class="deep-cleanup" id="deepCleanupButton" type="button" title="Borrar todos los datos locales de este dispositivo">Limpieza profunda</button>
       </div>
     </aside>
@@ -250,11 +342,32 @@
     <main>
       <header class="topbar">
         <div><div class="eyebrow">Vista general / Hoy, 16 de agosto</div><h1>Centro operativo</h1><div class="operational-tools"><span class="operational-status" id="operationalNetworkStatus" role="status">Online</span><button class="button" id="backupButton" type="button" title="Descargar respaldo local">Respaldo</button><button class="button" id="cleanupButton" type="button" title="Limpiar caché local">Limpiar caché</button></div></div>
-        <div class="toolbar">
-          <select id="establishment" aria-label="Establecimiento"><option>Todos los establecimientos</option><option>La Esperanza</option><option>El Ombu</option><option>Santa Clara</option></select>
-          <button class="button primary" id="newOrder">+ Nueva orden</button>
-        </div>
       </header>
+
+      <section class="dashboard-hero" aria-label="Empresa y operatividad">
+        <article class="empresa-portada">
+          <div class="empresa-portada-content">
+            <div class="empresa-portada-logo" aria-hidden="true"></div>
+            <div class="empresa-portada-nombre" id="dashboardCompanyName">Pampa Agropecuaria S.A.</div>
+            <div class="empresa-portada-sub" id="dashboardCompanyCampaign">Campaña 2025 / 2026</div>
+            <div class="empresa-portada-datos"><span>Empresa activa</span><strong id="dashboardCompanyTaxId">CUIT pendiente</strong><span>Operación agrícola de precisión</span></div>
+          </div>
+        </article>
+        <aside class="dashboard-operativity">
+          <div class="dashboard-operativity-title">Operatividad</div>
+          <div class="dashboard-operativity-status online" id="dashboardOperationalStatus"><span>Conectividad</span><strong id="dashboardOperationalNetwork">Online</strong></div>
+          <div class="dashboard-operativity-grid">
+            <label>Usuario<select id="dashboardUserSelector" aria-label="Usuario activo del dashboard"></select></label>
+            <label>Rol<select id="dashboardRoleSelector" aria-label="Rol activo del dashboard"></select></label>
+          </div>
+          <div class="dashboard-operativity-actions">
+            <button class="button primary" type="button" data-action="Sincronizar ahora">Sincronización</button>
+            <button class="button" type="button" id="dashboardBackupButton">Respaldo</button>
+            <button class="button" type="button" id="dashboardPrintButton">Imprimir</button>
+            <button class="button" type="button" data-action="Importar datos historicos">Importar Excel</button>
+          </div>
+        </aside>
+      </section>
 
       <section id="pampaia-dashboard-mount"></section>
 
@@ -347,11 +460,12 @@
     let registeredCompanies = loadList('pampa-companies', [{ name: 'Pampa Agropecuaria S.A.', taxId: '', address: '' }, { name: 'PampaPrecision Demo', taxId: '', address: '' }, { name: 'Establecimiento La Esperanza', taxId: '', address: '' }]);
     let registeredEquipment = loadList('pampa-equipment', []);
     let registeredPurchases = loadList('pampa-purchases', []);
+    let registeredAgrarianContracts = loadList('pampa-agrarian-contracts', []);
     let registeredRevenues = loadList('pampa-revenues', []);
       let registeredBuyers = loadList('pampa-buyers', [{ name: 'Acopio La Pampa S.A.', taxId: '', role: 'Acopio' }, { name: 'Cerealera del Centro S.A.', taxId: '', role: 'Cerealista' }]);
       let registeredBanks = loadList('pampa-banks', ['Banco Nación', 'Banco Provincia', 'Banco Galicia', 'Banco Santander', 'BBVA', 'Banco Macro', 'Banco Credicoop', 'ICBC', 'Brubank', 'Ualá']);
     let registeredUsers = loadList('pampa-users', ['Marina R.', 'Lucas B.', 'Sofia M.']);
-    let registeredRoles = loadList('pampa-roles', ['Propietario/Responsable', 'Administracion', 'Ingeniero', 'Operador']);
+    let registeredRoles = loadList('pampa-roles', ['Propietario / Responsable', 'Administración', 'Ingeniero / Veterinario', 'Operario de campo']);
     let whatsappUserRecipients = loadList('pampa-whatsapp-user-recipients', []);
     let toastTimer;
     function updateConnectionStatus() {
@@ -379,24 +493,78 @@
       userSelector.value = localStorage.getItem('pampa-user') || registeredUsers[0];
     }
     refreshUserOptions();
-    userSelector.addEventListener('change', event => { localStorage.setItem('pampa-user', event.target.value); showToast(`Usuario activo: ${event.target.value}`); });
+    userSelector.addEventListener('change', event => { localStorage.setItem('pampa-user', event.target.value); refreshDashboardContext(); showToast(`Usuario activo: ${event.target.value}`); });
     const roleSelector = document.querySelector('#roleSelector');
     function refreshRoleOptions() {
       roleSelector.innerHTML = registeredRoles.map(role => `<option>${role}</option>`).join('');
       roleSelector.value = localStorage.getItem('pampa-role') || registeredRoles[0];
     }
     refreshRoleOptions();
-    roleSelector.addEventListener('change', event => { localStorage.setItem('pampa-role', event.target.value); showToast(`Rol activo: ${event.target.value}`); });
+    roleSelector.addEventListener('change', event => { localStorage.setItem('pampa-role', event.target.value); refreshDashboardContext(); showToast(`Rol activo: ${event.target.value}`); });
     const sidebarCompanySelector = document.querySelector('#sidebarCompanySelector');
     function refreshCompanyOptions() {
       sidebarCompanySelector.innerHTML = registeredCompanies.map(company => `<option>${company.name}</option>`).join('');
       sidebarCompanySelector.value = localStorage.getItem('pampa-company') || registeredCompanies[0].name;
     }
     refreshCompanyOptions();
-    sidebarCompanySelector.addEventListener('change', event => { localStorage.setItem('pampa-company', event.target.value); showToast(`Empresa activa: ${event.target.value}`); });
+    sidebarCompanySelector.addEventListener('change', event => { localStorage.setItem('pampa-company', event.target.value); refreshDashboardContext(); showToast(`Empresa activa: ${event.target.value}`); });
     const campaignSelector = document.querySelector('#campaignSelector');
     campaignSelector.value = localStorage.getItem('pampa-campaign') || campaignSelector.value;
-    campaignSelector.addEventListener('change', event => { localStorage.setItem('pampa-campaign', event.target.value); showToast(`Campaña activa: ${event.target.value}`); });
+    campaignSelector.addEventListener('change', event => { localStorage.setItem('pampa-campaign', event.target.value); refreshDashboardContext(); showToast(`Campaña activa: ${event.target.value}`); });
+    const dashboardUserSelector = document.querySelector('#dashboardUserSelector');
+    const dashboardRoleSelector = document.querySelector('#dashboardRoleSelector');
+    function refreshDashboardContext() {
+      const userSelectorDashboard = document.querySelector('#dashboardUserSelector');
+      const roleSelectorDashboard = document.querySelector('#dashboardRoleSelector');
+      if (userSelectorDashboard) userSelectorDashboard.innerHTML = registeredUsers.map(user => `<option>${user}</option>`).join('');
+      if (roleSelectorDashboard) roleSelectorDashboard.innerHTML = registeredRoles.map(role => `<option>${role}</option>`).join('');
+      if (userSelectorDashboard) userSelectorDashboard.value = userSelector.value;
+      if (roleSelectorDashboard) roleSelectorDashboard.value = roleSelector.value;
+      const company = registeredCompanies.find(item => item.name === sidebarCompanySelector.value) || registeredCompanies[0];
+      const companyName = document.querySelector('#dashboardCompanyName');
+      const companyTaxId = document.querySelector('#dashboardCompanyTaxId');
+      const companyCampaign = document.querySelector('#dashboardCompanyCampaign');
+      if (companyName) companyName.textContent = company?.name || 'Empresa sin configurar';
+      if (companyTaxId) companyTaxId.textContent = company?.taxId || 'CUIT pendiente';
+      if (companyCampaign) companyCampaign.textContent = `Campaña ${campaignSelector.value}`;
+    }
+    function bindDashboardContextControls() {
+      const controls = [
+        document.querySelector('#dashboardUserSelector'),
+        document.querySelector('#dashboardRoleSelector')
+      ];
+      controls.forEach(control => {
+        if (!control || control.dataset.contextBound === 'true') return;
+        control.dataset.contextBound = 'true';
+        control.addEventListener('change', event => {
+          const target = event.currentTarget;
+          const source = target.id === 'dashboardUserSelector' ? userSelector : roleSelector;
+          source.value = target.value;
+          source.dispatchEvent(new Event('change'));
+        });
+      });
+      const backup = document.querySelector('#dashboardBackupButton');
+      if (backup && backup.dataset.bound !== 'true') { backup.dataset.bound = 'true'; backup.addEventListener('click', downloadBackup); }
+      document.querySelectorAll('[data-view-action]').forEach(button => {
+        if (button.dataset.bound === 'true') return;
+        button.dataset.bound = 'true';
+        button.addEventListener('click', () => openModule(button.dataset.viewAction));
+      });
+    }
+    refreshDashboardContext();
+    bindDashboardContextControls();
+    window.addEventListener('online', () => {
+      const status = document.querySelector('#dashboardOperationalStatus');
+      const network = document.querySelector('#dashboardOperationalNetwork');
+      if (status) status.className = 'dashboard-operativity-status online';
+      if (network) network.textContent = 'Online';
+    });
+    window.addEventListener('offline', () => {
+      const status = document.querySelector('#dashboardOperationalStatus');
+      const network = document.querySelector('#dashboardOperationalNetwork');
+      if (status) status.className = 'dashboard-operativity-status offline';
+      if (network) network.textContent = 'Offline';
+    });
     document.querySelector('#newCompany').addEventListener('click', () => openNewForm('Cargar empresa', [{ id: 'companyName', label: 'Razon social', placeholder: 'Ej. Pampa Agropecuaria S.A.', full: true }, { id: 'taxId', label: 'CUIT', placeholder: '30-00000000-0' }, { id: 'address', label: 'Domicilio', placeholder: 'Ciudad / provincia' }], formData => { const name = formData.get('companyName'); if (name) { const existing = registeredCompanies.find(company => company.name === name); if (existing) existing.taxId = formData.get('taxId'); else registeredCompanies.push({ name, taxId: formData.get('taxId'), address: formData.get('address') }); localStorage.setItem('pampa-companies', JSON.stringify(registeredCompanies)); refreshCompanyOptions(); sidebarCompanySelector.value = name; localStorage.setItem('pampa-company', name); } }));
     let auditEvents = loadList('pampa-audit-events', []);
     function recordAudit(action, resource) {
@@ -469,7 +637,7 @@
     ];
     const equipCodebook = {
       scale: { E1: '< 500 ha', E2: '500-1.500 ha', E3: '1.500-5.000 ha', E4: '> 5.000 ha' },
-      machinery: { M1: 'Todo propio', M2: 'Siembra y pulverizacion propias / cosecha contratada', M3: 'Todo contratado', M4: 'Desde cero' },
+      machinery: { M1: 'Todo propio', M2: 'Siembra y pulverizacion propias / cosecha contratada', M3: 'Contratista', M4: 'Desde cero' },
       crop: { TR: 'Trigo', SJ: 'Soja', MZ: 'Maiz', GI: 'Girasol', ALL: 'Todos' },
       priority: { P1: 'Costo de insumos', P2: 'Rendimiento y uniformidad', P3: 'Datos y gestion', P4: 'Mano de obra' },
       level: { N0: 'Base', N1: 'Intermedio', N2: 'Avanzado', N3: 'Frontera' }
@@ -682,7 +850,8 @@
       }
       const grouped = equipmentPlanCatalog.filter(baseFilters);
       const renderByScale = (scaleCode, bodyId, countId) => {
-        const scaleItems = grouped.filter(item => item.scales.includes(scaleCode));
+        const scaleCodes = Array.isArray(scaleCode) ? scaleCode : [scaleCode];
+        const scaleItems = grouped.filter(item => scaleCodes.some(code => item.scales.includes(code)));
         const target = document.querySelector(`#${bodyId}`);
         if (target) target.innerHTML = scaleItems.length
           ? scaleItems.map(item => `<tr><td><strong>${item.id}</strong><small>${item.group}</small></td><td>${item.name}</td><td>${equipCodebook.level[item.level]}</td><td>${item.investment}</td></tr>`).join('')
@@ -694,21 +863,42 @@
       renderByScale('E2', 'equipRangeE2Rows', 'equipRangeE2Count');
       renderByScale('E3', 'equipRangeE3Rows', 'equipRangeE3Count');
       renderByScale('E4', 'equipRangeE4Rows', 'equipRangeE4Count');
+      const rangeSections = {
+        E1: ['equipRangeE1Section'],
+        E2: ['equipRangeE2Section'],
+        E3: ['equipRangeE3Section'],
+        E4: ['equipRangeE4Section']
+      };
+      const visibleSections = rangeSections[scale] || rangeSections.S2;
+      ['equipRangeE1Section', 'equipRangeE2Section', 'equipRangeE3Section', 'equipRangeE4Section'].forEach(id => {
+        const section = document.querySelector(`#${id}`);
+        if (section) section.hidden = !visibleSections.includes(id);
+      });
+      const rangeHeading = document.querySelector('#equipRangeE3Section h2');
+      if (rangeHeading && scale === 'S3') rangeHeading.textContent = 'Grande · > 1.500 ha';
       const ruleRows = document.querySelector('#equipRuleRows');
       if (ruleRows) ruleRows.innerHTML = equipmentRules.map(item => `<tr><td><strong>${item.id}</strong></td><td>${item.rule}</td></tr>`).join('');
-      const strategy = equipmentScaleMatrix[scale];
+      const strategy = equipmentScaleMatrix[scale] || equipmentScaleMatrix.E2;
       const cropFocus = equipmentCropFocus[crop] || ['Selecciona un cultivo para ver recomendaciones especificas'];
       const setText = (id, value) => { const node = document.querySelector(`#${id}`); if (node) node.textContent = value; };
       setText('equipScaleState', `${scale} · ${equipCodebook.scale[scale]}`);
-      setText('equipMachineryState', `${machinery} · ${equipCodebook.machinery[machinery]}`);
+      setText('equipMachineryState', `${machinery} · ${machinery === 'M3' ? 'Contratista' : equipCodebook.machinery[machinery]}`);
       setText('equipInvestmentBand', strategy.investment);
       setText('equipItemsCount', String(filtered.length));
       const strategyBox = document.querySelector('#equipStrategyBox');
       if (strategyBox) strategyBox.innerHTML = `<strong>Estrategia:</strong> ${strategy.strategy}<br><strong>Incluir:</strong> ${strategy.include}<br><strong>Contratar:</strong> ${strategy.contract}<br><strong>Evitar:</strong> ${strategy.avoid}`;
+      setText('equipStrategyTitle', `Matriz por escala seleccionada · ${scale}`);
+      const recommendedPlan = document.querySelector('#equipRecommendedPlan');
+      if (recommendedPlan) recommendedPlan.innerHTML = `<strong>${scale} · ${equipCodebook.scale[scale]}</strong><br>${strategy.strategy}<br><span>Inversión orientativa: ${strategy.investment}</span><br><span>Prioridad: ${strategy.include}</span>`;
       const machineryBox = document.querySelector('#equipMachineryBox');
       if (machineryBox) machineryBox.textContent = equipmentMachineryMatrix[machinery];
+      setText('equipMachineryTitle', `Matriz por maquinaria seleccionada · ${machinery}`);
       const cropBox = document.querySelector('#equipCropBox');
       if (cropBox) cropBox.innerHTML = cropFocus.map(item => `<div>${item}</div>`).join('');
+      setText('equipCropTitle', crop === 'ALL' ? 'Foco por cultivo seleccionado · Todos' : `Foco por cultivo seleccionado · ${equipCodebook.crop[crop] || crop}`);
+      localStorage.setItem('pampa-equipment-scale', scale);
+      localStorage.setItem('pampa-equipment-machinery', machinery);
+      localStorage.setItem('pampa-equipment-crop', crop);
       document.querySelectorAll('.equip-filter').forEach(select => {
         if (!select.dataset.bound) {
           select.addEventListener('change', () => loadEquipmentPlanModule());
@@ -813,7 +1003,7 @@
       const hasCoordinates = fields.some(field => field.id === 'coordinates');
         const currentDate = new Date();
         const today = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
-        modalRoot.innerHTML = `<div class="modal-backdrop" role="presentation"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><div><div class="eyebrow">Nuevo registro</div><h2 id="modalTitle">${title}</h2></div><button class="modal-close" type="button" aria-label="Cerrar">&times;</button></div><form id="newRecordForm"><div class="form-grid">${fields.map(field => `<div class="form-field ${field.full ? 'full' : ''}"><label for="${field.id}">${field.label}</label><${field.type === 'select' ? `select id="${field.id}" name="${field.id}" ${field.required === false ? '' : 'required'}>${field.options.map(option => typeof option === 'object' ? `<option value="${option.value}">${option.label}</option>` : `<option>${option}</option>`).join('')}</select>` : `input id="${field.id}" name="${field.id}" type="${field.type || 'text'}" step="${field.step || (field.type === 'number' ? 'any' : '')}" placeholder="${field.placeholder || ''}" value="${field.value || (field.type === 'date' ? today : '')}" ${field.required === false ? '' : 'required'}`}></div>`).join('')}</div>${hasCoordinates ? '<button class="button" type="button" id="useLocation">Usar mi ubicacion actual</button>' : ''}<div class="modal-actions"><button class="button" type="button" id="cancelModal">Cancelar</button><button class="button primary" type="submit">Guardar registro</button></div></form></section></div>`;
+        modalRoot.innerHTML = `<div class="modal-backdrop" role="presentation"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><div><div class="eyebrow">Nuevo registro</div><h2 id="modalTitle">${title}</h2></div><button class="modal-close" type="button" aria-label="Cerrar">&times;</button></div><form id="newRecordForm" enctype="multipart/form-data"><div class="form-grid">${fields.map(field => `<div class="form-field ${field.full ? 'full' : ''}"><label for="${field.id}">${field.label}</label><${field.type === 'select' ? `select id="${field.id}" name="${field.id}" ${field.required === false ? '' : 'required'}>${field.options.map(option => typeof option === 'object' ? `<option value="${option.value}">${option.label}</option>` : `<option>${option}</option>`).join('')}</select>` : field.type === 'textarea' ? `textarea id="${field.id}" name="${field.id}" rows="${field.rows || 5}" placeholder="${field.placeholder || ''}" ${field.required === false ? '' : 'required'}>${field.value || ''}</textarea>` : `input id="${field.id}" name="${field.id}" type="${field.type || 'text'}" step="${field.step || (field.type === 'number' ? 'any' : '')}" accept="${field.accept || ''}" capture="${field.capture || ''}" placeholder="${field.placeholder || ''}" value="${field.value || (field.type === 'date' ? today : '')}" ${field.required === false ? '' : 'required'}`}></div>`).join('')}</div>${hasCoordinates ? '<button class="button" type="button" id="useLocation">Usar mi ubicacion actual</button>' : ''}<div class="modal-actions"><button class="button" type="button" id="cancelModal">Cancelar</button><button class="button primary" type="submit">Guardar registro</button></div></form></section></div>`;
         if (title.includes('Liquidación')) modalRoot.querySelector('.modal')?.classList.add('lpg-modal');
         if (title.includes('Nueva venta')) modalRoot.querySelector('.modal')?.classList.add('sale-modal');
       const provinceInput = modalRoot.querySelector('#lpgOriginProvince');
@@ -842,6 +1032,17 @@
           if (parts.length > 1 && /^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(parts[0])) { const technicalValue = option.value; option.value = technicalValue; option.textContent = parts.slice(1).join(' · '); }
         });
       });
+      const movementDescription = modalRoot.querySelector('#movementDescription');
+      if (movementDescription) {
+        const references = document.createElement('div');
+        references.className = 'form-field full movement-market-references';
+        references.hidden = true;
+        references.innerHTML = '<label>Referencias para valorizar el canje</label><div style="display:flex;flex-wrap:wrap;gap:8px"><a class="button" href="https://dolarhoy.com/" target="_blank" rel="noopener noreferrer">Dólar Hoy</a><a class="button" href="https://news.agrofy.com.ar/granos/precios-pizarra" target="_blank" rel="noopener noreferrer">Precio cereales · pizarra</a></div><small style="color:var(--muted)">Consulta externa: el valor debe cargarse manualmente en pesos antes de guardar.</small>';
+        movementDescription.closest('.form-field')?.after(references);
+        const updateReferences = () => { references.hidden = movementDescription.value !== 'Canje'; };
+        movementDescription.addEventListener('change', updateReferences);
+        updateReferences();
+      }
       if (modalRoot.querySelector('#lpgNumber')) {
         const buyerName = modalRoot.querySelector('#lpgIssuerName');
         const buyerTaxId = modalRoot.querySelector('#lpgIssuerTaxId');
@@ -1220,22 +1421,21 @@
       }
     }
     async function syncNow() {
-      const serverUrl = localStorage.getItem('pampa-server-url');
-      if (!navigator.onLine || !serverUrl) { downloadBackup(); return; }
-      try {
-        const response = await fetch(serverUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(buildBackup()) });
-        if (!response.ok) throw new Error('sync failed');
-        localStorage.setItem('pampa-last-sync', new Date().toLocaleString('es-AR'));
-        showToast('Datos sincronizados con el servidor propio');
-      } catch (error) {
-        downloadBackup();
-        showToast('Servidor no disponible: se genero un respaldo local');
+      const manager = typeof syncManager !== 'undefined' ? syncManager : null;
+      const config = manager?.getConfig();
+      if (!config?.enabled || !config.destination) {
+        showToast('Configurá un destino en Conectividad antes de sincronizar');
+        openModule('Conectividad y sincronizacion');
+        return;
       }
+      const result = await manager.sync();
+      if (result.success) showToast(`Sincronización completada: ${result.itemsSynced || 0} cambios enviados`);
+      else showToast(result.message || 'No se pudo completar la sincronización');
     }
     async function loadAgriculturalModule() {
       try {
-        const [summary, machines, maintenance, harvest, costs] = await Promise.all([
-          api.getAgriculturalSummary(activeTenantId), api.getMachines(activeTenantId), api.getMaintenance(activeTenantId), api.getHarvest(activeTenantId), api.getOperatingCosts(activeTenantId)
+        const [summary, machines, maintenance, harvest, costs, compliance] = await Promise.all([
+          api.getAgriculturalSummary(activeTenantId), api.getMachines(activeTenantId), api.getMaintenance(activeTenantId), api.getHarvest(activeTenantId), api.getOperatingCosts(activeTenantId), api.getMachineCompliance(activeTenantId)
         ]);
         const setText = (id, value) => { const element = document.querySelector(`#${id}`); if (element) element.textContent = value; };
         setText('agriMachinesCount', summary.active_machines);
@@ -1251,6 +1451,9 @@
           const machineHeaderCells = machinePanel.querySelectorAll('thead th');
           if (machineHeaderCells[1]) machineHeaderCells[1].textContent = 'Funcion';
         }
+        if (machinePanel && !document.querySelector('#machineCompliancePanel')) machinePanel.insertAdjacentHTML('afterend', '<section class="panel" id="machineCompliancePanel" style="margin-top:19px"><div class="panel-head"><div><h2>Inspecciones obligatorias y limpieza</h2><p class="panel-caption">Habilitación, oblea, VTO y vacío sanitario por equipo</p></div><span class="pill yellow">SENASA / Provincia</span></div><table class="data-table"><thead><tr><th>Equipo</th><th>Registro / oblea</th><th>VTO</th><th>Limpieza</th><th>Estado</th></tr></thead><tbody id="machineComplianceRows"></tbody></table></section>');
+        const complianceRows = document.querySelector('#machineComplianceRows');
+        if (complianceRows) complianceRows.innerHTML = compliance.length ? compliance.map(item => { const vtoLabel = item.vto_status === 'overdue' ? 'Vencida' : item.vto_status === 'due_soon' ? 'Vence en 30 días' : item.vto_status === 'missing_data' ? 'Datos incompletos' : 'Al día'; const stateClass = item.vto_status === 'overdue' || item.registration_status === 'expired' || item.sticker_status === 'expired' ? 'red' : item.vto_status === 'due_soon' || item.registration_status === 'pending' || item.sticker_status === 'pending' ? 'yellow' : ''; return `<tr><td><strong>${item.code}</strong><small>${item.brand || ''} ${item.model || ''}</small></td><td>${item.registration_number || 'Sin registro'}<small>Registro: ${item.registration_status} · Oblea: ${item.sticker_status}</small></td><td>${item.vto_due_date || '-'}<small>${vtoLabel}</small></td><td>${item.cleaning_verified ? 'Verificada' : 'Pendiente'}<small>${item.last_cleaning_date || 'Sin fecha'}</small></td><td><span class="pill ${stateClass}">${stateClass === 'red' ? 'Revisión urgente' : stateClass === 'yellow' ? 'Revisar' : 'Al día'}</span></td></tr>`; }).join('') : '<tr><td colspan="5">No hay equipos cargados para evaluar habilitaciones y VTO.</td></tr>';
         const costPanel = document.querySelector('#agriCostRows')?.closest('.panel');
         if (costPanel && !document.querySelector('#agriPrecisionFrameworkRows')) {
           costPanel.insertAdjacentHTML('beforebegin', '<section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Marco de equipos de precision</h2><p class="panel-caption">Funciones operativas para armar el sistema completo</p></div><span class="pill">10 funciones</span></div><table class="data-table"><thead><tr><th>Funcion</th><th>Objetivo</th><th>Ejemplos de equipos</th></tr></thead><tbody id="agriPrecisionFrameworkRows"></tbody></table></section>');
@@ -1261,12 +1464,12 @@
           frameworkBody.innerHTML = rows.join('');
         }
         const maintenanceBody = document.querySelector('#agriMaintenanceRows');
-        if (maintenanceBody) maintenanceBody.innerHTML = maintenance.length ? maintenance.slice(0, 8).map(item => `<tr><td><strong>${item.machine_code}</strong><small>${item.description}</small></td><td>${item.priority}</td><td>${item.due_at ? new Date(item.due_at).toLocaleDateString('es-AR') : 'Sin fecha'}</td><td>$ ${Number(item.estimated_cost_usd).toLocaleString('es-AR')}</td><td><span class="pill ${item.status === 'closed' ? '' : 'yellow'}">${item.status}</span></td></tr>`).join('') : '<tr><td colspan="5">No hay mantenimientos planificados.</td></tr>';
+        if (maintenanceBody) maintenanceBody.innerHTML = maintenance.length ? maintenance.slice(0, 8).map(item => `<tr><td><strong>${item.machine_code}</strong><small>${item.description}</small></td><td>${item.priority}</td><td>${item.due_at ? new Date(item.due_at).toLocaleDateString('es-AR') : 'Sin fecha'}</td><td>$ ${Number(item.estimated_cost_usd).toLocaleString('es-AR')}</td><td><span class="pill ${item.status === 'closed' ? '' : 'yellow'}">${item.status}</span></td></tr>`).join('') : '<tr><td colspan="5"><strong>No hay mantenimientos planificados.</strong><small>Para planificar uno primero cargá un equipo en Parque de maquinarias.</small></td></tr>';
         const harvestBody = document.querySelector('#agriHarvestRows');
         if (harvestBody) harvestBody.innerHTML = harvest.map(item => `<tr><td><strong>${item.plot_code}</strong><small>${item.plot_name}</small></td><td>${item.campaign_code}</td><td>${Number(item.estimated_yield_tn_ha).toLocaleString('es-AR', { maximumFractionDigits: 2 })} tn/ha</td><td>${Number(item.harvested_tn).toLocaleString('es-AR', { maximumFractionDigits: 2 })} tn</td><td>${item.weigh_tickets}</td></tr>`).join('');
         const costBody = document.querySelector('#agriCostRows');
         if (costBody) costBody.innerHTML = costs.length ? costs.slice(0, 8).map(cost => `<tr><td>${new Date(cost.cost_date).toLocaleDateString('es-AR')}</td><td>${cost.category}</td><td>${cost.description}</td><td>${cost.plot_code || 'General'}</td><td>$ ${Number(cost.amount_usd).toLocaleString('es-AR')}</td></tr>`).join('') : '<tr><td colspan="5">No hay costos operativos registrados.</td></tr>';
-        window.agriculturalData = { machines, maintenance, harvest, costs };
+        window.agriculturalData = { machines, maintenance, harvest, costs, compliance };
       } catch (error) {
         showToast('No se pudo cargar el modulo agricola');
       }
@@ -1309,11 +1512,29 @@
         setText('financeNetFlow', money(summary.net_cash_flow));
         setText('financeCreditBalance', money(creditSummary.outstanding_amount_usd));
         setText('financeOverdueCredits', `${creditSummary.overdue_credits} · ${money(creditSummary.overdue_amount_usd)}`);
+        const saleById = new Map(sales.map(sale => [String(sale.id), sale]));
+        const resolveLpgSale = (lpg) => {
+          if (lpg.sale_id && saleById.has(String(lpg.sale_id))) return saleById.get(String(lpg.sale_id));
+          if (lpg.linked_sale_number) return sales.find(sale => String(sale.sale_number).trim() === String(lpg.linked_sale_number).trim()) || null;
+          const notes = String(lpg.notes || '');
+          const match = notes.match(/venta\s+([A-Za-z0-9\-]+)/i);
+          if (!match) return null;
+          return sales.find(sale => String(sale.sale_number).trim() === String(match[1]).trim()) || null;
+        };
+        const lpgBySaleId = new Map();
+        for (const lpg of lpgs) {
+          const linkedSale = resolveLpgSale(lpg);
+          if (linkedSale) lpgBySaleId.set(String(linkedSale.id), lpg);
+        }
         const salesBody = document.querySelector('#financeSalesRows');
-        if (salesBody) salesBody.innerHTML = sales.length ? sales.slice(0, 8).map(sale => `<tr><td><strong>${sale.sale_number}</strong><small>${new Date(sale.sale_date).toLocaleDateString('es-AR')}</small></td><td>${sale.customer_name}</td><td>${sale.lines.length} items</td><td>${money(sale.total_amount)}</td><td><span class="pill ${sale.payment_status === 'paid' ? '' : 'yellow'}">${sale.payment_status}</span></td></tr>`).join('') : '<tr><td colspan="5">No hay ventas registradas.</td></tr>';
+        if (salesBody) salesBody.innerHTML = sales.length ? sales.slice(0, 8).map(sale => { const lpg = lpgBySaleId.get(String(sale.id)); return `<tr><td><strong>${sale.sale_number}</strong><small>${new Date(sale.sale_date).toLocaleDateString('es-AR')}${lpg ? ` · LPG ${lpg.lpg_number}` : ''}</small></td><td>${sale.customer_name}</td><td>${sale.lines.length} items</td><td>${money(sale.total_amount)}</td><td><span class="pill ${sale.payment_status === 'paid' ? '' : 'yellow'}">${sale.payment_status}</span></td></tr>`; }).join('') : '<tr><td colspan="5">No hay ventas registradas.</td></tr>';
         const lpgBody = document.querySelector('#financeLpgRows');
         if (lpgBody) {
-          lpgBody.innerHTML = lpgs.length ? lpgs.slice(0, 10).map(lpg => `<tr><td><strong>${lpg.lpg_number}</strong><small>${lpg.coe || 'COE pendiente'}</small></td><td>${lpg.producer_name}<small>${lpg.producer_tax_id}</small></td><td>${lpg.grain_name || '-'}<small>${lpg.campaign || ''}</small></td><td>${Number(lpg.net_weight_kg || 0).toLocaleString('es-AR')} kg</td><td>${money(lpg.net_amount)}</td><td><span class="pill ${lpg.status === 'authorized' ? '' : 'yellow'}">${lpg.status}</span> <button class="text-button" type="button" data-arca-sisa="${lpg.producer_tax_id}" data-arca-name="${lpg.producer_name}">Consultar SISA</button>${lpg.status !== 'authorized' ? ` <button class="text-button" type="button" data-arca-lpg="${lpg.id}">Autorizar LPG</button>` : ''}${lpg.cpe_number ? ` <small>CPE ${lpg.cpe_number}</small>` : ` <button class="text-button" type="button" data-arca-cpe="${lpg.id}">Generar CPE</button>`}</td></tr>`).join('') : '<tr><td colspan="6">No hay LPG registradas.</td></tr>';
+          lpgBody.innerHTML = lpgs.length ? lpgs.slice(0, 10).map(lpg => {
+            const linkedSale = resolveLpgSale(lpg);
+            const saleMarker = linkedSale ? ` · Venta ${linkedSale.sale_number}` : (lpg.sale_id ? ' · Venta vinculada' : (lpg.linked_sale_number ? ` · Venta ${lpg.linked_sale_number}` : ''));
+            return `<tr><td><strong>${lpg.lpg_number}</strong><small>${lpg.coe || 'COE pendiente'}${saleMarker}</small></td><td>${lpg.producer_name}<small>${lpg.producer_tax_id}</small></td><td>${lpg.grain_name || '-'}<small>${lpg.campaign || ''}</small></td><td>${Number(lpg.net_weight_kg || 0).toLocaleString('es-AR')} kg</td><td>${money(lpg.net_amount)}</td><td><span class="pill ${lpg.status === 'authorized' ? '' : 'yellow'}">${lpg.status}</span> <button class="text-button" type="button" data-arca-sisa="${lpg.producer_tax_id}" data-arca-name="${lpg.producer_name}">Consultar SISA</button>${lpg.status !== 'authorized' ? ` <button class="text-button" type="button" data-arca-lpg="${lpg.id}">Autorizar LPG</button>` : ''}${lpg.cpe_number ? ` <small>CPE ${lpg.cpe_number}</small>` : ` <button class="text-button" type="button" data-arca-cpe="${lpg.id}">Generar CPE</button>`}</td></tr>`;
+          }).join('') : '<tr><td colspan="6">No hay LPG registradas.</td></tr>';
           lpgBody.querySelectorAll('[data-arca-lpg]').forEach(button => button.addEventListener('click', async () => { button.disabled = true; button.textContent = 'Enviando...'; try { const result = await api.authorizeLpg(activeTenantId, button.dataset.arcaLpg); showToast(`LPG autorizada${result.arca?.authorizationCode ? ` · ${result.arca.authorizationCode}` : ''}`); loadFinanceModule(); } catch (error) { button.disabled = false; button.textContent = 'Autorizar ARCA'; showToast(error.message || 'ARCA no autorizo la LPG'); } }));
           lpgBody.querySelectorAll('[data-arca-sisa]').forEach(button => button.addEventListener('click', async () => { button.disabled = true; try { const result = await api.checkArcaSisa(activeTenantId, { subjectTaxId: button.dataset.arcaSisa, subjectName: button.dataset.arcaName }); showToast(`SISA: ${result.sisa_status || 'consulta realizada'}`); } catch (error) { button.disabled = false; showToast(error.message || 'No se pudo consultar SISA'); } }));
           lpgBody.querySelectorAll('[data-arca-cpe]').forEach(button => button.addEventListener('click', async () => { const lpg = lpgs.find(item => item.id === button.dataset.arcaCpe); if (!lpg) return; button.disabled = true; try { const result = await api.createArcaCpe(activeTenantId, { lpgId: lpg.id, issuerTaxId: lpg.issuer_tax_id, producerTaxId: lpg.producer_tax_id, originProvince: lpg.origin_province, originLocality: lpg.origin_locality, destination: lpg.destination, grainCode: lpg.grain_code || 'OTHER', grainName: lpg.grain_name, campaign: lpg.campaign, grossWeightKg: lpg.net_weight_kg }); showToast(`CPE generado: ${result.cpe_number || 'autorizado'}`); loadFinanceModule(); } catch (error) { button.disabled = false; showToast(error.message || 'No se pudo generar la CPE'); } }));
@@ -1371,8 +1592,17 @@
     }
     async function loadArcaModule() {
       try {
-        const status = await api.getArcaStatus();
+        const [status, cpes, lpgs] = await Promise.all([
+          api.getArcaStatus(activeTenantId),
+          api.getArcaCpes(activeTenantId),
+          api.getLpgs(activeTenantId)
+        ]);
         const setText = (id, value) => { const element = document.querySelector(`#${id}`); if (element) element.textContent = value; };
+        const money = value => `$ ${Number(value || 0).toLocaleString('es-AR', { maximumFractionDigits: 2 })}`;
+        const modulePage = main.querySelector('.module-page');
+        const title = main.querySelector('.topbar h1');
+        [...main.querySelectorAll('.panel')].find(panel => panel.querySelector('h2')?.textContent.trim() === 'Configuracion segura')?.remove();
+        if (title) title.textContent = 'Fiscal Agrario';
         setText('arcaEnvironmentState', status.environment === 'production' ? 'Produccion' : 'Homologacion');
         setText('arcaWsaaState', status.wsaa === 'ready' ? 'Listo' : 'Pendiente');
         setText('arcaCertificateState', status.certificate === 'found' ? 'Encontrado' : 'Falta');
@@ -1381,7 +1611,79 @@
         setText('arcaLpgState', status.services.lpg ? 'Configurado' : 'Pendiente');
         setText('arcaSisaState', status.services.sisa ? 'Configurado' : 'Pendiente');
         setText('arcaCpeState', status.services.cpe ? 'Configurado' : 'Pendiente');
+        let panel = document.querySelector('#fiscalAgrarioOperationalPanel');
+        if (!panel && modulePage) {
+          modulePage.insertAdjacentHTML('beforeend', '<section class="panel" id="fiscalAgrarioOperationalPanel" style="margin-top:19px"><div class="panel-head"><div><h2>Operaciones fiscales de granos</h2><p class="panel-caption">CPE, LPG, SISA, IVA y retenciones del establecimiento activo</p></div><div class="toolbar"><button class="button" type="button" id="fiscalAgrarioRefresh">Actualizar</button><button class="button" type="button" id="fiscalAgrarioNewSale">Nueva venta</button><button class="button primary" type="button" id="fiscalAgrarioNewLpg">Nueva LPG</button></div></div><div class="module-grid"><article class="module-stat"><span>CPE emitidas</span><strong id="fiscalAgrarioCpeCount">0</strong></article><article class="module-stat"><span>CPE pendientes</span><strong id="fiscalAgrarioCpePending">0</strong></article><article class="module-stat"><span>LPG emitidas</span><strong id="fiscalAgrarioLpgCount">0</strong></article><article class="module-stat"><span>Neto LPG</span><strong id="fiscalAgrarioLpgNet">$ 0</strong></article></div><section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Cartas de Porte Electronicas</h2><p class="panel-caption">Documentos ARCA emitidos para esta empresa</p></div></div><table class="data-table"><thead><tr><th>CPE / autorizacion</th><th>Grano</th><th>Kilos origen</th><th>Destino</th><th>LPG vinculada</th><th>Estado</th></tr></thead><tbody id="fiscalAgrarioCpeRows"></tbody></table></section><section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Liquidaciones Primarias de Granos</h2><p class="panel-caption">Comprobantes, COE, IVA, retenciones y neto</p></div></div><table class="data-table"><thead><tr><th>LPG / COE</th><th>Grano</th><th>Kilos</th><th>IVA</th><th>Retenciones</th><th>Neto</th><th>Estado</th></tr></thead><tbody id="fiscalAgrarioLpgRows"></tbody></table></section><section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Arrendamiento y aparcería</h2><p class="panel-caption">Contratos rurales, alquiler fijo, porcentaje y canje imputable a costos</p></div><button class="button" data-action="Nuevo contrato agrario">+ Nuevo contrato</button></div><table class="data-table"><thead><tr><th>Campo / tipo</th><th>CUIT dueño</th><th>Modalidad</th><th>Importe / porcentaje</th><th>Vigencia</th><th>Estado</th></tr></thead><tbody id="fiscalAgrarioContractRows"></tbody></table></section></section>');
+          panel = document.querySelector('#fiscalAgrarioOperationalPanel');
+          document.querySelector('#fiscalAgrarioRefresh')?.addEventListener('click', loadArcaModule);
+          document.querySelector('#fiscalAgrarioNewSale')?.addEventListener('click', () => handleModuleAction({ dataset: { action: 'Nueva venta' } }));
+          document.querySelector('#fiscalAgrarioNewLpg')?.addEventListener('click', () => handleModuleAction({ dataset: { action: 'Nueva LPG' } }));
+          renderAgrarianContracts();
+        }
+        const fiscalToolbar = document.querySelector('#fiscalAgrarioOperationalPanel .panel-head .toolbar');
+        if (fiscalToolbar && !document.querySelector('#fiscalCpePdf')) {
+          const cpePdfButton = document.createElement('button');
+          cpePdfButton.id = 'fiscalCpePdf'; cpePdfButton.type = 'button'; cpePdfButton.className = 'button'; cpePdfButton.dataset.action = 'CPE exportadas PDF'; cpePdfButton.textContent = 'PDF CPE';
+          fiscalToolbar.appendChild(cpePdfButton);
+        }
+        window.PampaFiscalNormativa?.attach();
+        loadNormativeSources();
+        setText('fiscalAgrarioCpeCount', cpes.length);
+        setText('fiscalAgrarioCpePending', cpes.filter(cpe => cpe.status !== 'authorized').length);
+        setText('fiscalAgrarioLpgCount', lpgs.length);
+        setText('fiscalAgrarioLpgNet', money(lpgs.reduce((total, lpg) => total + Number(lpg.net_amount || 0), 0)));
+        const retentionPanel = document.querySelector('#fiscalAgrarioRetentionSummary');
+        if (!retentionPanel && modulePage) modulePage.insertAdjacentHTML('beforeend', '<section class="panel" id="fiscalAgrarioRetentionSummary" style="margin-top:19px"><div class="panel-head"><div><h2>Resumen de retenciones fiscales</h2><p class="panel-caption">Importes descontados de las LPG, separados de costos operativos</p></div><span class="pill yellow">Fiscal</span></div><div class="module-grid"><article class="module-stat"><span>Retención IVA</span><strong id="fiscalRetentionVat">$ 0</strong></article><article class="module-stat"><span>Retención Ganancias</span><strong id="fiscalRetentionIncome">$ 0</strong></article><article class="module-stat"><span>Retención IIBB</span><strong id="fiscalRetentionGrossIncome">$ 0</strong></article><article class="module-stat danger"><span>Total retenciones</span><strong id="fiscalRetentionTotal">$ 0</strong></article></div></section>');
+        const retentionVat = lpgs.reduce((total, lpg) => total + Number(lpg.vat_withholding || 0), 0);
+        const retentionIncome = lpgs.reduce((total, lpg) => total + Number(lpg.income_tax_withholding || 0), 0);
+        const retentionGrossIncome = lpgs.reduce((total, lpg) => total + Number(lpg.gross_income_withholding || 0), 0);
+        setText('fiscalRetentionVat', money(retentionVat));
+        setText('fiscalRetentionIncome', money(retentionIncome));
+        setText('fiscalRetentionGrossIncome', money(retentionGrossIncome));
+        setText('fiscalRetentionTotal', money(retentionVat + retentionIncome + retentionGrossIncome));
+        const cpeRows = document.querySelector('#fiscalAgrarioCpeRows');
+        if (cpeRows) cpeRows.innerHTML = cpes.length ? cpes.map(cpe => `<tr><td><strong>${cpe.cpe_number || 'Pendiente'}</strong><small>${cpe.authorization_code || '-'}</small></td><td>${cpe.grain_name || '-'}</td><td>${Number(cpe.gross_weight_kg || 0).toLocaleString('es-AR')} kg</td><td>${cpe.destination || '-'}</td><td>${cpe.lpg_number || '-'}</td><td><span class="pill ${cpe.status === 'authorized' ? '' : 'yellow'}">${cpe.status || 'draft'}</span></td></tr>`).join('') : '<tr><td colspan="6">No hay CPE emitidas para esta empresa.</td></tr>';
+        const lpgRows = document.querySelector('#fiscalAgrarioLpgRows');
+        if (lpgRows) lpgRows.innerHTML = lpgs.length ? lpgs.map(lpg => `<tr><td><strong>${lpg.lpg_number}</strong><small>${lpg.coe || 'COE pendiente'}</small></td><td>${lpg.grain_name || '-'}</td><td>${Number(lpg.net_weight_kg || 0).toLocaleString('es-AR')} kg</td><td>${money(lpg.vat_amount)}</td><td>${money(Number(lpg.vat_withholding || 0) + Number(lpg.income_tax_withholding || 0) + Number(lpg.gross_income_withholding || 0))}</td><td>${money(lpg.net_amount)}</td><td><span class="pill ${lpg.status === 'authorized' ? '' : 'yellow'}">${lpg.status}</span></td></tr>`).join('') : '<tr><td colspan="7">No hay LPG registradas para esta empresa.</td></tr>';
       } catch (error) { showToast('No se pudo consultar el estado de ARCA'); }
+    }
+    function renderAgrarianContracts() {
+      const rows = document.querySelector('#fiscalAgrarioContractRows');
+      if (!rows) return;
+      rows.innerHTML = registeredAgrarianContracts.length ? registeredAgrarianContracts.map(contract => `<tr><td><strong>${contract.field || 'Campo general'}</strong><small>${contract.type}</small></td><td>${contract.ownerTaxId || '-'}</td><td>${contract.modality}</td><td>${contract.modality === 'Porcentaje / canje' ? `${contract.grainOwnerPercent || 0}% · ${contract.quintalsPerHa || 0} qq/ha` : `$ ${Number(contract.monthlyAmount || 0).toLocaleString('es-AR')}`}</td><td>${contract.startDate || '-'} al ${contract.endDate || '-'}</td><td><span class="pill">${contract.status}</span></td></tr>`).join('') : '<tr><td colspan="6">No hay contratos de arrendamiento o aparcería registrados.</td></tr>';
+    }
+    async function loadNormativeSources() {
+      const modulePage = main.querySelector('#mod-arca');
+      if (!modulePage) return;
+      let card = modulePage.querySelector('#fiscalNormativeSources');
+      if (!card) {
+        modulePage.insertAdjacentHTML('beforeend', '<section class="panel" id="fiscalNormativeSources" style="margin-top:19px"><div class="panel-head"><div><h2>Monitor de normativa oficial</h2><p class="panel-caption">Consulta ARCA/SISA y detecta cambios antes de proponer nuevos parámetros</p></div><button class="button primary" type="button" id="fiscalNormativeCheck">Consultar fuentes oficiales</button></div><div id="fiscalNormativeStatus" class="footnote">Nunca consultado.</div><table class="data-table" style="margin-top:12px"><thead><tr><th>Fuente</th><th>Alcance</th><th>Estado</th><th>Última consulta</th><th>Acceso</th></tr></thead><tbody id="fiscalNormativeSourceRows"></tbody></table></section>');
+        card = modulePage.querySelector('#fiscalNormativeSources');
+        card.querySelector('#fiscalNormativeCheck')?.addEventListener('click', async () => {
+          const button = card.querySelector('#fiscalNormativeCheck');
+          button.disabled = true;
+          button.textContent = 'Consultando...';
+          try {
+            const response = await fetch('/api/fiscal/normative/check', { method: 'POST' });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || `HTTP ${response.status}`);
+            renderNormativeSources(result);
+            showToast(result.changesDetected ? `${result.changesDetected} fuente(s) cambiaron: revisión fiscal pendiente` : 'Fuentes oficiales consultadas: sin cambios detectados');
+          } catch (error) { showToast(`No se pudieron consultar las fuentes oficiales: ${error.message}`); }
+          finally { button.disabled = false; button.textContent = 'Consultar fuentes oficiales'; }
+        });
+      }
+      try {
+        const response = await fetch('/api/fiscal/normative/sources', { cache: 'no-store' });
+        if (response.ok) renderNormativeSources(await response.json());
+      } catch { /* El botón permite reintentar cuando vuelva la conexión. */ }
+    }
+    function renderNormativeSources(result) {
+      const status = document.querySelector('#fiscalNormativeStatus');
+      const rows = document.querySelector('#fiscalNormativeSourceRows');
+      if (!rows) return;
+      if (status) status.textContent = result.checkedAt ? `Última consulta: ${new Date(result.checkedAt).toLocaleString('es-AR')} · Los cambios requieren aprobación antes de afectar cálculos.` : 'Nunca consultado.';
+      rows.innerHTML = (result.sources || []).map(source => `<tr><td><strong>${source.name}</strong></td><td>${source.scope}</td><td><span class="pill ${source.changed ? 'yellow' : source.status === 'error' ? 'red' : ''}">${source.changed ? 'Cambio detectado' : source.status === 'ok' ? 'Sin cambios' : source.status === 'not_checked' ? 'Pendiente' : 'Error'}</span>${source.error ? `<small>${source.error}</small>` : ''}</td><td>${source.fetchedAt ? new Date(source.fetchedAt).toLocaleString('es-AR') : '-'}</td><td><a class="text-button" href="${source.url}" target="_blank" rel="noopener noreferrer">Ver fuente</a></td></tr>`).join('') || '<tr><td colspan="5">No hay fuentes configuradas.</td></tr>';
     }
     async function handleModuleAction(action) {
       const label = action.dataset.action;
@@ -1442,8 +1744,8 @@
         recordAudit('Exportacion calibraciones', 'CSV de trazabilidad');
         showToast('Planilla de calibraciones descargada');
       } else if (label === 'Nueva maquina') {
-        openNewForm('Nuevo equipo de precision', [{ id: 'machineCode', label: 'Codigo', placeholder: 'EQ-001' }, { id: 'machineCategory', label: 'Funcion del equipo', type: 'select', options: precisionMachineFormOptions }, { id: 'machineBrand', label: 'Marca' }, { id: 'machineModel', label: 'Modelo' }, { id: 'machineHourlyCost', label: 'Costo horario (USD)', type: 'number', placeholder: '35' }], async formData => {
-          const equipment = { code: formData.get('machineCode').trim(), category: formData.get('machineCategory'), brand: formData.get('machineBrand').trim(), model: formData.get('machineModel').trim(), hourlyCostUsd: Number(formData.get('machineHourlyCost') || 35) };
+        openNewForm('Nuevo equipo de precision', [{ id: 'machineCode', label: 'Codigo', placeholder: 'EQ-001' }, { id: 'machineCategory', label: 'Funcion del equipo', type: 'select', options: precisionMachineFormOptions }, { id: 'machineBrand', label: 'Marca' }, { id: 'machineModel', label: 'Modelo' }, { id: 'machinePurchaseDate', label: 'Fecha de compra', type: 'date', required: false }, { id: 'machineRegistrationNumber', label: 'N° registro provincial / SENASA', required: false }, { id: 'machineRegistrationStatus', label: 'Habilitación / registro', type: 'select', options: ['pending', 'valid', 'expired'] }, { id: 'machineStickerStatus', label: 'Oblea', type: 'select', options: ['pending', 'valid', 'expired'] }, { id: 'machineLastVtoDate', label: 'Última VTO', type: 'date', required: false }, { id: 'machineLastCleaningDate', label: 'Última limpieza', type: 'date', required: false }, { id: 'machineCleaningVerified', label: 'Limpieza verificada', type: 'select', options: ['no', 'si'] }, { id: 'machineHourlyCost', label: 'Costo horario (USD)', type: 'number', placeholder: '35' }], async formData => {
+          const equipment = { code: formData.get('machineCode').trim(), category: formData.get('machineCategory'), brand: formData.get('machineBrand').trim(), model: formData.get('machineModel').trim(), purchaseDate: formData.get('machinePurchaseDate') || null, registrationNumber: formData.get('machineRegistrationNumber'), registrationStatus: formData.get('machineRegistrationStatus'), stickerStatus: formData.get('machineStickerStatus'), lastVtoDate: formData.get('machineLastVtoDate') || null, lastCleaningDate: formData.get('machineLastCleaningDate') || null, cleaningVerified: formData.get('machineCleaningVerified') === 'si', hourlyCostUsd: Number(formData.get('machineHourlyCost') || 35) };
           if (isTrialMode) {
             if (registeredEquipment.some(item => item.code === equipment.code)) throw new Error('Ya existe un equipo con ese código');
             registeredEquipment.push(equipment);
@@ -1460,7 +1762,31 @@
       } else if (label === 'Cargar eventos telemetria') {
         openNewForm('Cargar eventos de maquinaria', [{ id: 'device', label: 'Dispositivo', type: 'select', options: ['GNSS-RTK-01 · Posicionamiento y guiado', 'VRA-SEED-02 · Siembra variable', 'PWM-SPR-03 · Pulverizacion inteligente', 'NIR-HRV-04 · Cosecha y calidad', 'IOT-LORA-05 · Telemetria y conectividad'], full: true }, { id: 'eventCount', label: 'Cantidad de eventos', type: 'number', placeholder: '1000' }, { id: 'eventDate', label: 'Fecha de los eventos', type: 'date' }], formData => { recordAudit('Ingesta bulk de telemetria', formData.get('device')); });
       } else if (label === 'Configurar ARCA') {
-        openNewForm('Configurar ARCA', [{ id: 'arcaEnvironment', label: 'Ambiente', type: 'select', options: ['testing', 'production'] }, { id: 'arcaCuit', label: 'CUIT emisor', placeholder: 'Sin guiones' }, { id: 'arcaCertificatePath', label: 'Ruta del certificado X.509', placeholder: 'C:\\ARCA\\certificado.crt' }, { id: 'arcaPrivateKeyPath', label: 'Ruta de la clave privada', placeholder: 'C:\\ARCA\\clave.key' }, { id: 'arcaLpgUrl', label: 'URL servicio LPG', required: false }, { id: 'arcaSisaUrl', label: 'URL servicio SISA', required: false }, { id: 'arcaCpeUrl', label: 'URL Carta de Porte', required: false }, { id: 'arcaLpgOperation', label: 'Operacion LPG', value: 'autorizarLPG', required: false }, { id: 'arcaSisaOperation', label: 'Operacion SISA', value: 'consultarSISA', required: false }, { id: 'arcaCpeOperation', label: 'Operacion CPE', value: 'solicitarCPE', required: false }], async formData => { await api.updateArcaConfig({ ARCA_ENVIRONMENT: formData.get('arcaEnvironment'), ARCA_CUIT: formData.get('arcaCuit'), ARCA_CERTIFICATE_PATH: formData.get('arcaCertificatePath'), ARCA_PRIVATE_KEY_PATH: formData.get('arcaPrivateKeyPath'), ARCA_LPG_URL: formData.get('arcaLpgUrl'), ARCA_SISA_URL: formData.get('arcaSisaUrl'), ARCA_CPE_URL: formData.get('arcaCpeUrl'), ARCA_LPG_OPERATION: formData.get('arcaLpgOperation'), ARCA_SISA_OPERATION: formData.get('arcaSisaOperation'), ARCA_CPE_OPERATION: formData.get('arcaCpeOperation') }); showToast('Configuracion ARCA guardada'); loadArcaModule(); });
+        const activeCompany = registeredCompanies.find(company => company.name === sidebarCompanySelector.value) || registeredCompanies[0];
+        const profile = await api.getArcaConfig(activeTenantId);
+        openNewForm('Configurar ARCA', [
+          { id: 'arcaEnvironment', label: 'Ambiente', type: 'select', options: [{ value: 'testing', label: 'Homologacion' }, { value: 'production', label: 'Produccion' }], value: profile.environment || 'testing' },
+          { id: 'arcaCuit', label: 'CUIT emisor', placeholder: 'Sin guiones', value: activeCompany?.taxId || profile.tax_id || '' },
+          { id: 'arcaCertificatePath', label: 'Ruta del certificado X.509', placeholder: profile.has_certificate ? 'Ya configurado: indicá la ruta para actualizar' : 'C:\\ARCA\\certs\\empresa.crt' },
+          { id: 'arcaPrivateKeyPath', label: 'Ruta de la clave privada', placeholder: profile.has_private_key ? 'Ya configurada: indicá la ruta para actualizar' : 'C:\\ARCA\\certs\\empresa.key' },
+          { id: 'arcaLpgUrl', label: 'URL servicio LPG', value: profile.lpg_url || '', required: false },
+          { id: 'arcaSisaUrl', label: 'URL servicio SISA', value: profile.sisa_url || '', required: false },
+          { id: 'arcaCpeUrl', label: 'URL Carta de Porte', value: profile.cpe_url || '', required: false },
+          { id: 'arcaLpgOperation', label: 'Operacion LPG', value: profile.lpg_operation || 'autorizarLPG', required: false },
+          { id: 'arcaSisaOperation', label: 'Operacion SISA', value: profile.sisa_operation || 'consultarSISA', required: false },
+          { id: 'arcaCpeOperation', label: 'Operacion CPE', value: profile.cpe_operation || 'solicitarCPE', required: false }
+        ], async formData => {
+          const taxId = formData.get('arcaCuit').trim();
+          await api.updateArcaConfig(activeTenantId, {
+            taxId, environment: formData.get('arcaEnvironment'), certificatePath: formData.get('arcaCertificatePath'), privateKeyPath: formData.get('arcaPrivateKeyPath'),
+            lpgUrl: formData.get('arcaLpgUrl'), sisaUrl: formData.get('arcaSisaUrl'), cpeUrl: formData.get('arcaCpeUrl'),
+            lpgOperation: formData.get('arcaLpgOperation'), sisaOperation: formData.get('arcaSisaOperation'), cpeOperation: formData.get('arcaCpeOperation')
+          });
+          if (activeCompany) activeCompany.taxId = taxId;
+          localStorage.setItem('pampa-companies', JSON.stringify(registeredCompanies));
+          showToast('Configuracion ARCA guardada para la empresa activa');
+          loadArcaModule();
+        });
       } else if (label === 'Nuevo cheque') {
         const accounts = await financeCheckAccountOptions();
         openNewForm('Nuevo cheque', [{ id: 'checkNumber', label: 'Numero', placeholder: 'CH-0001' }, { id: 'checkType', label: 'Tipo', type: 'select', options: ['received', 'issued'] }, { id: 'checkBank', label: 'Banco' }, { id: 'checkHolder', label: 'Titular' }, { id: 'checkIssueDate', label: 'Fecha de emision', type: 'date' }, { id: 'checkDueDate', label: 'Vencimiento', type: 'date' }, { id: 'checkAmount', label: 'Importe (USD)', type: 'number' }, { id: 'checkAccount', label: 'Cuenta asociada', type: 'select', options: ['Sin asignar', ...accounts] }, { id: 'checkNotes', label: 'Observaciones', full: true }], async formData => { const account = formData.get('checkAccount'); await api.createCheck(activeTenantId, { cashAccountId: account === 'Sin asignar' ? null : account.split(' · ')[0], checkNumber: formData.get('checkNumber'), checkType: formData.get('checkType'), bankName: formData.get('checkBank'), holderName: formData.get('checkHolder'), issueDate: formData.get('checkIssueDate'), dueDate: formData.get('checkDueDate'), amountUsd: Number(formData.get('checkAmount')), notes: formData.get('checkNotes') }); showToast('Cheque registrado'); loadFinanceModule(); });
@@ -1493,7 +1819,14 @@
         try {
           const accounts = await financeAccountOptions();
           if (!accounts.length) { showToast('Primero registra una cuenta de fondos'); return; }
-          openNewForm('Nuevo movimiento de fondos', [{ id: 'movementAccount', label: 'Cuenta', type: 'select', options: accounts, full: true }, { id: 'movementType', label: 'Tipo', type: 'select', options: ['in', 'out'] }, { id: 'movementDate', label: 'Fecha', type: 'date' }, { id: 'movementDescription', label: 'Descripcion', placeholder: 'Cobro de venta / combustible', full: true }, { id: 'movementAmount', label: 'Importe (USD)', type: 'number', placeholder: '0' }], async formData => { await api.createCashMovement(activeTenantId, { cashAccountId: formData.get('movementAccount').split(' · ')[0], movementType: formData.get('movementType'), movementDate: formData.get('movementDate'), description: formData.get('movementDescription'), amountUsd: Number(formData.get('movementAmount')) }); showToast('Movimiento registrado'); loadFinanceModule(); });
+          const [sales, checks] = await Promise.all([api.getSales(activeTenantId), api.getChecks(activeTenantId)]);
+          const saleOptions = sales.filter(sale => sale.payment_status !== 'paid').map(sale => ({ value: `sale:${sale.id}`, label: `Cobro de venta · ${sale.sale_number} · ${sale.customer_name}` }));
+          const checkOptions = checks.filter(check => check.check_type === 'received' && !['cashed', 'deposited'].includes(check.status)).map(check => ({ value: `check:${check.id}`, label: `Cheque recibido · ${check.check_number} · ${check.bank_name}` }));
+          if (!saleOptions.length) saleOptions.push({ value: 'sale:none', label: 'Cobro de venta · sin ventas pendientes' });
+          if (!checkOptions.length) checkOptions.push({ value: 'check:none', label: 'Cheque recibido · sin cheques pendientes' });
+          const mediumOptions = [{ value: 'cash', label: 'Efectivo' }, { value: 'transfer', label: 'Transferencia bancaria' }, { value: 'check', label: 'Cheque' }];
+          const descriptionOptions = ['Cobro', 'Pago', 'Canje', 'Cobro de venta', 'Pago a proveedor', 'Combustible', 'Mantenimiento', 'Compra de insumos', 'Impuestos y tasas', 'Sueldos y jornales', 'Préstamo o financiación', 'Otro'];
+          openNewForm('Nuevo movimiento de fondos', [{ id: 'movementAccount', label: 'Cuenta destino', type: 'select', options: accounts, full: true }, { id: 'movementSource', label: 'Origen / medio', type: 'select', options: mediumOptions, full: true }, { id: 'movementType', label: 'Tipo', type: 'select', options: [{ value: 'in', label: 'Ingreso' }, { value: 'out', label: 'Egreso' }] }, { id: 'movementDate', label: 'Fecha', type: 'date' }, { id: 'movementDescription', label: 'Descripción', type: 'select', options: descriptionOptions, full: true }, { id: 'movementAmount', label: 'Importe (ARS)', type: 'number', placeholder: '0' }], async formData => { const amountArs = Number(formData.get('movementAmount')); await api.createCashMovement(activeTenantId, { cashAccountId: formData.get('movementAccount').split(' · ')[0], movementType: formData.get('movementType'), sourceType: formData.get('movementSource') || 'cash', sourceId: null, movementDate: formData.get('movementDate'), description: formData.get('movementDescription'), amountArs, currencyCode: 'ARS' }); showToast('Movimiento en pesos registrado'); loadFinanceModule(); });
         } catch (error) { showToast(error.message || 'No se pudieron cargar las cuentas de fondos'); }
       } else if (label === 'Registrar cobro') {
         const [accounts, sales] = await Promise.all([financeAccountOptions(), financeSaleOptions()]);
@@ -1501,6 +1834,7 @@
         openNewForm('Registrar cobro de venta', [{ id: 'collectionSale', label: 'Venta pendiente', type: 'select', options: sales, full: true }, { id: 'collectionAccount', label: 'Cuenta destino', type: 'select', options: accounts, full: true }, { id: 'collectionDate', label: 'Fecha', type: 'date' }], async formData => { const sale = formData.get('collectionSale').split(' · '); const saleData = window.financeData.sales.find(item => item.id === sale[0]); await api.createCashMovement(activeTenantId, { cashAccountId: formData.get('collectionAccount').split(' · ')[0], movementType: 'in', sourceType: 'sale', sourceId: sale[0], movementDate: formData.get('collectionDate'), description: `Cobro ${saleData.sale_number} · ${saleData.customer_name}`, amountUsd: Number(saleData.total_amount) }); showToast('Cobro registrado'); loadFinanceModule(); });
       } else if (label === 'Planificar siembra' || label === 'Planificar cosecha') {
         const plotOptions = await agriculturalPlotSeasonOptions();
+        if (!plotOptions.length) { showToast('No hay lotes con campaña para planificar'); return; }
         openNewForm(label, [{ id: 'agriPlotSeason', label: 'Lote / campaña', type: 'select', options: plotOptions, full: true }, { id: 'agriDate', label: 'Fecha solicitada', type: 'date' }, { id: 'agriArea', label: 'Superficie planificada (ha)', type: 'number', placeholder: '0' }], async formData => {
           const plotSeasonId = formData.get('agriPlotSeason');
           await api.request('/campaigns/10000000-0000-0000-0000-000000000010/work-orders', { method: 'POST', body: JSON.stringify({ plotSeasonId, operationType: label === 'Planificar siembra' ? 'siembra' : 'cosecha', requestedDate: formData.get('agriDate'), plannedAreaHa: Number(formData.get('agriArea')) }) });
@@ -1523,15 +1857,23 @@
         });
       } else if (label === 'Planificar mantenimiento') {
         const machineOptions = await agriculturalMachineOptions();
+        if (!machineOptions.length) {
+          showToast('Primero registrá una máquina desde Parque de maquinarias');
+          return;
+        }
         openNewForm('Planificar mantenimiento', [{ id: 'maintenanceMachine', label: 'Maquina', type: 'select', options: machineOptions.map(item => `${item.value} · ${item.label}`), full: true }, { id: 'maintenanceDescription', label: 'Trabajo requerido', placeholder: 'Cambio de aceite y filtros', full: true }, { id: 'maintenanceDue', label: 'Vencimiento', type: 'date' }, { id: 'maintenancePriority', label: 'Prioridad', type: 'select', options: ['low', 'medium', 'high'] }, { id: 'maintenanceCost', label: 'Costo estimado (USD)', type: 'number', placeholder: '0' }], async formData => { await api.createMaintenance(activeTenantId, { machineId: formData.get('maintenanceMachine').split(' · ')[0], description: formData.get('maintenanceDescription'), dueAt: formData.get('maintenanceDue'), priority: formData.get('maintenancePriority'), estimatedCostUsd: Number(formData.get('maintenanceCost') || 0) }); showToast('Mantenimiento planificado'); loadAgriculturalModule(); });
       } else if (label === 'Registrar estimacion de cosecha') {
         const plotOptions = await agriculturalPlotSeasonOptions();
+        if (!plotOptions.length) { showToast('No hay lotes con campaña para estimar rinde'); return; }
         openNewForm('Registrar estimacion de cosecha', [{ id: 'estimatePlotSeason', label: 'Lote / campaña', type: 'select', options: plotOptions, full: true }, { id: 'estimatedYield', label: 'Rinde estimado (tn/ha)', type: 'number', placeholder: '8.5' }], async formData => { await api.createHarvestEstimate(activeTenantId, { plotSeasonId: formData.get('estimatePlotSeason'), estimatedYieldTnHa: Number(formData.get('estimatedYield')) }); showToast('Estimacion de cosecha registrada'); loadAgriculturalModule(); });
       } else if (label === 'Registrar ticket de balanza') {
         const plotOptions = await agriculturalPlotSeasonOptions();
+        if (!plotOptions.length) { showToast('No hay lotes con campaña para registrar el ticket'); return; }
         openNewForm('Registrar ticket de balanza', [{ id: 'ticketPlotSeason', label: 'Lote / campaña', type: 'select', options: plotOptions, full: true }, { id: 'ticketNumber', label: 'Numero de ticket', placeholder: 'BAL-0001' }, { id: 'ticketGross', label: 'Peso bruto (kg)', type: 'number' }, { id: 'ticketTare', label: 'Tara (kg)', type: 'number' }], async formData => { await api.createWeighTicket(activeTenantId, { plotSeasonId: formData.get('ticketPlotSeason'), ticketNumber: formData.get('ticketNumber'), grossKg: Number(formData.get('ticketGross')), tareKg: Number(formData.get('ticketTare')) }); showToast('Ticket de balanza registrado'); loadAgriculturalModule(); });
       } else if (label === 'Nuevo costo operativo') {
-        openNewForm('Nuevo costo operativo', [{ id: 'costCategory', label: 'Categoria', type: 'select', options: ['combustible', 'mantenimiento', 'mano_obra', 'servicio', 'otro'] }, { id: 'costDescription', label: 'Descripcion', placeholder: 'Reparacion de sembradora', full: true }, { id: 'costDate', label: 'Fecha', type: 'date' }, { id: 'costAmount', label: 'Importe (USD)', type: 'number', placeholder: '0' }], async formData => { await api.createOperatingCost(activeTenantId, { category: formData.get('costCategory'), description: formData.get('costDescription'), costDate: formData.get('costDate'), amountUsd: Number(formData.get('costAmount')) }); showToast('Costo operativo registrado'); loadAgriculturalModule(); });
+        openNewForm('Nuevo costo operativo', [{ id: 'costCategory', label: 'Categoria', type: 'select', options: ['combustible', 'mantenimiento', 'mano_obra', 'servicio', 'arrendamiento', 'aparceria', 'otro'] }, { id: 'costDescription', label: 'Descripcion', placeholder: 'Reparacion de sembradora', full: true }, { id: 'costDate', label: 'Fecha', type: 'date' }, { id: 'costAmount', label: 'Importe (USD)', type: 'number', placeholder: '0' }], async formData => { await api.createOperatingCost(activeTenantId, { category: formData.get('costCategory'), description: formData.get('costDescription'), costDate: formData.get('costDate'), amountUsd: Number(formData.get('costAmount')) }); showToast('Costo operativo registrado'); loadAgriculturalModule(); loadProfitabilityModule(); });
+      } else if (label === 'Nuevo contrato agrario') {
+        openNewForm('Contrato de arrendamiento o aparcería', [{ id: 'agrarianField', label: 'Campo', placeholder: 'La Esperanza' }, { id: 'agrarianType', label: 'Tipo de acuerdo', type: 'select', options: ['Arrendamiento', 'Aparcería / Mediería'] }, { id: 'agrarianOwnerTaxId', label: 'CUIT dueño del campo', placeholder: '20-00000000-0' }, { id: 'agrarianModality', label: 'Modalidad', type: 'select', options: ['Fijo en pesos', 'Porcentaje / canje'] }, { id: 'agrarianAmount', label: 'Importe mensual ($)', type: 'number', required: false }, { id: 'agrarianQuintals', label: 'Quintales/ha (porcentaje o canje)', type: 'number', required: false }, { id: 'agrarianPercent', label: '% grano del dueño', type: 'number', required: false }, { id: 'agrarianStart', label: 'Fecha inicio', type: 'date' }, { id: 'agrarianEnd', label: 'Fecha fin', type: 'date' }, { id: 'agrarianStatus', label: 'Estado', type: 'select', options: ['Borrador', 'Aprobado', 'Vencido', 'Rescindido'] }], formData => { const contract = { field: formData.get('agrarianField'), type: formData.get('agrarianType'), ownerTaxId: formData.get('agrarianOwnerTaxId'), modality: formData.get('agrarianModality'), monthlyAmount: Number(formData.get('agrarianAmount') || 0), quintalsPerHa: Number(formData.get('agrarianQuintals') || 0), grainOwnerPercent: Number(formData.get('agrarianPercent') || 0), startDate: formData.get('agrarianStart'), endDate: formData.get('agrarianEnd'), status: formData.get('agrarianStatus') }; registeredAgrarianContracts.unshift(contract); localStorage.setItem('pampa-agrarian-contracts', JSON.stringify(registeredAgrarianContracts)); recordAudit('Nuevo contrato agrario', `${contract.type} · ${contract.field}`); renderAgrarianContracts(); showToast('Contrato agrario registrado localmente'); });
       } else if (label === 'Sincronizar ahora') {
         syncNow();
       } else if (label === 'Registrar ejecucion') {
@@ -1557,10 +1899,23 @@
         downloadFile(rows.join('\n'), label === 'Reporte generado' ? 'reporte-kpi-pampa.csv' : 'inventario-pampa.csv', 'text/csv;charset=utf-8');
         recordAudit(label, 'Exportacion CSV');
         showToast('Archivo CSV descargado');
+      } else if (label === 'Reporte operativo exportado') {
+        await downloadReportPdf('operativo');
+      } else if (label === 'Reporte fiscal exportado') {
+        await downloadReportPdf('fiscal');
+      } else if (label === 'CPE exportadas PDF') {
+        await downloadDocumentPdf('/api/reports/cpe.pdf', `cpe-${new Date().toISOString().slice(0, 10)}.pdf`, 'Reporte de CPE descargado');
       } else if (label === 'Prescripcion exportada') {
         downloadFile(JSON.stringify({ format: 'ISOXML', campaign: localStorage.getItem('pampa-campaign') || '2025 / 2026', plot: 'L-04', zones: [{ targetRate: 145, minRate: 110, maxRate: 180 }] }, null, 2), 'prescripcion-L04.json', 'application/json');
         recordAudit('Exportacion de prescripcion', 'L-04');
         showToast('Prescripcion exportada');
+      } else if (label === 'Exportar GeoJSON precision') {
+        const features = importedGeoJson.flatMap(item => item.geoJson?.features || []).filter(feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type));
+        if (!features.length) { showToast('No hay geometrías GeoJSON importadas para exportar'); return; }
+        const payload = { type: 'FeatureCollection', name: `PampaPrecision_${new Date().toISOString().slice(0, 10)}`, features };
+        downloadFile(JSON.stringify(payload, null, 2), `prescripcion-precision-${new Date().toISOString().slice(0, 10)}.geojson`, 'application/geo+json');
+        recordAudit('Exportacion GeoJSON de precision', `${features.length} geometria(s)`);
+        showToast(`GeoJSON exportado: ${features.length} geometría(s)`);
       } else if (label === 'Nuevo usuario') {
         openNewForm('Nuevo usuario por WhatsApp', [{ id: 'userName', label: 'Nombre completo', placeholder: 'Ej. Juan Perez', full: true }, { id: 'userWhatsApp', label: 'WhatsApp con código de país', placeholder: '5493411234567', full: true }, { id: 'userRole', label: 'Rol', type: 'select', options: registeredRoles, full: true }], formData => {
           const name = formData.get('userName').trim();
@@ -1596,13 +1951,14 @@
           recordAudit('Configuración reporte WhatsApp', `${user} · ${role}`);
           showToast(`WhatsApp configurado para ${user}`);
         });
-      } else if (label === 'Enviar reporte WhatsApp') {
+      } else if (label === 'Enviar reporte WhatsApp' || label === 'Enviar reporte instantáneo WhatsApp') {
         const configuredUsers = whatsappUserRecipients.map(recipient => ({ value: recipient.user, label: `${recipient.user} · ${recipient.role}` }));
         if (!configuredUsers.length) { showToast('Primero configurá un número de WhatsApp para un usuario'); return; }
-        openNewForm('Enviar reporte por WhatsApp', [{ id: 'whatsappReportUser', label: 'Enviar a', type: 'select', options: configuredUsers, full: true }, { id: 'whatsappReportType', label: 'Tipo de reporte', type: 'select', options: ['Resumen operativo', 'Estado de campos y lotes', 'Alertas y pendientes'], full: true }], formData => {
+        openNewForm('Enviar reporte por WhatsApp', [{ id: 'whatsappReportUser', label: 'Enviar a', type: 'select', options: configuredUsers, full: true }, { id: 'whatsappReportType', label: 'Tipo de reporte', type: 'select', options: ['Reporte instantáneo', 'Resumen operativo', 'Estado de campos y lotes', 'Alertas y pendientes'], value: label === 'Enviar reporte instantáneo WhatsApp' ? 'Reporte instantáneo' : '', full: true }, { id: 'whatsappReportMessage', label: 'Mensaje / transcripción de voz', type: 'textarea', placeholder: 'Dictá o agregá una observación al reporte', required: false, full: true }], formData => {
           const recipient = whatsappUserRecipients.find(item => item.user === formData.get('whatsappReportUser'));
           const reportType = formData.get('whatsappReportType');
-          const message = buildWhatsAppReport(recipient.user, recipient.role, reportType);
+          const customMessage = String(formData.get('whatsappReportMessage') || '').trim();
+          const message = [buildWhatsAppReport(recipient.user, recipient.role, reportType), customMessage ? `\n\nObservación: ${customMessage}` : ''].join('');
           window.open(`https://wa.me/${recipient.phone}?text=${encodeURIComponent(message)}`, '_blank', 'noopener');
           recordAudit('Reporte WhatsApp preparado', `${reportType} · ${recipient.user}`);
           showToast(`Reporte preparado para ${recipient.user}`);
@@ -1675,7 +2031,9 @@
           showToast('Compra registrada localmente');
         });
       } else if (label.includes('Nueva orden')) {
-        openNewForm('Nueva orden de trabajo', [{ id: 'operation', label: 'Tipo de operacion', type: 'select', options: ['Aplicacion foliar', 'Fertilizacion', 'Relevamiento'] }, { id: 'plot', label: 'Lote', type: 'select', options: registeredLots }, { id: 'date', label: 'Fecha solicitada', type: 'date' }], formData => recordAudit('Creacion de orden de trabajo', formData.get('plot')));
+        const [plotOptions, machineOptions] = await Promise.all([agriculturalPlotSeasonOptions(), agriculturalMachineOptions()]);
+        if (!plotOptions.length) { showToast('No hay lotes con campaña para crear la orden'); return; }
+        openNewForm('Nueva orden de trabajo', [{ id: 'operation', label: 'Tipo de operación', type: 'select', options: [{ value: 'aplicacion_fitosanitaria', label: 'Aplicación fitosanitaria' }, { value: 'siembra', label: 'Siembra' }, { value: 'cosecha', label: 'Cosecha' }, { value: 'relevamiento', label: 'Relevamiento' }] }, { id: 'plotSeason', label: 'Lote / campaña', type: 'select', options: plotOptions, full: true }, { id: 'date', label: 'Fecha solicitada', type: 'date' }, { id: 'area', label: 'Superficie planificada (ha)', type: 'number', placeholder: '0' }, { id: 'machine', label: 'Máquina (obligatoria para aplicación)', type: 'select', options: [{ value: '', label: machineOptions.length ? 'Seleccionar máquina' : 'No hay máquinas cargadas' }, ...machineOptions.map(item => ({ value: item.value, label: item.label }))], required: false, full: true }, { id: 'cleaningVerified', label: 'Checklist de lavado y vacío sanitario', type: 'select', options: ['no', 'si'], required: false }, { id: 'cleaningEvidence', label: 'Evidencia fotográfica (archivo o referencia)', type: 'file', accept: 'image/*', capture: 'environment', required: false, full: true }], async formData => { const operation = formData.get('operation'); const evidenceFile = formData.get('cleaningEvidence'); const evidenceReference = evidenceFile instanceof File && evidenceFile.size ? `foto://${evidenceFile.name}` : null; if (evidenceFile instanceof File && evidenceFile.size) await offlineDB.cacheResponse(`work-order-evidence:${Date.now()}:${evidenceFile.name}`, { fileName: evidenceFile.name, blob: evidenceFile, capturedAt: new Date().toISOString(), type: 'machine-cleaning' }); const payload = { plotSeasonId: formData.get('plotSeason'), operationType: operation, requestedDate: formData.get('date'), plannedAreaHa: Number(formData.get('area') || 0), machineId: formData.get('machine') || null, cleaningVerified: formData.get('cleaningVerified') === 'si', cleaningEvidence: evidenceReference }; await api.createWorkOrder('10000000-0000-0000-0000-000000000010', payload); recordAudit('Creacion de orden de trabajo', `${operation} · ${payload.plotSeasonId}`); showToast('Orden de trabajo registrada'); });
       } else if (label.includes('Movimiento de stock')) {
         openNewForm('Registrar movimiento', [{ id: 'movement', label: 'Tipo de movimiento', type: 'select', options: ['Ingreso', 'Consumo', 'Ajuste'] }, { id: 'input', label: 'Insumo', placeholder: 'Ej. Urea granulada' }, { id: 'quantity', label: 'Cantidad', type: 'number', placeholder: '0' }], formData => recordAudit('Movimiento de inventario', formData.get('input')));
       } else if (label === 'Activar licencia') {
@@ -1710,7 +2068,7 @@
         <div class="layout" style="margin-top:19px"><section class="panel"><div class="panel-head"><div><h2>Cuentas de fondos</h2><p class="panel-caption">Caja, bancos y billeteras operativas</p></div><button class="text-button" data-action="Nueva cuenta de fondos">+ Nueva cuenta</button></div><table class="data-table"><thead><tr><th>Cuenta</th><th>Moneda</th><th>Saldo</th><th>Estado</th></tr></thead><tbody id="financeAccountRows"><tr><td colspan="4">Cargando...</td></tr></tbody></table></section><section class="panel"><div class="panel-head"><div><h2>Flujo diario</h2><p class="panel-caption">Ingresos y egresos confirmados</p></div><span class="eyebrow">Periodo actual</span></div><table class="data-table"><thead><tr><th>Fecha</th><th>Ingresos</th><th>Egresos</th><th>Neto</th></tr></thead><tbody id="financeFlowRows"><tr><td colspan="4">Cargando...</td></tr></tbody></table></section></div>
         <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Movimientos de fondos</h2><p class="panel-caption">Registro bancario y de caja</p></div><div class="toolbar"><button class="text-button" data-action="Registrar cobro">Registrar cobro</button><button class="text-button" data-action="Nuevo movimiento">+ Registrar movimiento</button></div></div><table class="data-table"><thead><tr><th>Fecha</th><th>Cuenta</th><th>Descripcion</th><th>Tipo</th><th>Importe</th></tr></thead><tbody id="financeMovementRows"><tr><td colspan="5">Cargando...</td></tr></tbody></table></section></section>`,
       'Rentabilidad': `
-        <header class="topbar"><div><div class="eyebrow">Workspace / Decisiones económicas</div><h1>Rentabilidad</h1></div><div class="toolbar"><select id="profitabilityCampaign" aria-label="Campaña"><option>2025 / 2026</option></select><button class="button" data-action="Exportar rentabilidad">Exportar reporte</button><button class="button primary" data-action="Nuevo ingreso productivo">+ Registrar ingreso</button></div></header>
+        <header class="topbar"><div><div class="eyebrow">Workspace / Decisiones económicas</div><h1>Rentabilidad</h1></div><div class="toolbar"><select id="profitabilityCampaign" aria-label="Campaña"><option>2025 / 2026</option></select><button class="button" data-action="Exportar rentabilidad">Exportar reporte</button><button class="button" data-action="Nuevo costo operativo">+ Registrar costo</button><button class="button primary" data-action="Nuevo ingreso productivo">+ Registrar ingreso</button></div></header>
         <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Ingresos registrados</span><strong id="profitRevenue">$ 0</strong></article><article class="panel module-stat danger"><span>Costos registrados</span><strong id="profitCosts">$ 0</strong></article><article class="panel module-stat warning"><span>Resultado neto</span><strong id="profitNet">$ 0</strong></article><article class="panel module-stat"><span>Margen</span><strong id="profitMargin">0%</strong></article></div>
         <section class="panel"><div class="panel-head"><div><h2>Resultado económico</h2><p class="panel-caption">Ingresos, costos y margen de la campaña activa</p></div><span class="pill" id="profitabilityState">Sin datos</span></div><table class="data-table"><thead><tr><th>Concepto</th><th>Importe</th><th>Origen</th><th>Estado</th></tr></thead><tbody id="profitabilitySummaryRows"><tr><td colspan="4">Sin datos de rentabilidad registrados.</td></tr></tbody></table></section>
         <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Rentabilidad por lote</h2><p class="panel-caption">Comparación de ingresos, costos directos y resultado</p></div><span class="pill yellow">Pendiente de datos</span></div><table class="data-table"><thead><tr><th>Lote</th><th>Ingresos</th><th>Costos</th><th>Resultado</th><th>Margen</th></tr></thead><tbody id="profitabilityLotRows"><tr><td colspan="5">Registrá ingresos y costos para calcular la rentabilidad por lote.</td></tr></tbody></table></section></section>`,
@@ -1740,7 +2098,7 @@
         <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Valor en stock</span><strong>$ 0</strong></article><article class="panel module-stat warning"><span>Items bajo minimo</span><strong>0</strong></article><article class="panel module-stat"><span>Compras pendientes</span><strong>0</strong></article></div><section class="panel"><div class="panel-head"><div><h2>Existencias por insumo</h2><p class="panel-caption">Stock disponible y punto de reposicion</p></div><button class="text-button" data-action="Inventario exportado">Exportar</button></div><table class="data-table"><thead><tr><th>Insumo</th><th>Categoria</th><th>Disponible</th><th>Minimo</th><th>Estado</th></tr></thead><tbody><tr><td colspan="5">Sin insumos registrados.</td></tr></tbody></table></section><section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Equipos y maquinaria</h2><p class="panel-caption">Activos disponibles para las operaciones de campo</p></div><button class="text-button" data-action="Nueva maquina">+ Nuevo equipo</button></div><table class="data-table"><thead><tr><th>Código</th><th>Función</th><th>Marca / modelo</th><th>Costo horario</th><th>Estado</th></tr></thead><tbody id="inventoryEquipmentRows"><tr><td colspan="5">Sin equipos registrados.</td></tr></tbody></table></section></section>`,
       'Precision': `
         <header class="topbar"><div><div class="eyebrow">Workspace / Geoespacial</div><h1>Precision</h1></div><div class="toolbar"><button class="button" data-action="Cargar mapa de rinde">Cargar rinde</button><button class="button" data-action="Nueva prescripcion">+ Prescripcion</button><button class="button primary" data-action="Prescripcion exportada">Exportar prescripcion</button></div></header>
-        <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Lotes monitoreados</span><strong id="precisionMonitoredLots">0</strong></article><article class="panel module-stat"><span>NDVI actualizado</span><strong id="precisionNdviUpdated">0%</strong></article><article class="panel module-stat danger"><span>Zonas con variabilidad</span><strong id="precisionVariableZones">0</strong></article></div><section class="panel"><div class="panel-head"><div><h2>Mapa multicapa</h2><p class="panel-caption" id="precisionLayerCaption">Índice verde de vigor por lote</p></div><div class="toolbar"><span class="pill" id="precisionLayerState">NDVI</span><select id="precisionMapField" aria-label="Establecimiento"></select><select id="precisionMapLot" aria-label="Enfocar lote"></select><select id="precisionMapLayer" aria-label="Capa del mapa"><option value="ndvi">Índice NDVI</option><option value="yield">Mapa de rinde</option><option value="prescription">Prescripción de siembra</option></select></div></div><div id="lotMap" aria-label="Mapa Leaflet de precision" style="height:330px"></div><div class="precision-legend" id="precisionLayerLegend" aria-live="polite"></div></section></section>`,
+        <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Lotes monitoreados</span><strong id="precisionMonitoredLots">0</strong></article><article class="panel module-stat"><span>NDVI actualizado</span><strong id="precisionNdviUpdated">0%</strong></article><article class="panel module-stat danger"><span>Zonas con variabilidad</span><strong id="precisionVariableZones">0</strong></article></div><section class="panel"><div class="panel-head"><div><h2>Mapa multicapa</h2><p class="panel-caption" id="precisionLayerCaption">Índice verde de vigor por lote</p></div><div class="toolbar"><span class="pill" id="precisionLayerState">NDVI</span><select id="precisionMapField" aria-label="Establecimiento"></select><select id="precisionMapLot" aria-label="Enfocar lote"></select><select id="precisionMapLayer" aria-label="Capa del mapa"><option value="ndvi">Índice NDVI</option><option value="yield">Mapa de rinde</option><option value="prescription">Prescripción de siembra</option></select></div></div><div id="lotMap" aria-label="Mapa Leaflet de precision" style="height:330px"></div><div class="precision-legend" id="precisionLayerLegend" aria-live="polite"></div></section><div class="layout" style="margin-top:19px"><section class="panel"><div class="panel-head"><div><h2>Evolución NDVI</h2><p class="panel-caption" id="precisionNdviCaption">Historial real del lote seleccionado</p></div><span class="pill">Sentinel-2 / Agro API</span></div><div class="chart large" id="precisionNdviChart"><div class="map-legend">Sin historial NDVI cargado.</div></div></section><section class="panel"><div class="panel-head"><div><h2>Exportación GIS</h2><p class="panel-caption">GeoJSON de geometrías importadas para revisión cartográfica</p></div><button class="button primary" type="button" data-action="Exportar GeoJSON precision">Exportar GeoJSON</button></div><div class="footnote" id="precisionGisStatus">No hay geometrías listas para exportar.</div></section></div></section>`,
       'Calibraciones': `
         <header class="topbar"><div><div class="eyebrow">Workspace / Calidad de dato</div><h1>Calibraciones</h1></div><div class="toolbar"><button class="button" data-action="Exportar planilla calibraciones">Exportar planilla</button><button class="button primary" data-action="Nuevo registro de calibracion">+ Nueva calibracion</button></div></header>
         <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Protocolos activos</span><strong id="calibrationProtocolCount">0</strong></article><article class="panel module-stat"><span>Registros guardados</span><strong id="calibrationRecordsCount">0</strong></article><article class="panel module-stat warning"><span>Vencidas</span><strong id="calibrationOverdueCount">0</strong></article><article class="panel module-stat danger"><span>Cierre validado</span><strong id="calibrationClosureRate">0%</strong></article></div>
@@ -1748,17 +2106,22 @@
         <div class="layout" style="margin-top:19px"><section class="panel"><div class="panel-head"><div><h2>Instrumental recomendado</h2><p class="panel-caption">Patrones de contraste y verificacion de campo</p></div></div><table class="data-table"><thead><tr><th>Herramienta</th><th>Uso principal</th></tr></thead><tbody id="calibrationToolRows"></tbody></table></section><section class="panel"><div class="panel-head"><div><h2>Errores que se multiplican</h2><p class="panel-caption">La dosis real no es el valor de una sola pantalla</p></div><span class="pill yellow">Control critico</span></div><div class="footnote" style="line-height:1.7"><strong>Ejemplo acumulado:</strong> 4% velocidad × 5% caudalimetro × 6% picos = hasta 15% de error real de dosis.<br><strong>Regla de cierre:</strong> lo aplicado debe cerrar contra balanza, tanque o bolsa con desvio menor a 3%.<br><strong>Mapa de rinde:</strong> sin calibracion multipunto y registro auditable, no usar para prescripciones.</div></section></div>
         <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Registros de calibracion</h2><p class="panel-caption">Fecha, factor ajustado, desvio encontrado y proxima verificacion</p></div><button class="text-button" data-action="Nuevo registro de calibracion">+ Registrar</button></div><table class="data-table"><thead><tr><th>Fecha</th><th>Sistema / equipo</th><th>Patron</th><th>Factor</th><th>Desvio</th><th>Proxima</th><th>Estado</th></tr></thead><tbody id="calibrationRecordRows"></tbody></table></section></section>`,
       'Plan de equipamiento': `
-        <header class="topbar"><div><div class="eyebrow">Workspace / Planificacion por escala</div><h1>Plan de equipamiento</h1></div><div class="toolbar"><button class="button" data-action="Exportar plan equipamiento JSON">Exportar JSON</button><button class="button" id="toggleEquipCatalog" type="button">Mostrar catalogo completo</button><select id="equipScale" class="equip-filter" aria-label="Escala"><option value="E1">E1 · < 500 ha</option><option value="E2" selected>E2 · 500-1.500 ha</option><option value="E3">E3 · 1.500-5.000 ha</option><option value="E4">E4 · > 5.000 ha</option></select><select id="equipMachinery" class="equip-filter" aria-label="Situacion de maquinaria"><option value="M1" selected>M1 · Todo propio</option><option value="M2">M2 · Siembra y pulv. propias</option><option value="M3">M3 · Todo contratado</option><option value="M4">M4 · Desde cero</option></select><select id="equipCrop" class="equip-filter" aria-label="Cultivo"><option value="ALL" selected>Todos</option><option value="TR">Trigo</option><option value="SJ">Soja</option><option value="MZ">Maiz</option><option value="GI">Girasol</option></select><select id="equipPriority" class="equip-filter" aria-label="Prioridad"><option value="ALL">Todas</option><option value="P1" selected>P1 Insumos</option><option value="P2">P2 Rendimiento</option><option value="P3">P3 Datos</option><option value="P4">P4 Mano de obra</option></select><select id="equipLevel" class="equip-filter" aria-label="Nivel"><option value="ALL" selected>Todos los niveles</option><option value="N0">N0 Base</option><option value="N1">N1 Intermedio</option><option value="N2">N2 Avanzado</option><option value="N3">N3 Frontera</option></select></div></header>
+        <header class="topbar"><div><div class="eyebrow">Workspace / Planificacion por escala</div><h1>Plan de equipamiento</h1></div><div class="toolbar"><button class="button" data-action="Exportar plan equipamiento JSON">Exportar JSON</button><button class="button" id="toggleEquipCatalog" type="button">Mostrar catalogo completo</button><select id="equipScale" class="equip-filter" aria-label="Escala"><option value="E1">E1 · &lt; 500 ha</option><option value="E2" selected>E2 · 500-1.500 ha</option><option value="E3">E3 · 1.500-5.000 ha</option><option value="E4">E4 · &gt; 5.000 ha</option></select><select id="equipMachinery" class="equip-filter" aria-label="Situacion de maquinaria"><option value="M1" selected>M1 · Todo propio</option><option value="M2">M2 · Siembra y pulv. propias</option><option value="M3">M3 · Contratista</option><option value="M4">M4 · Desde cero</option></select><select id="equipCrop" class="equip-filter" aria-label="Cultivo"><option value="ALL" selected>Todos</option><option value="TR">Trigo</option><option value="SJ">Soja</option><option value="MZ">Maiz</option><option value="GI">Girasol</option></select><select id="equipPriority" class="equip-filter" aria-label="Prioridad"><option value="ALL">Todas</option><option value="P1" selected>P1 Insumos</option><option value="P2">P2 Rendimiento</option><option value="P3">P3 Datos</option><option value="P4">P4 Mano de obra</option></select><select id="equipLevel" class="equip-filter" aria-label="Nivel"><option value="ALL" selected>Todos los niveles</option><option value="N0">N0 Base</option><option value="N1">N1 Intermedio</option><option value="N2">N2 Avanzado</option><option value="N3">N3 Frontera</option></select></div></header>
         <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Escenario activo</span><strong id="equipScaleState">-</strong></article><article class="panel module-stat"><span>Modelo de maquinaria</span><strong id="equipMachineryState">-</strong></article><article class="panel module-stat warning"><span>Banda inversion</span><strong id="equipInvestmentBand">-</strong></article><article class="panel module-stat danger"><span>Items recomendados</span><strong id="equipItemsCount">0</strong></article></div>
+        <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Planificacion recomendada</h2><p class="panel-caption">Se actualiza al cambiar la escala</p></div><span class="pill">Escala seleccionada</span></div><div class="footnote" id="equipRecommendedPlan" style="line-height:1.7">Selecciona una escala para ver la planificacion recomendada.</div></section>
         <section class="panel" id="equipCatalogPanel" hidden><div class="panel-head"><div><h2>Catalogo normalizado</h2><p class="panel-caption">IDs estables, niveles y umbral minimo de amortizacion</p></div><span class="pill">Nucleo pampeano</span></div><table class="data-table"><thead><tr><th>ID</th><th>Equipo</th><th>Nivel</th><th>Cultivos</th><th>Prioridades</th><th>USD orientativo</th><th>Sup. minima</th></tr></thead><tbody id="equipCatalogRows"></tbody></table></section>
-        <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Separado por superficie</h2><p class="panel-caption">Recomendaciones por rango preexistente E1-E4 con los filtros activos</p></div><span class="pill">E1 / E2 / E3 / E4</span></div>
-        <div class="layout"><section class="panel"><div class="panel-head"><div><h2>E1 · &lt;500 ha</h2><p class="panel-caption" id="equipRangeE1Count">0 items</p></div></div><table class="data-table"><thead><tr><th>ID</th><th>Equipo</th><th>Nivel</th><th>USD orientativo</th></tr></thead><tbody id="equipRangeE1Rows"></tbody></table></section><section class="panel"><div class="panel-head"><div><h2>E2 · 500-1.500 ha</h2><p class="panel-caption" id="equipRangeE2Count">0 items</p></div></div><table class="data-table"><thead><tr><th>ID</th><th>Equipo</th><th>Nivel</th><th>USD orientativo</th></tr></thead><tbody id="equipRangeE2Rows"></tbody></table></section></div>
-        <div class="layout" style="margin-top:19px"><section class="panel"><div class="panel-head"><div><h2>E3 · 1.500-5.000 ha</h2><p class="panel-caption" id="equipRangeE3Count">0 items</p></div></div><table class="data-table"><thead><tr><th>ID</th><th>Equipo</th><th>Nivel</th><th>USD orientativo</th></tr></thead><tbody id="equipRangeE3Rows"></tbody></table></section><section class="panel"><div class="panel-head"><div><h2>E4 · &gt;5.000 ha</h2><p class="panel-caption" id="equipRangeE4Count">0 items</p></div></div><table class="data-table"><thead><tr><th>ID</th><th>Equipo</th><th>Nivel</th><th>USD orientativo</th></tr></thead><tbody id="equipRangeE4Rows"></tbody></table></section></div></section>
-        <div class="layout" style="margin-top:19px"><section class="panel"><div class="panel-head"><div><h2>Matriz por escala</h2><p class="panel-caption">Que incluir, contratar o evitar en E1-E4</p></div></div><div class="footnote" id="equipStrategyBox" style="line-height:1.7">Selecciona una escala para ver estrategia.</div></section><section class="panel"><div class="panel-head"><div><h2>Matriz por maquinaria</h2><p class="panel-caption">Reglas M1-M4 para operacion y contratos</p></div></div><div class="footnote" id="equipMachineryBox" style="line-height:1.7">Selecciona el modelo de maquinaria.</div><div class="panel-head" style="margin-top:12px"><div><h2>Foco por cultivo</h2><p class="panel-caption">Prioridades tecnicas para TR/SJ/MZ/GI</p></div></div><div class="footnote" id="equipCropBox" style="line-height:1.7">Selecciona un cultivo para desplegar focos.</div></section></div>
+        <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Superficie seleccionada</h2><p class="panel-caption">Detalle recomendado para la escala elegida arriba</p></div><span class="pill">Una escala</span></div>
+        <div class="layout"><section class="panel" id="equipRangeE1Section"><div class="panel-head"><div><h2>Pequeña · &lt; 500 ha</h2><p class="panel-caption" id="equipRangeE1Count">0 items</p></div></div><table class="data-table"><thead><tr><th>ID</th><th>Equipo</th><th>Nivel</th><th>USD orientativo</th></tr></thead><tbody id="equipRangeE1Rows"></tbody></table></section><section class="panel" id="equipRangeE2Section"><div class="panel-head"><div><h2>Mediana · 500-1.500 ha</h2><p class="panel-caption" id="equipRangeE2Count">0 items</p></div></div><table class="data-table"><thead><tr><th>ID</th><th>Equipo</th><th>Nivel</th><th>USD orientativo</th></tr></thead><tbody id="equipRangeE2Rows"></tbody></table></section></div>
+        <div class="layout" style="margin-top:19px"><section class="panel" id="equipRangeE3Section"><div class="panel-head"><div><h2>Grande · &gt; 1.500 ha</h2><p class="panel-caption" id="equipRangeE3Count">0 items</p></div></div><table class="data-table"><thead><tr><th>ID</th><th>Equipo</th><th>Nivel</th><th>USD orientativo</th></tr></thead><tbody id="equipRangeE3Rows"></tbody></table></section><section class="panel" id="equipRangeE4Section"><div class="panel-head"><div><h2>Detalle E4 · &gt; 5.000 ha</h2><p class="panel-caption" id="equipRangeE4Count">0 items</p></div></div><table class="data-table"><thead><tr><th>ID</th><th>Equipo</th><th>Nivel</th><th>USD orientativo</th></tr></thead><tbody id="equipRangeE4Rows"></tbody></table></section></div></section>
+        <div class="layout" style="margin-top:19px"><section class="panel"><div class="panel-head"><div><h2 id="equipStrategyTitle">Matriz por escala seleccionada</h2><p class="panel-caption">Qué incluir, contratar o evitar en el escenario elegido</p></div></div><div class="footnote" id="equipStrategyBox" style="line-height:1.7">Selecciona una escala para ver estrategia.</div></section><section class="panel"><div class="panel-head"><div><h2 id="equipMachineryTitle">Matriz por maquinaria seleccionada</h2><p class="panel-caption">Reglas para el modelo de maquinaria elegido</p></div></div><div class="footnote" id="equipMachineryBox" style="line-height:1.7">Selecciona el modelo de maquinaria.</div><div class="panel-head" style="margin-top:12px"><div><h2 id="equipCropTitle">Foco por cultivo seleccionado</h2><p class="panel-caption">Prioridades técnicas para el cultivo elegido</p></div></div><div class="footnote" id="equipCropBox" style="line-height:1.7">Selecciona un cultivo para desplegar focos.</div></section></div>
         <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Reglas del motor</h2><p class="panel-caption">Condiciones R1-R12 para bloquear o priorizar decisiones</p></div><span class="pill yellow">Deterministico</span></div><table class="data-table"><thead><tr><th>Regla</th><th>Condicion operativa</th></tr></thead><tbody id="equipRuleRows"></tbody></table></section></section>`,
       'Analitica': `
-        <header class="topbar"><div><div class="eyebrow">Workspace / Datos productivos</div><h1>Analitica</h1></div><div class="toolbar"><select aria-label="Cultivo"><option>Maiz</option><option>Soja</option><option>Trigo</option></select><button class="button" data-action="Reporte generado">Generar reporte</button></div></header>
-        <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Rinde promedio</span><strong>8,6 t/ha</strong></article><article class="panel module-stat"><span>Costo operativo</span><strong>$ 412/ha</strong></article><article class="panel module-stat"><span>Datos integrados</span><strong>98,4%</strong></article></div><section class="panel"><div class="panel-head"><div><h2>Evolucion de rinde por lote</h2><p class="panel-caption">Comparativa de la campana 2025 / 2026</p></div><span class="eyebrow">Maiz</span></div><div class="chart large"><div class="bar-wrap"><div class="bar dim" style="height:55%"></div><span>L-04</span></div><div class="bar-wrap"><div class="bar selected" style="height:83%"></div><span>L-09</span></div><div class="bar-wrap"><div class="bar" style="height:69%"></div><span>L-12</span></div><div class="bar-wrap"><div class="bar dim" style="height:46%"></div><span>L-16</span></div><div class="bar-wrap"><div class="bar" style="height:63%"></div><span>L-21</span></div></div></section></section>`,
+        <header class="topbar"><div><div class="eyebrow">Workspace / Datos productivos</div><h1>Analitica</h1></div><div class="toolbar"><select id="analyticsCrop" aria-label="Cultivo"><option value="maiz">Maiz</option><option value="soja">Soja</option><option value="trigo">Trigo</option></select><button class="button" data-action="Reporte generado">Generar reporte</button></div></header>
+        <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Rinde promedio</span><strong id="analyticsAverageYield">8,6 t/ha</strong></article><article class="panel module-stat"><span>Costo operativo</span><strong id="analyticsOperatingCost">$ 412/ha</strong></article><article class="panel module-stat"><span>Datos integrados</span><strong id="analyticsDataQuality">98,4%</strong></article></div><section class="panel"><div class="panel-head"><div><h2>Evolucion de rinde por lote</h2><p class="panel-caption" id="analyticsChartCaption">Comparativa de la campana 2025 / 2026 · Maiz</p></div><span class="eyebrow" id="analyticsCropLabel">Maiz</span></div><div class="chart large" id="analyticsYieldChart"></div></section></section>`,
+      'Reportes': `
+        <header class="topbar"><div><div class="eyebrow">Workspace / Información de gestión</div><h1>Reportes</h1></div><div class="toolbar"><button class="button" data-action="Configurar reporte WhatsApp">Configurar WhatsApp</button><button class="button primary" data-action="Enviar reporte instantáneo WhatsApp">Reporte instantáneo · WhatsApp</button></div></header>
+        <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Campos</span><strong id="reportFieldsCount">0</strong></article><article class="panel module-stat"><span>Lotes</span><strong id="reportLotsCount">0</strong></article><article class="panel module-stat warning"><span>Alertas activas</span><strong id="reportAlertsCount">0</strong></article><article class="panel module-stat"><span>Equipos</span><strong id="reportMachinesCount">0</strong></article></div>
+        <div class="layout"><section class="panel"><div class="panel-head"><div><h2>Reportes disponibles</h2><p class="panel-caption">Información generada con los datos actuales del ERP</p></div></div><table class="data-table"><thead><tr><th>Reporte</th><th>Contenido</th><th>Acción</th></tr></thead><tbody><tr><td><strong>Resumen operativo</strong></td><td>Campos, lotes, superficie, equipos y alertas</td><td><button class="text-button" data-action="Reporte operativo exportado">Descargar</button></td></tr><tr><td><strong>Estado fiscal</strong></td><td>LPG, retenciones, ARCA y pendientes normativos</td><td><button class="text-button" data-action="Reporte fiscal exportado">Descargar</button></td></tr><tr><td><strong>Precisión y maquinaria</strong></td><td>NDVI, prescripciones, VTO y cumplimiento sanitario</td><td><button class="text-button" data-action="Reporte operativo exportado">Descargar</button></td></tr></tbody></table></section><section class="panel"><div class="panel-head"><div><h2>Envío por WhatsApp</h2><p class="panel-caption">Seleccioná un destinatario y agregá una observación por escrito o por voz</p></div><span class="pill" id="reportWhatsAppStatus">Sin configurar</span></div><div class="footnote" id="reportWhatsAppRecipients">No hay destinatarios configurados.</div><div class="module-toolbar"><button class="button" data-action="Configurar reporte WhatsApp">Configurar destinatario</button><button class="button primary" data-action="Enviar reporte WhatsApp">Preparar reporte</button></div></section></div></section>`,
       'Usuarios y roles': `
         <header class="topbar"><div><div class="eyebrow">Workspace / Seguridad</div><h1>Usuarios y roles</h1></div><div class="toolbar"><button class="button" data-action="Configurar reporte WhatsApp">Configurar WhatsApp</button><button class="button" data-action="Enviar reporte WhatsApp">Enviar reporte</button><button class="button" data-action="Nuevo usuario">+ Nuevo usuario</button><button class="button primary" data-action="Nuevo rol">+ Nuevo rol</button></div></header>
         <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Usuarios activos</span><strong>14</strong></article><article class="panel module-stat"><span>Roles definidos</span><strong>04</strong></article><article class="panel module-stat"><span>Sesiones abiertas</span><strong>08</strong></article></div><section class="panel"><div class="panel-head"><div><h2>Roles del sistema</h2><p class="panel-caption">Modulos habilitados por responsabilidad operativa</p></div><span class="pill">Multi-tenant</span></div><table class="data-table"><thead><tr><th>Rol</th><th>Alcance</th><th>Modulos habilitados</th><th>Usuarios</th></tr></thead><tbody><tr><td><strong>Propietario/Responsable</strong><small>Control total del establecimiento</small></td><td>Todos los establecimientos</td><td>Configurar, aprobar, exportar, auditar</td><td>02</td></tr><tr><td><strong>Administracion</strong><small>Gestion administrativa y financiera</small></td><td>Todos los establecimientos</td><td>Compras, inventario, costos, reportes</td><td>04</td></tr><tr><td><strong>Ingeniero</strong><small>Precision y decisiones agronomicas</small></td><td>Campos asignados</td><td>Campos, lotes, mapas, prescripciones, analitica</td><td>03</td></tr><tr><td><strong>Operador</strong><small>Ejecucion de tareas de campo</small></td><td>Lotes asignados</td><td>Ver ordenes, registrar ejecuciones y consumos</td><td>05</td></tr></tbody></table></section></section>`,
@@ -1775,7 +2138,7 @@
         <header class="topbar"><div><div class="eyebrow">Workspace / Control</div><h1>Licencias</h1></div><div class="toolbar"><button class="button primary" data-action="Activar licencia">+ Activar Licencia</button></div></header>
         <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Estado</span><strong id="licenseStatus">Sin activar</strong></article><article class="panel module-stat"><span>Tipo</span><strong id="licenseTipo">-</strong></article><article class="panel module-stat warning"><span>Módulos</span><strong id="licenseModuleCount">0</strong></article><article class="panel module-stat"><span>Activada desde</span><strong id="licenseActivatedAt">-</strong></article></div>
         <section class="panel"><div class="panel-head"><div><h2>Licencia activa</h2><p class="panel-caption">Información actual del sistema</p></div><span class="pill" id="licenseActivePill">Sin licencia</span></div><div id="licenseInfo" style="padding:20px;color:#64748b;">Ingresa una clave de licencia para activar el sistema.</div></section>
-        <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Disponibilidad por versión</h2><p class="panel-caption">Características de cada plan</p></div></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:15px;padding:20px;"><div style="background:#252b3b;padding:15px;border-radius:6px;border:1px solid #2d3548;"><h3 style="color:#10b981;margin:0 0 10px 0;">Básica (B)</h3><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Usuarios:</strong> 3</p><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Ha máximo:</strong> 500</p><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Módulos base:</strong> 9 (incluye Empresa)</p></div><div style="background:#252b3b;padding:15px;border-radius:6px;border:1px solid #2d3548;"><h3 style="color:#3b82f6;margin:0 0 10px 0;">Profesional (P)</h3><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Usuarios:</strong> 10</p><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Ha máximo:</strong> 5.000</p><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Módulos base:</strong> 9 + adicionales</p></div><div style="background:#252b3b;padding:15px;border-radius:6px;border:1px solid #2d3548;border-color:#f59e0b;"><h3 style="color:#f59e0b;margin:0 0 10px 0;">Premium (M)</h3><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Usuarios:</strong> Ilimitado</p><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Ha máximo:</strong> Ilimitado</p><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Módulos base:</strong> 9 + catálogo completo</p></div></div></section>
+        <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Disponibilidad por versión</h2><p class="panel-caption">Características de cada plan</p></div></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:15px;padding:20px;"><div style="background:#252b3b;padding:15px;border-radius:6px;border:1px solid #2d3548;"><h3 style="color:#10b981;margin:0 0 10px 0;">Básica (B)</h3><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Usuarios:</strong> 3</p><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Ha máximo:</strong> 500</p><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Módulos:</strong> 4 básicos</p></div><div style="background:#252b3b;padding:15px;border-radius:6px;border:1px solid #2d3548;"><h3 style="color:#3b82f6;margin:0 0 10px 0;">Profesional (P)</h3><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Usuarios:</strong> 10</p><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Ha máximo:</strong> 5.000</p><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Módulos:</strong> 7 profesionales</p></div><div style="background:#252b3b;padding:15px;border-radius:6px;border:1px solid #2d3548;border-color:#f59e0b;"><h3 style="color:#f59e0b;margin:0 0 10px 0;">Premium (M)</h3><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Usuarios:</strong> Ilimitado</p><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Ha máximo:</strong> Ilimitado</p><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Módulos:</strong> Todos</p></div></div></section>
         <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Historial de activaciones</h2><p class="panel-caption">Cliente, versión y vencimiento de cada licencia activada</p></div></div><table class="data-table"><thead><tr><th>Cliente</th><th>Versión</th><th>Vence</th><th>Activada</th><th>Estado</th></tr></thead><tbody id="licenseHistoryRows"><tr><td colspan="5" style="text-align:center;color:#64748b;">Cargando historial...</td></tr></tbody></table></section></section>`
     };
 
@@ -1853,10 +2216,20 @@
       button.className = 'button';
       button.type = 'button';
       button.dataset.action = 'Importar datos historicos';
-      button.textContent = 'Subir Excel (.xlsx/.xls)';
+      button.textContent = 'Importar Excel';
       button.title = 'Primera hoja: encabezados en fila 1 y un registro por fila';
       button.addEventListener('click', () => handleModuleAction(button));
       toolbar.prepend(button);
+      if (!toolbar.querySelector('[data-action="Imprimir módulo"]')) {
+        const printButton = document.createElement('button');
+        printButton.className = 'button';
+        printButton.type = 'button';
+        printButton.dataset.action = 'Imprimir módulo';
+        printButton.textContent = 'Imprimir';
+        printButton.title = 'Imprimir el módulo actual';
+        printButton.addEventListener('click', () => window.print());
+        toolbar.prepend(printButton);
+      }
     }
 
     function googleMyMapsId(sharedUrl) {
@@ -1944,8 +2317,45 @@
       const campaign = localStorage.getItem('pampa-campaign') || '2025 / 2026';
       const header = `*${reportType}*\n${company}\nCampaña ${campaign}\nDestinatario: ${user} · ${role}`;
       const operational = `\n\nCampos: ${registeredFields.length}\nLotes georreferenciados: ${registeredLots.length}\nSuperficie declarada: ${registeredFieldDetails.reduce((total, field) => total + Number(field.surface || 0), 0).toLocaleString('es-AR')} ha`;
-      const alerts = `\n\nAlertas: 2 requieren atención hoy\nÓrdenes en curso: 18\nCumplimiento operativo: 86,2%`;
+      const alertsCount = document.querySelector('#dashboardAlerts')?.textContent || 'Sin calcular';
+      const alerts = `\n\nAlertas activas: ${alertsCount}\nÓrdenes en curso: datos del módulo Operaciones\nCumplimiento operativo: datos registrados en el ERP`;
       return `${header}${operational}${reportType === 'Alertas y pendientes' ? alerts : ''}\n\nGenerado por Pampa Precision ERP · ${new Date().toLocaleString('es-AR')}`;
+    }
+    async function downloadReportPdf(type) {
+      try {
+        const response = await fetch(`/api/reports/${type}.pdf?tenantId=${encodeURIComponent(activeTenantId)}`);
+        if (!response.ok) throw new Error((await response.json().catch(() => ({}))).error || `HTTP ${response.status}`);
+        const blob = await response.blob();
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `pampa-precision-${type}-${new Date().toISOString().slice(0, 10)}.pdf`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+        recordAudit(`Reporte ${type} exportado`, 'PDF');
+        showToast(`Reporte ${type} descargado en PDF`);
+      } catch (error) { showToast(`No se pudo generar el PDF: ${error.message}`); }
+    }
+    async function downloadDocumentPdf(endpoint, fileName, successMessage) {
+      try {
+        const response = await fetch(`${endpoint}?tenantId=${encodeURIComponent(activeTenantId)}`);
+        if (!response.ok) throw new Error((await response.json().catch(() => ({}))).error || `HTTP ${response.status}`);
+        const blob = await response.blob();
+        const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = fileName; link.click(); URL.revokeObjectURL(link.href);
+        recordAudit(successMessage, 'PDF'); showToast(successMessage);
+      } catch (error) { showToast(`No se pudo generar el PDF: ${error.message}`); }
+    }
+
+    function renderReportsModule() {
+      if (activeModuleView !== 'Reportes') return;
+      const setText = (id, value) => { const element = main.querySelector(`#${id}`); if (element) element.textContent = value; };
+      setText('reportFieldsCount', registeredFields.length);
+      setText('reportLotsCount', registeredLots.length);
+      setText('reportMachinesCount', window.agriculturalData?.machines?.length ?? registeredEquipment.length);
+      setText('reportAlertsCount', document.querySelector('#dashboardAlerts')?.textContent || '0');
+      const status = main.querySelector('#reportWhatsAppStatus');
+      const recipients = main.querySelector('#reportWhatsAppRecipients');
+      if (status) { status.textContent = whatsappUserRecipients.length ? `${whatsappUserRecipients.length} configurado(s)` : 'Sin configurar'; status.className = `pill ${whatsappUserRecipients.length ? '' : 'yellow'}`; }
+      if (recipients) recipients.textContent = whatsappUserRecipients.length ? whatsappUserRecipients.map(item => `${item.user} · ${item.role}`).join(' | ') : 'No hay destinatarios configurados.';
     }
 
     function showFieldsAndLotsModule() {
@@ -2160,9 +2570,32 @@
         if (focusLot) map.setView([focusLot.latitude, focusLot.longitude], 15, { animate: false });
       }, 100);
     }
+    function initializePrecisionTools() {
+      const chart = main.querySelector('#precisionNdviChart');
+      const caption = main.querySelector('#precisionNdviCaption');
+      const gisStatus = main.querySelector('#precisionGisStatus');
+      if (!chart || !caption || !gisStatus) return;
+      const history = loadList('pampa-ndvi-history', []);
+      const validHistory = history.filter(item => Number.isFinite(Number(item.value)) && item.date);
+      if (validHistory.length) {
+        chart.innerHTML = validHistory.slice(-12).map(item => { const value = Math.max(0, Math.min(1, Number(item.value))); const className = value < .4 ? 'dim' : value < .65 ? 'yellow' : ''; return `<div class="bar-wrap"><div class="bar ${className}" style="height:${Math.max(8, value * 100)}%" title="NDVI ${value.toFixed(2)}"></div><span>${new Date(`${item.date}T12:00:00`).toLocaleDateString('es-AR', { month: 'short' })}</span></div>`; }).join('');
+        caption.textContent = 'Historial local del lote seleccionado';
+      } else {
+        chart.innerHTML = '<div class="map-legend">Sin historial NDVI real cargado. Consultá el lote en Telemetría y clima.</div>';
+        caption.textContent = 'Sin observaciones satelitales disponibles';
+      }
+      const features = importedGeoJson.flatMap(item => item.geoJson?.features || []).filter(feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type));
+      gisStatus.textContent = features.length ? `${features.length} geometría(s) lista(s) para exportar en GeoJSON.` : 'No hay geometrías GeoJSON importadas. Importalas desde Campos y lotes.';
+    }
 
     function bindModuleActions() {
-      document.querySelectorAll('[data-action]').forEach(action => action.addEventListener('click', () => handleModuleAction(action)));
+      if (main.dataset.actionsBound === 'true') return;
+      main.dataset.actionsBound = 'true';
+      main.addEventListener('click', event => {
+        const action = event.target.closest('[data-action]');
+        if (!action || !main.contains(action)) return;
+        handleModuleAction(action).catch(error => showToast(error.message || 'No se pudo ejecutar la acción'));
+      });
     }
     function auditCategory(event) {
       const content = `${event.action || ''} ${event.resource || ''}`.toLowerCase();
@@ -2192,6 +2625,61 @@
       if (!filter) return;
       filter.addEventListener('change', () => renderAuditEvents(filter.value));
       renderAuditEvents(filter.value);
+    }
+    function initializeAnalyticsModule() {
+      const selector = main.querySelector('#analyticsCrop');
+      const chart = main.querySelector('#analyticsYieldChart');
+      if (!selector || !chart) return;
+      const datasets = {
+        maiz: { label: 'Maiz', average: '8,6 t/ha', cost: '$ 412/ha', quality: '98,4%', values: [55, 83, 69, 46, 63] },
+        soja: { label: 'Soja', average: '3,4 t/ha', cost: '$ 286/ha', quality: '96,8%', values: [72, 61, 88, 54, 77] },
+        trigo: { label: 'Trigo', average: '4,2 t/ha', cost: '$ 318/ha', quality: '97,5%', values: [64, 78, 52, 71, 59] }
+      };
+      const render = () => {
+        const dataset = datasets[selector.value] || datasets.maiz;
+        const average = main.querySelector('#analyticsAverageYield');
+        const cost = main.querySelector('#analyticsOperatingCost');
+        const quality = main.querySelector('#analyticsDataQuality');
+        const label = main.querySelector('#analyticsCropLabel');
+        const caption = main.querySelector('#analyticsChartCaption');
+        if (average) average.textContent = dataset.average;
+        if (cost) cost.textContent = dataset.cost;
+        if (quality) quality.textContent = dataset.quality;
+        if (label) label.textContent = dataset.label;
+        if (caption) caption.textContent = `Comparativa de la campana 2025 / 2026 · ${dataset.label}`;
+        chart.innerHTML = dataset.values.map((value, index) => `<div class="bar-wrap"><div class="bar ${index === 1 ? 'selected' : index % 3 === 0 ? 'dim' : ''}" style="height:${value}%"></div><span>L-${String(index + 4).padStart(2, '0')}</span></div>`).join('');
+      };
+      selector.addEventListener('change', render);
+      render();
+    }
+    async function initializeAgroWeatherModule() {
+      const page = main.querySelector('.module-page');
+      if (!page || page.querySelector('#agroWeatherPanel')) return;
+      page.insertAdjacentHTML('beforeend', '<section class="panel" id="agroWeatherPanel" style="margin-top:19px"><div class="panel-head"><div><h2>Clima y satélite por lote</h2><p class="panel-caption">OpenWeather Agro API · suelo, NDVI/EVI e imágenes Sentinel</p></div><span class="pill" id="agroWeatherStatus">Consultando...</span></div><div class="form-grid"><div class="form-field"><label for="agroWeatherPolygon">Polígono GeoJSON importado</label><select id="agroWeatherPolygon"></select></div><div class="form-field"><label for="agroWeatherDate">Fecha de suelo</label><input id="agroWeatherDate" type="date"></div></div><div class="module-toolbar"><button class="button" type="button" id="agroWeatherRegister">Registrar polígono</button><button class="button primary" type="button" id="agroWeatherQuery">Consultar lote</button></div><div id="agroWeatherResult" class="footnote">La clave se configura únicamente en el backend.</div></section>');
+      const status = page.querySelector('#agroWeatherStatus');
+      const polygonSelect = page.querySelector('#agroWeatherPolygon');
+      const result = page.querySelector('#agroWeatherResult');
+      const importedOptions = importedGeoJson.flatMap(item => (item.geoJson?.features || []).filter(feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)).map((feature, index) => ({ name: `${item.name || 'GeoJSON'} · polígono ${index + 1}`, feature })));
+      polygonSelect.innerHTML = importedOptions.length ? importedOptions.map((item, index) => `<option value="${index}">${item.name}</option>`).join('') : '<option value="">No hay polígonos GeoJSON importados</option>';
+      let providerStatus;
+      try {
+        providerStatus = await api.getPrecisionWeatherStatus();
+        status.textContent = providerStatus.configured ? 'Configurado' : 'Falta API key';
+        status.className = `pill ${providerStatus.configured ? '' : 'yellow'}`;
+      } catch (error) { status.textContent = 'No disponible'; status.className = 'pill red'; result.textContent = error.message; }
+      page.querySelector('#agroWeatherRegister').addEventListener('click', async () => {
+        if (!providerStatus?.configured) { showToast('Configurá OPENWEATHER_AGRO_API_KEY en el backend'); return; }
+        const selected = importedOptions[Number(polygonSelect.value)];
+        if (!selected) { showToast('Importá primero un polígono GeoJSON en Campos y lotes'); return; }
+        try { const polygon = await api.createWeatherPolygon(selected.name, { type: 'Feature', properties: selected.feature.properties || {}, geometry: selected.feature.geometry }); localStorage.setItem(`pampa-agro-polygon:${polygonSelect.value}`, polygon.id); result.textContent = `Polígono registrado: ${polygon.id}. Ya podés consultar suelo e imágenes.`; }
+        catch (error) { result.textContent = `No se pudo registrar el polígono: ${error.message}`; }
+      });
+      page.querySelector('#agroWeatherQuery').addEventListener('click', async () => {
+        const polygonId = localStorage.getItem(`pampa-agro-polygon:${polygonSelect.value}`);
+        if (!polygonId) { result.textContent = 'Registrá primero el polígono seleccionado en OpenWeather Agro API.'; return; }
+        try { const soil = await api.getPrecisionSoil(polygonId, page.querySelector('#agroWeatherDate').value); result.innerHTML = `<strong>Suelo consultado</strong><br>Temperatura superficial: ${soil.t0 != null ? `${(Number(soil.t0) - 273.15).toFixed(1)} °C` : 'Sin dato'}<br>Temperatura a 10 cm: ${soil.t10 != null ? `${(Number(soil.t10) - 273.15).toFixed(1)} °C` : 'Sin dato'}<br>Humedad: ${soil.moisture != null ? `${(Number(soil.moisture) * 100).toFixed(1)}%` : 'Sin dato'}<br><small>Los índices satelitales se consultan desde la búsqueda de imágenes del polígono.</small>`; }
+        catch (error) { result.textContent = `No se pudo consultar el lote: ${error.message}`; }
+      });
     }
 
     function renderTrialFinancePurchases() {
@@ -2228,6 +2716,37 @@
         ? registeredRevenues.map(item => { const itemCost = registeredPurchases.filter(purchase => purchase.lot === item.lot).reduce((total, purchase) => total + Number(purchase.invoiceTotal || 0), 0); const itemNet = Number(item.amount || 0) - itemCost; const itemMargin = Number(item.amount || 0) ? (itemNet / Number(item.amount)) * 100 : 0; return `<tr><td><strong>${item.lot || 'General'}</strong></td><td>$ ${Number(item.amount || 0).toLocaleString('es-AR')}</td><td>$ ${itemCost.toLocaleString('es-AR')}</td><td>$ ${itemNet.toLocaleString('es-AR')}</td><td>${itemMargin.toLocaleString('es-AR', { maximumFractionDigits: 1 })}%</td></tr>`; }).join('')
         : '<tr><td colspan="5">Registrá ingresos y costos para calcular la rentabilidad por lote.</td></tr>';
     }
+    async function loadProfitabilityModule() {
+      if (activeModuleView !== 'Rentabilidad') return;
+      try {
+        const [sales, costs] = await Promise.all([api.getSales(activeTenantId), api.getOperatingCosts(activeTenantId)]);
+        const localRevenue = registeredRevenues.reduce((total, item) => total + Number(item.amount || 0), 0);
+        const localCosts = registeredPurchases.map(purchase => ({ plot_code: purchase.lot || 'General', description: purchase.input || 'Compra', amount_usd: Number(purchase.invoiceTotal || 0) }));
+        const allCosts = costs.concat(localCosts);
+        const revenue = sales.reduce((total, sale) => total + Number(sale.total_amount || 0), 0) + localRevenue;
+        const costTotal = allCosts.reduce((total, cost) => total + Number(cost.amount_usd || 0), 0);
+        const net = revenue - costTotal;
+        const margin = revenue ? (net / revenue) * 100 : 0;
+        const money = value => `$ ${Number(value || 0).toLocaleString('es-AR', { maximumFractionDigits: 2 })}`;
+        const setText = (id, value) => { const element = main.querySelector(`#${id}`); if (element) element.textContent = value; };
+        setText('profitRevenue', money(revenue));
+        setText('profitCosts', money(costTotal));
+        setText('profitNet', money(net));
+        setText('profitMargin', `${margin.toLocaleString('es-AR', { maximumFractionDigits: 1 })}%`);
+        const state = main.querySelector('#profitabilityState');
+        if (state) state.textContent = revenue || costTotal ? 'Calculado' : 'Sin datos';
+        const summary = main.querySelector('#profitabilitySummaryRows');
+        if (summary) summary.innerHTML = revenue || costTotal
+          ? `<tr><td>Ingresos</td><td>${money(revenue)}</td><td>Ventas registradas</td><td><span class="pill">Confirmado</span></td></tr><tr><td>Costos operativos</td><td>${money(costTotal)}</td><td>Maquinaria, labores e insumos</td><td><span class="pill yellow">Registrado</span></td></tr><tr><td>Resultado neto</td><td>${money(net)}</td><td>Ingresos menos costos operativos</td><td><span class="pill ${net >= 0 ? '' : 'red'}">${net >= 0 ? 'Positivo' : 'Negativo'}</span></td></tr>`
+          : '<tr><td colspan="4">Sin ventas ni costos operativos registrados.</td></tr>';
+        const lotRows = main.querySelector('#profitabilityLotRows');
+        if (lotRows) lotRows.innerHTML = allCosts.length
+          ? allCosts.slice(0, 20).map(cost => `<tr><td><strong>${cost.plot_code || 'General'}</strong><small>${cost.description || cost.category || 'Costo operativo'}</small></td><td>-</td><td>${money(cost.amount_usd)}</td><td>-</td><td>-</td></tr>`).join('')
+          : '<tr><td colspan="5">No hay costos operativos registrados.</td></tr>';
+      } catch (error) {
+        showToast('No se pudieron cargar los costos de rentabilidad');
+      }
+    }
 
     function clearTrialModuleDemo(view) {
       const emptyRows = (selector, colspan) => {
@@ -2255,18 +2774,32 @@
       }
     }
 
-    document.querySelectorAll('.nav button').forEach(button => {
+    const mobileMenuButton = document.querySelector('#mobileMenuButton');
+    const mobileSidebarBackdrop = document.querySelector('#mobileSidebarBackdrop');
+    function setMobileSidebarOpen(open) {
+      document.body.classList.toggle('mobile-sidebar-open', open);
+      mobileMenuButton?.setAttribute('aria-expanded', String(open));
+      mobileMenuButton?.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+      if (mobileMenuButton) mobileMenuButton.textContent = open ? '×' : '☰';
+      mobileSidebarBackdrop?.setAttribute('aria-hidden', String(!open));
+    }
+    mobileMenuButton?.addEventListener('click', () => setMobileSidebarOpen(!document.body.classList.contains('mobile-sidebar-open')));
+    mobileSidebarBackdrop?.addEventListener('click', () => setMobileSidebarOpen(false));
+    document.querySelectorAll('button[data-view]').forEach(button => {
       button.addEventListener('click', () => {
-        document.querySelector('.nav button.active')?.classList.remove('active');
+        setMobileSidebarOpen(false);
+        document.querySelector('button[data-view].active')?.classList.remove('active');
         button.classList.add('active');
         activeModuleView = button.dataset.view;
         if (button.dataset.view === 'Centro operativo') {
           main.innerHTML = dashboard;
           bindDashboardActions();
+          window.PampaIA?.mount();
         } else if (button.dataset.view === 'Campos y lotes') {
           showFieldsAndLotsModule();
         } else {
           main.innerHTML = moduleViews[button.dataset.view];
+          if (button.dataset.view === 'ARCA') main.querySelector('.module-page')?.setAttribute('id', 'mod-arca');
           clearTrialModuleDemo(button.dataset.view);
           renderTrialFinancePurchases();
           renderTrialProfitability();
@@ -2275,9 +2808,14 @@
           if (button.dataset.view === 'Agricola' && !isTrialMode) loadAgriculturalModule();
           if (button.dataset.view === 'Finanzas' && !isTrialMode) loadFinanceModule();
           if (button.dataset.view === 'RRHH' && !isTrialMode) loadHrModule();
+          if (button.dataset.view === 'Rentabilidad') loadProfitabilityModule();
           if (button.dataset.view === 'Calibraciones') loadCalibrationModule();
           if (button.dataset.view === 'Plan de equipamiento') loadEquipmentPlanModule();
+          if (button.dataset.view === 'Analitica') initializeAnalyticsModule();
+          if (button.dataset.view === 'Reportes') renderReportsModule();
           if (button.dataset.view === 'Precision') initializePrecisionMap();
+          if (button.dataset.view === 'Precision') initializePrecisionTools();
+          if (button.dataset.view === 'Telemetria y clima') initializeAgroWeatherModule();
           if (button.dataset.view === 'Auditoria') bindAuditFilter();
           if (button.dataset.view === 'ARCA') loadArcaModule();
           if (button.dataset.view === 'Licencias') loadLicensesModule();
@@ -2286,7 +2824,7 @@
       });
     });
     function openModule(view) {
-      const button = [...document.querySelectorAll('.nav button')].find(item => item.dataset.view === view);
+      const button = [...document.querySelectorAll('button[data-view]')].find(item => item.dataset.view === view);
       button?.click();
     }
     function refreshDashboardData() {
@@ -2314,23 +2852,78 @@
         ? `<i class="status"></i><div><strong>Sin ordenes de trabajo</strong><span>Hay ${lots.length} lote(s), pero no hay ordenes registradas.</span></div>`
         : '<i class="status"></i><div><strong>Sin ordenes de trabajo</strong><span>Las ordenes apareceran cuando se registren.</span></div>';
       const alerts = document.querySelector('#dashboardAlertsList');
-      if (alerts) alerts.innerHTML = '<div class="alert info"><div class="alert-head"><span>Sin alertas</span><span>Informacion</span></div><p>No hay alertas operativas registradas.</p></div>';
+      if (alerts) {
+        const activeAlerts = [];
+        const machines = window.agriculturalData?.machines || registeredEquipment;
+        const calibrationCount = calibrationRecords.length;
+        const selectedScale = localStorage.getItem('pampa-equipment-scale') || 'E2';
+        const selectedMachinery = localStorage.getItem('pampa-equipment-machinery') || 'M1';
+        const selectedCrop = localStorage.getItem('pampa-equipment-crop') || 'ALL';
+        if (!lots.length) activeAlerts.push({ level: 'critical', rule: 'R-06', title: 'Sin lotes productivos', detail: 'Cargá campos y lotes antes de generar recomendaciones por superficie.' });
+        if (!machines.length) activeAlerts.push({ level: 'warning', rule: 'R-06', title: 'Sin equipos cargados', detail: 'El mantenimiento y la planificación de maquinaria requieren al menos un equipo registrado.' });
+        if (!calibrationCount) activeAlerts.push({ level: 'warning', rule: 'R-07', title: 'Sin calibraciones registradas', detail: 'Los mapas y prescripciones no deben considerarse auditables hasta registrar una calibración.' });
+        if (selectedCrop === 'SJ') activeAlerts.push({ level: 'warning', rule: 'R-02', title: 'Soja: priorizar pulverización', detail: 'La respuesta de densidad variable puede ser baja; revisá PUL-08 y pérdidas de cabezal antes de invertir en densidad.' });
+        if ((selectedCrop === 'TR' || selectedCrop === 'GI') && ['E3', 'E4'].includes(selectedScale)) activeAlerts.push({ level: 'warning', rule: 'R-03', title: `${equipCodebook.crop[selectedCrop]} en escala ${selectedScale}`, detail: 'La escala seleccionada requiere evaluar monitor NIR de cosecha para cerrar calidad y pérdidas.' });
+        if (['M2', 'M3'].includes(selectedMachinery)) activeAlerts.push({ level: 'warning', rule: 'R-05', title: 'Modelo contratista seleccionado', detail: 'Exigí contrato de entrega de datos calibrados antes de zonificar o emitir prescripciones.' });
+        setText('dashboardAlerts', String(activeAlerts.length));
+        setText('dashboardAlertsTrend', activeAlerts.length ? `${activeAlerts.length} regla(s) requieren revisión` : 'Sin alertas activas');
+        alerts.innerHTML = activeAlerts.length
+          ? activeAlerts.map(alert => `<div class="alert ${alert.level === 'critical' ? 'critical' : ''}"><div class="alert-head"><span>${alert.title}</span><span>${alert.rule}</span></div><p>${alert.detail}</p></div>`).join('')
+          : '<div class="alert info"><div class="alert-head"><span>Sin alertas</span><span>Informacion</span></div><p>No hay reglas del motor con condiciones activas.</p></div>';
+      }
       const yieldChart = document.querySelector('#dashboardYieldChart');
       if (yieldChart) yieldChart.innerHTML = '<div class="map-legend">Sin datos de rinde registrados.</div>';
       setText('dashboardYieldAverage', 'Sin datos');
     }
+    function manageDashboardAlerts() {
+      const panel = document.querySelector('#dashboardAlertsList')?.closest('.panel');
+      const count = Number(document.querySelector('#dashboardAlerts')?.textContent || 0);
+      if (!panel) return;
+      panel.classList.remove('dashboard-alerts-focus');
+      panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      requestAnimationFrame(() => panel.classList.add('dashboard-alerts-focus'));
+      setTimeout(() => panel.classList.remove('dashboard-alerts-focus'), 1400);
+      showToast(count ? `${count} regla(s) requieren revisión en el panel de alertas` : 'No hay alertas activas');
+    }
+    async function refreshMachineComplianceAlerts() {
+      const alerts = document.querySelector('#dashboardAlertsList');
+      if (!alerts) return;
+      const setDashboardText = (id, value) => { const element = document.querySelector(`#${id}`); if (element) element.textContent = value; };
+      try {
+        const localCompliance = registeredEquipment.map(item => ({ ...item, vto_status: item.lastVtoDate ? 'valid' : 'missing_data', registration_status: item.registrationStatus || 'pending', sticker_status: item.stickerStatus || 'pending', cleaning_verified: item.cleaningVerified }));
+        const serverCompliance = await api.getMachineCompliance(activeTenantId);
+        const compliance = serverCompliance.length ? serverCompliance : localCompliance;
+        const legalAlerts = [];
+        compliance.forEach(item => {
+          const equipment = `${item.code || 'Equipo'} ${item.brand || ''} ${item.model || ''}`.trim();
+          if (item.registration_status !== 'valid') legalAlerts.push({ level: 'critical', rule: 'SENASA-REG', title: `${equipment}: habilitación pendiente`, detail: 'Verificá el registro provincial/SENASA antes de asignar el equipo a una labor.' });
+          if (item.sticker_status !== 'valid') legalAlerts.push({ level: 'critical', rule: 'SENASA-OBL', title: `${equipment}: oblea pendiente`, detail: 'Cargá la oblea vigente y su respaldo antes de operar.' });
+          if (item.vto_status === 'overdue') legalAlerts.push({ level: 'critical', rule: 'VTO-ANUAL', title: `${equipment}: VTO vencida`, detail: `La verificación técnica venció el ${item.vto_due_date || 'la fecha registrada'}.` });
+          if (item.vto_status === 'due_soon') legalAlerts.push({ level: 'warning', rule: 'VTO-30D', title: `${equipment}: VTO próxima`, detail: `La verificación técnica vence el ${item.vto_due_date}.` });
+          if (item.vto_status === 'missing_data') legalAlerts.push({ level: 'warning', rule: 'VTO-DATOS', title: `${equipment}: faltan datos VTO`, detail: 'Cargá fecha de compra y última VTO para calcular la frecuencia legal.' });
+          if (['M2', 'M3'].includes(localStorage.getItem('pampa-equipment-machinery')) && !item.cleaning_verified) legalAlerts.push({ level: 'warning', rule: 'SENASA-LIM', title: `${equipment}: limpieza sin verificar`, detail: 'Antes de una labor contratada, registrá checklist y evidencia fotográfica de lavado y ausencia de tierra.' });
+        });
+        if (!legalAlerts.length) return;
+        const existing = [...alerts.querySelectorAll('.alert')].map(node => node.outerHTML).join('');
+        alerts.innerHTML = existing + legalAlerts.map(alert => `<div class="alert ${alert.level === 'critical' ? 'critical' : ''}"><div class="alert-head"><span>${alert.title}</span><span>${alert.rule}</span></div><p>${alert.detail}</p></div>`).join('');
+        setDashboardText('dashboardAlerts', String(alerts.querySelectorAll('.alert').length));
+        setDashboardText('dashboardAlertsTrend', `${alerts.querySelectorAll('.alert').length} regla(s) requieren revisión`);
+      } catch { /* El tablero base sigue mostrando las alertas locales si la API no está disponible. */ }
+    }
     function bindDashboardActions() {
       addHistoricalImportAction('Centro operativo');
       refreshDashboardData();
-      document.querySelector('#establishment').addEventListener('change', event => showToast(`Contexto actualizado: ${event.target.value}`));
+      refreshMachineComplianceAlerts();
+      refreshDashboardContext();
+      bindDashboardContextControls();
       const companySelector = document.querySelector('#sidebarCompanySelector');
       companySelector.value = localStorage.getItem('pampa-company') || companySelector.value;
-      document.querySelector('#newOrder').addEventListener('click', () => openNewForm('Nueva orden de trabajo', [{ id: 'operation', label: 'Tipo de operacion', type: 'select', options: ['Aplicacion foliar', 'Fertilizacion', 'Relevamiento'] }, { id: 'plot', label: 'Lote', type: 'select', options: registeredLots }, { id: 'date', label: 'Fecha solicitada', type: 'date' }], formData => recordAudit('Creacion de orden de trabajo', formData.get('plot'))));
       document.querySelector('#mapButton').addEventListener('click', () => openModule('Precision'));
       document.querySelector('#jobsButton').addEventListener('click', () => showToast('Mostrando el resumen de ordenes activas'));
-      document.querySelector('#alertsButton').addEventListener('click', () => showToast('Panel de alertas seleccionado'));
+      document.querySelector('#alertsButton').addEventListener('click', manageDashboardAlerts);
       document.querySelector('#backupButton').addEventListener('click', downloadBackup);
       document.querySelector('#cleanupButton').addEventListener('click', clearLocalCache);
+      document.querySelector('#dashboardPrintButton')?.addEventListener('click', () => window.print());
     }
     document.querySelector('#deepCleanupButton').addEventListener('click', runDeepCleanup);
     bindDashboardActions();

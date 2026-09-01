@@ -173,6 +173,22 @@ class PampaAPI {
     }
   }
 
+  async getPrecisionWeatherStatus() {
+    return this.request('/precision/weather/status');
+  }
+
+  async createWeatherPolygon(name, geoJson) {
+    return this.request('/precision/weather/polygons', { method: 'POST', body: JSON.stringify({ name, geoJson }) });
+  }
+
+  async getPrecisionSoil(polygonId, date = '') {
+    return this.request(`/precision/weather/soil/${encodeURIComponent(polygonId)}${date ? `?date=${encodeURIComponent(date)}` : ''}`);
+  }
+
+  async getPrecisionSatelliteImages(polygonId, start, end) {
+    return this.request(`/precision/weather/images/${encodeURIComponent(polygonId)}?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`);
+  }
+
   async getEquipmentPlanSource() {
     return this.request('/equipment-plan-source');
   }
@@ -183,6 +199,10 @@ class PampaAPI {
 
   async getMachines(tenantId) {
     return this.request(`/tenants/${tenantId}/machines`);
+  }
+
+  async getMachineCompliance(tenantId) {
+    return this.request(`/tenants/${tenantId}/machine-compliance`);
   }
 
   async createMachine(tenantId, data) {
@@ -249,12 +269,16 @@ class PampaAPI {
     return this.request(`/tenants/${tenantId}/lpgs/${lpgId}/authorize`, { method: 'POST' });
   }
 
-  async getArcaStatus() {
-    return this.request('/arca/status');
+  async getArcaStatus(tenantId) {
+    return this.request(`/tenants/${tenantId}/arca/status`);
   }
 
-  async updateArcaConfig(data) {
-    return this.request('/arca/config', { method: 'PUT', body: JSON.stringify(data) });
+  async getArcaConfig(tenantId) {
+    return this.request(`/tenants/${tenantId}/arca/config`);
+  }
+
+  async updateArcaConfig(tenantId, data) {
+    return this.request(`/tenants/${tenantId}/arca/config`, { method: 'PUT', body: JSON.stringify(data) });
   }
 
   async checkArcaSisa(tenantId, data) {
@@ -263,6 +287,10 @@ class PampaAPI {
 
   async createArcaCpe(tenantId, data) {
     return this.request(`/tenants/${tenantId}/arca/cpe`, { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async getArcaCpes(tenantId) {
+    return this.request(`/tenants/${tenantId}/arca/cpe`);
   }
 
   async getCashAccounts(tenantId) {

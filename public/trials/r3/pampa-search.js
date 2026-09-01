@@ -17,6 +17,51 @@
     return '';
   }
 
+  function getIndexedDbStores() {
+    try {
+      return typeof DATA_STORES !== 'undefined' && typeof all === 'function' ? DATA_STORES : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function getStoreLocation(store) {
+    const locations = {
+      animals: 'Animales', health: 'Sanidad', inventory: 'Inventario', feeding: 'Alimentación', costs: 'Costos', sales: 'Ventas',
+      boletosSenal: 'Transporte', machinery: 'Maquinarias', machineMaintenance: 'Maquinarias', facilities: 'Campos', geoFields: 'Campos',
+      finances: 'Finanzas', transport: 'Transporte', hr: 'Recursos Humanos', arcaOperations: 'ARCA', arcaInvoices: 'ARCA', arcaRec: 'ARCA',
+      renspaControl: 'ARCA', sanitaryBlocks: 'Sanidad', vademecumPorcino: 'Sanidad', insumosAlimenticios: 'Alimentación',
+      racionesElaboradas: 'Alimentación', racionComposicion: 'Alimentación', consumoAlimentacion: 'Alimentación', bioVisits: 'Bioseguridad',
+      bioChecks: 'Bioseguridad', bioLogs: 'Bioseguridad', bioQuarantines: 'Bioseguridad'
+    };
+    return locations[store] || store;
+  }
+
+  function navigateToStore(store) {
+    const view = getStoreLocation(store).toLocaleLowerCase('es-AR').replace(/\s+/g, '');
+    const target = document.querySelector(`[data-view="${view}"], [data-view="${getStoreLocation(store).toLocaleLowerCase('es-AR')}"]`);
+    target?.click();
+  }
+
+  async function findIndexedDbRecords(query) {
+    const stores = getIndexedDbStores();
+    if (!stores) return [];
+    const matches = [];
+    for (const store of stores) {
+      const records = await all(store);
+      records.forEach((record) => {
+        const text = extractRecordText(record).trim().replace(/\s+/g, ' ');
+        const normalized = normalize(text);
+        const index = normalized.indexOf(query);
+        if (index < 0) return;
+        const start = Math.max(0, index - 48);
+        const snippet = text.slice(start, start + query.length + 108);
+        matches.push({ store, location: getStoreLocation(store), snippet: `${start > 0 ? '...' : ''}${snippet}${text.length > start + snippet.length ? '...' : ''}` });
+      });
+    }
+    return matches.slice(0, 20);
+  }
+
   function mountNativeSearch() {
     const input = document.getElementById('globalSearch');
     const moduleSelect = document.getElementById('globalSearchModule');
@@ -80,7 +125,7 @@
     else navigation.prepend(wrapper);
     const input = wrapper.querySelector('input');
     const results = wrapper.querySelector('[role="listbox"]');
-    input.addEventListener('input', () => {
+    input.addEventListener('input', async () => {
       const query = normalize(input.value);
       results.replaceChildren();
       const count = wrapper.querySelector('#pampaGlobalSearchCount');
@@ -91,7 +136,9 @@
         const module = normalize(item.dataset?.view || item.dataset?.module || '');
         return text.includes(query) || module.includes(query) || Boolean(module && aliases[query] && aliases[query].includes(module));
       }).slice(0, 20);
-      count.textContent = `${matches.length} coincidencia(s)`;
+      const indexedMatches = query.length >= 2 ? await findIndexedDbRecords(query) : [];
+      const totalMatches = matches.length + indexedMatches.length;
+      count.textContent = `${totalMatches} coincidencia(s)`;
       matches.forEach((item) => {
         const button = document.createElement('button');
         button.type = 'button';
@@ -109,7 +156,20 @@
         });
         results.appendChild(button);
       });
-      results.hidden = matches.length === 0;
+      indexedMatches.forEach((match) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.setAttribute('role', 'option');
+        button.textContent = `${match.location} · ${match.snippet}`;
+        button.addEventListener('click', () => {
+          navigateToStore(match.store);
+          input.value = '';
+          count.textContent = '';
+          results.hidden = true;
+        });
+        results.appendChild(button);
+      });
+      results.hidden = totalMatches === 0;
     });
     document.addEventListener('click', (event) => { if (!wrapper.contains(event.target)) results.hidden = true; });
   }

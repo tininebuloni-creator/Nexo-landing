@@ -1,9 +1,9 @@
 (function (global) {
   const pattern = /^NEXO-([A-Z])([A-Z0-9]{3})-([A-Z0-9]{4})-([A-Z0-9]{4})$/;
   const plans = {
-    B: { name: 'Básica', maxUsers: 4, modules: ['empresa', 'campos', 'dashboard', 'ia'] },
-    P: { name: 'Profesional', maxUsers: 10, modules: ['empresa', 'campos', 'maquinarias', 'finanzas', 'dashboard', 'ia'] },
-    M: { name: 'Premium', maxUsers: -1, modules: ['empresa', 'campos', 'maquinarias', 'finanzas', 'documentos', 'reportes', 'dashboard', 'ia', 'conectividad'] }
+    B: { name: 'Básica', maxUsers: 4, modules: ['centro_operativo', 'dashboard', 'empresa', 'campos', 'precision', 'fiscal', 'ia', 'reportes', 'usuarios_roles'] },
+    P: { name: 'Profesional', maxUsers: 10, modules: ['centro_operativo', 'dashboard', 'empresa', 'campos', 'precision', 'fiscal', 'ia', 'reportes', 'usuarios_roles', 'maquinarias', 'finanzas', 'telemetria_clima', 'calibraciones', 'analitica'] },
+    M: { name: 'Premium', maxUsers: -1, modules: ['centro_operativo', 'dashboard', 'empresa', 'campos', 'precision', 'fiscal', 'ia', 'reportes', 'usuarios_roles', 'maquinarias', 'finanzas', 'documentos', 'conectividad', 'telemetria_clima', 'calibraciones', 'analitica', 'rrhh', 'auditoria'] }
   };
   function normalize(value) { return String(value || '').trim().toUpperCase(); }
   function validateLicenseFormat(value) { return pattern.test(normalize(value)); }
