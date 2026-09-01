@@ -15,9 +15,12 @@
 <script src="./pampa-license-key.js"></script>
 <script src="./pampa-license-verify.js"></script>
 <script src="./pampa-licensing.js"></script>
+<script src="./pampa-sync-envelope.js?v=1"></script>
 <script src="./pampa-trial-links.js"></script>
+<script src="../../packages/pampa-privacy-popup.js"></script>
 <script src="./pampa-offline-core.js"></script>
-<script src="./pampa-search.js?v=2"></script>
+<script src="./pampa-report-voice.js"></script>
+<script src="./pampa-search.js?v=3"></script>
 
 <!-- Google Drive API -->
 <script src="https://apis.google.com/js/api.js"></script>
@@ -957,6 +960,23 @@ form .full {
   grid-column: 1 / -1;
 }
 
+.bio-check-section {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 9px;
+  padding: 13px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  background: var(--bg-primary);
+}
+.bio-check-section strong { color: var(--blue); font-size: 13px; }
+.bio-check-option { display: flex; align-items: flex-start; gap: 10px; margin: 0; color: var(--text-secondary); font-size: 13px; line-height: 1.4; text-transform: none; letter-spacing: 0; cursor: pointer; }
+.bio-check-option input { width: 20px; height: 20px; min-width: 20px; margin: 0; accent-color: var(--green); }
+.bio-photo-evidence { display: grid; gap: 8px; padding: 10px; border-radius: var(--radius); background: var(--bg-secondary); }
+.bio-photo-evidence span { color: var(--text-secondary); font-size: 12px; font-weight: 600; }
+.bio-photo-evidence input { display: none; }
+.bio-photo-preview { width: 100%; max-height: 190px; object-fit: cover; border: 1px solid var(--border-light); border-radius: var(--radius); }
+
 label {
   display: block;
   font-size: 11px;
@@ -1665,6 +1685,13 @@ tr:hover td {
 }
 
 </style>
+  <style>
+    @media print {
+      .sidebar, .dashboard-tools-panel, .modal, button, input, select, textarea { display: none !important; }
+      main, .view.active, .view:not([hidden]) { display: block !important; width: 100% !important; margin: 0 !important; }
+      body { background: #fff !important; color: #000 !important; }
+    }
+  </style>
 <script src="/trial-gate.js"></script>
 </head>
 <body>
@@ -1705,7 +1732,7 @@ tr:hover td {
           <div class="nav-dropdown-inner">
             <button class="nav-item active" type="button" data-view="dashboard"><span class="nav-icon">📊</span><span>Dashboard</span></button>
             <button class="nav-item" type="button" data-view="empresa"><span class="nav-icon">🏢</span><span>Empresa</span></button>
-            <button class="nav-item" type="button" data-view="arca"><span class="nav-icon">🧾</span><span>ARCA</span></button>
+            <button class="nav-item" type="button" data-view="arca"><span class="nav-icon">🧾</span><span>Fiscal Porcinos</span></button>
           </div>
         </div>
       </div>
@@ -1717,6 +1744,7 @@ tr:hover td {
             <button class="nav-item" type="button" data-view="animales"><span class="nav-icon">🐖</span><span>Animales</span></button>
             <button class="nav-item" type="button" data-view="movimientos"><span class="nav-icon">🔄</span><span>Movimientos</span></button>
             <button class="nav-item" type="button" data-view="sanidad"><span class="nav-icon">💉</span><span>Sanidad</span></button>
+            <button class="nav-item" type="button" data-view="bioseguridad"><span class="nav-icon">🛡</span><span>Bioseguridad</span></button>
             <button class="nav-item" type="button" data-view="inventario"><span class="nav-icon">📦</span><span>Inventario</span></button>
             <button class="nav-item" type="button" data-view="alimentacion"><span class="nav-icon">🌽</span><span>Alimentación</span></button>
             <button class="nav-item" type="button" data-view="maquinarias"><span class="nav-icon">🚜</span><span>Maquinarias</span></button>
@@ -1791,8 +1819,11 @@ tr:hover td {
       <label for="dashboardUser" style="font-size:11px;color:var(--text-dim);margin-bottom:-6px">Usuario activo</label>
       <select class="dashboard-role-select" id="dashboardUser"></select>
       <div class="dashboard-quick-grid">
-        <button class="dashboard-action-btn" type="button" onclick="chooseSyncFolder()">Conectar destino</button>
+        <button class="dashboard-action-btn" type="button" onclick="abrirConfiguracionSincronizacion()">Conectar destino</button>
         <button class="dashboard-action-btn" type="button" onclick="syncNow()">Sincronizar ahora</button>
+        <a class="dashboard-action-btn" href="https://dolarhoy.com/" target="_blank" rel="noopener noreferrer">Dolar Hoy</a>
+        <a class="dashboard-action-btn" href="https://www.acamarket.com.ar/" target="_blank" rel="noopener noreferrer">Insumos ACAMarket</a>
+        <button class="dashboard-action-btn" type="button" onclick="window.print()" title="Imprimir la vista actual">Imprimir</button>
         <button class="dashboard-action-btn" type="button" onclick="document.getElementById('restoreFile').click()">Importar</button>
         <button class="dashboard-action-btn" type="button" onclick="backup()">Exportar</button>
         <button class="dashboard-action-btn danger" type="button" onclick="clearAll()">Limpieza básica</button>
@@ -1819,6 +1850,24 @@ tr:hover td {
     </div>
     <div class="dashboard-renspa-list" id="dashboardRenspaAlerts">
       <div class="dashboard-renspa-item"><div class="dashboard-renspa-campo">Sin alertas de vencimiento próximo.</div></div>
+    </div>
+  </div>
+  <div class="card dashboard-renspa-alerts" id="dashboardSanidadPrioritariaPanel" style="margin-top:12px">
+    <div class="dashboard-renspa-head">
+      <h3>Alertas sanitarias prioritarias</h3>
+      <span class="renspa-chip ok" id="kSanidadPrioritariaChip">Sin alertas</span>
+    </div>
+    <div class="dashboard-renspa-list" id="dashboardSanidadPrioritariaAlerts">
+      <div class="dashboard-renspa-item"><div class="dashboard-renspa-campo">Sin alertas sanitarias prioritarias.</div></div>
+    </div>
+  </div>
+  <div class="card dashboard-renspa-alerts" id="dashboardMantenimientoPanel" style="margin-top:12px">
+    <div class="dashboard-renspa-head">
+      <h3>Alertas de mantenimiento e instalaciones</h3>
+      <span class="renspa-chip ok" id="kMantenimientoChip">Sin alertas</span>
+    </div>
+    <div class="dashboard-renspa-list" id="dashboardMantenimientoAlerts">
+      <div class="dashboard-renspa-item"><div class="dashboard-renspa-campo">Sin alertas de mantenimiento ni instalaciones.</div></div>
     </div>
   </div>
   <div class="grid2" style="margin-top:15px">
@@ -1900,7 +1949,7 @@ tr:hover td {
       <div><label>Tipo</label><select id="sTipo"><option>Vacunación</option><option>Desparasitación</option><option>Tratamiento</option><option>Prevención</option><option>Control</option><option>Mortandad</option><option>Notificación síntoma</option></select></div>
       <div><label>Producto / práctica</label><select id="sProducto" required><option value="">Seleccionar</option><option>Vacuna reproductoras</option><option>Vacuna lechones</option><option>Desparasitación</option><option>Tratamiento antibiótico</option><option>Antiinflamatorio</option><option>Vitaminas</option><option>Minerales</option><option>Desinfectante</option><option>Control clínico</option><option>Otro</option></select></div>
       <div><label>Medicamento del vademécum</label><select id="sMedicamento"><option value="">Sin medicamento / sin carencia</option></select></div>
-      <div><label>Evento sanitario</label><select id="sObjetivo" required><option value="AUJESZKY">Aujeszky</option><option value="PARVOVIRUS">Parvovirus</option><option value="COLIBACILOSIS">Colibacilosis</option><option value="NEUMONIA_ENZOOTICA">Neumonía enzootica</option><option value="TRIQUINOSIS">Triquinosis</option><option value="SINDROME_HEMORRAGICO">Síndrome hemorrágico</option><option value="LESIONES_VESICULARES">Lesiones vesiculares</option><option value="FALLA_REPRODUCTIVA_MASIVA">Falla reproductiva masiva</option><option value="OTRO">Otro</option></select></div>
+      <div><label>Evento sanitario</label><select id="sObjetivo" required><option value="AUJESZKY">Aujeszky</option><option value="BRUCELOSIS">Brucelosis porcina</option><option value="TRIQUINOSIS">Triquinosis</option><option value="PPA">Peste Porcina Africana</option><option value="PPC">Peste Porcina Clásica</option><option value="PRRS">Síndrome Respiratorio Reproductivo Porcino</option><option value="FIEBRE_AFTOSA">Fiebre aftosa</option><option value="SINDROME_VESICULAR">Síndrome vesicular</option><option value="SINDROME_HEMORRAGICO">Síndrome hemorrágico</option><option value="FALLA_REPRODUCTIVA_MASIVA">Falla reproductiva masiva</option><option value="PARVOVIRUS">Parvovirus</option><option value="COLIBACILOSIS">Colibacilosis</option><option value="NEUMONIA_ENZOOTICA">Neumonía enzootica</option><option value="OTRO">Otro</option></select></div>
       <div><label>Animales tratados</label><input type="number" id="sCant" min="1" required></div>
       <div><label>Última dosis</label><input type="date" id="sFinTrat"></div>
       <div><label>Carencia antes de faena (días)</label><input type="number" id="sCarencia" min="0" value="0" readonly></div>
@@ -1911,6 +1960,31 @@ tr:hover td {
     </form>
   </div>
   <div class="card" style="margin-top:15px"><div class="tablewrap"><table><thead><tr><th>Fecha</th><th>Categoría</th><th>Tipo</th><th>Producto</th><th>Cant.</th><th>Costo</th></tr></thead><tbody id="healthTable"></tbody></table></div></div>
+</section>
+
+<section id="bioseguridad" class="view">
+  <h2>Plan de bioseguridad</h2>
+  <div class="grid" style="margin-bottom:12px">
+    <div class="card kpi"><div class="label">Visitas bloqueadas</div><div class="value" id="bioBlockedVisits">0</div></div>
+    <div class="card kpi"><div class="label">Controles vencidos</div><div class="value" id="bioOverdueControls">0</div></div>
+    <div class="card kpi"><div class="label">Cuarentenas activas</div><div class="value" id="bioActiveQuarantines">0</div></div>
+  </div>
+  <div class="card"><h3 style="margin-bottom:10px">Registro de visitas y accesos</h3><form id="bioVisitForm">
+    <div><label>Ingreso</label><input id="bioVisitAt" type="datetime-local" required></div><div><label>Nombre y apellido</label><input id="bioVisitName" required></div><div><label>DNI</label><input id="bioVisitDni" required></div><div><label>Motivo</label><input id="bioVisitReason" required></div><div><label>Procedencia</label><input id="bioVisitOrigin" required></div><div><label>Última visita a granja porcina</label><input id="bioVisitLastFarm" type="datetime-local" required></div><div><label>Ducha y ropa exclusiva</label><select id="bioVisitFilter"><option value="SI">Cumplido</option><option value="NO">No cumplido</option></select></div><div><label>Patente / vehículo</label><input id="bioVisitVehicle"></div><div class="full actions"><button class="btn">Registrar acceso</button></div>
+  </form><div class="tablewrap" style="margin-top:12px"><table><thead><tr><th>Ingreso</th><th>Persona</th><th>Motivo</th><th>Procedencia</th><th>Vacío</th><th>Estado</th></tr></thead><tbody id="bioVisitTable"></tbody></table></div></div>
+  <div class="card" style="margin-top:12px"><h3 style="margin-bottom:10px">Checklist estructural y operativo</h3><form id="bioCheckForm">
+    <div><label>Fecha</label><input id="bioCheckDate" type="date" required></div>
+    <div class="bio-check-section"><strong>1. Accesos y perímetro</strong><label class="bio-check-option"><input id="bioFence" type="checkbox">Cerco perimetral íntegro, sin roturas ni ingreso de animales.</label><label class="bio-check-option"><input id="bioGate" type="checkbox">Portón principal cerrado con llave.</label><label class="bio-check-option"><input id="bioShower" type="checkbox">Filtro sanitario, duchas, jabón y toallas operativos.</label><label class="bio-check-option"><input id="bioClothing" type="checkbox">Botas desinfectadas y ropa exclusiva disponibles.</label><label class="bio-check-option"><input id="bioVisitsComplete" type="checkbox">Registro de visitas completado al día.</label><div class="bio-photo-evidence"><span>Evidencia del perímetro o ingreso</span><label class="btn secondary" for="bioPerimeterPhoto">Abrir cámara</label><input id="bioPerimeterPhoto" type="file" accept="image/*" capture="environment"><img id="bioPerimeterPreview" class="bio-photo-preview" alt="Evidencia del perímetro" hidden></div></div>
+    <div class="bio-check-section"><strong>2. Logística y vehículos</strong><label class="bio-check-option"><input id="bioVehicleDisinfection" type="checkbox">Vado de desinfección con nivel y concentración correctos.</label><label class="bio-check-option"><input id="bioZones" type="checkbox">Camiones externos permanecieron en zona sucia.</label><label class="bio-check-option"><input id="bioDock" type="checkbox">Embarcadero lavado y desinfectado después de carga/descarga.</label><div class="bio-photo-evidence"><span>Evidencia del vado o embarcadero</span><label class="btn secondary" for="bioLogisticsPhoto">Abrir cámara</label><input id="bioLogisticsPhoto" type="file" accept="image/*" capture="environment"><img id="bioLogisticsPreview" class="bio-photo-preview" alt="Evidencia logística" hidden></div></div>
+    <div class="bio-check-section"><strong>3. Galpones y sanidad</strong><label class="bio-check-option"><input id="bioAllInOut" type="checkbox">Vacío sanitario cumplido en salas vacías.</label><label class="bio-check-option"><input id="bioPests" type="checkbox">Cebaderas revisadas, activas y sin signos de roedores.</label><label class="bio-check-option"><input id="bioFeedSecurity" type="checkbox">Silos cerrados, sin ingreso de aves ni humedad.</label><label class="bio-check-option"><input id="bioMortality" type="checkbox">Cadáveres retirados y dispuestos correctamente.</label></div>
+    <div class="full actions"><button class="btn">Guardar y descargar PDF</button></div>
+  </form><div class="tablewrap" style="margin-top:12px"><table><thead><tr><th>Fecha</th><th>Resultado</th><th>Desvíos</th><th>PDF</th></tr></thead><tbody id="bioCheckTable"></tbody></table></div></div>
+  <div class="card" style="margin-top:12px"><h3 style="margin-bottom:10px">Bitácora DDD, limpieza y agua</h3><form id="bioLogForm">
+    <div><label>Fecha</label><input id="bioLogDate" type="date" required></div><div><label>Control</label><select id="bioLogType"><option value="DDD">DDD / control de plagas</option><option value="LIMPIEZA">Limpieza y desinfección</option><option value="VACIO_SANITARIO">Vacío sanitario</option><option value="AGUA">Análisis de agua</option><option value="MORTALIDAD">Disposición de cadáveres</option></select></div><div><label>Sala / sector</label><input id="bioLogSector" required></div><div><label>Producto, método o laboratorio</label><input id="bioLogMethod" required></div><div><label>Resultado</label><select id="bioLogResult"><option>Conforme</option><option>No conforme</option></select></div><div><label>Próximo control</label><input id="bioLogDue" type="date"></div><div class="full actions"><button class="btn">Registrar bitácora</button></div>
+  </form><div class="tablewrap" style="margin-top:12px"><table><thead><tr><th>Fecha</th><th>Control</th><th>Sector</th><th>Resultado</th><th>Próximo</th></tr></thead><tbody id="bioLogTable"></tbody></table></div></div>
+  <div class="card" style="margin-top:12px"><h3 style="margin-bottom:10px">Cuarentena de reproductores</h3><form id="bioQuarantineForm">
+    <div><label>Lote / reproductor</label><input id="bioQuarantineLot" required></div><div><label>Fecha de ingreso</label><input id="bioQuarantineStart" type="date" required></div><div><label>Fin mínimo (30 días)</label><input id="bioQuarantineEnd" type="date" readonly></div><div><label>Aujeszky</label><select id="bioQuarantineAujeszky"><option>Pendiente</option><option>Conforme</option><option>No conforme</option></select></div><div><label>Brucelosis</label><select id="bioQuarantineBrucellosis"><option>Pendiente</option><option>Conforme</option><option>No conforme</option></select></div><div class="full actions"><button class="btn">Registrar cuarentena</button></div>
+  </form><div class="tablewrap" style="margin-top:12px"><table><thead><tr><th>Lote</th><th>Ingreso</th><th>Fin mínimo</th><th>Aujeszky</th><th>Brucelosis</th><th>Estado</th></tr></thead><tbody id="bioQuarantineTable"></tbody></table></div></div>
 </section>
 
 <section id="inventario" class="view">
@@ -1955,6 +2029,63 @@ tr:hover td {
     </form>
   </div>
 
+  <div class="card" style="margin-top:12px">
+    <h3 style="margin-bottom:10px">Ingreso de insumos alimenticios</h3>
+    <form id="insumoAlimenticioForm">
+      <div><label>CUIT proveedor</label><input id="iaCuit" required></div>
+      <div><label>Proveedor</label><input id="iaProveedor" required></div>
+      <div><label>Tipo de insumo</label><select id="iaTipo"><option value="MAIZ">MAIZ</option><option value="EXPELLER_SOJA">EXPELLER_SOJA</option><option value="NUCLEO_VITAMINICO">NUCLEO_VITAMINICO</option><option value="PREMIX">PREMIX</option></select></div>
+      <div><label>N° lote proveedor</label><input id="iaLoteProv" required></div>
+      <div><label>N° certificado SENASA</label><input id="iaCertSenasa" placeholder="Obligatorio para núcleos y premixes"></div>
+      <div><label>Cantidad (kg)</label><input type="number" id="iaKg" min="0" step="0.01" required></div>
+      <div><label>Fecha ingreso</label><input type="date" id="iaFechaIngreso" required></div>
+      <div><label>Vencimiento lote</label><input type="date" id="iaVencimiento" required></div>
+      <div class="full actions"><button class="btn" type="submit">Guardar insumo</button></div>
+    </form>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <h3 style="margin-bottom:10px">Elaboración de ración</h3>
+    <form id="racionForm">
+      <div><label>Código de ración</label><input id="rCod" required></div>
+      <div><label>Etapa</label><select id="rEtapa"><option value="PREINICIADOR">PREINICIADOR</option><option value="INICIADOR">INICIADOR</option><option value="DESARROLLO">DESARROLLO</option><option value="TERMINACION">TERMINACION</option></select></div>
+      <div><label>Kg producidos</label><input type="number" id="rKg" min="0" step="0.01" required></div>
+      <div><label>Operario responsable</label><input id="rOperario" required></div>
+      <div class="full actions"><button class="btn" type="submit">Guardar ración</button></div>
+    </form>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <h3 style="margin-bottom:10px">Detalle de composición de ración</h3>
+    <form id="racionDetalleForm">
+      <div><label>Ración lote</label><input id="rdRacionId" placeholder="ID o código de ración" required></div>
+      <div><label>Insumo lote</label><input id="rdInsumoId" placeholder="ID del insumo" required></div>
+      <div><label>Kg utilizados</label><input type="number" id="rdKg" min="0" step="0.01" required></div>
+      <div class="full actions"><button class="btn" type="submit">Guardar composición</button></div>
+    </form>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <h3 style="margin-bottom:10px">Consumo por galpón / lote</h3>
+    <form id="consumoForm">
+      <div><label>Ración lote</label><input id="cRacionId" required></div>
+      <div><label>RENSPA</label><input id="cRenspa" required></div>
+      <div><label>Galpón</label><input id="cGalpon" required></div>
+      <div><label>Lote de animales</label><input id="cLote" required></div>
+      <div><label>Kg suministrados</label><input type="number" id="cKg" min="0" step="0.01" required></div>
+      <div><label>Fecha suministro</label><input type="date" id="cFecha" required></div>
+      <div class="full actions"><button class="btn" type="submit">Guardar consumo</button></div>
+    </form>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <h3 style="margin-bottom:10px">Reporte de trazabilidad inversa</h3>
+    <div class="form-grid" style="margin:12px 0;">
+      <div><label>Lote auditado</label><input id="auditLoteInput" placeholder="Ej. LOTE-0001"></div>
+      <div class="actions"><button class="btn" type="button" onclick="generarAuditoriaAlimentaria()">Exportar CSV</button></div>
+    </div>
+  </div>
+
   <div class="grid" style="margin-top:12px">
     <div class="card kpi"><div class="label">Consumo del mes (kg)</div><div class="value" id="feedKgMonth">0</div></div>
     <div class="card kpi"><div class="label">Costo del mes</div><div class="value" id="feedCostMonth">$0</div></div>
@@ -1975,6 +2106,19 @@ tr:hover td {
       <table>
         <thead><tr><th>Categoría</th><th>Kg (últimos 7 días)</th><th>Kg (7 días previos)</th><th>Variación</th><th>Estado</th></tr></thead>
         <tbody id="feedAlertsTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <div class="toolbar">
+      <h3>Alertas SENASA de insumos</h3>
+      <span class="tag" id="senasaAlertCount">0 pendientes</span>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Insumo</th><th>Lote proveedor</th><th>Motivo</th><th>Vencimiento</th><th>Estado</th></tr></thead>
+        <tbody id="senasaAlertsTable"><tr><td colspan="5">Sin alertas SENASA.</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -2144,11 +2288,11 @@ tr:hover td {
       <div><label>Precio por kg ($)</label><input type="number" id="vPrecio" min="0" step="0.01"></div>
       <div><label>Importe total ($)</label><input type="number" id="vTotal" min="0" step="0.01"></div>
       <div><label>Comprobante</label><input id="vComp"></div>
-      <div><label>Carta de Porte</label><input id="vCartaPorte" placeholder="Se genera al guardar"></div>
-      <div><label>Origen de carga</label><input id="vCartaOrigen"></div>
-      <div><label>Destino de carga</label><input id="vCartaDestino"></div>
-      <div><label>Transportista</label><input id="vCartaTransportista"></div>
-      <div><label>Vehículo / dominio</label><input id="vCartaVehiculo"></div>
+      <div><label>DT-e / guía SENASA</label><select id="vTransportId" required><option value="">Registrá primero el viaje en Transporte</option></select></div>
+      <div><label>Origen de carga</label><input id="vCartaOrigen" readonly></div>
+      <div><label>Destino de carga</label><input id="vCartaDestino" readonly></div>
+      <div><label>Transportista</label><input id="vCartaTransportista" readonly></div>
+      <div><label>Vehículo / dominio</label><input id="vCartaVehiculo" readonly></div>
       <div class="full"><label>Observaciones</label><textarea id="vObs"></textarea></div>
       <div class="full actions"><button class="btn">Registrar venta</button></div>
     </form>
@@ -2167,6 +2311,7 @@ tr:hover td {
       <div><label>Registro / expediente</label><input id="bsPeso" placeholder="N° de registro"></div>
       <div><label>Autoridad / municipio</label><input id="bsPrecioKg" placeholder="Organismo registrante"></div>
       <div><label>Fecha de alta</label><input type="date" id="bsImporte"></div>
+      <div><label>Vencimiento / renovación</label><input type="date" id="bsVencimiento" required></div>
       <div><label>Estado</label><select id="bsEstado"><option>Activa</option><option>En trámite</option><option>Transferida</option><option>Dada de baja</option></select></div>
       <div class="full"><label>Observaciones</label><textarea id="bsObs" placeholder="Descripción complementaria y observaciones"></textarea></div>
       <div class="full actions"><button class="btn">Guardar señal identificatoria</button></div>
@@ -2174,9 +2319,9 @@ tr:hover td {
   </div>
   <div class="card" style="margin-top:12px">
     <h3 style="margin-bottom:10px">Señales identificatorias registradas</h3>
-    <div class="tablewrap"><table><thead><tr><th>Fecha</th><th>N° señal</th><th>Titular</th><th>RENSPA</th><th>Establecimiento</th><th>Tipo</th><th>Registro</th><th>Estado</th></tr></thead><tbody id="boletoSenalTable"></tbody></table></div>
+    <div class="tablewrap"><table><thead><tr><th>Fecha</th><th>N° señal</th><th>Titular</th><th>RENSPA</th><th>Establecimiento</th><th>Tipo</th><th>Registro</th><th>Vencimiento</th><th>Estado</th></tr></thead><tbody id="boletoSenalTable"></tbody></table></div>
   </div>
-  <div class="card" style="margin-top:15px"><div class="tablewrap"><table><thead><tr><th>Fecha</th><th>Lote</th><th>Cliente</th><th>Tipo</th><th>Cant.</th><th>Kg</th><th>Total</th><th>Carta de Porte</th></tr></thead><tbody id="saleTable"></tbody></table></div></div>
+  <div class="card" style="margin-top:15px"><div class="tablewrap"><table><thead><tr><th>Fecha</th><th>Lote</th><th>Cliente</th><th>Tipo</th><th>Cant.</th><th>Kg</th><th>Total</th><th>DT-e / guía SENASA</th></tr></thead><tbody id="saleTable"></tbody></table></div></div>
 </section>
 
 <section id="transporte" class="view">
@@ -2228,9 +2373,10 @@ tr:hover td {
       <div class="full actions"><button class="btn" type="submit">Guardar enlaces</button></div>
     </form>
     <div class="actions" style="margin-top:10px">
-      <a class="btn secondary" id="goSenasa" href="#" target="_blank" rel="noopener noreferrer">Abrir SENASA</a>
-      <a class="btn secondary" id="goMunicipio" href="#" target="_blank" rel="noopener noreferrer">Abrir Municipio</a>
+      <button class="btn secondary" id="goSenasa" type="button" onclick="abrirEnlaceTransporte('senasa')">Abrir SENASA</button>
+      <button class="btn secondary" id="goMunicipio" type="button" onclick="abrirEnlaceTransporte('municipio')">Abrir Municipio</button>
     </div>
+    <p id="transportLinksStatus" style="margin:10px 0 0;color:var(--text-dim);font-size:12px"></p>
   </div>
 
   <div class="card" style="margin-top:12px">
@@ -2293,6 +2439,7 @@ tr:hover td {
     <div class="card kpi"><div class="label">Saldo bancos</div><div class="value" id="finBankBalance">$0</div></div>
     <div class="card kpi"><div class="label">Cheques pendientes</div><div class="value" id="finChecksPending">$0</div></div>
     <div class="card kpi"><div class="label">Créditos vigentes</div><div class="value" id="finCreditsActive">$0</div></div>
+    <div class="card kpi"><div class="label">Retenciones ARCA</div><div class="value" id="finArcaWithholdings">$0</div></div>
   </div>
 
   <div class="card">
@@ -2338,7 +2485,40 @@ tr:hover td {
 </section>
 
 <section id="arca" class="view">
-  <h2>ARCA / Fiscal Porcino</h2>
+  <h2>Fiscal Porcinos</h2>
+
+  <div class="card" style="margin-bottom:12px">
+    <h3 style="margin-bottom:10px">Conexión ARCA</h3>
+    <div class="grid">
+      <div><label>Ambiente</label><input id="arcaConnectionEnvironment" value="Consultando..." readonly></div>
+      <div><label>CUIT</label><input id="arcaConnectionCuit" value="Consultando..." readonly></div>
+      <div><label>Certificado</label><input id="arcaConnectionCertificate" value="Consultando..." readonly></div>
+      <div><label>Clave privada</label><input id="arcaConnectionKey" value="Consultando..." readonly></div>
+      <div><label>Servicio WSAA</label><input id="arcaConnectionService" value="Consultando..." readonly></div>
+      <div><label>Ticket de Acceso</label><input id="arcaConnectionTicket" value="Consultando..." readonly></div>
+      <div><label>SENASA / SIGSA</label><input id="arcaConnectionSenasa" value="Consultando..." readonly></div>
+      <div><label>Emisión oficial</label><input id="arcaConnectionEmission" value="Consultando..." readonly></div>
+    </div>
+    <div class="actions" style="margin-top:10px"><button class="btn" id="arcaOpenConfig" type="button">Configurar ARCA</button><button class="btn secondary" id="arcaValidateWsaa" type="button">Validar conexión WSAA</button></div>
+    <p id="arcaConnectionMessage" style="margin:10px 0 0;color:var(--text-dim);font-size:12px"></p>
+  </div>
+
+  <div class="card" id="arcaConfigPanel" style="margin-bottom:12px" hidden>
+    <h3 style="margin-bottom:10px">Configurar ARCA y SENASA</h3>
+    <p id="arcaConfigMode" style="margin:0 0 12px;color:var(--text-dim);font-size:12px"></p>
+    <form id="arcaConfigForm">
+      <div><label>Ambiente</label><select id="arcaCfgEnvironment"><option value="testing">Homologación</option><option value="production">Producción</option></select></div>
+      <div><label>CUIT emisor</label><input id="arcaCfgCuit" inputmode="numeric" placeholder="11 dígitos" required></div>
+      <div><label>Servicio WSAA</label><select id="arcaCfgService"><option value="wsfe">WSFE - Factura electrónica</option><option value="wsigsa">SIGSA - SENASA</option></select></div>
+      <div><label>Ruta certificado X.509</label><input id="arcaCfgCertificatePath" placeholder="certs/homologacion.crt" required></div>
+      <div><label>Ruta clave privada</label><input id="arcaCfgPrivateKeyPath" placeholder="certs/homologacion.key" required></div>
+      <div><label>WSDL WSAA (opcional)</label><input id="arcaCfgWsaaWsdl" placeholder="Usa el oficial según ambiente"></div>
+      <div><label>WSDL WSFE (opcional)</label><input id="arcaCfgWsfeWsdl" placeholder="Usa el oficial según ambiente"></div>
+      <div><label>WSDL SENASA/SIGSA</label><input id="arcaCfgSenasaWsdl" placeholder="URL entregada por SENASA"></div>
+      <div><label>Operación SIGSA</label><input id="arcaCfgSenasaOperation" placeholder="Nombre exacto del contrato"></div>
+      <div class="full actions"><button class="btn" type="submit">Guardar configuración</button><button class="btn secondary" id="arcaValidateSigsa" type="button">Validar contrato SIGSA</button><button class="btn secondary" id="arcaCloseConfig" type="button">Cancelar</button></div>
+    </form>
+  </div>
 
   <div class="grid" style="margin-bottom:12px">
     <div class="card kpi"><div class="label">Operaciones porcinas</div><div class="value" id="arcaOpsCount">0</div></div>
@@ -2376,6 +2556,11 @@ tr:hover td {
       <div><label>Fecha inscripción</label><input type="date" id="rFechaInsc" required></div>
       <div><label>Última actualización</label><input type="date" id="rUltAct" required></div>
       <div><label>Próxima actualización</label><input type="date" id="rProxAct" readonly></div>
+      <div><label>Último monitoreo Aujeszky</label><input type="date" id="rAujeszkyLast"></div>
+      <div><label>Frecuencia Aujeszky</label><select id="rAujeszkyFrequency"><option value="">Definir con veterinario</option><option value="4">Cada 4 meses</option><option value="6">Cada 6 meses</option></select></div>
+      <div><label>Próximo monitoreo Aujeszky</label><input type="date" id="rAujeszkyDue" readonly></div>
+      <div><label>Brucelosis porcina</label><select id="rBrucellosisStatus"><option value="PENDIENTE">Pendiente</option><option value="VIGENTE">Certificación / muestreo vigente</option><option value="VENCIDO">Vencido</option></select></div>
+      <div><label>Vencimiento Brucelosis</label><input type="date" id="rBrucellosisDue"></div>
       <div><label>Estado</label><input id="rEstado" readonly></div>
       <div class="full actions"><button class="btn">Guardar control RENSPA</button></div>
     </form>
@@ -2396,6 +2581,11 @@ tr:hover td {
     <div class="chart-container" style="height:260px">
       <canvas id="renspaStatusChart"></canvas>
     </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <h3 style="margin-bottom:10px">Alertas sanitarias obligatorias SENASA</h3>
+    <div class="tablewrap"><table><thead><tr><th>RENSPA</th><th>Control</th><th>Vencimiento</th><th>Estado</th></tr></thead><tbody id="senasaPlanAlertsTable"><tr><td colspan="4">Cargando controles sanitarios...</td></tr></tbody></table></div>
   </div>
 
   <div class="card" style="margin-top:12px">
@@ -2476,6 +2666,9 @@ tr:hover td {
       <div><label>Lote a despachar</label><input id="arLote" placeholder="Obligatorio para faena"></div>
       <div><label>Categoría</label><select id="arCategoria"></select></div>
       <div><label>RENSPA origen</label><input id="arRenspa" placeholder="Obligatorio para faena"></div>
+      <div><label>Laboratorio triquinosis</label><input id="arTriqLaboratorio" placeholder="Obligatorio para faena"></div>
+      <div><label>N° análisis digestión artificial</label><input id="arTriqAnalisis" placeholder="Obligatorio para faena"></div>
+      <div><label>Resultado triquinosis</label><select id="arTriqResultado"><option value="">Seleccionar</option><option value="APTO">APTO</option><option value="NO_APTO">NO APTO</option></select></div>
       <div><label>Factura vinculada</label><input id="arFactura"></div>
       <div class="full actions"><button class="btn">Guardar REC</button></div>
     </form>
@@ -2487,7 +2680,7 @@ tr:hover td {
   </div>
   <div class="card" style="margin-top:12px">
     <h3 style="margin-bottom:10px">Facturas ARCA registradas</h3>
-    <div class="tablewrap"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Pto vta</th><th>Número</th><th>CAE</th><th>Vto CAE</th><th>Total</th></tr></thead><tbody id="arcaInvTable"></tbody></table></div>
+    <div class="tablewrap"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Pto vta</th><th>Número</th><th>CAE</th><th>Vto CAE</th><th>Total</th><th>Acción</th></tr></thead><tbody id="arcaInvTable"></tbody></table></div>
   </div>
   <div class="card" style="margin-top:12px">
     <h3 style="margin-bottom:10px">REC registrados</h3>
@@ -2605,13 +2798,15 @@ const LICENSE_REQUIRED=false;
 const TRIAL_CONSUMED_KEY='PampaPorcinosTrialConsumed';
 const HOME_BANKING_KEY='PampaPorcinosHomeBanking';
 const TRANSPORT_LINKS_KEY='PampaPorcinosTransportLinks';
+const SENASA_TRANSPORT_PORTAL_URL='https://www.argentina.gob.ar/senasa';
 const ARCA_FISCAL_KEY='PampaPorcinosArcaFiscal';
+const ARCA_CONFIG_LOCAL_KEY='PampaPorcinosArcaConfigLocal';
 const SYNC_LOG_STORE='syncChanges';
 const DEVICE_ID_KEY='PampaPorcinosDeviceId';
 const SYNC_SEQUENCE_KEY='PampaPorcinosSyncSequence';
 const SYNC_FILE_NAME='sync-changes.json';
 const SERVER_SYNC_KEY='PampaPorcinosServerSync';
-const DATA_STORES=['animals','health','inventory','feeding','costs','sales','boletosSenal','machinery','machineMaintenance','facilities','geoFields','finances','transport','hr','arcaOperations','arcaInvoices','arcaRec','renspaControl','sanitaryBlocks','vademecumPorcino'];
+const DATA_STORES=['animals','health','inventory','feeding','costs','sales','boletosSenal','machinery','machineMaintenance','facilities','geoFields','finances','transport','hr','arcaOperations','arcaInvoices','arcaRec','renspaControl','sanitaryBlocks','vademecumPorcino','insumosAlimenticios','racionesElaboradas','racionComposicion','consumoAlimentacion','bioVisits','bioChecks','bioLogs','bioQuarantines'];
 const VADEMECUM_REFERENCIA=[
  {codigo:'SENASA-F-1234',nombre:'Ivermectina Inyectable 1%',principio:'Ivermectina',laboratorio:'Laboratorio AgroVeterinario',carencia:28,fuente:'Referencia interna; validar registro SENASA vigente'},
  {codigo:'SENASA-F-5678',nombre:'Amoxicilina Soluble 50%',principio:'Amoxicilina',laboratorio:'PharmaAgro S.A.',carencia:15,fuente:'Referencia interna; validar registro SENASA vigente'},
@@ -2627,6 +2822,7 @@ let geoMapLayer = null;
 let renspaStatusChart = null;
 let syncDirectoryHandle = null;
 let serverSyncPassword = '';
+let bioChecklistPhotos = { perimeter: '', logistics: '' };
 
 const $=id=>document.getElementById(id);
 const money=n=>new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:2}).format(Number(n)||0);
@@ -3106,21 +3302,41 @@ function deleteHomeBankingLink(index){
 function loadTransportLinks(){
  try{
   const raw = localStorage.getItem(TRANSPORT_LINKS_KEY);
-  if(!raw) return {senasa:'', municipio:''};
+  if(!raw) return {senasa:SENASA_TRANSPORT_PORTAL_URL, municipio:''};
   const parsed = JSON.parse(raw);
   return {
-   senasa: String(parsed?.senasa || ''),
+   senasa: String(parsed?.senasa || SENASA_TRANSPORT_PORTAL_URL),
    municipio: String(parsed?.municipio || '')
   };
  }catch{
-  return {senasa:'', municipio:''};
+  return {senasa:SENASA_TRANSPORT_PORTAL_URL, municipio:''};
  }
 }
 
 function normalizeUrl(url){
  const clean = String(url || '').trim();
  if(!clean) return '';
- return /^https?:\/\//i.test(clean) ? clean : `https://${clean}`;
+ const candidate = /^https?:\/\//i.test(clean) ? clean : `https://${clean}`;
+ try{
+  const parsed = new URL(candidate);
+  return ['http:','https:'].includes(parsed.protocol) ? parsed.href : '';
+ }catch{
+  return '';
+ }
+}
+
+function abrirEnlaceTransporte(tipo){
+ const links=loadTransportLinks();
+ const url=normalizeUrl(links[tipo]);
+ const status=$('transportLinksStatus');
+ if(url){
+  window.open(url,'_blank','noopener,noreferrer');
+  if(status) status.textContent=`Abriendo portal ${tipo==='senasa'?'SENASA':'municipal'}.`;
+  return;
+ }
+ const input=$(tipo==='senasa'?'tSenasaUrl':'tMunicipioUrl');
+ input?.focus();
+ if(status) status.textContent=tipo==='municipio'?'Cargá y guardá el portal de tu municipio para abrirlo desde aquí.':'Cargá y guardá el portal SENASA de tu operatoria.';
 }
 
 function renderTransportLinks(){
@@ -3132,14 +3348,10 @@ function renderTransportLinks(){
  const muniHref = normalizeUrl(links.municipio);
 
  if($('goSenasa')){
-  $('goSenasa').href = senasaHref || '#';
-  $('goSenasa').style.pointerEvents = senasaHref ? 'auto' : 'none';
-  $('goSenasa').style.opacity = senasaHref ? '1' : '0.55';
+  $('goSenasa').disabled = !senasaHref;
  }
  if($('goMunicipio')){
-  $('goMunicipio').href = muniHref || '#';
-  $('goMunicipio').style.pointerEvents = muniHref ? 'auto' : 'none';
-  $('goMunicipio').style.opacity = muniHref ? '1' : '0.55';
+  $('goMunicipio').disabled = false;
  }
 }
 
@@ -3222,6 +3434,123 @@ function renderArcaFiscal(){
  if($('afWs')) $('afWs').value = f.ws || '';
 }
 
+async function parseArcaResponse(response){
+ const raw=await response.text();
+ try{return JSON.parse(raw);}catch(error){
+  throw new Error('El servidor fiscal no está disponible en este momento.');
+ }
+}
+
+async function loadArcaConnectionStatus(){
+ try{
+  const response=await fetch('/api/arca/status');
+  const status=await parseArcaResponse(response);
+  if(!response.ok) throw new Error(status.error||'No se pudo consultar ARCA.');
+  const set=(id,value)=>{ if($(id)) $(id).value=value; };
+  set('arcaConnectionEnvironment',status.environment==='production'?'Producción':'Homologación');
+  set('arcaConnectionCuit',status.cuitConfigured?'Configurado':'Pendiente');
+  set('arcaConnectionCertificate',status.certificateConfigured?'Detectado en servidor':'Pendiente de instalador');
+  set('arcaConnectionKey',status.privateKeyConfigured?'Detectada en servidor':'Pendiente de instalador');
+  set('arcaConnectionService',status.service||'Pendiente');
+  set('arcaConnectionTicket',status.ticketActive?`${status.ticketMinutesRemaining} min restantes`:'No solicitado');
+  set('arcaConnectionSenasa',status.senasaSigsaConfigured?'Configurado':'Pendiente');
+  set('arcaConnectionEmission',status.emissionAvailable?'Disponible':'No disponible');
+  if($('arcaConnectionMessage')) $('arcaConnectionMessage').textContent=status.emissionMessage||'';
+  if($('arcaValidateWsaa')) $('arcaValidateWsaa').disabled=!status.configured;
+ }catch(error){
+  ['arcaConnectionEnvironment','arcaConnectionCuit','arcaConnectionCertificate','arcaConnectionKey','arcaConnectionService','arcaConnectionTicket','arcaConnectionSenasa','arcaConnectionEmission'].forEach(id=>{if($(id)) $(id).value='No disponible';});
+  if($('arcaConnectionMessage')) $('arcaConnectionMessage').textContent='No se pudo consultar el estado ARCA del servidor.';
+ }
+}
+
+function loadArcaLocalConfiguration(){
+ try{return JSON.parse(localStorage.getItem(ARCA_CONFIG_LOCAL_KEY)||'{}');}catch{return {};}
+}
+
+function setArcaConfigMode(text){
+ if($('arcaConfigMode')) $('arcaConfigMode').textContent=text;
+}
+
+function completarFormularioArca(config={}){
+ $('arcaCfgEnvironment').value=config.environment||'testing';
+ $('arcaCfgCuit').value=config.cuit||loadEmpresa().cuit||'';
+ $('arcaCfgService').value=config.serviceName||'wsfe';
+ $('arcaCfgCertificatePath').value=config.certificatePath||'';
+ $('arcaCfgPrivateKeyPath').value=config.privateKeyPath||'';
+ $('arcaCfgCertificatePath').placeholder=config.certificateConfigured?'Ruta configurada: indicá la ruta para actualizar':'certs/homologacion.crt';
+ $('arcaCfgPrivateKeyPath').placeholder=config.privateKeyConfigured?'Ruta configurada: indicá la ruta para actualizar':'certs/homologacion.key';
+ $('arcaCfgWsaaWsdl').value=config.wsaaWsdl||'';
+ $('arcaCfgWsfeWsdl').value=config.wsfeWsdl||'';
+ $('arcaCfgSenasaWsdl').value=config.senasaSigsaWsdl||'';
+ $('arcaCfgSenasaOperation').value=config.senasaSigsaOperation||'';
+}
+
+async function loadArcaConfiguration(){
+ try{
+  const response=await fetch('/api/arca/config');
+  const config=await parseArcaResponse(response);
+  if(!response.ok) throw new Error(config.error||'No se pudo cargar la configuración ARCA.');
+  completarFormularioArca(config);
+  setArcaConfigMode('Configuración conectada al servidor fiscal de esta instalación.');
+  return {local:false};
+ }catch(error){
+  completarFormularioArca(loadArcaLocalConfiguration());
+  setArcaConfigMode('Configuración local guardada en este dispositivo. La validación WSAA, SIGSA y emisión oficial requieren conexión al servidor fiscal.');
+  return {local:true};
+ }
+}
+
+if($('arcaOpenConfig')) $('arcaOpenConfig').addEventListener('click',async ()=>{
+ await loadArcaConfiguration();
+ $('arcaConfigPanel').hidden=false;
+});
+if($('arcaCloseConfig')) $('arcaCloseConfig').addEventListener('click',()=>{$('arcaConfigPanel').hidden=true;});
+if($('arcaValidateSigsa')) $('arcaValidateSigsa').addEventListener('click',async ()=>{
+ try{
+  const response=await fetch('/api/senasa/sigsa/validate-contract',{method:'POST'});
+  const result=await parseArcaResponse(response);
+  if(!response.ok) throw new Error(result.error||'El contrato SIGSA no es válido.');
+  alert(`Contrato SIGSA válido: ${result.operation}.`);
+ }catch(error){alert(error.message||'No se pudo validar el contrato SIGSA.');}
+});
+if($('arcaConfigForm')) $('arcaConfigForm').addEventListener('submit',async event=>{
+ event.preventDefault();
+ const payload={
+  environment:$('arcaCfgEnvironment').value,cuit:$('arcaCfgCuit').value,serviceName:$('arcaCfgService').value,
+  certificatePath:$('arcaCfgCertificatePath').value,privateKeyPath:$('arcaCfgPrivateKeyPath').value,
+  wsaaWsdl:$('arcaCfgWsaaWsdl').value,wsfeWsdl:$('arcaCfgWsfeWsdl').value,senasaSigsaWsdl:$('arcaCfgSenasaWsdl').value,senasaSigsaOperation:$('arcaCfgSenasaOperation').value
+ };
+ try{
+  const response=await fetch('/api/arca/config',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  const result=await parseArcaResponse(response);
+  if(!response.ok) throw new Error(result.error||'No se pudo guardar la configuración ARCA.');
+  saveEmpresa({...loadEmpresa(),cuit:payload.cuit.replace(/\D/g,'')});
+  $('arcaConfigPanel').hidden=true;
+  await loadArcaConnectionStatus();
+  alert('Configuración ARCA guardada en esta instalación.');
+   }catch(error){
+    localStorage.setItem(ARCA_CONFIG_LOCAL_KEY,JSON.stringify(payload));
+    saveEmpresa({...loadEmpresa(),cuit:payload.cuit.replace(/\D/g,'')});
+    $('arcaConfigPanel').hidden=true;
+    if($('arcaConnectionMessage')) $('arcaConnectionMessage').textContent='Configuración ARCA guardada localmente. Conectá el servidor fiscal para validarla y emitir comprobantes oficiales.';
+    alert('Configuración ARCA guardada localmente en este dispositivo.');
+   }
+});
+
+if($('arcaValidateWsaa')) $('arcaValidateWsaa').addEventListener('click',async ()=>{
+ const button=$('arcaValidateWsaa');
+ button.disabled=true;
+ button.textContent='Validando...';
+ try{
+  const response=await fetch('/api/arca/wsaa/validate',{method:'POST'});
+  const status=await parseArcaResponse(response);
+  if(!response.ok) throw new Error(status.error||'ARCA no pudo emitir el Ticket de Acceso.');
+  await loadArcaConnectionStatus();
+  alert(`Conexión WSAA validada para ${status.service}.`);
+ }catch(error){alert(error.message||'No se pudo validar WSAA.');}
+ finally{button.textContent='Validar conexión WSAA';}
+});
+
 function calcArcaOperation(){
  const bruto = Number($('aoBruto')?.value || 0);
  const retPct = Number($('aoRetPct')?.value || 0);
@@ -3256,6 +3585,269 @@ function calcRenspaForm(){
  const prox = addMonthsISO($('rUltAct')?.value, 12);
  if($('rProxAct')) $('rProxAct').value = prox;
  if($('rEstado')) $('rEstado').value = calcRenspaStatus(prox);
+ const aujeszkyFrequency=Number($('rAujeszkyFrequency')?.value||0);
+ if($('rAujeszkyDue')) $('rAujeszkyDue').value=aujeszkyFrequency?addMonthsISO($('rAujeszkyLast')?.value,aujeszkyFrequency):'';
+}
+
+function moverSenalesPorcinasAFiscal(){
+ const formCard=$('boletoSenalForm')?.closest('.card');
+ const tableCard=formCard?.nextElementSibling;
+ const fiscal=$('arca');
+ if(!formCard||!tableCard||!fiscal||formCard.dataset.movedToFiscal==='true') return;
+ const alertsCard=document.createElement('div');
+ alertsCard.id='senalesPorcinasAlertasCard';
+ alertsCard.className='card';
+ alertsCard.style.marginTop='12px';
+ alertsCard.innerHTML='<div class="toolbar"><h3>Alertas de vencimiento de señales</h3><span class="tag" id="senalesPorcinasAlertasCount">0 pendientes</span></div><div class="tablewrap"><table><thead><tr><th>Señal</th><th>Titular</th><th>RENSPA</th><th>Vencimiento</th><th>Estado</th></tr></thead><tbody id="senalesPorcinasAlertasBody"><tr><td colspan="5">Sin alertas de vencimiento.</td></tr></tbody></table></div>';
+ formCard.dataset.movedToFiscal='true';
+ fiscal.append(formCard,alertsCard,tableCard);
+}
+
+function renderSenalesPorcinas(boletos=[]){
+ const table=$('boletoSenalTable');
+ if(table){
+  table.innerHTML=boletos.length?boletos.slice().sort((a,b)=>String(b.fecha||'').localeCompare(String(a.fecha||''))).map(r=>`<tr><td>${r.fecha||''}</td><td>${r.numero||''}</td><td>${r.propietario||''}</td><td>${r.renspa||''}</td><td>${r.establecimiento||''}</td><td>${r.tipoSenal||''}</td><td>${r.registro||'-'}</td><td>${r.fechaVencimiento||'-'}</td><td>${r.estado||''}</td></tr>`).join(''):'<tr><td colspan="9">Sin señales porcinas registradas.</td></tr>';
+ }
+ const today=dateNow();
+ const alerts=boletos.filter(r=>r.estado==='Activa'&&r.fechaVencimiento).map(r=>({registro:r,dias:calcDaysToISODate(r.fechaVencimiento)})).filter(item=>item.dias<=30).sort((a,b)=>a.dias-b.dias);
+ const count=$('senalesPorcinasAlertasCount');
+ const body=$('senalesPorcinasAlertasBody');
+ if(count) count.textContent=`${alerts.length} pendiente${alerts.length===1?'':'s'}`;
+ if(body){
+  body.innerHTML=alerts.length?alerts.map(({registro,dias})=>`<tr><td>${registro.numero||''}</td><td>${registro.propietario||''}</td><td>${registro.renspa||''}</td><td>${registro.fechaVencimiento}</td><td>${dias<0?`Vencida hace ${Math.abs(dias)} día(s)`:dias===0?'Vence hoy':`Vence en ${dias} día(s)`}</td></tr>`).join(''):'<tr><td colspan="5">Sin alertas de vencimiento.</td></tr>';
+ }
+}
+
+function renderAlertasSanitariasPrioritarias(controles=[],bloqueos=[]){
+ const alerts=[];
+ const today=dateNow();
+ controles.forEach(control=>{
+  const renspa=control.numero||'RENSPA sin número';
+  const campo=control.campo||'Campo sin identificar';
+  if(!control.aujeszkyDue){
+   alerts.push({tipo:'Aujeszky',renspa,campo,texto:'Monitoreo pendiente de definir con veterinario.',critical:true});
+  }else if(control.aujeszkyDue<=today){
+   alerts.push({tipo:'Aujeszky',renspa,campo,texto:`Monitoreo vencido el ${control.aujeszkyDue}.`,critical:true});
+  }else if(calcDaysToISODate(control.aujeszkyDue)<=30){
+   alerts.push({tipo:'Aujeszky',renspa,campo,texto:`Monitoreo vence el ${control.aujeszkyDue}.`,critical:false});
+  }
+  if(control.brucellosisStatus!=='VIGENTE'){
+   alerts.push({tipo:'Brucelosis porcina',renspa,campo,texto:control.brucellosisStatus==='VENCIDO'?'Certificación o muestreo vencido.':'Certificación o muestreo pendiente.',critical:true});
+  }else if(control.brucellosisDue&&control.brucellosisDue<=today){
+   alerts.push({tipo:'Brucelosis porcina',renspa,campo,texto:`Certificación vencida el ${control.brucellosisDue}.`,critical:true});
+  }else if(control.brucellosisDue&&calcDaysToISODate(control.brucellosisDue)<=30){
+   alerts.push({tipo:'Brucelosis porcina',renspa,campo,texto:`Certificación vence el ${control.brucellosisDue}.`,critical:false});
+  }
+ });
+ bloqueos.filter(block=>block.activo&&/\bPPA\b|PESTE PORCINA AFRICANA/i.test(String(block.motivo||''))).forEach(block=>{
+  alerts.push({tipo:'Peste Porcina Africana',renspa:block.renspa||'RENSPA sin número',campo:'Notificación sanitaria',texto:block.motivo||'Bloqueo sanitario activo.',critical:true});
+ });
+ const chip=$('kSanidadPrioritariaChip');
+ const container=$('dashboardSanidadPrioritariaAlerts');
+ if(chip){
+  chip.classList.remove('ok','warn','danger');
+  chip.classList.add(alerts.some(alert=>alert.critical)?'danger':alerts.length?'warn':'ok');
+  chip.textContent=alerts.length?`${alerts.length} alerta(s)`:'Sin alertas';
+ }
+ if(container){
+  container.innerHTML=alerts.length?alerts.slice(0,8).map(alert=>`<div class="dashboard-renspa-item ${alert.critical?'danger':'caution'}"><div class="dashboard-renspa-lot">${alert.tipo}</div><div class="dashboard-renspa-campo">${alert.campo}<br>RENSPA ${alert.renspa}</div><div class="dashboard-renspa-when">${alert.texto}</div></div>`).join(''):'<div class="dashboard-renspa-item"><div class="dashboard-renspa-campo">Sin alertas sanitarias prioritarias.</div></div>';
+ }
+}
+
+function renderAlertasMantenimientoInstalaciones(maquinarias=[],mantenimientos=[],instalaciones=[]){
+ const alerts=[];
+ const today=dateNow();
+ mantenimientos.forEach(mantenimiento=>{
+  if(!mantenimiento.proximo) return;
+  const dias=calcDaysToISODate(mantenimiento.proximo);
+  if(dias>30) return;
+  alerts.push({tipo:'Mantenimiento',nombre:mantenimiento.equipo||'Equipo sin identificar',texto:dias<0?`Servicio vencido hace ${Math.abs(dias)} día(s).`:dias===0?'Servicio vence hoy.':`Servicio vence en ${dias} día(s).`,critical:dias<=0});
+ });
+ maquinarias.filter(maquinaria=>['En reparación','Fuera de servicio'].includes(maquinaria.estado)).forEach(maquinaria=>{
+  alerts.push({tipo:'Equipo',nombre:maquinaria.equipo||'Equipo sin identificar',texto:`Estado: ${maquinaria.estado}.`,critical:true});
+ });
+ instalaciones.filter(instalacion=>['Mantenimiento','Crítica'].includes(instalacion.estado)).forEach(instalacion=>{
+  alerts.push({tipo:'Instalación',nombre:instalacion.nombre||'Instalación sin identificar',texto:`Estado: ${instalacion.estado}.${instalacion.ubicacion?` Ubicación: ${instalacion.ubicacion}.`:''}`,critical:instalacion.estado==='Crítica'});
+ });
+ const chip=$('kMantenimientoChip');
+ const container=$('dashboardMantenimientoAlerts');
+ if(chip){
+  chip.classList.remove('ok','warn','danger');
+  chip.classList.add(alerts.some(alert=>alert.critical)?'danger':alerts.length?'warn':'ok');
+  chip.textContent=alerts.length?`${alerts.length} alerta(s)`:'Sin alertas';
+ }
+ if(container){
+  container.innerHTML=alerts.length?alerts.slice(0,8).map(alert=>`<div class="dashboard-renspa-item ${alert.critical?'danger':'caution'}"><div class="dashboard-renspa-lot">${alert.tipo}</div><div class="dashboard-renspa-campo">${alert.nombre}</div><div class="dashboard-renspa-when">${alert.texto}</div></div>`).join(''):'<div class="dashboard-renspa-item"><div class="dashboard-renspa-campo">Sin alertas de mantenimiento ni instalaciones.</div></div>';
+ }
+}
+
+async function refreshSenasaMandatoryPlanAlerts(){
+ const table=$('senasaPlanAlertsTable');
+ if(!table) return;
+ const today=dateNow();
+ const controls=await all('renspaControl');
+ const alerts=[];
+ controls.forEach(control=>{
+  if(!control.aujeszkyDue) alerts.push({renspa:control.numero,control:'Monitoreo Aujeszky',due:'-',state:'Pendiente'});
+  else if(control.aujeszkyDue<=today) alerts.push({renspa:control.numero,control:'Monitoreo Aujeszky',due:control.aujeszkyDue,state:'Vencido'});
+  if(control.brucellosisStatus!=='VIGENTE') alerts.push({renspa:control.numero,control:'Brucelosis porcina',due:control.brucellosisDue||'-',state:'Pendiente'});
+  else if(control.brucellosisDue&&control.brucellosisDue<=today) alerts.push({renspa:control.numero,control:'Brucelosis porcina',due:control.brucellosisDue,state:'Vencido'});
+ });
+ table.innerHTML=alerts.length?alerts.map(alert=>`<tr><td>${alert.renspa||'-'}</td><td>${alert.control}</td><td>${alert.due}</td><td>${alert.state}</td></tr>`).join(''):'<tr><td colspan="4">Controles sanitarios sin alertas.</td></tr>';
+}
+
+function addDaysISO(value, days){
+ if(!value) return '';
+ const date=new Date(`${String(value).slice(0,10)}T12:00:00`);
+ if(Number.isNaN(date.getTime())) return '';
+ date.setDate(date.getDate()+days);
+ return date.toISOString().slice(0,10);
+}
+
+function loadBioPhoto(input, key, previewId){
+ const file=input.files?.[0];
+ if(!file) return;
+ const reader=new FileReader();
+ reader.onerror=()=>alert('No se pudo leer la imagen seleccionada.');
+ reader.onload=()=>{
+  const image=new Image();
+  image.onerror=()=>alert('La imagen no es compatible. Usá una foto JPEG o PNG.');
+  image.onload=()=>{
+   const maxSide=1280;
+   const scale=Math.min(1,maxSide/Math.max(image.width,image.height));
+   const canvas=document.createElement('canvas');
+   canvas.width=Math.max(1,Math.round(image.width*scale));
+   canvas.height=Math.max(1,Math.round(image.height*scale));
+   canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);
+   const photo=canvas.toDataURL('image/jpeg',0.82);
+   bioChecklistPhotos[key]=photo;
+   const preview=$(previewId);
+   preview.src=photo;
+   preview.hidden=false;
+  };
+  image.src=String(reader.result||'');
+ };
+ reader.readAsDataURL(file);
+}
+
+function guardarCapturaBioseguridad(key, previewId, canvas){
+ const photo=canvas.toDataURL('image/jpeg',0.82);
+ bioChecklistPhotos[key]=photo;
+ const preview=$(previewId);
+ if(preview){preview.src=photo;preview.hidden=false;}
+}
+
+async function abrirCamaraBioseguridad(key, previewId, inputId){
+ if(!navigator.mediaDevices?.getUserMedia){
+  $(inputId)?.click();
+  return;
+ }
+ const overlay=document.createElement('div');
+ overlay.id='bioCameraModal';
+ overlay.style.cssText='position:fixed;inset:0;z-index:100001;background:rgba(15,23,42,.88);display:flex;align-items:center;justify-content:center;padding:18px;';
+ overlay.innerHTML='<div style="width:min(620px,100%);background:var(--bg-card,#fff);color:var(--text-primary,#111);border-radius:10px;padding:16px"><strong style="display:block;margin-bottom:10px">Capturar evidencia de bioseguridad</strong><video autoplay playsinline style="display:block;width:100%;max-height:60vh;object-fit:contain;background:#111;border-radius:8px"></video><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button type="button" class="btn secondary" data-camera-cancel>Cancelar</button><button type="button" class="btn" data-camera-capture>Capturar foto</button></div></div>';
+ document.body.appendChild(overlay);
+ const video=overlay.querySelector('video');
+ let stream;
+ const close=()=>{stream?.getTracks().forEach(track=>track.stop());overlay.remove();};
+ overlay.querySelector('[data-camera-cancel]')?.addEventListener('click',close);
+ try{
+  stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});
+  video.srcObject=stream;
+  overlay.querySelector('[data-camera-capture]')?.addEventListener('click',()=>{
+   const canvas=document.createElement('canvas');
+   canvas.width=video.videoWidth||1280;
+   canvas.height=video.videoHeight||720;
+   canvas.getContext('2d').drawImage(video,0,0,canvas.width,canvas.height);
+   guardarCapturaBioseguridad(key,previewId,canvas);
+   close();
+  });
+ }catch(error){
+  close();
+  $(inputId)?.click();
+  alert('No se pudo abrir la cámara. Podés elegir una imagen del dispositivo.');
+ }
+}
+
+function inicializarCamaraBioseguridad(){
+ [
+  ['bioPerimeterPhoto','perimeter','bioPerimeterPreview'],
+  ['bioLogisticsPhoto','logistics','bioLogisticsPreview']
+ ].forEach(([inputId,key,previewId])=>{
+  const input=$(inputId);
+  const label=document.querySelector(`label[for="${inputId}"]`);
+  if(!input||!label||label.dataset.cameraReady==='true') return;
+  const cameraButton=document.createElement('button');
+  cameraButton.type='button';
+  cameraButton.className='btn secondary';
+  cameraButton.textContent='Abrir cámara';
+  cameraButton.addEventListener('click',()=>abrirCamaraBioseguridad(key,previewId,inputId));
+  const fileButton=document.createElement('button');
+  fileButton.type='button';
+  fileButton.className='btn secondary';
+  fileButton.textContent='Elegir archivo';
+  fileButton.addEventListener('click',()=>input.click());
+  label.replaceWith(cameraButton,fileButton);
+  input.dataset.cameraReady='true';
+ });
+}
+
+function clearBioPhotos(){
+ bioChecklistPhotos={perimeter:'',logistics:''};
+ [['bioPerimeterPhoto','bioPerimeterPreview'],['bioLogisticsPhoto','bioLogisticsPreview']].forEach(([inputId,previewId])=>{
+  const input=$(inputId); const preview=$(previewId);
+  if(input) input.value='';
+  if(preview){preview.removeAttribute('src');preview.hidden=true;}
+ });
+}
+
+function generateBiosecurityPdf(record){
+ const JsPDF=window.jspdf?.jsPDF;
+ if(!JsPDF) throw new Error('No se pudo cargar el generador de PDF en este dispositivo.');
+ const documentPdf=new JsPDF({unit:'mm',format:'a4'});
+ const company=loadEmpresa();
+ const labels={cerco:'Cerco perimetral',porton:'Portón principal',ducha:'Filtro sanitario y duchas',ropa:'Ropa y botas exclusivas',visitas:'Registro de visitas',arco:'Arco o vado vehicular',zonas:'Camiones en zona sucia',embarcadero:'Embarcadero',todoAdentroAfuera:'Vacío sanitario',plagas:'Control de plagas',alimento:'Silos y alimento seguro',cadaveres:'Disposición de cadáveres'};
+ documentPdf.setFillColor(15,20,25);documentPdf.rect(0,0,210,25,'F');
+ documentPdf.setTextColor(255,255,255);documentPdf.setFontSize(14);documentPdf.text('REGISTRO INTERNO DE BIOSEGURIDAD PORCINA',15,16);
+ documentPdf.setTextColor(20,35,50);documentPdf.setFontSize(10);
+ documentPdf.text(`Establecimiento: ${company.nombre||'Sin identificar'}`,15,35);
+ documentPdf.text(`Fecha de checklist: ${record.date||'-'} · Generado: ${new Date().toLocaleString('es-AR')}`,15,41);
+ documentPdf.text(`Resultado: ${record.deviations?.length?'CON DESVÍOS':'CONFORME'}`,15,47);
+ let y=58;
+ Object.entries(record.controls||{}).forEach(([key,value])=>{
+  if(y>275){documentPdf.addPage();y=20;}
+  documentPdf.text(`[ ${value==='Conforme'?'CUMPLE':'NO CUMPLE'} ] ${labels[key]||key}`,15,y);y+=7;
+ });
+ const photos=[['Perímetro e ingreso',record.photos?.perimeter],['Vado o embarcadero',record.photos?.logistics]].filter(([,photo])=>photo);
+ photos.forEach(([title,photo])=>{
+  documentPdf.addPage();documentPdf.setFontSize(12);documentPdf.text(`Anexo fotográfico: ${title}`,15,18);
+  const properties=documentPdf.getImageProperties(photo);
+  const width=180;const height=Math.min(220,(properties.height*width)/properties.width);
+  documentPdf.addImage(photo,'JPEG',15,28,width,height);
+ });
+ documentPdf.save(`bioseguridad-${record.date||dateNow()}-${record.id||'registro'}.pdf`);
+}
+
+async function downloadBiosecurityPdf(recordId){
+ const record=(await all('bioChecks')).find(item=>String(item.id)===String(recordId));
+ if(!record) return alert('No se encontró el registro de bioseguridad.');
+ try{generateBiosecurityPdf(record);}catch(error){alert(error.message||'No se pudo generar el PDF.');}
+}
+
+async function refreshBiosecurity(){
+ const [visits,checks,logs,quarantines]=await Promise.all(['bioVisits','bioChecks','bioLogs','bioQuarantines'].map(all));
+ const today=dateNow();
+ const blockedVisits=visits.filter(visit=>visit.status==='BLOQUEADO').length;
+ const overdueLogs=logs.filter(log=>log.result!=='Conforme'||(log.due&&log.due<=today)).length;
+ const nonConformingChecks=checks.filter(check=>check.deviations?.length).length;
+ const activeQuarantines=quarantines.filter(row=>row.status==='ACTIVA').length;
+ if($('bioBlockedVisits')) $('bioBlockedVisits').textContent=blockedVisits;
+ if($('bioOverdueControls')) $('bioOverdueControls').textContent=overdueLogs+nonConformingChecks;
+ if($('bioActiveQuarantines')) $('bioActiveQuarantines').textContent=activeQuarantines;
+ if($('bioVisitTable')) $('bioVisitTable').innerHTML=visits.length?visits.sort((a,b)=>String(b.at).localeCompare(String(a.at))).map(visit=>`<tr><td>${String(visit.at||'').replace('T',' ')}</td><td>${visit.name} · ${visit.dni}</td><td>${visit.reason}</td><td>${visit.origin}</td><td>${visit.emptyHours} h</td><td>${visit.status}</td></tr>`).join(''):'<tr><td colspan="6">Sin visitas registradas.</td></tr>';
+ if($('bioCheckTable')) $('bioCheckTable').innerHTML=checks.length?checks.sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(check=>`<tr><td>${check.date}</td><td>${check.deviations?.length?'No conforme':'Conforme'}</td><td>${check.deviations?.join(', ')||'-'}</td><td><button class="btn secondary" type="button" onclick="downloadBiosecurityPdf(${check.id})">PDF</button></td></tr>`).join(''):'<tr><td colspan="4">Sin checklists registrados.</td></tr>';
+ if($('bioLogTable')) $('bioLogTable').innerHTML=logs.length?logs.sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(log=>`<tr><td>${log.date}</td><td>${log.type}</td><td>${log.sector}</td><td>${log.result}</td><td>${log.due||'-'}</td></tr>`).join(''):'<tr><td colspan="5">Sin tareas registradas.</td></tr>';
+ if($('bioQuarantineTable')) $('bioQuarantineTable').innerHTML=quarantines.length?quarantines.sort((a,b)=>String(b.start).localeCompare(String(a.start))).map(row=>`<tr><td>${row.lot}</td><td>${row.start}</td><td>${row.end}</td><td>${row.aujeszky}</td><td>${row.brucellosis}</td><td>${row.status}</td></tr>`).join(''):'<tr><td colspan="6">Sin cuarentenas registradas.</td></tr>';
 }
 
 function parseLoteNumber(value){
@@ -3425,7 +4017,6 @@ async function persistFiscalServer(resource, record){
  }
 }
 
-<<<<<<< HEAD:public/pampaporcinos-erp/index.html
 async function persistSanidadServer(resource, record){
  try{
   const response=await fetch(`/api/sanidad/${resource}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(record)});
@@ -3434,8 +4025,28 @@ async function persistSanidadServer(resource, record){
  }catch(error){console.warn(`Sanidad quedó solo local: ${error.message}`);return null;}
 }
 
-=======
->>>>>>> 16a23115 (Publicar catálogo con trials privados):public/trials/p6/index.html
+async function persistAuditoriaServer(resource, record){
+ try{
+  const response=await fetch(`/api/auditoria/${resource}`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(record) });
+  if(!response.ok){
+   const body=await response.json().catch(()=>({}));
+   throw new Error(body.error || `Error ${response.status}`);
+  }
+  return response.json();
+ }catch(error){
+  console.warn(`Auditoría alimentaria ${resource} quedó solo local: ${error.message}`);
+  return null;
+ }
+}
+
+async function generarAuditoriaAlimentaria(){
+ const lote=$('auditLoteInput')?.value?.trim();
+ if(!lote){ alert('Ingresá el lote auditado para exportar el CSV.'); return; }
+ const url=`/api/auditoria/alimentaria/${encodeURIComponent(lote)}/csv`;
+ const a=document.createElement('a');
+ a.href=url; a.target='_blank'; a.rel='noopener'; a.click();
+}
+
 async function vincularRegistroFiscalLocal(store, localId, remote){
  if(!remote?.id) return;
  const rows=await all(store);
@@ -3786,7 +4397,7 @@ async function cargarVademecumSanitario(){
   $('sFinTrat').required=Boolean(medicamento);
  };
 }
-function setDates(){['aFecha','sFecha','iFecha','alFecha','cFecha','vFecha','mqFecha','mmFecha','fFecha','gFecha','finFecha','tFecha','tGuiaPagoFecha','rhFecha','aoFecha','aiFecha','arFecha','rFechaInsc','rUltAct','bsFecha','bsImporte'].forEach(id=>{if($(id)) $(id).value=dateNow();});$('today').textContent=new Date().toLocaleDateString('es-AR',{dateStyle:'medium'});}
+function setDates(){['aFecha','sFecha','iFecha','alFecha','cFecha','vFecha','mqFecha','mmFecha','fFecha','gFecha','finFecha','tFecha','tGuiaPagoFecha','rhFecha','aoFecha','aiFecha','arFecha','rFechaInsc','rUltAct','bioCheckDate','bioLogDate','bioQuarantineStart','bsFecha','bsImporte'].forEach(id=>{if($(id)) $(id).value=dateNow();});$('today').textContent=new Date().toLocaleDateString('es-AR',{dateStyle:'medium'});}
 function csvEscape(v){return `"${String(v??'').replaceAll('"','""')}"`}
 function download(name,text,type='text/csv;charset=utf-8'){
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();URL.revokeObjectURL(a.href);
@@ -3799,19 +4410,54 @@ async function exportCSV(which){
  download(name+'.csv',keys.join(';')+'\\n'+rows.map(r=>keys.map(k=>csvEscape(r[k])).join(';')).join('\\n'));
 }
 async function backup(){
- const data={};
- for(const s of DATA_STORES) data[s]=await all(s);
- data.syncChanges=await all(SYNC_LOG_STORE);
- data.company = loadEmpresa();
- data.homeBanking = loadHomeBankingLinks();
- data.transportLinks = loadTransportLinks();
- data.arcaFiscal = loadArcaFiscal();
+ const stores={};
+ for(const s of DATA_STORES) stores[s]=await all(s);
+ stores.syncChanges=await all(SYNC_LOG_STORE);
+ const company=loadEmpresa();
+ const data=window.PampaSyncEnvelope.buildEnvelope({
+  app:'PampaPorcinos ERP',version:'1.1.1',exportedAt:new Date().toISOString(),company,
+  stores,settings:{company,homeBanking:loadHomeBankingLinks(),transportLinks:loadTransportLinks(),arcaFiscal:loadArcaFiscal()},syncLog:stores.syncChanges
+ });
  download('respaldo_pampaporcinos_erp.json',JSON.stringify(data,null,2),'application/json');
 }
 
 function setSyncFolderStatus(text,color='var(--text-dim)'){
  const status=$('syncFolderStatus');
  if(status){status.textContent=text;status.style.color=color;}
+}
+
+function actualizarEstadoDestinoSincronizacion(){
+ if(syncDirectoryHandle){
+  setSyncFolderStatus(`Carpeta: ${syncDirectoryHandle.name}`,'var(--green)');
+  return;
+ }
+ const config=loadServerSyncConfig();
+ if(config.url){
+  setSyncFolderStatus('Servidor configurado','var(--green)');
+  return;
+ }
+ setSyncFolderStatus('Sin destino configurado');
+}
+
+function abrirConfiguracionSincronizacion(){
+ const modal=document.createElement('div');
+ modal.className='modal-overlay active';
+ modal.id='syncDestinationModal';
+ modal.innerHTML='<div class="modal" style="max-width:520px"><div class="modal-header"><div class="modal-title">Conectar sincronización</div><button class="modal-close" type="button">×</button></div><div class="modal-body"><div style="display:grid;gap:12px"><button class="btn" type="button" data-sync-folder="true"><strong>Carpeta sincronizada</strong><br><small>Elegí una carpeta de Google Drive, Dropbox o OneDrive instalada en este equipo.</small></button><button class="btn" type="button" data-sync-server="true"><strong>Servidor propio</strong><br><small>Configurá una URL WebDAV o HTTP/HTTPS para sincronizar entre equipos.</small></button></div></div></div>';
+ document.body.appendChild(modal);
+ const cerrar=()=>modal.remove();
+ modal.querySelector('.modal-close')?.addEventListener('click',cerrar);
+ modal.addEventListener('click',event=>{if(event.target===modal) cerrar();});
+ modal.querySelector('[data-sync-folder]')?.addEventListener('click',async()=>{
+  cerrar();
+  await chooseSyncFolder();
+  actualizarEstadoDestinoSincronizacion();
+ });
+ modal.querySelector('[data-sync-server]')?.addEventListener('click',()=>{
+  cerrar();
+  document.querySelector('[data-view="datos"]')?.click();
+  setTimeout(()=>$('ssUrl')?.focus(),50);
+ });
 }
 
 async function ensureSyncFolderPermission(){
@@ -3829,7 +4475,7 @@ async function chooseSyncFolder(){
  try{
   const handle=await window.showDirectoryPicker({mode:'readwrite'});
   syncDirectoryHandle=handle;
-  setSyncFolderStatus(handle.name,'var(--green)');
+  actualizarEstadoDestinoSincronizacion();
  }catch(err){
   if(err.name!=='AbortError') alert('No se pudo conectar la carpeta de sincronización.');
  }
@@ -3909,6 +4555,7 @@ function renderServerSyncConfig(){
  if($('ssUser')) $('ssUser').value=config.user||'';
  if($('ssPath')) $('ssPath').value=config.path||SYNC_FILE_NAME;
  if($('serverSyncStatus')) $('serverSyncStatus').textContent=config.url ? `Configurado: ${config.url}` : 'Servidor propio no configurado.';
+ actualizarEstadoDestinoSincronizacion();
 }
 
 function serverSyncRequest(config,method='GET',body){
@@ -3966,9 +4613,11 @@ async function syncServerNow(){
 $('restoreFile').addEventListener('change',async e=>{
  const file=e.target.files[0];if(!file)return;
  try{
-  const data=JSON.parse(await file.text());
+  const imported=window.PampaSyncEnvelope.normalizeImport(await file.text(),{storeNames:[...DATA_STORES,'syncChanges']});
+  const data={...imported.settings,...imported.stores};
+  if(Array.isArray(imported.syncLog)) data.syncChanges=imported.syncLog;
   for(const s of Object.keys(data)){
-    if(!DATA_STORES.includes(s))continue;
+    if(!DATA_STORES.includes(s)&&s!==SYNC_LOG_STORE)continue;
    await clearStore(s);
    for(const r of data[s]){const copy={...r};delete copy.id;await add(s,copy)}
   }
@@ -4016,6 +4665,7 @@ function openView(viewId){
  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
  const view = $(viewId);
  if(view) view.classList.add('active');
+ if(viewId==='arca') loadArcaConnectionStatus();
  if(viewId==='campos'){
   setTimeout(()=>{
    ensureGeoMap();
@@ -4056,6 +4706,7 @@ function initCardDropdowns(){
   animales: ['Registro de movimientos', 'Listado de movimientos'],
   movimientos: ['Resumen de etapas'],
   sanidad: ['Registro sanitario', 'Historial sanitario'],
+  bioseguridad: ['Registro de visitas y accesos', 'Checklist estructural y operativo', 'Bitácora DDD, limpieza y agua', 'Cuarentena de reproductores'],
   inventario: ['Registro de inventario', 'Resumen de inventario'],
   alimentacion: ['Registro de alimentación', 'Alertas de consumo', 'Historial de alimentación'],
   maquinarias: ['Inventario de maquinarias', 'Listado de maquinarias', 'Mantenimiento', 'Historial de mantenimiento', 'Instalaciones', 'Listado de instalaciones'],
@@ -4063,7 +4714,8 @@ function initCardDropdowns(){
   transporte: ['Registro de viaje', 'Enlaces oficiales', 'Historial de viajes'],
   rrhh: ['Registro de personal y novedades', 'Historial de RRHH'],
   finanzas: ['Movimiento financiero', 'Enlaces homebanking', 'Historial financiero'],
-  arca: ['Datos fiscales', 'Liquidación electrónica', 'Operación porcina', 'Facturación', 'Documentación cárnica', 'Trazabilidad ARCA'],
+  arca: ['Datos fiscales', 'Liquidación electrónica', 'Operación porcina', 'Facturación', 'Documentación cárnica', 'Trazabilidad ARCA', 'Retenciones y percepciones', 'Liquidación de costos', 'Información de CUIT', 'Anexos fiscales'],
+  finanzas: ['Saldo en caja', 'Saldo en bancos', 'Cheques pendientes', 'Movimientos de fondos', 'Cobros y pagos', 'Créditos vigentes'],
   costos: ['Registro de costos', 'Resumen de costos', 'Indicadores operativos', 'Costo por categoría', 'Historial de costos'],
   ventas: ['Registro de ventas', 'Historial de ventas'],
   reportes: ['Exportaciones e indicadores'],
@@ -4127,6 +4779,33 @@ function normalizarLoteSenasa(value){
  return String(value||'').trim().toLowerCase();
 }
 
+async function buscarCampoPorLote(lote){
+ const nombre=normalizarLoteSenasa(lote);
+ if(!nombre) return null;
+ const campos=await all('geoFields');
+ return campos.find(item=>normalizarLoteSenasa(item.numeroLote)===nombre||normalizarLoteSenasa(item.nombreLote)===nombre)||null;
+}
+
+async function autocompletarRenspaDesdeLote(origenId,renspaId){
+ const origen=$(origenId);
+ const destino=$(renspaId);
+ if(!origen||!destino) return;
+ const campo=await buscarCampoPorLote(origen.value);
+ if(campo?.renspa) destino.value=campo.renspa;
+}
+
+function vincularAutocompletadoRenspa(){
+ [
+  ['cLote','cRenspa'],
+  ['bsLote','bsComprador'],
+  ['aoLote','aoRenspa'],
+  ['arLote','arRenspa']
+ ].forEach(([origenId,renspaId])=>{
+  $(origenId)?.addEventListener('change',()=>autocompletarRenspaDesdeLote(origenId,renspaId));
+  $(origenId)?.addEventListener('blur',()=>autocompletarRenspaDesdeLote(origenId,renspaId));
+ });
+}
+
 async function stockPorLoteYCategoria(lote,categoria){
  const loteNormalizado=normalizarLoteSenasa(lote);
  const movimientos=await all('animals');
@@ -4172,6 +4851,9 @@ async function validarDespachoSenasa({origen,categoria,cantidad}){
  if(!campo?.renspa) throw new Error('El lote de origen no tiene RENSPA asociado. Cargalo en Campos antes de despachar.');
  const control=renspas.find(item=>String(item.numero||'').trim()===String(campo.renspa||'').trim());
  if(!control||String(control.estado||'').toUpperCase()!=='VIGENTE') throw new Error(`El RENSPA ${campo.renspa} no tiene un control vigente para despacho.`);
+ const today=dateNow();
+ if(!control.aujeszkyDue||control.aujeszkyDue<=today) throw new Error(`El RENSPA ${campo.renspa} no tiene monitoreo Aujeszky vigente para emitir DT-e.`);
+ if(control.brucellosisStatus!=='VIGENTE'||(control.brucellosisDue&&control.brucellosisDue<=today)) throw new Error(`El RENSPA ${campo.renspa} no tiene certificación o muestreo de Brucelosis vigente para emitir DT-e.`);
  const bloqueo=bloqueos.find(item=>String(item.renspa||'')===String(campo.renspa||'')&&item.activo&&item.estado!=='OPERATIVO');
  if(bloqueo) throw new Error(`Despacho bloqueado por alerta sanitaria: ${bloqueo.motivo}`);
  await validarCarenciaFaena(origen,categoria,new Date().toISOString().slice(0,10));
@@ -4205,18 +4887,18 @@ $('healthForm').addEventListener('submit',async e=>{
  if(medicamento&&!$('sFinTrat').value) return alert('Indicá la fecha de última dosis para calcular la carencia.');
  const evento={fecha:$('sFecha').value,lote,renspa:campo.renspa,categoria:$('sCat').value,tipo:$('sTipo').value,producto:$('sProducto').value,objetivo:$('sObjetivo').value,cantidad:+$('sCant').value,costo:+$('sCosto').value||0,medicamento_id:medicamento?.id||null,medicamento_nombre:medicamento?.nombre||'',principio_activo:medicamento?.principio||'',fecha_fin_tratamiento:medicamento?$('sFinTrat').value:'',carencia_dias:medicamento?Number(medicamento.carencia||0):0,responsable:$('sResp').value,obs:$('sObs').value};
  const clave=`${evento.producto} ${evento.medicamento_nombre} ${evento.objetivo} ${evento.obs}`.toUpperCase();
- if(evento.tipo==='Vacunación'&&(/\bPPC\b|PESTE PORCINA CLASICA|\bPPA\b|PESTE PORCINA AFRICANA/.test(clave))){
-  evento.estado='RECHAZADO_PPC_PPA';
+ if(evento.tipo==='Vacunación'&&(/\bPPC\b|PESTE PORCINA CLASICA/.test(clave))){
+  evento.estado='RECHAZADO_PPC';
   await add('health',evento);
-  await registrarBloqueoSanitario(evento.renspa,'BLOQUEADO_SENASA','Intento de registrar vacunación PPC/PPA. Revisión veterinaria y notificación obligatoria requerida.');
+  await registrarBloqueoSanitario(evento.renspa,'BLOQUEADO_SENASA','Intento de registrar vacunación contra PPC, prohibida por el plan sanitario. Notificación obligatoria requerida.');
   await refresh();
-  return alert('OPERACIÓN RECHAZADA: PPC/PPA no es una vacuna permitida. Se bloqueó preventivamente el despacho para este RENSPA.');
+  return alert('OPERACIÓN RECHAZADA: la vacunación contra PPC está prohibida. Se bloqueó preventivamente el despacho para este RENSPA.');
  }
  await add('health',evento);
  if(medicamento){
   await persistSanidadServer('tratamientos',{granja_renspa:evento.renspa,lote_codigo:evento.lote,medicamento_id:medicamento.codigo||medicamento.id,fecha_inicio_tratamiento:evento.fecha,fecha_fin_tratamiento:evento.fecha_fin_tratamiento,operario:evento.responsable,observaciones:evento.obs});
  }
- const sintomas=['SINDROME_HEMORRAGICO','LESIONES_VESICULARES','FALLA_REPRODUCTIVA_MASIVA'];
+ const sintomas=['PPA','PPC','PRRS','FIEBRE_AFTOSA','SINDROME_VESICULAR','SINDROME_HEMORRAGICO','FALLA_REPRODUCTIVA_MASIVA'];
  if(evento.tipo==='Notificación síntoma'&&sintomas.includes(evento.objetivo)){
   await registrarBloqueoSanitario(evento.renspa,'BLOQUEADO_SENASA',`Sospecha de notificación obligatoria: ${evento.objetivo}. Contactar al veterinario responsable y SENASA.`);
  }else if(evento.tipo==='Mortandad'){
@@ -4236,6 +4918,41 @@ $('feedForm').addEventListener('submit',async e=>{
  e.preventDefault();
  await add('feeding',{fecha:$('alFecha').value,categoria:$('alCat').value,lote:$('alLote').value,insumo:$('alInsumo').value,kg:+$('alKg').value||0,costoKg:+$('alCostoKg').value||0,animales:+$('alAnimales').value||0,obs:$('alObs').value});
  e.target.reset();setDates();refresh();alert('Registro de alimentación guardado.');
+});
+$('insumoAlimenticioForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+ const tipo=$('iaTipo').value;
+ const cert=$('iaCertSenasa').value.trim();
+ if(['NUCLEO_VITAMINICO','PREMIX'].includes(tipo) && !cert){
+  renderSenasaInsumoAlerts([{tipo,lote:$('iaLoteProv').value.trim(),motivo:'Falta número de certificado SENASA',vencimiento:$('iaVencimiento').value,estado:'Crítica'}]);
+  alert('SENASA exige número de certificado para núcleos o premixes.');
+  return;
+ }
+ const payload={proveedor_cuit:$('iaCuit').value.trim(),proveedor_nombre:$('iaProveedor').value.trim(),insumo_tipo:tipo,nro_lote_proveedor:$('iaLoteProv').value.trim(),nro_certificado_senasa:cert,cantidad_kilos:+$('iaKg').value||0,fecha_ingreso:$('iaFechaIngreso').value,vencimiento_lote:$('iaVencimiento').value};
+ await add('insumosAlimenticios',payload);
+ await persistAuditoriaServer('insumos',payload);
+ e.target.reset();setDates();refresh();alert('Insumo alimenticio registrado.');
+});
+$('racionForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+ const payload={codigo_racion_lote:$('rCod').value.trim(),tipo_etapa_porcina:$('rEtapa').value,fecha_mezcla:new Date().toISOString(),kilos_totales_producidos:+$('rKg').value||0,operario_responsable:$('rOperario').value.trim()};
+ await add('racionesElaboradas',payload);
+ await persistAuditoriaServer('raciones',payload);
+ e.target.reset();setDates();refresh();alert('Ración elaborada guardada.');
+});
+$('racionDetalleForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+ const payload={racion_lote_id:$('rdRacionId').value.trim(),insumo_lote_id:$('rdInsumoId').value.trim(),kilos_utilizados:+$('rdKg').value||0};
+ await add('racionComposicion',payload);
+ await persistAuditoriaServer('racion-detalle',payload);
+ e.target.reset();setDates();refresh();alert('Detalle de composición guardado.');
+});
+$('consumoForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+ const payload={racion_lote_id:$('cRacionId').value.trim(),renspa_id:$('cRenspa').value.trim(),galpon_numero:$('cGalpon').value.trim(),lote_animales_id:$('cLote').value.trim(),kilos_suministrados:+$('cKg').value||0,fecha_suministro:$('cFecha').value};
+ await add('consumoAlimentacion',payload);
+ await persistAuditoriaServer('consumo',payload);
+ e.target.reset();setDates();refresh();alert('Consumo por galpón registrado.');
 });
 $('costForm').addEventListener('submit',async e=>{
  e.preventDefault();
@@ -4261,7 +4978,7 @@ $('facilityForm').addEventListener('submit',async e=>{
 });
 $('geoFieldForm').addEventListener('submit',async e=>{
  e.preventDefault();
- await add('geoFields',{
+ const campo={
   fecha:$('gFecha').value,
   numeroLote:$('gNumero').value.trim(),
   renspa:$('gRenspa').value.trim(),
@@ -4272,7 +4989,27 @@ $('geoFieldForm').addEventListener('submit',async e=>{
   uso:$('gUso').value,
   estado:$('gEstado').value,
   obs:$('gObs').value
- });
+ };
+ await add('geoFields',campo);
+ const controles=await all('renspaControl');
+ const existe=controles.some(control=>String(control.numero||'').trim()===campo.renspa);
+ if(!existe){
+  await add('renspaControl',{
+   campo:campo.nombreLote||campo.numeroLote,
+   ubicacion:'',
+   numero:campo.renspa,
+   fechaInsc:campo.fecha,
+   ultimaAct:'',
+   proximaAct:'',
+   aujeszkyLast:'',
+   aujeszkyDue:'',
+   aujeszkyFrequency:0,
+   brucellosisStatus:'PENDIENTE',
+   brucellosisDue:'',
+   estado:'Pendiente de control',
+   origenCampo:'automatico'
+  });
+ }
    e.target.reset();setDates();await suggestNextGeoLotNumber();refresh();alert('Lote georreferenciado guardado.');
 });
 $('rhForm').addEventListener('submit',async e=>{
@@ -4488,8 +5225,9 @@ $('arcaInvForm').addEventListener('submit',async e=>{
   cae:$('aiCae').value.trim(),
   caeVto:$('aiCaeVto').value
  };
- await add('arcaInvoices',invoice);
- await persistFiscalServer('facturas',invoice);
+ const localInvoiceId=await add('arcaInvoices',invoice);
+ const remoteInvoice=await persistFiscalServer('facturas',invoice);
+ await vincularRegistroFiscalLocal('arcaInvoices',localInvoiceId,remoteInvoice);
  e.target.reset();
  setDates();
  refresh();
@@ -4498,10 +5236,7 @@ $('arcaInvForm').addEventListener('submit',async e=>{
 
 $('arcaRecForm').addEventListener('submit',async e=>{
  e.preventDefault();
-<<<<<<< HEAD:public/pampaporcinos-erp/index.html
  const destinoFaena=$('arFaena').value==='si';
-=======
->>>>>>> 16a23115 (Publicar catálogo con trials privados):public/trials/p6/index.html
  const rec={
   rec:$('arRec').value.trim(),
   estado:$('arEstado').value,
@@ -4514,9 +5249,11 @@ $('arcaRecForm').addEventListener('submit',async e=>{
   loteCodigo:$('arLote').value.trim(),
   categoria:$('arCategoria').value,
   fechaCarga:$('arFecha').value,
+  triquinosis_laboratorio:$('arTriqLaboratorio').value.trim(),
+  triquinosis_analisis:$('arTriqAnalisis').value.trim(),
+  triquinosis_resultado:$('arTriqResultado').value,
   factura:$('arFactura').value.trim()
  };
-<<<<<<< HEAD:public/pampaporcinos-erp/index.html
  if(destinoFaena){
   if(!rec.renspaOrigen||!rec.loteCodigo) return alert('Para un REC a faena indicá RENSPA y lote de origen.');
   await validarCarenciaFaena(rec.loteCodigo,rec.categoria,rec.fechaCarga);
@@ -4524,26 +5261,38 @@ $('arcaRecForm').addEventListener('submit',async e=>{
  const remoto=await persistFiscalServer('rec',rec);
  if(destinoFaena&&!remoto) return alert('No se pudo validar y persistir el REC a faena en el servidor. El documento no fue guardado.');
  await add('arcaRec',rec);
-=======
- await add('arcaRec',rec);
- await persistFiscalServer('rec',rec);
->>>>>>> 16a23115 (Publicar catálogo con trials privados):public/trials/p6/index.html
  e.target.reset();
  setDates();
  refresh();
  alert('REC guardado.');
 });
+async function refreshSaleTransportOptions(){
+ const select=$('vTransportId');
+ if(!select) return;
+ const selected=select.value;
+ const trips=(await all('transport')).filter(trip=>trip.carga==='Animales'&&String(trip.guia||'').trim());
+ select.innerHTML=`<option value="">Seleccionar DT-e / guía SENASA</option>${trips.map(trip=>`<option value="${trip.id}">${trip.guia} · ${trip.origen||'-'} a ${trip.destino||'-'}</option>`).join('')}`;
+ if(trips.some(trip=>String(trip.id)===selected)) select.value=selected;
+ const selectedTrip=trips.find(trip=>String(trip.id)===select.value);
+ $('vCartaOrigen').value=selectedTrip?.origen||'';
+ $('vCartaDestino').value=selectedTrip?.destino||'';
+ $('vCartaTransportista').value=selectedTrip?.empresa||'';
+ $('vCartaVehiculo').value=selectedTrip?.vehiculo||selectedTrip?.patente||'';
+}
+
+if($('vTransportId')) $('vTransportId').addEventListener('change',refreshSaleTransportOptions);
+
 $('saleForm').addEventListener('submit',async e=>{
  e.preventDefault();
+ const transportRows=await all('transport');
+ const transport=transportRows.find(row=>String(row.id)===String($('vTransportId').value));
+ if(!transport?.guia||transport.carga!=='Animales') return alert('Seleccioná un viaje de animales con DT-e o guía SENASA registrada.');
  const controlSenasa=await validarDespachoSenasa({origen:$('vLote').value,categoria:$('vTipo').value,cantidad:+$('vCant').value});
  const total=+$('vTotal').value || ((+$('vKg').value||0)*(+$('vPrecio').value||0));
-<<<<<<< HEAD:public/pampaporcinos-erp/index.html
- const venta={fecha:$('vFecha').value,lote:$('vLote').value.trim(),cliente:$('vCliente').value,tipo:$('vTipo').value,cantidad:+$('vCant').value,kg:+$('vKg').value||0,precioKg:+$('vPrecio').value||0,total,comprobante:$('vComp').value,renspa:controlSenasa.renspa,cartaPorte:{numero:$('vCartaPorte').value.trim()||`CP-${new Date().getFullYear()}-${Date.now().toString().slice(-8)}`,origen:$('vCartaOrigen').value.trim(),destino:$('vCartaDestino').value.trim(),transportista:$('vCartaTransportista').value.trim(),vehiculo:$('vCartaVehiculo').value.trim(),estado:'Generada'},obs:$('vObs').value};
- await add('sales',venta);
+ const venta={fecha:$('vFecha').value,lote:$('vLote').value.trim(),cliente:$('vCliente').value,tipo:$('vTipo').value,cantidad:+$('vCant').value,kg:+$('vKg').value||0,precioKg:+$('vPrecio').value||0,total,comprobante:$('vComp').value,renspa:controlSenasa.renspa,documentoTraslado:{numero:transport.guia,origen:transport.origen||'',destino:transport.destino||'',transportista:transport.empresa||'',vehiculo:transport.vehiculo||transport.patente||'',estado:transport.guiaEstado||'Pendiente validación',transportId:transport.id},obs:$('vObs').value};
+ const saleId=await add('sales',venta);
+ await putMany('transport',[{...transport,saleId,saleReference:`Venta ${saleId}`}]);
  await add('animals',{fecha:venta.fecha,tipo:'Venta',categoria:venta.tipo,sistema:'Campo',origen:venta.lote,destino:'',cantidad:venta.cantidad,peso:venta.kg>0?venta.kg/venta.cantidad:0,valor:venta.precioKg,obs:`Salida automática por venta a ${venta.cliente}`,senasa:controlSenasa});
-=======
- await add('sales',{fecha:$('vFecha').value,lote:$('vLote').value.trim(),cliente:$('vCliente').value,tipo:$('vTipo').value,cantidad:+$('vCant').value,kg:+$('vKg').value||0,precioKg:+$('vPrecio').value||0,total,comprobante:$('vComp').value,cartaPorte:{numero:$('vCartaPorte').value.trim()||`CP-${new Date().getFullYear()}-${Date.now().toString().slice(-8)}`,origen:$('vCartaOrigen').value.trim(),destino:$('vCartaDestino').value.trim(),transportista:$('vCartaTransportista').value.trim(),vehiculo:$('vCartaVehiculo').value.trim(),estado:'Generada'},obs:$('vObs').value});
->>>>>>> 16a23115 (Publicar catálogo con trials privados):public/trials/p6/index.html
  e.target.reset();setDates();refresh();alert('Venta registrada.');
 });
 $('boletoSenalForm').addEventListener('submit',async e=>{
@@ -4560,6 +5309,7 @@ $('boletoSenalForm').addEventListener('submit',async e=>{
   registro:$('bsPeso').value.trim(),
   autoridad:$('bsPrecioKg').value.trim(),
   fechaAlta:$('bsImporte').value,
+    fechaVencimiento:$('bsVencimiento').value,
   estado:$('bsEstado').value,
   obs:$('bsObs').value.trim()
  });
@@ -4588,7 +5338,47 @@ if($('tKg')){
  });
 }
 
-if($('rUltAct')) $('rUltAct').addEventListener('input',calcRenspaForm);
+if($('bioVisitForm')) $('bioVisitForm').addEventListener('submit',async event=>{
+ event.preventDefault();
+ const at=$('bioVisitAt').value;
+ const lastFarm=$('bioVisitLastFarm').value;
+ const emptyHours=Math.floor((new Date(at).getTime()-new Date(lastFarm).getTime())/3600000);
+ const status=emptyHours>=48&&$('bioVisitFilter').value==='SI'?'AUTORIZADO':'BLOQUEADO';
+ await add('bioVisits',{at,name:$('bioVisitName').value.trim(),dni:$('bioVisitDni').value.trim(),reason:$('bioVisitReason').value.trim(),origin:$('bioVisitOrigin').value.trim(),lastFarm,emptyHours,status,vehicle:$('bioVisitVehicle').value.trim()});
+ event.target.reset();
+ await refresh();
+ alert(status==='AUTORIZADO'?'Acceso registrado como autorizado.':'Acceso registrado como bloqueado: requiere 48 horas de vacío y filtro sanitario cumplido.');
+});
+[['bioPerimeterPhoto','perimeter','bioPerimeterPreview'],['bioLogisticsPhoto','logistics','bioLogisticsPreview']].forEach(([inputId,key,previewId])=>{
+ const input=$(inputId);
+ if(input) input.addEventListener('change',()=>loadBioPhoto(input,key,previewId));
+});
+inicializarCamaraBioseguridad();
+if($('bioCheckForm')) $('bioCheckForm').addEventListener('submit',async event=>{
+ event.preventDefault();
+ const controls={cerco:$('bioFence').checked?'Conforme':'No conforme',porton:$('bioGate').checked?'Conforme':'No conforme',ducha:$('bioShower').checked?'Conforme':'No conforme',ropa:$('bioClothing').checked?'Conforme':'No conforme',visitas:$('bioVisitsComplete').checked?'Conforme':'No conforme',arco:$('bioVehicleDisinfection').checked?'Conforme':'No conforme',zonas:$('bioZones').checked?'Conforme':'No conforme',embarcadero:$('bioDock').checked?'Conforme':'No conforme',todoAdentroAfuera:$('bioAllInOut').checked?'Conforme':'No conforme',plagas:$('bioPests').checked?'Conforme':'No conforme',alimento:$('bioFeedSecurity').checked?'Conforme':'No conforme',cadaveres:$('bioMortality').checked?'Conforme':'No conforme'};
+ const labels={cerco:'Cerco perimetral',porton:'Portón principal',ducha:'Filtro sanitario y duchas',ropa:'Ropa y botas exclusivas',visitas:'Registro de visitas',arco:'Arco o vado vehicular',zonas:'Camiones en zona sucia',embarcadero:'Embarcadero',todoAdentroAfuera:'Vacío sanitario',plagas:'Control de plagas',alimento:'Silos y alimento seguro',cadaveres:'Disposición de cadáveres'};
+ const deviations=Object.entries(controls).filter(([,value])=>value==='No conforme').map(([key])=>labels[key]);
+ const record={date:$('bioCheckDate').value,controls,deviations,photos:{...bioChecklistPhotos}};
+ record.id=await add('bioChecks',record);
+ try{generateBiosecurityPdf(record);}catch(error){alert(error.message||'El checklist fue guardado, pero no se pudo generar el PDF.');}
+ event.target.reset();clearBioPhotos();setDates();await refresh();alert(deviations.length?'Checklist y PDF registrados con desvíos a corregir.':'Checklist y PDF de bioseguridad registrados.');
+});
+if($('bioLogForm')) $('bioLogForm').addEventListener('submit',async event=>{
+ event.preventDefault();
+ await add('bioLogs',{date:$('bioLogDate').value,type:$('bioLogType').value,sector:$('bioLogSector').value.trim(),method:$('bioLogMethod').value.trim(),result:$('bioLogResult').value,due:$('bioLogDue').value});
+ event.target.reset();setDates();await refresh();alert('Bitácora de bioseguridad registrada.');
+});
+function calcQuarantineEnd(){if($('bioQuarantineEnd')) $('bioQuarantineEnd').value=addDaysISO($('bioQuarantineStart')?.value,30);}
+if($('bioQuarantineStart')) $('bioQuarantineStart').addEventListener('input',calcQuarantineEnd);
+if($('bioQuarantineForm')) $('bioQuarantineForm').addEventListener('submit',async event=>{
+ event.preventDefault();calcQuarantineEnd();
+ const end=$('bioQuarantineEnd').value;
+ const status=dateNow()>=end&&$('bioQuarantineAujeszky').value==='Conforme'&&$('bioQuarantineBrucellosis').value==='Conforme'?'LIBERABLE':'ACTIVA';
+ await add('bioQuarantines',{lot:$('bioQuarantineLot').value.trim(),start:$('bioQuarantineStart').value,end,aujeszky:$('bioQuarantineAujeszky').value,brucellosis:$('bioQuarantineBrucellosis').value,status});
+ event.target.reset();setDates();calcQuarantineEnd();await refresh();alert(status==='LIBERABLE'?'Cuarentena cumplida y controles conformes.':'Cuarentena registrada como activa.');
+});
+['rUltAct','rAujeszkyLast','rAujeszkyFrequency'].forEach(id=>$(id)?.addEventListener('input',calcRenspaForm));
 $('renspaForm').addEventListener('submit',async e=>{
  e.preventDefault();
  calcRenspaForm();
@@ -4599,6 +5389,11 @@ $('renspaForm').addEventListener('submit',async e=>{
   fechaInsc:$('rFechaInsc').value,
   ultimaAct:$('rUltAct').value,
   proximaAct:$('rProxAct').value,
+  aujeszkyLast:$('rAujeszkyLast').value,
+  aujeszkyDue:$('rAujeszkyDue').value,
+  aujeszkyFrequency:Number($('rAujeszkyFrequency').value||0),
+  brucellosisStatus:$('rBrucellosisStatus').value,
+  brucellosisDue:$('rBrucellosisDue').value,
   estado:$('rEstado').value
  });
  e.target.reset();
@@ -4607,6 +5402,7 @@ $('renspaForm').addEventListener('submit',async e=>{
  refresh();
  alert('Control RENSPA guardado.');
 });
+vincularAutocompletadoRenspa();
 $('animalSearch').addEventListener('input',refreshAnimals);
 $('importAnimalsFile').addEventListener('change',()=>importExcelToStore('animals','importAnimalsFile'));
 $('importHealthFile').addEventListener('change',()=>importExcelToStore('health','importHealthFile'));
@@ -4672,7 +5468,7 @@ async function refreshAnimals(){
  $('animalTable').innerHTML=rows.filter(r=>JSON.stringify(r).toLowerCase().includes(q)).sort((a,b)=>b.fecha.localeCompare(a.fecha)).map(r=>`<tr><td>${r.fecha}</td><td>${r.tipo}</td><td>${r.categoria}</td><td>${r.sistema}</td><td>${r.cantidad}</td><td>${r.peso?Number(r.peso*r.cantidad).toFixed(1):'-'}</td><td>${r.destino||r.origen||'-'}</td><td>${r.obs||''}</td></tr>`).join('');
 }
 async function refresh(){
- const [animals,health,inventory,costs,sales,boletosSenal,renspaRows]=await Promise.all(['animals','health','inventory','costs','sales','boletosSenal','renspaControl'].map(all));
+ const [animals,health,inventory,costs,sales,boletosSenal,renspaRows,sanitaryBlocks,maquinarias,mantenimientos,instalaciones]=await Promise.all(['animals','health','inventory','costs','sales','boletosSenal','renspaControl','sanitaryBlocks','machinery','machineMaintenance','facilities'].map(all));
  const signs={};
  animals.forEach(r=>{
   const plus=['Alta / ingreso','Destete'].includes(r.tipo), minus=['Mortalidad','Venta','Baja'].includes(r.tipo);
@@ -4778,6 +5574,8 @@ async function refresh(){
     }).join('')
    : '<div class="dashboard-renspa-item"><div class="dashboard-renspa-campo">Sin alertas de vencimiento próximo.</div></div>';
  }
+ renderAlertasSanitariasPrioritarias(renspaRows,sanitaryBlocks);
+ renderAlertasMantenimientoInstalaciones(maquinarias,mantenimientos,instalaciones);
 
  $('stockCat').innerHTML=CATS.map(c=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee"><span>${c}</span><b>${signs[c]||0}</b></div>`).join('');
  const last=[...animals].sort((a,b)=>b.fecha.localeCompare(a.fecha)).slice(0,8);
@@ -4800,14 +5598,17 @@ async function refresh(){
   ? byCatRows.map(([cat,val])=>`<tr><td>${cat}</td><td>${money(val)}</td></tr>`).join('')
   : '<tr><td colspan="2">Sin datos de costos operativos en los últimos 30 días.</td></tr>';
  $('costTable').innerHTML=costs.sort((a,b)=>b.fecha.localeCompare(a.fecha)).map(r=>`<tr><td>${r.fecha}</td><td>${r.tipo}</td><td>${r.categoria}</td><td>${money(r.importe)}</td><td>${r.obs||''}</td></tr>`).join('');
- $('saleTable').innerHTML=sales.sort((a,b)=>b.fecha.localeCompare(a.fecha)).map(r=>`<tr><td>${r.fecha}</td><td>${r.lote||'-'}</td><td>${r.cliente}</td><td>${r.tipo}</td><td>${r.cantidad}</td><td>${r.kg}</td><td>${money(r.total)}</td><td>${r.cartaPorte?.numero||'-'}</td></tr>`).join('');
- $('boletoSenalTable').innerHTML=boletosSenal.sort((a,b)=>b.fecha.localeCompare(a.fecha)).map(r=>`<tr><td>${r.fecha||''}</td><td>${r.numero||''}</td><td>${r.propietario||''}</td><td>${r.renspa||''}</td><td>${r.establecimiento||''}</td><td>${r.tipoSenal||''}</td><td>${r.registro||'-'}</td><td>${r.estado||''}</td></tr>`).join('');
+ $('saleTable').innerHTML=sales.sort((a,b)=>b.fecha.localeCompare(a.fecha)).map(r=>`<tr><td>${r.fecha}</td><td>${r.lote||'-'}</td><td>${r.cliente}</td><td>${r.tipo}</td><td>${r.cantidad}</td><td>${r.kg}</td><td>${money(r.total)}</td><td>${r.documentoTraslado?.numero||r.cartaPorte?.numero||'-'}</td></tr>`).join('');
+ renderSenalesPorcinas(boletosSenal);
+ await refreshSaleTransportOptions();
  await refreshAlimentacion();
  await refreshMaquinarias();
  await refreshTransporte();
  await refreshRRHH();
  await refreshFinanzas();
  await refreshArca();
+ await refreshSenasaMandatoryPlanAlerts();
+ await refreshBiosecurity();
  await refreshCampos();
  await refreshAnimals();
 }
@@ -4947,6 +5748,42 @@ async function refreshAlimentacion(){
   const total=(Number(r.kg)||0)*(Number(r.costoKg)||0);
   return `<tr><td>${r.fecha||''}</td><td>${r.categoria||''}</td><td>${r.lote||''}</td><td>${r.insumo||''}</td><td>${Number(r.kg||0).toFixed(2)}</td><td>${money(r.costoKg||0)}</td><td>${money(total)}</td><td>${Number(r.animales||0)}</td><td>${r.obs||''}</td></tr>`;
  }).join('');
+ await refreshSenasaInsumoAlerts();
+}
+
+function renderSenasaInsumoAlerts(alerts){
+ const count=$('senasaAlertCount');
+ const table=$('senasaAlertsTable');
+ if(count) count.textContent=`${alerts.length} pendiente${alerts.length===1?'':'s'}`;
+ if(!table) return;
+ table.innerHTML=alerts.length
+  ? alerts.map(alert=>`<tr><td>${alert.tipo||'-'}</td><td>${alert.lote||'-'}</td><td>${alert.motivo}</td><td>${alert.vencimiento||'-'}</td><td>${alert.estado}</td></tr>`).join('')
+  : '<tr><td colspan="5">Sin alertas SENASA.</td></tr>';
+}
+
+async function refreshSenasaInsumoAlerts(){
+ const [insumos,medicamentos]=await Promise.all([all('insumosAlimenticios'),all('vademecumPorcino')]);
+ const today=dateNow();
+ const warningDate=new Date(`${today}T00:00:00`);
+ warningDate.setDate(warningDate.getDate()+30);
+ const alerts=[];
+ insumos.forEach(insumo=>{
+  const tipo=String(insumo.insumo_tipo||'').toUpperCase();
+  const lote=insumo.nro_lote_proveedor||'';
+  if(['NUCLEO_VITAMINICO','PREMIX'].includes(tipo)&&!String(insumo.nro_certificado_senasa||'').trim()){
+   alerts.push({tipo,lote,motivo:'Falta número de certificado SENASA',vencimiento:insumo.vencimiento_lote||'',estado:'Crítica'});
+  }
+  const vencimiento=String(insumo.vencimiento_lote||'');
+  if(vencimiento&&vencimiento<=today){
+   alerts.push({tipo,lote,motivo:'Lote vencido',vencimiento,estado:'Crítica'});
+  }else if(vencimiento&&new Date(`${vencimiento}T00:00:00`)<=warningDate){
+   alerts.push({tipo,lote,motivo:'Vence dentro de 30 días',vencimiento,estado:'Revisar'});
+  }
+ });
+ medicamentos.filter(medicamento=>/REFERENCIA|VALIDAR/i.test(String(medicamento.fuente||''))).forEach(medicamento=>{
+  alerts.push({tipo:medicamento.nombre||medicamento.codigo||'Medicamento',lote:'-',motivo:'Registro SENASA de referencia sin validar',vencimiento:'',estado:'Revisar'});
+ });
+ renderSenasaInsumoAlerts(alerts);
 }
 
 async function refreshMaquinarias(){
@@ -4971,7 +5808,19 @@ async function refreshMaquinarias(){
 }
 
 async function refreshFinanzas(){
- const rows = await all('finances');
+ const localRows = await all('finances');
+ let fiscalPostings=[];
+ let withholdings=[];
+ try{
+  const [postingsResponse,withholdingsResponse]=await Promise.all([fetch('/api/fiscal/finanzas'),fetch('/api/fiscal/retenciones')]);
+  if(postingsResponse.ok) fiscalPostings=await postingsResponse.json();
+  if(withholdingsResponse.ok) withholdings=await withholdingsResponse.json();
+ }catch(error){console.warn('No se pudieron cargar los asientos fiscales:',error.message);}
+ const rows=[
+  ...localRows,
+  ...fiscalPostings.map(row=>({fecha:row.fecha,componente:'Bancos',tipo:row.tipo==='INGRESO'?'Ingreso':'Egreso',entidad:row.concepto||'Operación fiscal ARCA',importe:row.monto,vencimiento:'',estado:row.estado==='COBRADO'?'Cobrado':'Pendiente',referencia:row.referencia||''})),
+  ...withholdings.map(row=>({fecha:row.fecha,componente:'Retenciones ARCA',tipo:'Retención',entidad:'IVA / Ganancias',importe:row.total_retenciones,vencimiento:'',estado:'Informada',referencia:`RET-${row.operacion_id||row.id||''}`}))
+ ];
  if($('finFecha') && !$('finFecha').value) $('finFecha').value = dateNow();
 
  const cashBalance = rows
@@ -4994,6 +5843,7 @@ async function refreshFinanzas(){
  $('finBankBalance').textContent = money(bankBalance);
  $('finChecksPending').textContent = money(checksPending);
  $('finCreditsActive').textContent = money(creditsActive);
+ $('finArcaWithholdings').textContent = money(withholdings.reduce((total,row)=>total+(Number(row.total_retenciones)||0),0));
 
  const ordered = rows.sort((a,b)=>b.fecha.localeCompare(a.fecha));
  $('financeTable').innerHTML = ordered.length
@@ -5099,8 +5949,8 @@ async function refreshArca(){
   : '<tr><td colspan="10">Sin operaciones ARCA registradas.</td></tr>';
 
  $('arcaInvTable').innerHTML = invoices.length
-  ? invoices.sort((a,b)=>b.fecha.localeCompare(a.fecha)).map(r=>`<tr><td>${r.fecha||''}</td><td>${r.tipo||''}</td><td>${r.ptoVta||''}</td><td>${r.numero||''}</td><td>${r.cae||''}</td><td>${r.caeVto||'-'}</td><td>${money(r.total||0)}</td></tr>`).join('')
-  : '<tr><td colspan="7">Sin facturas ARCA registradas.</td></tr>';
+  ? invoices.sort((a,b)=>b.fecha.localeCompare(a.fecha)).map(r=>`<tr><td>${r.fecha||''}</td><td>${r.tipo||''}</td><td>${r.ptoVta||''}</td><td>${r.numero||''}</td><td>${r.cae||''}</td><td>${r.caeVto||'-'}</td><td>${money(r.total||0)}</td><td>${r.estado_fiscal==='AUTORIZADA_ARCA'?'Autorizada':r.tipo==='Factura A'&&r.fiscal_server_id?`<button class="btn secondary" type="button" onclick="emitirFacturaArcaPorcinos(${r.id})">Emitir en ARCA</button>`:'Pendiente'}</td></tr>`).join('')
+  : '<tr><td colspan="8">Sin facturas ARCA registradas.</td></tr>';
 
  $('arcaRecTable').innerHTML = recs.length
   ? recs.sort((a,b)=>b.fecha.localeCompare(a.fecha)).map(r=>`<tr><td>${r.fecha||''}</td><td>${r.rec||''}</td><td>${r.estado||''}</td><td>${r.destinatario||''}</td><td>${r.factura||''}</td></tr>`).join('')
@@ -5144,6 +5994,21 @@ async function simularArcaPorcinos(localId){
   await refresh();
   alert(`Simulación completada: ${result.result.identificador}. No fue enviada a ARCA.`);
  }catch(error){alert(error.message||'No se pudo simular ARCA.');}
+}
+
+async function emitirFacturaArcaPorcinos(localId){
+ const invoices=await all('arcaInvoices');
+ const local=invoices.find(row=>Number(row.id)===Number(localId));
+ if(!local?.fiscal_server_id) return alert('La factura debe guardarse primero en el servidor fiscal.');
+ if(local.tipo!=='Factura A') return alert('La emisión WSFE disponible actualmente es solo para Factura A.');
+ try{
+  const response=await fetch(`/api/fiscal/facturas/${encodeURIComponent(local.fiscal_server_id)}/emitir-arca`,{method:'POST'});
+  const result=await response.json();
+  if(!response.ok) throw new Error(result.errors?.join('\n')||result.error||'ARCA no autorizó la Factura A.');
+  await putMany('arcaInvoices',[{...local,numero:result.numero,cae:result.cae,caeVto:result.caeVto,estado_fiscal:result.estado_fiscal}]);
+  await refresh();
+  alert(`Factura A autorizada por ARCA. CAE: ${result.cae}`);
+ }catch(error){alert(error.message||'No se pudo emitir la Factura A en ARCA.');}
 }
 
 function ensureGeoMap(){
@@ -5210,6 +6075,7 @@ async function start(){
  syncArcaFiscalFromEmpresa(false);
  renderArcaFiscal();
  calcRenspaForm();
+ moverSenalesPorcinasAFiscal();
  await suggestNextGeoLotNumber();
  await refresh();
 }
@@ -5224,5 +6090,6 @@ start();
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
   }());
 </script>
+<script src="../../packages/core-fiscal-arca/normative-update.browser.js"></script>
 </body>
 </html>

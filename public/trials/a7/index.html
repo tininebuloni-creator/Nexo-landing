@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PampaAgro ERP - Gestión Agropecuaria Integral</title>
+<title>PampaAgropecuario - Gestión Agropecuaria Integral</title>
 
 <!-- PWA Meta Tags -->
 <meta name="theme-color" content="#f59e0b">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Nexo Agro">
+<meta name="apple-mobile-web-app-title" content="PampaAgropecuario">
 <link rel="apple-touch-icon" href="logo2.png">
 
 <!-- Google Drive API -->
@@ -1068,19 +1068,18 @@ body {
 <link rel="manifest" href="./manifest.webmanifest">
 <script src="js/pampa-license-key.js"></script>
 <script src="js/pampa-license-verify.js"></script>
-<<<<<<< HEAD:public/pampaagro-erp/public/index.html
-=======
-<script src="services/drive-sync.js"></script>
->>>>>>> 16a23115 (Publicar catálogo con trials privados):public/trials/a7/index.html
 <script src="js/pampa-licensing.js"></script>
+<script src="js/pampa-sync-envelope.js?v=1"></script>
 <script src="js/pampa-offline-core.js"></script>
+<script src="js/pampa-report-voice.js"></script>
 <script src="js/pampa-search.js?v=2"></script>
 <script src="js/pampa-trial-links.js"></script>
+<script src="../../../packages/pampa-privacy-popup.js"></script>
 <meta name="theme-color" content="#166534">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="PampaAgro">
+<meta name="apple-mobile-web-app-title" content="PampaAgropecuario">
 
 
 <style id="pampaia-offline-first-css">
@@ -1153,7 +1152,7 @@ body {
     <div class="sidebar-header">
       <div class="brand-container"><div class="logo-icon"></div><span class="brand-badge">℠</span></div>
       <div>
-        <div class="logo-text">PampaAgro ERP</div>
+        <div class="logo-text">PampaAgropecuario</div>
         <div class="logo-sub">v1.0.1</div>
       </div>
     </div>
@@ -1545,15 +1544,22 @@ body {
         </div>
         <div class="card" style="margin-top:16px;">
           <div class="card-header">
-            <div class="card-title">📄 Contratos de Arrendamiento</div>
+            <div class="card-title">📄 Contratos de Arrendamiento y Aparcería</div>
             <button class="topbar-btn primary" onclick="openModal('contratoArrendamiento')">+ Nuevo Contrato</button>
           </div>
           <p class="text-muted">Un contrato debe estar en estado "Aprobado" y vigente para poder emitir la Carta de Porte Electrónica (CPE) del campo alquilado asociado.</p>
           <table class="data-table">
             <thead>
-              <tr><th>Campo</th><th>CUIT Dueño</th><th>Modalidad</th><th>Vigencia</th><th>Estado</th><th>Acciones</th></tr>
+              <tr><th>Campo</th><th>Acuerdo</th><th>CUIT Dueño</th><th>Modalidad</th><th>Vigencia</th><th>Estado</th><th>Acciones</th></tr>
             </thead>
             <tbody id="contratosArrendamientoBody"></tbody>
+          </table>
+        </div>
+        <div class="card" style="margin-top:16px;">
+          <div class="card-header"><div class="card-title">💵 Pagos y Liquidaciones de Contratos</div></div>
+          <table class="data-table">
+            <thead><tr><th>Fecha</th><th>Tipo</th><th>Campo</th><th>Dueño</th><th>Medio</th><th>Importe</th><th>Estado</th></tr></thead>
+            <tbody id="ordenesPagoContratoBody"></tbody>
           </table>
         </div>
       </div>
@@ -1687,9 +1693,12 @@ body {
         <div class="card" style="margin-bottom:14px;border:1px solid var(--blue);">
           <div class="card-header" style="padding-bottom:10px;">
             <div class="card-title">🧬 Trazabilidad de Hacienda Activa</div>
-            <button class="topbar-btn primary" onclick="document.getElementById('haciendaTrazabilidadRegistro')?.scrollIntoView({ behavior: 'smooth', block: 'start' });">Ir a Trazabilidad</button>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="topbar-btn" onclick="document.getElementById('haciendaSanidadCarencia')?.scrollIntoView({ behavior: 'smooth', block: 'start' });">💉 Ir a Sanidad</button>
+              <button class="topbar-btn primary" onclick="document.getElementById('haciendaTrazabilidadRegistro')?.scrollIntoView({ behavior: 'smooth', block: 'start' });">Ir a Trazabilidad</button>
+            </div>
           </div>
-          <div style="font-size:12px;color:var(--text-secondary);">Si no la ves a simple vista, usá este botón para bajar directo al bloque de Registro e Identificación Única.</div>
+          <div style="font-size:12px;color:var(--text-secondary);">Si no la ves a simple vista, usá estos botones para bajar directo al bloque de Sanidad/Carencia o al de Registro e Identificación Única.</div>
         </div>
         <div class="kpi-grid">
           <div class="kpi green"><div class="kpi-label">🐄 Total Cabezas</div><div class="kpi-value" id="haciendaTotal">0</div><div class="kpi-sub">Sin datos</div></div>
@@ -1715,7 +1724,7 @@ body {
               </table>
             </div>
           </div>
-          <div class="card">
+          <div class="card" id="haciendaSanidadCarencia">
             <div class="card-header">
               <div class="card-title">💉 Sanidad y Carencia</div>
               <div style="display:flex;gap:8px;">
@@ -1738,6 +1747,7 @@ body {
             <div class="card-title">📑 Registro e Identificación Única</div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
               <button class="topbar-btn" onclick="simularEscaneoRFID()">📡 Escanear Caravana</button>
+              <button class="topbar-btn" type="button" onclick="conectarLectorBluetooth()" title="Buscar y conectar un lector BLE compatible">Bluetooth</button>
               <button class="topbar-btn" onclick="openModal('animalesTrazabilidad')">+ Alta Animal</button>
               <button class="topbar-btn" onclick="sincronizarTrazabilidadPendiente()">🔄 Sincronizar Offline</button>
               <button class="topbar-btn" onclick="exportarTrazabilidadCSV()">⬇️ Exportar ERP (CSV)</button>
@@ -1750,7 +1760,7 @@ body {
                 <input id="rfidScanInput" class="form-input" type="text" placeholder="Escaneá o escribí RFID_TAG" onkeydown="if(event.key==='Enter'){event.preventDefault();buscarFichaRFID();}">
                 <button class="topbar-btn primary" onclick="buscarFichaRFID()">Buscar</button>
               </div>
-              <div style="font-size:11px;color:var(--text-dim);margin-top:6px;">Flujo sugerido: Encender lector → Escanear → Ver ficha → Registrar acción.</div>
+              <div id="lectorBluetoothEstado" style="font-size:11px;color:var(--text-dim);margin-top:6px;">Modo HID: emparejá el lector en Windows y escaneá directo en el campo.</div>
             </div>
             <div id="rfidFichaAnimal" style="padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--bg-tertiary);">
               <div style="font-size:12px;color:var(--text-dim);">Sin lectura RFID.</div>
@@ -2402,6 +2412,8 @@ body {
           <div class="kpi blue"><div class="kpi-label">Costo Total</div><div class="kpi-value" id="rentKpiCosto">$0</div><div class="kpi-sub" id="rentKpiCostoSub">Sin datos</div></div>
           <div class="kpi purple"><div class="kpi-label">Margen Bruto</div><div class="kpi-value" id="rentKpiMargen">$0</div><div class="kpi-sub" id="rentKpiMargenSub">--</div></div>
           <div class="kpi orange"><div class="kpi-label">Rentabilidad (%)</div><div class="kpi-value" id="rentKpiPct">0%</div><div class="kpi-sub" id="rentKpiPctSub">Margen / Ingreso</div></div>
+          <div class="kpi blue"><div class="kpi-label">Kg producidos registrados</div><div class="kpi-value" id="rentKpiKgProducidos">0 kg</div><div class="kpi-sub" id="rentKpiKgSub">Peso inicial vs último pesaje</div></div>
+          <div class="kpi"><div class="kpi-label">Costo directo / kg ganadero</div><div class="kpi-value" id="rentKpiCostoKg">--</div><div class="kpi-sub" id="rentKpiCostoKgSub">Requiere pesajes</div></div>
         </div>
 
         <!-- Tabla por cultivo + gráfico -->
@@ -2553,6 +2565,14 @@ body {
           </div>
         </div>
 
+        <div class="card" style="margin-top:16px;">
+          <div class="card-header"><div class="card-title">💉 Cumplimiento sanitario bovino SENASA</div></div>
+          <p class="text-muted">Registrar actas, certificaciones y resultados vigentes antes de preparar un DUT. Los controles faltantes bloquean el movimiento.</p>
+          <form id="fiscalBovineControlForm" class="form-grid">
+            <input class="form-input" name="renspa" placeholder="RENSPA del establecimiento" required><select class="form-select" name="zonaAftosa"><option value="VACUNACION">Zona con vacunación antiaftosa</option><option value="PATAGONIA_SIN_VACUNACION">Patagonia libre sin vacunación</option></select><select class="form-select" name="aftosaEstado"><option value="PENDIENTE">Aftosa pendiente</option><option value="VIGENTE">Acta antiaftosa vigente</option><option value="EXENTA_SIN_VACUNACION">Exenta sin vacunación</option></select><input class="form-input" name="aftosaActa" placeholder="N° acta oficial aftosa"><input class="form-input" name="aftosaVence" type="date" title="Vencimiento de campaña aftosa"><input class="form-input" name="campanaAftosaInicio" type="date" title="Inicio de campaña local"><input class="form-input" name="campanaAftosaFin" type="date" title="Fin de campaña local"><input class="form-input" name="aftosaAplicacion" type="date" title="Fecha de aplicación aftosa"><input class="form-input" name="aftosaCargaSigsa" type="date" title="Fecha de carga del acta en SIGSA"><select class="form-select" name="doesRequerido"><option value="SI">DOES Brucelosis requerido</option><option value="NO">DOES Brucelosis no requerido</option></select><select class="form-select" name="doesEstado"><option value="PENDIENTE">DOES pendiente</option><option value="LIBRE">DOES libre</option><option value="POSITIVO">DOES positivo / saneamiento</option></select><input class="form-input" name="doesVence" type="date" title="Vencimiento DOES"><input class="form-input" name="veterinario" placeholder="Veterinario acreditado"><select class="form-select" name="tuberculosis"><option value="PENDIENTE">Tuberculosis pendiente</option><option value="VIGENTE">Tuberculosis vigente</option><option value="NO_APLICA">Tuberculosis no aplica</option></select><select class="form-select" name="garrapata"><option value="SIN_DETECCION">Sin detección de garrapata</option><option value="BIOENSAYO_PENDIENTE">Garrapata: bioensayo pendiente</option><option value="PLAN_ACTIVO">Garrapata: plan activo</option></select><select class="form-select" name="notificacion"><option value="SIN_ALERTA">Sin notificación sanitaria</option><option value="NOTIFICACION_PENDIENTE">Notificación SENASA pendiente</option><option value="BLOQUEADO">Bloqueo sanitario activo</option></select><button class="topbar-btn primary" type="submit">Guardar cumplimiento sanitario</button>
+          </form><div id="fiscalBovineAlerts" class="alert-list" style="margin-top:14px;"></div><div class="actions" style="margin-top:12px;"><button class="topbar-btn" type="button" onclick="notificarVeterinarioSenasa()">Notificar veterinario por WhatsApp</button></div>
+        </div>
+
         <div class="card" id="fiscalConexionCard" style="margin-top:16px;">
           <div class="card-header">
             <div class="card-title">🔐 Conexión segura ARCA / SENASA</div>
@@ -2608,8 +2628,9 @@ body {
             <input class="form-input" name="renspaOrigen" placeholder="RENSPA origen" required>
             <input class="form-input" name="renspaDestino" placeholder="RENSPA destino" required>
             <input class="form-input" name="nroBoleto" id="fiscalDutBoleto" placeholder="Boleto de marca" required>
-            <select class="form-select" name="categoriaId"><option value="1">Novillo</option><option value="2">Vaquillona</option><option value="3">Ternero</option><option value="4">Porcinos capón</option></select>
-            <input class="form-input" name="cantidadCabezas" type="number" min="1" placeholder="Cantidad de cabezas" required>
+            <select class="form-select" name="categoriaId" aria-label="Categoría bovina principal"><option value="VACA">Vaca</option><option value="TORO">Toro</option><option value="NOVILLO">Novillo</option><option value="NOVILLITO">Novillito</option><option value="VAQUILLONA">Vaquillona</option><option value="TERNERO">Ternero</option><option value="TERNERA">Ternera</option><option value="BUEY">Buey</option></select>
+            <input class="form-input" name="cantidadCabezas" id="fiscalDutCantidadCabezas" type="number" min="1" placeholder="Total de cabezas" readonly required>
+            <div style="grid-column:1/-1;"><label class="form-label">Detalle de tropa por categoría bovina</label><div class="grid-2"><input class="form-input fiscal-dut-category" data-category="VACA" type="number" min="0" value="0" placeholder="Vacas"><input class="form-input fiscal-dut-category" data-category="TORO" type="number" min="0" value="0" placeholder="Toros"><input class="form-input fiscal-dut-category" data-category="NOVILLO" type="number" min="0" value="0" placeholder="Novillos"><input class="form-input fiscal-dut-category" data-category="NOVILLITO" type="number" min="0" value="0" placeholder="Novillitos"><input class="form-input fiscal-dut-category" data-category="VAQUILLONA" type="number" min="0" value="0" placeholder="Vaquillonas"><input class="form-input fiscal-dut-category" data-category="TERNERO" type="number" min="0" value="0" placeholder="Terneros"><input class="form-input fiscal-dut-category" data-category="TERNERA" type="number" min="0" value="0" placeholder="Terneras"><input class="form-input fiscal-dut-category" data-category="BUEY" type="number" min="0" value="0" placeholder="Bueyes"></div><p class="text-muted" id="fiscalDutDetalleTropa">Total de tropa: 0 cabezas</p></div>
             <input class="form-input" name="patenteChasis" placeholder="Patente del camión" required>
             <input class="form-input" name="cuitTransportista" placeholder="CUIT transportista" required>
             <input class="form-input" name="emailTransportista" type="email" placeholder="Email del transportista" required>
@@ -2827,7 +2848,7 @@ body {
     <div class="activation-container">
       <div class="activation-header">
         <div class="activation-logo"></div>
-        <div class="activation-title">PampaAgro ERP</div>
+        <div class="activation-title">PampaAgropecuario</div>
         <div class="activation-subtitle">Sistema de Gestión Agropecuaria</div>
       </div>
       <div class="activation-form">
@@ -2992,6 +3013,7 @@ const state = {
   animalesTrazabilidad: [],
   historialMovimientos: [],
   eventosSanitarios: [],
+  controlesSanitariosBovinos: [],
   trazabilidadSyncQueue: [],
   alimentacion: [],
   mantenimiento: [],
@@ -3087,7 +3109,7 @@ function seedEmptyStateForDelivery() {
 
 function limpiarPlaceholdersEmpresa(empresa = {}) {
   const clean = { ...empresa };
-  if ((clean.nombre || '').trim() === 'PampaAgro ERP') clean.nombre = '';
+  if (['PampaAgro ERP', 'PampaAgropecuario'].includes((clean.nombre || '').trim())) clean.nombre = '';
   if ((clean.cuit || '').trim() === '30-00000000-0') clean.cuit = '';
   if ((clean.inicioActividades || '').trim() === '01/01/2024') clean.inicioActividades = '';
   if ((clean.direccion || '').trim() === 'Sede principal') clean.direccion = '';
@@ -3132,7 +3154,7 @@ function loadState() {
       .trim();
     state.empresa.subtitulo = subtituloLimpio;
   }
-  
+
   // Migración: asegurar que los lotes tengan coordenadas
   const coordenadasDefault = [
     { codigo: 'L01', latitud: -33.125, longitud: -64.350 },
@@ -3142,7 +3164,7 @@ function loadState() {
     { codigo: 'L05', latitud: -32.680, longitud: -62.110 },
     { codigo: 'L06', latitud: -33.320, longitud: -63.950 }
   ];
-  
+
   if (state.lotes) {
     state.lotes.forEach(lote => {
       if (!lote.latitud || !lote.longitud) {
@@ -3170,16 +3192,17 @@ function saveState() {
 let autoSyncExportTimer = null;
 
 function buildExportSnapshot() {
-  const payload = {
+  const empresa = (state.empresa && state.empresa.nombre) || 'NexoAgro';
+  const payload = window.PampaSyncEnvelope.buildEnvelope({
     app: 'NexoAgroERP',
     version: '1.0',
-    exportadoEn: new Date().toISOString(),
-    empresa: (state.empresa && state.empresa.nombre) || 'NexoAgro',
+    exportedAt: new Date().toISOString(),
+    company: empresa,
     data: state
-  };
+  });
 
   const fecha = new Date().toISOString().slice(0,10);
-  const empresaSlug = (payload.empresa || 'nexoagro')
+  const empresaSlug = (empresa || 'nexoagro')
     .toString()
     .toLowerCase()
     .replace(/[^a-z0-9]+/g,'-')
@@ -3265,13 +3288,16 @@ function importarDatosJSON(file) {
   const reader = new FileReader();
   reader.onload = (e) => {
     try {
-      const parsed = JSON.parse(e.target.result);
-      const incoming = (parsed && parsed.data) ? parsed.data : parsed;
+      const normalized = window.PampaSyncEnvelope.normalizeImport(e.target.result);
+      const incoming = normalized.data || (normalized.meta.sourceFormat === 'legacy-stores-v1' ? normalized.legacy : null);
       if (!incoming || typeof incoming !== 'object') {
         showToast('Archivo JSON inválido', 'error');
         return;
       }
-      abrirModalImportJSON(incoming, parsed);
+      abrirModalImportJSON(incoming, {
+        exportadoEn: normalized.meta.exportedAt,
+        empresa: normalized.meta.company
+      });
     } catch (err) {
       console.error('Import parse error:', err);
       showToast('No se pudo leer el archivo JSON', 'error');
@@ -4074,7 +4100,7 @@ function saveWhatsAppRoleContacts(contacts) {
 function buildWhatsAppMensajeDefault(destinoRole) {
   const desde = rolePermissions[currentRole]?.nombre || currentRole;
   const hacia = rolePermissions[destinoRole]?.nombre || destinoRole;
-  const empresa = state?.empresa?.nombre || 'PampaAgro ERP';
+  const empresa = state?.empresa?.nombre || 'PampaAgropecuario';
   const fecha = new Date().toLocaleString('es-AR');
 
   return `Hola ${hacia}, te comparto una actualización desde ${desde}.\nEmpresa: ${empresa}\nFecha: ${fecha}\nDetalle:`;
@@ -4275,7 +4301,7 @@ function buildReporteResumenWhatsApp(tipo, detalleInstantaneo = '') {
     alimentacion.forEach(item => lineas.push(`• Alimentación: ${item.producto || '-'} · ${item.cabezas || 0} cabezas · total: ${item.cantidadTotal || 0} kg`));
     sanitarios.forEach(item => lineas.push(`• Sanidad: ${item.tipoVacunaMedicamento || '-'} · animal: ${item.idAnimal || '-'} · responsable: ${item.veterinarioResponsable || '-'}`));
     detalle = lineas.length ? lineas.join('\n') : `• Sin cambios ${tipo === 'cambiosDiarios' ? 'registrados hoy' : 'recientes'}.`;
-    return `📋 *${getReporteLabel(tipo)}*\nUsuario: ${rolePermissions[currentRole]?.nombre || currentRole || 'Usuario actual'}\nEmpresa: ${state?.empresa?.nombre || 'PampaAgro ERP'}\nFecha: ${fecha}\n\n${detalle}`;
+    return `📋 *${getReporteLabel(tipo)}*\nUsuario: ${rolePermissions[currentRole]?.nombre || currentRole || 'Usuario actual'}\nEmpresa: ${state?.empresa?.nombre || 'PampaAgropecuario'}\nFecha: ${fecha}\n\n${detalle}`;
   }
 
   switch (tipo) {
@@ -4349,7 +4375,7 @@ function buildReporteResumenWhatsApp(tipo, detalleInstantaneo = '') {
       detalle = 'Resumen no disponible para este reporte.';
   }
 
-  return `📋 *Reporte: ${getReporteLabel(tipo)}*\nEmpresa: ${state?.empresa?.nombre || 'PampaAgro ERP'}\nFecha: ${fecha}\n\n${detalle}`;
+  return `📋 *Reporte: ${getReporteLabel(tipo)}*\nEmpresa: ${state?.empresa?.nombre || 'PampaAgropecuario'}\nFecha: ${fecha}\n\n${detalle}`;
 }
 
 function actualizarWhatsAppReporteMensaje() {
@@ -4655,6 +4681,7 @@ function initDesktopAutoUpdateUI() {
 let currentModal = { module: null, editIndex: null };
 let cpePendienteParaVenta = null;
 let ultimoRFIDEscaneado = '';
+let lectorBluetoothConectado = null;
 
 const formConfigs = {
   campos: {
@@ -4678,6 +4705,7 @@ const formConfigs = {
     title: 'Nuevo Contrato de Arrendamiento',
     fields: [
       { name: 'campo', label: 'Campo', type: 'select', required: true, dynamicOptions: 'campos' },
+      { name: 'tipoAcuerdo', label: 'Tipo de acuerdo', type: 'select', options: ['Arrendamiento', 'Aparcería / Mediería'], required: true },
       { name: 'cuitDueno', label: 'CUIT dueño del campo', type: 'text', required: true, placeholder: '20-00000000-0' },
       { name: 'inscriptoGanancias', label: '¿Dueño inscripto en Ganancias?', type: 'select', options: ['Sí', 'No'], required: true },
       { name: 'esPersonaJuridica', label: 'Si NO inscripto: ¿es persona jurídica?', type: 'select', options: ['No', 'Sí'] },
@@ -4712,6 +4740,9 @@ const formConfigs = {
       { name: 'nombre', label: 'Nombre', type: 'text', required: true },
       { name: 'campo', label: 'Campo', type: 'text' },
       { name: 'superficie', label: 'Superficie (ha)', type: 'number' },
+      { name: 'capacidadCabezas', label: 'Capacidad objetivo (cabezas)', type: 'number' },
+      { name: 'ultimoPastoreo', label: 'Último pastoreo', type: 'date' },
+      { name: 'liberadoDesde', label: 'Liberado desde (vacío sanitario)', type: 'date' },
       { name: 'tipoSuelo', label: 'Tipo de Suelo', type: 'text' },
       { name: 'ambiente', label: 'Ambiente', type: 'select', options: ['Alto', 'Medio', 'Bajo'] },
       { name: 'campana', label: 'Campaña', type: 'select' },
@@ -4880,6 +4911,7 @@ const formConfigs = {
       { name: 'fecha', label: 'Fecha', type: 'date', required: true },
       { name: 'categoria', label: 'Categoría', type: 'select', options: ['Terneros', 'Novillos', 'Vaquillonas', 'Toros', 'Vacas'], required: true },
       { name: 'cantidad', label: 'Cabezas', type: 'number', required: true, min: 1 },
+      { name: 'pesoTotalKg', label: 'Peso total (kg)', type: 'number', required: true, min: 0 },
       { name: 'caravana', label: 'Caravana / referencia', type: 'text' },
       { name: 'comprador', label: 'Comprador', type: 'text', required: true },
       { name: 'valor', label: 'Importe ($)', type: 'number', required: true, min: 0 },
@@ -4977,6 +5009,7 @@ const formConfigs = {
       { name: 'tipo', label: 'Tipo', type: 'select', options: ['Nacimiento', 'Compra', 'Venta', 'Muerte', 'Vacunación', 'Traslado', 'Cambio Categoría'], required: true },
       { name: 'categoria', label: 'Categoría', type: 'select', options: ['Terneros', 'Novillos', 'Vaquillonas', 'Toros', 'Vacas'], required: true },
       { name: 'cantidad', label: 'Cantidad', type: 'number', required: true },
+      { name: 'pesoTotalKg', label: 'Peso total (kg)', type: 'number', required: true },
       { name: 'detalle', label: 'Detalle', type: 'text' },
       { name: 'destino', label: 'Destino/Origen', type: 'text' },
       { name: 'valor', label: 'Valor ($)', type: 'text' }
@@ -4988,8 +5021,11 @@ const formConfigs = {
       { name: 'idAnimal', label: 'ID_Animal', type: 'text', required: true, autoNumber: { prefix: 'AN-', pad: 5 } },
       { name: 'rfidTag', label: 'RFID_TAG', type: 'text', required: true },
       { name: 'categoria', label: 'Categoría', type: 'select', options: ['Ternero', 'Vaquillona', 'Toro', 'Novillo', 'Vaca'], required: true },
+      { name: 'sexo', label: 'Sexo', type: 'select', options: ['Hembra', 'Macho'], required: true },
       { name: 'raza', label: 'Raza', type: 'text', required: true },
       { name: 'fechaNacimiento', label: 'Fecha_Nacimiento', type: 'date', required: true },
+      { name: 'pesoInicialKg', label: 'Peso inicial (kg)', type: 'number', required: true },
+      { name: 'renspa', label: 'RENSPA', type: 'text', required: true },
       { name: 'predioOrigen', label: 'Predio_Origen', type: 'text', required: true }
     ]
   },
@@ -5002,6 +5038,7 @@ const formConfigs = {
       { name: 'origenId', label: 'Origen_ID', type: 'text', required: true },
       { name: 'destinoId', label: 'Destino_ID', type: 'text', required: true },
       { name: 'nroDte', label: 'Nro_DTE', type: 'text', required: true },
+      { name: 'pesoKg', label: 'Peso del movimiento (kg)', type: 'number', required: true },
       { name: 'detalle', label: 'Detalle', type: 'text' }
     ]
   },
@@ -5316,10 +5353,10 @@ function getCampaignOptions() {
 }
 
 function openModal(module, editIndex = null) {
+  currentModal = { module, editIndex };
   const config = formConfigs[module];
   if (!config) return;
   
-  currentModal = { module, editIndex };
   document.getElementById('modalTitle').textContent = editIndex !== null ? 'Editar ' + config.title : config.title;
   
   // Hacer el modal más ancho para aplicaciones
@@ -5512,6 +5549,7 @@ function openModal(module, editIndex = null) {
   document.getElementById('modalOverlay').classList.add('active');
 
   if (module === 'ventaCereal') sincronizarUltimaCpeConVentas();
+  if (module === 'ventaHacienda') configurarLectorCaravanaVenta();
 
   if (module === 'lotes') {
     document.getElementById('useCurrentLocation')?.addEventListener('click', () => {
@@ -5683,6 +5721,22 @@ function saveModal() {
   }
 
   const moduloActual = currentModal.module;
+  if (moduloActual === 'historialMovimientos') {
+    const destino = (state.lotes || []).find(lote => String(lote.codigo || lote.nombre).trim().toLowerCase() === String(data.destinoId || '').trim().toLowerCase());
+    if (destino) {
+      const hoy = new Date().toISOString().slice(0, 10);
+      if (destino.liberadoDesde && destino.liberadoDesde > hoy) {
+        showToast(`El lote destino está en vacío sanitario hasta ${destino.liberadoDesde}.`, 'error');
+        return;
+      }
+      const stockInicial = (state.animalesTrazabilidad || []).filter(animal => String(animal.predioOrigen || '').trim().toLowerCase() === String(data.destinoId || '').trim().toLowerCase()).length;
+      const stockActual = (state.historialMovimientos || []).reduce((total, movimiento) => total + (String(movimiento.destinoId || '').trim().toLowerCase() === String(data.destinoId || '').trim().toLowerCase() ? 1 : 0) - (String(movimiento.origenId || '').trim().toLowerCase() === String(data.destinoId || '').trim().toLowerCase() ? 1 : 0), stockInicial);
+      if (Number(destino.capacidadCabezas || 0) > 0 && stockActual + 1 > Number(destino.capacidadCabezas)) {
+        showToast(`El traslado supera la capacidad del lote destino (${destino.capacidadCabezas} cabezas).`, 'error');
+        return;
+      }
+    }
+  }
   const esModuloTrazabilidad = ['animalesTrazabilidad', 'historialMovimientos', 'eventosSanitarios'].includes(moduloActual);
   
   // Validar campos requeridos
@@ -5732,6 +5786,14 @@ function saveModal() {
     data.rfidTag = normalizarRFIDTag(animal.rfidTag);
   }
 
+  if (moduloActual === 'ventaHacienda' && data.caravana) {
+    const carencia = getCarenciaActiva(data.caravana);
+    if (carencia) {
+      showToast(`⛔ Caravana ${data.caravana} con carencia activa (${carencia.producto}) por ${carencia.diasRestantes} día(s) más. No se puede registrar la venta.`, 'error');
+      return;
+    }
+  }
+
   if (moduloActual === 'ventaCereal' || moduloActual === 'ventaHacienda') {
     data.cartaPorteNumero = data.cartaPorteNumero || `CP-${new Date().getFullYear()}-${Date.now().toString().slice(-8)}`;
     data.cartaPorteEstado = data.cpeEstadoFiscal || 'Generada localmente';
@@ -5750,6 +5812,14 @@ function saveModal() {
     }
     state[moduloGuardado].push(data);
     showToast('Registro creado', 'success');
+  }
+
+  if (moduloActual === 'ventaCereal' || moduloActual === 'ventaHacienda') {
+    const cartaPorte = registrarCartaPorteAutomaticaDesdeVenta(moduloActual, data);
+    if (cartaPorte.creada) {
+      guardarOperacionFiscal('Carta de Porte', cartaPorte.documento.numero, cartaPorte.documento.estado, `Generada automáticamente desde venta de ${cartaPorte.documento.tipoCarga.toLowerCase()}.`);
+      showToast(`Carta de Porte ${cartaPorte.documento.numero} generada automáticamente.`, 'success');
+    }
   }
 
   if (moduloActual === 'ventaCereal' && data.cpeCtg === cpePendienteParaVenta?.ctg) {
@@ -6739,7 +6809,7 @@ function confirmImport() {
   // Mapear campos del archivo a campos del estado
   const fieldMapping = {
     campos: { codigo: ['codigo', 'cod'], nombre: ['nombre', 'name'], ubicacion: ['ubicacion', 'location'], superficie: ['superficie', 'ha', 'hectareas'], propietario: ['propietario', 'owner'], contrato: ['contrato', 'contract'], valor: ['valor', 'value'] },
-    lotes: { codigo: ['codigo', 'cod'], nombre: ['nombre', 'name'], campo: ['campo', 'field'], superficie: ['superficie', 'ha'], tipoSuelo: ['tiposuelo', 'suelo'], ambiente: ['ambiente'], campana: ['campana', 'campaign'] },
+    lotes: { codigo: ['codigo', 'cod'], nombre: ['nombre', 'name'], campo: ['campo', 'field'], superficie: ['superficie', 'ha'], capacidadCabezas: ['capacidadcabezas', 'capacidad', 'stockmaximo'], ultimoPastoreo: ['ultimopastoreo', 'fechaultimoingreso'], liberadoDesde: ['liberadodesde', 'vaciosanitario'], tipoSuelo: ['tiposuelo', 'suelo'], ambiente: ['ambiente'], campana: ['campana', 'campaign'] },
     campañas: { nombre: ['campana', 'nombre', 'name'], cultivo: ['cultivo', 'crop'], inicio: ['inicio', 'fechainicio'], cierre: ['cierre', 'fechacierre'], ha: ['ha', 'hectareas'], costoTotal: ['costototal', 'costo'], margenBruto: ['margenbruto', 'margen'], estado: ['estado', 'status'] },
     siembra: { fecha: ['fecha', 'date'], lote: ['lote', 'lot'], cultivo: ['cultivo', 'crop'], variedad: ['variedad', 'variety'], dosis: ['dosis'], ha: ['ha', 'hectareas'], costo: ['costo', 'cost'], operador: ['operador'] },
     aplicaciones: { fecha: ['fecha', 'date'], lote: ['lote', 'lot'], tipo: ['tipo', 'type'], productos: ['productos', 'producto'], operario: ['operario', 'operador'], costo: ['costo', 'cost'] },
@@ -6747,8 +6817,8 @@ function confirmImport() {
     maquinarias: { equipo: ['equipo', 'maquinaria'], marca: ['marca', 'model'], anio: ['anio', 'year'], patente: ['patente'], horas: ['horas', 'hours'], estado: ['estado', 'status'], costoH: ['costoh', 'costo/h'] },
     cargacombustible: { fecha: ['fecha', 'date'], equipo: ['equipo', 'maquinaria', 'tractor'], tipoCombustible: ['tipocombustible', 'tipo'], cantidad: ['cantidad', 'litros', 'l'], costoUnitario: ['costountiario', 'costol', 'precio'], costoTotal: ['costototal', 'costo', 'total'], operador: ['operador', 'encargado'], observaciones: ['observaciones', 'detalle'] },
     costosOperativos: { fecha: ['fecha', 'date'], equipo: ['equipo', 'maquinaria', 'tractor'], tipoCosto: ['tipocosto', 'tipo'], descripcion: ['descripcion', 'detalle', 'descripción'], costo: ['costo', 'monto', 'valor'], intervalo: ['intervalo', 'cambio'], ultimaEjecucion: ['ultimaejecution', 'ultima', 'ultimahora'], observaciones: ['observaciones', 'detalle'] },
-    hacienda: { fecha: ['fecha', 'date'], tipo: ['tipo', 'movement', 'movimiento'], categoria: ['categoria', 'category', 'categoría'], cantidad: ['cantidad', 'qty', 'quantity'], detalle: ['detalle', 'detail', 'observaciones'], destino: ['destino', 'destination', 'origen'], valor: ['valor', 'value', 'precio'] },
-    animalesTrazabilidad: { idAnimal: ['idanimal', 'id_animal', 'id', 'animalid'], rfidTag: ['rfidtag', 'rfid_tag', 'rfid', 'caravana', 'caravanaelectronica'], categoria: ['categoria', 'category', 'categoría'], raza: ['raza', 'breed'], fechaNacimiento: ['fechanacimiento', 'fecha_nacimiento', 'nacimiento', 'birthdate'], predioOrigen: ['predioorigen', 'predio_origen', 'origen', 'establecimientoorigen'] },
+    hacienda: { fecha: ['fecha', 'date'], tipo: ['tipo', 'movement', 'movimiento'], categoria: ['categoria', 'category', 'categoría'], cantidad: ['cantidad', 'qty', 'quantity'], pesoTotalKg: ['pesototalkg', 'pesototal', 'pesokg', 'kilos'], detalle: ['detalle', 'detail', 'observaciones'], destino: ['destino', 'destination', 'origen'], valor: ['valor', 'value', 'precio'] },
+    animalesTrazabilidad: { idAnimal: ['idanimal', 'id_animal', 'id', 'animalid'], rfidTag: ['rfidtag', 'rfid_tag', 'rfid', 'caravana', 'caravanaelectronica'], categoria: ['categoria', 'category', 'categoría'], sexo: ['sexo', 'sex', 'genero', 'género'], raza: ['raza', 'breed'], fechaNacimiento: ['fechanacimiento', 'fecha_nacimiento', 'nacimiento', 'birthdate'], renspa: ['renspa', 'renspaestablecimiento'], predioOrigen: ['predioorigen', 'predio_origen', 'origen', 'establecimientoorigen'] },
     historialMovimientos: { idMovimiento: ['idmovimiento', 'id_movimiento', 'movimientoid'], idAnimal: ['idanimal', 'id_animal', 'animalid'], fecha: ['fecha', 'date'], origenId: ['origenid', 'origen_id', 'origen'], destinoId: ['destinoid', 'destino_id', 'destino'], nroDte: ['nrodte', 'nro_dte', 'dte', 'nrodocumento'], detalle: ['detalle', 'detail', 'observaciones'] },
     eventosSanitarios: { idEvento: ['idevento', 'id_evento', 'eventoid'], idAnimal: ['idanimal', 'id_animal', 'animalid'], fecha: ['fecha', 'date'], tipoVacunaMedicamento: ['tipovacuna', 'tipo_vacuna_medicamento', 'vacuna', 'medicamento', 'tratamiento'], veterinarioResponsable: ['veterinarioresponsable', 'veterinario_responsable', 'veterinario', 'responsable'], carenciaDias: ['carenciadias', 'carencia_dias', 'carencia'], estado: ['estado', 'status'] },
     alimentacion: { fecha: ['fecha', 'date'], categoria: ['categoria', 'category'], alimento: ['alimento', 'product'], racion: ['racion', 'racioncab'], cabezas: ['cabezas', 'qty', 'cantidad'], dias: ['dias', 'days'], cantidadTotal: ['cantidadtotal', 'cantidad'], observaciones: ['observaciones', 'detalle'] },
@@ -6923,13 +6993,58 @@ function guardarEmpresaDesdeFormulario() {
   showToast('Datos de empresa guardados', 'success');
 }
 
+function obtenerAlertasMantenimiento(hoy = new Date()) {
+  const alertas = [];
+  const inicioHoy = new Date(hoy);
+  inicioHoy.setHours(0, 0, 0, 0);
+
+  (state.mantenimiento || []).forEach((orden) => {
+    const estado = String(orden.estado || '').trim().toLowerCase();
+    if (!['pendiente', 'en curso'].includes(estado)) return;
+
+    const fecha = orden.fecha ? new Date(`${orden.fecha}T00:00:00`) : null;
+    const dias = fecha && !Number.isNaN(fecha.getTime()) ? Math.ceil((fecha - inicioHoy) / 86400000) : 0;
+    const vencida = dias < 0;
+    alertas.push({
+      icono: '🔧',
+      texto: `${orden.equipo || 'Equipo sin asignar'}: orden ${estado}${orden.descripcion ? ` - ${orden.descripcion}` : ''}`,
+      tiempo: vencida ? `Vencida hace ${Math.abs(dias)} día(s)` : estado === 'en curso' ? 'En curso' : dias === 0 ? 'Pendiente hoy' : `Pendiente en ${dias} día(s)`,
+      clase: vencida || orden.tipo === 'Correctivo' ? 'critical' : '',
+      dias: vencida ? dias : 0
+    });
+  });
+
+  (state.costosOperativos || []).forEach((plan) => {
+    const intervalo = Number(plan.intervalo);
+    const ultimaEjecucion = Number(plan.ultimaEjecucion);
+    const tieneUltimaEjecucion = String(plan.ultimaEjecucion ?? '').trim() !== '';
+    const equipo = (state.maquinarias || []).find((item) => item.equipo === plan.equipo || item.codigo === plan.equipo);
+    const horasActuales = Number(equipo?.horas);
+    if (!plan.equipo || !Number.isFinite(intervalo) || intervalo <= 0 || !tieneUltimaEjecucion || !Number.isFinite(ultimaEjecucion) || !Number.isFinite(horasActuales)) return;
+
+    const faltanHoras = ultimaEjecucion + intervalo - horasActuales;
+    if (faltanHoras > 500) return;
+
+    const vencido = faltanHoras <= 0;
+    alertas.push({
+      icono: '⚙️',
+      texto: `${plan.equipo}: ${plan.tipoCosto || 'mantenimiento programado'}`,
+      tiempo: vencido ? `Vencido por ${Math.abs(Math.round(faltanHoras))} hs` : `En ${Math.round(faltanHoras)} hs`,
+      clase: vencido ? 'critical' : '',
+      dias: vencido ? faltanHoras : faltanHoras / 1000
+    });
+  });
+
+  return alertas;
+}
+
 function renderDashboardAlertas() {
   const alertasContainer = document.getElementById('dashboardAlertas');
   const alertasCount = document.getElementById('alertasCount');
   const topbarAlertasCount = document.getElementById('topbarAlertasCount');
-  
+
   if (!alertasContainer) return;
-  
+
   const alertas = [];
   const hoy = new Date();
   
@@ -6973,6 +7088,8 @@ function renderDashboardAlertas() {
     });
   }
   
+  alertas.push(...obtenerAlertasMantenimiento(hoy));
+
   // Ordenar por días restantes
   alertas.sort((a, b) => a.dias - b.dias);
   
@@ -7043,6 +7160,8 @@ function mostrarAlertasGenerales() {
       }
     });
   }
+
+  alertas.push(...obtenerAlertasMantenimiento(hoy));
   
   // Ordenar por días restantes
   alertas.sort((a, b) => a.dias - b.dias);
@@ -7180,14 +7299,25 @@ function renderTables() {
       const vencido = c.fechaFin && hoy > new Date(c.fechaFin);
       const estadoReal = vencido && c.estado === 'Aprobado' ? 'Vencido' : (c.estado || 'Borrador');
       const clase = estadoReal === 'Aprobado' ? 'green' : (estadoReal === 'Vencido' || estadoReal === 'Rescindido' ? '' : 'orange');
-      const botonLpg = c.modalidad === 'Porcentaje' && estadoReal === 'Aprobado'
-        ? `<button class="topbar-btn" onclick="event.stopPropagation(); generarLpgDeCanje(${i})">🌾 LPG de Canje</button>`
+      const tipoAcuerdo = c.tipoAcuerdo || (c.modalidad === 'Porcentaje' ? 'Aparcería / Mediería' : 'Arrendamiento');
+      const esPagoEnEspecie = c.modalidad === 'Porcentaje';
+      const botonPago = estadoReal === 'Aprobado'
+        ? (esPagoEnEspecie
+          ? `<button class="topbar-btn" onclick="event.stopPropagation(); generarLpgDeCanje(${i})">🌾 Liquidar en grano</button>`
+          : `<button class="topbar-btn" onclick="event.stopPropagation(); emitirOrdenPagoContrato(${i})">💵 Registrar pago</button>`)
         : '';
       return `<tr onclick="openModal('contratoArrendamiento', ${i})" style="cursor:pointer;">
-          <td>${c.campo||''}</td><td>${c.cuitDueno||''}</td><td>${c.modalidad||''}</td><td>${c.fechaInicio||''} a ${c.fechaFin||''}</td><td><span class="tag ${clase}">${estadoReal}</span></td>
-          <td><button class="topbar-btn" onclick="event.stopPropagation(); emitirOrdenPagoContrato(${i})">💵 Orden de Pago</button> ${botonLpg}</td>
+          <td>${c.campo||''}</td><td>${tipoAcuerdo}</td><td>${c.cuitDueno||''}</td><td>${c.modalidad||''}</td><td>${c.fechaInicio||''} a ${c.fechaFin||''}</td><td><span class="tag ${clase}">${estadoReal}</span></td>
+          <td>${botonPago}</td>
         </tr>`;
     }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:16px;">No hay contratos cargados</td></tr>';
+
+    const pagosBody = document.getElementById('ordenesPagoContratoBody');
+    if (pagosBody) {
+      pagosBody.innerHTML = state.ordenesPago.length
+        ? state.ordenesPago.map((pago) => `<tr><td>${pago.fecha || ''}</td><td>${pago.tipo || ''}</td><td>${pago.campo || ''}</td><td>${pago.cuitDueno || ''}</td><td>${pago.medioPago || 'Transferencia / efectivo'}</td><td>$${Number(pago.importe || 0).toLocaleString('es-AR')}</td><td><span class="tag ${pago.estado === 'Liquidado' ? 'green' : 'blue'}">${pago.estado || 'Registrado'}</span></td></tr>`).join('')
+        : '<tr><td colspan="7" style="text-align:center;color:var(--text-dim);padding:16px;">No hay pagos ni liquidaciones registrados</td></tr>';
+    }
   });
 
   safeRender('fiscalGanadero', () => {
@@ -7643,6 +7773,10 @@ async function fiscalApiBase() {
 async function emitirOrdenPagoContrato(index) {
   const contrato = state.contratosArrendamiento[index];
   if (!contrato) return;
+  if (contrato.modalidad === 'Porcentaje') {
+    showToast('Este acuerdo se liquida en grano mediante la LPG de canje.', 'info');
+    return;
+  }
   const importeTexto = prompt(`Importe del período a pagar al dueño (CUIT ${contrato.cuitDueno}) en $:`, '');
   const importe = Number(importeTexto);
   if (!importeTexto || !importe || importe <= 0) return;
@@ -7662,9 +7796,9 @@ async function emitirOrdenPagoContrato(index) {
     if (!respuesta.ok) throw new Error(datos.message || 'No se pudo calcular la retención.');
     if (!Array.isArray(state.ordenesPago)) state.ordenesPago = [];
     state.ordenesPago.unshift({
-      tipo: 'Alquiler rural', campo: contrato.campo, cuitDueno: contrato.cuitDueno,
+      tipo: `${contrato.tipoAcuerdo || 'Arrendamiento'} en pesos`, campo: contrato.campo, cuitDueno: contrato.cuitDueno,
       importe, retencionGanancias: datos.ganancias.retencion, netoAPagar: datos.ganancias.neto,
-      ivaExento: datos.iva.exento, fecha: new Date().toISOString().slice(0, 10)
+      ivaExento: datos.iva.exento, medioPago: 'Transferencia / efectivo', estado: 'Pagado', fecha: new Date().toISOString().slice(0, 10)
     });
 
     // Conexión con Costos: el alquiler es un costo directo del campo (costo hundido si es propio, OPEX si es alquilado).
@@ -7693,6 +7827,27 @@ async function emitirOrdenPagoContrato(index) {
   } catch (error) {
     showToast(error.message, 'error');
   }
+}
+
+function registrarLiquidacionCanjeContrato(contrato, kilos, precioPorKg, datos) {
+  if (!Array.isArray(state.ordenesPago)) state.ordenesPago = [];
+  const importe = Math.round(Number(kilos || 0) * Number(precioPorKg || 0) * 100) / 100;
+  const tipoAcuerdo = contrato.tipoAcuerdo || 'Aparcería / Mediería';
+  const liquidacion = {
+    tipo: `${tipoAcuerdo} en especie`,
+    campo: contrato.campo,
+    cuitDueno: contrato.cuitDueno,
+    importe,
+    medioPago: 'Canje de grano',
+    kilos: Number(kilos || 0),
+    precioPorKg: Number(precioPorKg || 0),
+    comprobanteLpg: datos.numeroComprobante || '',
+    cae: datos.cae || '',
+    estado: 'Liquidado',
+    fecha: new Date().toISOString().slice(0, 10)
+  };
+  state.ordenesPago.unshift(liquidacion);
+  return liquidacion;
 }
 
 // Emite una LPG de canje: valoriza el Stock de Terceros del dueño y la vincula a las CPE del lote ya confirmadas.
@@ -7728,6 +7883,7 @@ async function generarLpgDeCanje(index) {
       fecha: new Date().toISOString().slice(0, 10), lote: contrato.campo,
       concepto: `Alquiler en especie (canje ${kilosDueno.toLocaleString()} kg)`, monto: kilosDueno * precioPorKg, categoria: 'Arrendamiento'
     });
+    registrarLiquidacionCanjeContrato(contrato, kilosDueno, precioPorKg, datos);
 
     saveState();
     renderTables();
@@ -7750,6 +7906,64 @@ function pagoMunicipalPuedeContinuar(datos) {
   const importe = Number(datos.arancelMunicipal || 0);
   const estado = String(datos.estadoPago || 'NO_APLICA').toUpperCase();
   return importe <= 0 || ['PAGADO', 'VEP', 'TRANSFERENCIA', 'CUENTA_CORRIENTE'].includes(estado);
+}
+
+function actualizarDetalleTropaDut() {
+  const detalle = Array.from(document.querySelectorAll('.fiscal-dut-category')).map(input => ({ categoria: input.dataset.category, cantidad: Math.max(0, Number(input.value || 0)) })).filter(item => item.cantidad > 0);
+  const total = detalle.reduce((acumulado, item) => acumulado + item.cantidad, 0);
+  setEl('fiscalDutCantidadCabezas', total || '');
+  setEl('fiscalDutDetalleTropa', `Total de tropa: ${total} cabeza${total === 1 ? '' : 's'}`);
+  return { detalle, total };
+}
+
+document.querySelectorAll('.fiscal-dut-category').forEach(input => input.addEventListener('input', actualizarDetalleTropaDut));
+
+function evaluarCumplimientoBovino(renspa) {
+  const control = [...(state.controlesSanitariosBovinos || [])].reverse().find(item => String(item.renspa || '').trim() === String(renspa || '').trim());
+  const hoy = new Date().toISOString().slice(0, 10);
+  const bloqueos = [];
+  if (!control) return { control: null, bloqueos: ['No hay cumplimiento sanitario bovino registrado para el RENSPA de origen.'] };
+  if (control.zonaAftosa === 'PATAGONIA_SIN_VACUNACION') {
+    if (control.aftosaEstado !== 'EXENTA_SIN_VACUNACION') bloqueos.push('La zona libre sin vacunación debe registrar la exención antiaftosa.');
+  } else if (control.aftosaEstado !== 'VIGENTE' || !control.aftosaActa || !control.aftosaVence || control.aftosaVence < hoy) bloqueos.push('No hay acta de campaña antiaftosa vigente.');
+  if (control.doesRequerido === 'SI' && (control.doesEstado !== 'LIBRE' || !control.doesVence || control.doesVence < hoy)) bloqueos.push('DOES de Brucelosis pendiente, vencido o con resultado positivo.');
+  if (['NOTIFICACION_PENDIENTE', 'BLOQUEADO'].includes(control.notificacion)) bloqueos.push('Existe una notificación o bloqueo sanitario SENASA pendiente.');
+  return { control, bloqueos };
+}
+
+function renderCumplimientoBovino() {
+  const container = document.getElementById('fiscalBovineAlerts');
+  if (!container) return;
+  const latest = new Map();
+  (state.controlesSanitariosBovinos || []).forEach(control => latest.set(String(control.renspa || '').trim(), control));
+  const alerts = [...latest.values()].flatMap(control => evaluarCumplimientoBovino(control.renspa).bloqueos.map(texto => ({ renspa: control.renspa, texto })));
+  container.innerHTML = alerts.length ? alerts.map(alerta => `<div class="alert-item"><span>RENSPA ${alerta.renspa}: ${alerta.texto}</span><span class="tag">Bloquea DUT</span></div>`).join('') : '<div class="alert-item"><span>Sin bloqueos sanitarios registrados.</span><span class="tag green">OK</span></div>';
+  renderAlertasAutomaticasBovinas();
+}
+
+function renderAlertasAutomaticasBovinas() {
+  const container = document.getElementById('fiscalBovineAlerts');
+  if (!container) return;
+  const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  const diasHasta = fecha => Math.ceil((new Date(`${fecha}T00:00:00`).getTime() - hoy.getTime()) / 86400000);
+  const automaticas = [];
+  const controles = new Map(); (state.controlesSanitariosBovinos || []).forEach(control => controles.set(String(control.renspa || '').trim(), control));
+  controles.forEach(control => {
+    if (control.campanaAftosaInicio) { const inicio = diasHasta(control.campanaAftosaInicio); const fin = control.campanaAftosaFin ? diasHasta(control.campanaAftosaFin) : null; if (inicio >= 0 && inicio <= 30 && control.aftosaEstado !== 'VIGENTE') automaticas.push(`RENSPA ${control.renspa}: campaña aftosa inicia en ${inicio} día(s); planificá el acta.`); if (inicio <= 0 && (fin === null || fin >= 0) && control.aftosaEstado !== 'VIGENTE' && control.aftosaEstado !== 'EXENTA_SIN_VACUNACION') automaticas.push(`RENSPA ${control.renspa}: campaña aftosa en curso sin acta vigente.`); }
+    if (control.aftosaAplicacion && (!control.aftosaCargaSigsa || (new Date(`${control.aftosaCargaSigsa}T00:00:00`).getTime() - new Date(`${control.aftosaAplicacion}T00:00:00`).getTime()) / 86400000 > 7)) automaticas.push(`RENSPA ${control.renspa}: revisá la carga SIGSA del acta dentro de los 7 días desde la aplicación.`);
+    if (control.doesVence) { const restantes = diasHasta(control.doesVence); if (restantes >= 0 && restantes <= 60) automaticas.push(`RENSPA ${control.renspa}: DOES vence en ${restantes} día(s).`); }
+  });
+  const vacunadas = new Set((state.eventosSanitarios || []).filter(evento => /brucelosis/i.test(String(evento.tipoVacunaMedicamento || '')) && String(evento.estado || '').toLowerCase() === 'aplicado').map(evento => String(evento.idAnimal || '')));
+  const terneras = (state.animalesTrazabilidad || []).filter(animal => String(animal.sexo || '').toLowerCase() === 'hembra' && animal.fechaNacimiento).map(animal => ({ animal, edad: Math.floor((hoy.getTime() - new Date(`${animal.fechaNacimiento}T00:00:00`).getTime()) / 86400000) })).filter(item => item.edad >= 90 && item.edad <= 240 && !vacunadas.has(String(item.animal.idAnimal || '')));
+  const proximas = terneras.filter(item => item.edad >= 210); if (proximas.length) automaticas.push(`${proximas.length} ternera(s) sin vacuna antibrucélica a 30 días o menos del límite de 8 meses.`); else if (terneras.length) automaticas.push(`${terneras.length} ternera(s) en ventana obligatoria de vacunación antibrucélica.`);
+  if (automaticas.length) container.insertAdjacentHTML('beforeend', automaticas.map(texto => `<div class="alert-item"><span>${texto}</span><span class="tag">Revisar</span></div>`).join(''));
+}
+
+function notificarVeterinarioSenasa() {
+  const telefono = String(state.empresa?.whatsappIngeniero || state.empresa?.whatsappAdministracion || '').replace(/\D/g, '');
+  if (telefono.length < 10) return showToast('Cargá el WhatsApp del Ingeniero/Veterinario en Empresa.', 'error');
+  const alertas = document.getElementById('fiscalBovineAlerts')?.innerText || 'Revisar cumplimiento sanitario bovino.';
+  window.open(`https://wa.me/${telefono}?text=${encodeURIComponent(`Alerta sanitaria SENASA\n${alertas}`)}`, '_blank', 'noopener');
 }
 
 function ordenarPanelConexionFiscal() {
@@ -7850,6 +8064,7 @@ function renderFiscalPanel(boletos = state.boletosMarca || []) {
       <div class="alert-item"><span>RENSPA de origen y destino</span><span class="tag">Validar antes de emitir</span></div>
       <div class="alert-item"><span>Documentación del transporte</span><span class="tag">Revisar antes de emitir</span></div>`;
   }
+  renderCumplimientoBovino();
 }
 
 async function actualizarRegistroFiscal() {
@@ -7908,7 +8123,7 @@ function renderFiscalAlertas() {
   if (alertas.length && 'Notification' in window && Notification.permission === 'granted') {
     const firma = alertas.map(alerta => alerta.texto).join('|');
     if (localStorage.getItem('fiscalUltimaAlerta') !== firma) {
-      new Notification('PampaAgro: alerta DUT', { body: alertas[0].texto });
+      new Notification('PampaAgropecuario: alerta DUT', { body: alertas[0].texto });
       localStorage.setItem('fiscalUltimaAlerta', firma);
     }
   }
@@ -8023,8 +8238,40 @@ function renderFiscalCartasPorte() {
   const cartas = Array.isArray(state.fiscalCartasPorte) ? state.fiscalCartasPorte : [];
   body.innerHTML = cartas.length ? cartas.slice().reverse().map(carta => {
     const index = state.fiscalCartasPorte.indexOf(carta);
-    return `<tr><td>${carta.numero}</td><td>${carta.renspaOrigen || '-'}</td><td>${carta.renspaDestino || '-'}</td><td>${carta.cuitTransportista || '-'}</td><td>${carta.fecha || ''}</td><td><span class="tag ${carta.estado === 'Generada' ? 'green' : ''}">${carta.estado || 'Generada'}</span></td><td><button class="topbar-btn" type="button" onclick="imprimirCartaPorte(${index})">🖨️ Imprimir</button></td></tr>`;
+    return `<tr><td>${carta.numero}</td><td>${carta.renspaOrigen || carta.origen || '-'}</td><td>${carta.renspaDestino || carta.destino || '-'}</td><td>${carta.cuitTransportista || carta.transportista || '-'}</td><td>${carta.fecha || ''}</td><td><span class="tag ${carta.estado === 'Generada' ? 'green' : ''}">${carta.estado || 'Generada'}</span></td><td><button class="topbar-btn" type="button" onclick="imprimirCartaPorte(${index})">🖨️ Imprimir</button></td></tr>`;
   }).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--text-dim);padding:16px;">No hay cartas de porte generadas</td></tr>';
+}
+
+function registrarCartaPorteAutomaticaDesdeVenta(modulo, venta) {
+  if (!Array.isArray(state.fiscalCartasPorte)) state.fiscalCartasPorte = [];
+
+  const numero = String(venta.cartaPorteNumero || '').trim();
+  if (!numero) return { creada: false, documento: null };
+
+  const tipoCarga = modulo === 'ventaCereal' ? 'Cereal' : 'Hacienda';
+  const documento = {
+    numero,
+    tipoCarga,
+    origen: venta.cartaPorteOrigen || venta.lote || venta.caravana || '',
+    destino: venta.cartaPorteDestino || venta.comprador || '',
+    transportista: venta.cartaPorteTransportista || '',
+    patenteChasis: venta.cartaPorteVehiculo || '',
+    cantidadCabezas: modulo === 'ventaHacienda' ? Number(venta.cantidad || 0) : '',
+    cantidadKg: modulo === 'ventaCereal' ? Number(venta.cantidadKg || 0) : Number(venta.pesoTotalKg || 0),
+    categoriaId: modulo === 'ventaHacienda' ? venta.categoria || '' : venta.cultivo || '',
+    fecha: venta.fecha || new Date().toISOString().slice(0, 10),
+    estado: venta.cartaPorteEstado || 'Generada localmente',
+    generadaDesdeVenta: true
+  };
+  const indiceExistente = state.fiscalCartasPorte.findIndex((carta) => carta.numero === numero);
+
+  if (indiceExistente >= 0) {
+    state.fiscalCartasPorte[indiceExistente] = { ...state.fiscalCartasPorte[indiceExistente], ...documento };
+    return { creada: false, documento: state.fiscalCartasPorte[indiceExistente] };
+  }
+
+  state.fiscalCartasPorte.push(documento);
+  return { creada: true, documento };
 }
 
 async function generarCartaPorte() {
@@ -8051,7 +8298,18 @@ function imprimirCartaPorte(index) {
   if (!carta) return;
   const ventana = window.open('', '_blank', 'width=420,height=650');
   if (!ventana) return showToast('El navegador bloqueó la ventana de impresión.', 'error');
-  ventana.document.write(`<html><head><title>Carta de Porte ${carta.numero}</title><style>body{font-family:Arial,sans-serif;text-align:center;padding:18px}table{width:100%;text-align:left;border-collapse:collapse}td{padding:6px;border-bottom:1px solid #ddd}.notice{margin:14px 0;padding:10px;border:1px solid #d97706;background:#fff7ed}</style></head><body><h2>CARTA DE PORTE ${carta.numero}</h2><div class="notice">DOCUMENTO GENERADO LOCALMENTE - NO REEMPLAZA LA CARTA DE PORTE OFICIAL DE ARCA/SENASA</div><table>${[['Origen', carta.renspaOrigen],['Destino', carta.renspaDestino],['Cabezas', carta.cantidadCabezas],['Categoría', carta.categoriaId],['Transportista (CUIT)', carta.cuitTransportista],['Camión', carta.patenteChasis],['Fecha', carta.fecha],['Estado', carta.estado]].map(row => `<tr><td><b>${row[0]}</b></td><td>${row[1] || ''}</td></tr>`).join('')}</table>${String.fromCharCode(60, 115, 99, 114, 105, 112, 116, 62)}window.onload=()=>window.print();${String.fromCharCode(60, 47, 115, 99, 114, 105, 112, 116, 62)}${String.fromCharCode(60, 47, 98, 111, 100, 121, 62, 60, 47, 104, 116, 109, 108, 62)}`);
+  const filas = [
+    ['Tipo de carga', carta.tipoCarga],
+    ['Origen', carta.renspaOrigen || carta.origen],
+    ['Destino', carta.renspaDestino || carta.destino],
+    ['Cantidad', carta.cantidadCabezas ? `${carta.cantidadCabezas} cabezas` : carta.cantidadKg ? `${Number(carta.cantidadKg).toLocaleString('es-AR')} kg` : ''],
+    ['Categoría / producto', carta.categoriaId],
+    ['Transportista', carta.cuitTransportista || carta.transportista],
+    ['Camión', carta.patenteChasis],
+    ['Fecha', carta.fecha],
+    ['Estado', carta.estado]
+  ];
+  ventana.document.write(`<html><head><title>Carta de Porte ${carta.numero}</title><style>body{font-family:Arial,sans-serif;text-align:center;padding:18px}table{width:100%;text-align:left;border-collapse:collapse}td{padding:6px;border-bottom:1px solid #ddd}.notice{margin:14px 0;padding:10px;border:1px solid #d97706;background:#fff7ed}</style></head><body><h2>CARTA DE PORTE ${carta.numero}</h2><div class="notice">DOCUMENTO GENERADO LOCALMENTE - NO REEMPLAZA LA CARTA DE PORTE OFICIAL DE ARCA/SENASA</div><table>${filas.map(row => `<tr><td><b>${row[0]}</b></td><td>${row[1] || ''}</td></tr>`).join('')}</table>${String.fromCharCode(60, 115, 99, 114, 105, 112, 116, 62)}window.onload=()=>window.print();${String.fromCharCode(60, 47, 115, 99, 114, 105, 112, 116, 62)}${String.fromCharCode(60, 47, 98, 111, 100, 121, 62, 60, 47, 104, 116, 109, 108, 62)}`);
   ventana.document.close();
 }
 
@@ -8108,12 +8366,37 @@ document.getElementById('fiscalValidarBoleto')?.addEventListener('click', async 
   } catch (error) { fiscalEstado(error.message); }
 });
 
+document.getElementById('fiscalBovineControlForm')?.addEventListener('submit', evento => {
+  evento.preventDefault();
+  const control = Object.fromEntries(new FormData(evento.currentTarget).entries());
+  control.registradoEn = new Date().toISOString();
+  if (!Array.isArray(state.controlesSanitariosBovinos)) state.controlesSanitariosBovinos = [];
+  state.controlesSanitariosBovinos.push(control);
+  saveState();
+  renderCumplimientoBovino();
+  showToast('Cumplimiento sanitario bovino guardado.', 'success');
+});
+
 document.getElementById('fiscalFormDut')?.addEventListener('submit', async evento => {
   evento.preventDefault();
   const resultado = document.getElementById('fiscalResultadoDut');
   resultado.style.display = 'inline-block';
   const formulario = evento.currentTarget;
   const datos = Object.fromEntries(new FormData(formulario).entries());
+  const tropa = actualizarDetalleTropaDut();
+  if (!tropa.total) {
+    resultado.textContent = 'Indicá al menos una cabeza en el detalle de tropa.';
+    resultado.className = 'tag';
+    return;
+  }
+  datos.cantidadCabezas = String(tropa.total);
+  datos.detalleTropa = tropa.detalle;
+  const cumplimiento = evaluarCumplimientoBovino(datos.renspaOrigen);
+  if (cumplimiento.bloqueos.length) {
+    resultado.textContent = `DUT bloqueado: ${cumplimiento.bloqueos.join(' ')}`;
+    resultado.className = 'tag';
+    return;
+  }
   if (!navigator.onLine) {
     encolarDutOffline(datos, pagoMunicipalPuedeContinuar(datos) ? 'Sin conexión' : 'Pago municipal pendiente');
     resultado.textContent = pagoMunicipalPuedeContinuar(datos) ? 'DUT preparado offline. Se enviará al recuperar conexión.' : 'DUT preparado, pero retenido hasta acreditar la tasa municipal.';
@@ -8465,7 +8748,7 @@ function actualizarKPIsInventario() {
   const valorTotal = state.inventario.reduce((sum, item) => sum + (item.stock * item.costoUnit), 0);
   const stockCritico = state.inventario.filter(item => item.stock > 0 && item.stock <= item.stockMinimo).length;
   const sinStock = state.inventario.filter(item => item.stock === 0).length;
-  
+
   const kpiTotal = document.getElementById('invTotalProductos');
   const kpiValor = document.getElementById('invValorTotal');
   const kpiCritico = document.getElementById('invStockCritico');
@@ -9180,6 +9463,125 @@ function normalizarRFIDTag(value) {
   return String(value || '').trim().toUpperCase();
 }
 
+function setEstadoLectorBluetooth(texto, conectado = false) {
+  const estado = document.getElementById('lectorBluetoothEstado');
+  if (!estado) return;
+  estado.textContent = texto;
+  estado.style.color = conectado ? 'var(--green)' : 'var(--text-dim)';
+}
+
+function cerrarSelectorBluetooth() {
+  document.getElementById('selectorLectorBluetooth')?.remove();
+}
+
+function mostrarDispositivosBluetooth(dispositivos) {
+  cerrarSelectorBluetooth();
+  const selector = document.createElement('div');
+  selector.id = 'selectorLectorBluetooth';
+  selector.className = 'modal-overlay active';
+  selector.innerHTML = `<div class="modal" style="max-width:460px;"><div class="modal-header"><div class="modal-title">Seleccionar lector Bluetooth</div><button class="modal-close" type="button">×</button></div><div class="modal-body"><div class="text-muted" style="margin-bottom:12px;">Elegí el lector de caravanas detectado.</div><div id="selectorLectorBluetoothLista"></div></div></div>`;
+  document.body.appendChild(selector);
+  const cancelar = () => {
+    window.electronAPI?.cancelBluetoothSelection?.();
+    cerrarSelectorBluetooth();
+  };
+  selector.querySelector('.modal-close')?.addEventListener('click', cancelar);
+  selector.addEventListener('click', (event) => { if (event.target === selector) cancelar(); });
+  const lista = selector.querySelector('#selectorLectorBluetoothLista');
+  if (!dispositivos.length) {
+    lista.innerHTML = '<div class="text-muted">Buscando dispositivos cercanos...</div>';
+    return;
+  }
+  dispositivos.forEach((dispositivo) => {
+    const boton = document.createElement('button');
+    boton.className = 'topbar-btn';
+    boton.type = 'button';
+    boton.style.cssText = 'display:block;width:100%;text-align:left;margin-bottom:8px;';
+    boton.textContent = dispositivo.name;
+    boton.addEventListener('click', async () => {
+      const resultado = await window.electronAPI?.selectBluetoothDevice?.(dispositivo.id);
+      if (!resultado?.ok) showToast(resultado?.message || 'No se pudo seleccionar el lector.', 'error');
+      else cerrarSelectorBluetooth();
+    });
+    lista.appendChild(boton);
+  });
+}
+
+async function conectarLectorBluetooth() {
+  if (!navigator.bluetooth?.requestDevice) {
+    setEstadoLectorBluetooth('Bluetooth BLE no está disponible en este entorno. Usá el modo HID emparejado en Windows.');
+    showToast('Este entorno no admite conexión BLE. El lector HID sigue disponible.', 'info');
+    return;
+  }
+
+  const cancelarEscucha = window.electronAPI?.onBluetoothDevices?.(mostrarDispositivosBluetooth);
+  setEstadoLectorBluetooth('Buscando lectores Bluetooth cercanos...');
+  try {
+    const dispositivo = await navigator.bluetooth.requestDevice({ acceptAllDevices: true });
+    cerrarSelectorBluetooth();
+    if (!dispositivo.gatt) throw new Error('El dispositivo seleccionado no expone conexión BLE GATT.');
+    await dispositivo.gatt.connect();
+    lectorBluetoothConectado = dispositivo;
+    localStorage.setItem('pampaAgroBluetoothReader', JSON.stringify({ nombre: dispositivo.name || 'Lector Bluetooth', conectadoEn: new Date().toISOString() }));
+    dispositivo.addEventListener('gattserverdisconnected', () => {
+      if (lectorBluetoothConectado === dispositivo) {
+        lectorBluetoothConectado = null;
+        setEstadoLectorBluetooth('Lector Bluetooth desconectado. Podés volver a conectar o usar modo HID.');
+      }
+    });
+    setEstadoLectorBluetooth(`Lector BLE conectado: ${dispositivo.name || 'sin nombre'}. Configurá su protocolo para leer caravanas.`, true);
+    showToast(`Lector Bluetooth conectado: ${dispositivo.name || 'sin nombre'}.`, 'success');
+  } catch (error) {
+    cerrarSelectorBluetooth();
+    const cancelado = error?.name === 'NotFoundError';
+    setEstadoLectorBluetooth(cancelado ? 'Conexión Bluetooth cancelada. Modo HID disponible.' : `No se pudo conectar el lector BLE: ${error?.message || 'error desconocido'}`);
+    if (!cancelado) showToast(`No se pudo conectar el lector: ${error?.message || 'error desconocido'}`, 'error');
+  } finally {
+    if (typeof cancelarEscucha === 'function') cancelarEscucha();
+  }
+}
+
+function configurarLectorCaravanaVenta() {
+  const input = document.querySelector('#modalForm [name="caravana"]');
+  if (!input || document.getElementById('ventaHaciendaLectorCaravana')) return;
+
+  const controles = document.createElement('div');
+  controles.id = 'ventaHaciendaLectorCaravana';
+  controles.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap;';
+  controles.innerHTML = '<button class="topbar-btn" type="button" title="Leer la caravana desde el lector RFID configurado">📡 Leer caravana</button><span class="text-muted" style="font-size:11px;">También podés escanear directo en el campo.</span>';
+  input.closest('.form-group')?.appendChild(controles);
+  controles.querySelector('button')?.addEventListener('click', leerCaravanaParaVenta);
+}
+
+async function leerCaravanaParaVenta() {
+  const input = document.querySelector('#modalForm [name="caravana"]');
+  if (!input) return;
+
+  try {
+    const lectura = await fiscalJson('/api/balanza/rfid-actual');
+    const caravana = normalizarRFIDTag(lectura.caravana);
+    if (caravana && caravana !== 'SIN_LECTURA') {
+      ultimoRFIDEscaneado = caravana;
+      input.value = caravana;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      showToast(`Caravana ${caravana} leída.`, 'success');
+      return;
+    }
+  } catch (error) {
+    // Sin Electron o adaptador disponible: se aplica la última lectura local si existe.
+  }
+
+  if (ultimoRFIDEscaneado) {
+    input.value = ultimoRFIDEscaneado;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    showToast(`Se usó la última caravana leída: ${ultimoRFIDEscaneado}.`, 'info');
+    return;
+  }
+
+  input.focus();
+  showToast('Lector sin lectura disponible. Escaneá la caravana directamente en el campo.', 'info');
+}
+
 function getAnimalTrazadoById(idAnimal) {
   const id = String(idAnimal || '').trim().toUpperCase();
   return (state.animalesTrazabilidad || []).find((a) => String(a.idAnimal || '').trim().toUpperCase() === id) || null;
@@ -9188,6 +9590,35 @@ function getAnimalTrazadoById(idAnimal) {
 function getAnimalTrazadoByRFID(rfidTag) {
   const tag = normalizarRFIDTag(rfidTag);
   return (state.animalesTrazabilidad || []).find((a) => normalizarRFIDTag(a.rfidTag) === tag) || null;
+}
+
+// Carencia sanitaria activa de un animal (bloqueo real por venta, mismo criterio que PampaTambo con la leche).
+// Acepta idAnimal o caravana: en ventaHacienda el operario carga "caravana" como texto libre, no siempre el idAnimal exacto.
+function getCarenciaActiva(idAnimalOCaravana) {
+  const id = String(idAnimalOCaravana || '').trim().toUpperCase();
+  if (!id) return null;
+  const hoy = new Date();
+  const hoyInicio = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+  const msPerDay = 1000 * 60 * 60 * 24;
+  let masRestrictiva = null;
+  (state.eventosSanitarios || []).forEach((evento) => {
+    const idEvento = String(evento.idAnimal || '').trim().toUpperCase();
+    const animalEvento = getAnimalTrazadoById(idEvento);
+    const rfidEvento = animalEvento ? normalizarRFIDTag(animalEvento.rfidTag) : '';
+    if (idEvento !== id && rfidEvento !== normalizarRFIDTag(id)) return;
+    const dias = Number(evento.carenciaDias || 0);
+    if (dias <= 0) return;
+    const fecha = new Date(`${evento.fecha || ''}T00:00:00`);
+    if (Number.isNaN(fecha.getTime())) return;
+    const finCarencia = new Date(fecha);
+    finCarencia.setDate(finCarencia.getDate() + dias);
+    const diasRestantes = Math.ceil((finCarencia - hoyInicio) / msPerDay);
+    if (diasRestantes < 0) return;
+    if (!masRestrictiva || diasRestantes > masRestrictiva.diasRestantes) {
+      masRestrictiva = { diasRestantes, producto: evento.tipoVacunaMedicamento || 'Tratamiento sanitario', finCarencia };
+    }
+  });
+  return masRestrictiva;
 }
 
 function autocompletarAnimalPorRFID() {
@@ -9789,7 +10220,7 @@ var appInitialized = false;
   if (await checkLicense()) {
     initializeAppAfterLicense();
   } else {
-    console.log('PampaAgro ERP: Esperando activación de licencia');
+    console.log('PampaAgropecuario: Esperando activación de licencia');
   }
 })();
 
@@ -10318,7 +10749,7 @@ function generarReporte(tipo) {
   // Encabezado
   doc.setFontSize(18);
   doc.setFont(undefined, 'bold');
-  doc.text('PampaAgro ERP', 105, y, { align: 'center' });
+  doc.text('PampaAgropecuario', 105, y, { align: 'center' });
   y += 10;
   
   doc.setFontSize(12);
@@ -10695,7 +11126,7 @@ function generarReporte(tipo) {
     doc.setFontSize(8);
     doc.setTextColor(150);
     doc.text(`Página ${i} de ${pageCount}`, 105, 285, { align: 'center' });
-    doc.text('PampaAgro ERP - Generado automáticamente', 20, 285);
+    doc.text('PampaAgropecuario - Generado automáticamente', 20, 285);
     doc.text(fecha, 190, 285);
   }
   
@@ -10734,7 +11165,7 @@ function generarReporteCompleto() {
   // Portada
   doc.setFontSize(24);
   doc.setFont(undefined, 'bold');
-  doc.text('PampaAgro ERP', 105, 80, { align: 'center' });
+  doc.text('PampaAgropecuario', 105, 80, { align: 'center' });
   y = 100;
   
   doc.setFontSize(16);
@@ -10857,7 +11288,7 @@ function generarReporteCompleto() {
     doc.setFontSize(8);
     doc.setTextColor(150);
     doc.text(`Página ${i} de ${pageCount}`, 105, 285, { align: 'center' });
-    doc.text('PampaAgro ERP - Reporte Completo', 20, 285);
+    doc.text('PampaAgropecuario - Reporte Completo', 20, 285);
     doc.text(fecha, 190, 285);
   }
   
@@ -11247,7 +11678,7 @@ function getTrialActivationLink() {
 }
 
 function enviarTrialPorWhatsApp() {
-  const mensaje = `Hola! Te comparto el acceso a la prueba de PampaAgro ERP. Hacé clic aquí para activar el trial ahora: ${getTrialActivationLink()}`;
+  const mensaje = `Hola! Te comparto el acceso a la prueba de PampaAgropecuario. Hacé clic aquí para activar el trial ahora: ${getTrialActivationLink()}`;
   const url = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
   window.open(url, '_blank', 'noopener,noreferrer');
   showToast('Se abrió WhatsApp con el enlace para activar el trial', 'success');
@@ -11469,7 +11900,7 @@ function initializeAppAfterLicense() {
   cargarRol();
   actualizarLayoutDashboard('dashboard');
   initDesktopAutoUpdateUI();
-  console.log('PampaAgro ERP inicializado con gestión de datos');
+  console.log('PampaAgropecuario inicializado con gestión de datos');
 
   // Inicializar sistemas de sincronización después de que la app esté lista
   setTimeout(() => {
@@ -12173,7 +12604,16 @@ function calcularRentabilidad() {
 
   // ---- Ganadería ----
   const ganPorCategoria = {};
-  (state.hacienda || []).filter(h => h.tipo === 'Venta').forEach(h => {
+  const ventasGanaderas = [
+    ...(state.hacienda || []).filter((movimiento) => movimiento.tipo === 'Venta'),
+    ...(state.ventasHacienda || []).map((venta) => ({
+      categoria: venta.categoria,
+      cantidad: venta.cantidad,
+      valor: venta.valor ?? venta.importe,
+      pesoTotalKg: venta.pesoTotalKg
+    }))
+  ];
+  ventasGanaderas.forEach(h => {
     const cat = h.categoria || 'Sin categoría';
     if (!ganPorCategoria[cat]) ganPorCategoria[cat] = { ventas: 0, cabezas: 0 };
     ganPorCategoria[cat].ventas += parseMonto(h.valor || 0);
@@ -12198,9 +12638,23 @@ function calcularRentabilidad() {
     return { cat, cabezas: datos.cabezas, ventas: datos.ventas, costo, margen };
   });
 
+  const costoGanadero = Object.values(alimentCosto).reduce((a, b) => a + b, 0);
+  const movimientosPorAnimal = new Map();
+  (state.historialMovimientos || []).filter(movimiento => Number(movimiento.pesoKg || 0) > 0).forEach(movimiento => {
+    const current = movimientosPorAnimal.get(String(movimiento.idAnimal || ''));
+    if (!current || String(movimiento.fecha || '') >= String(current.fecha || '')) movimientosPorAnimal.set(String(movimiento.idAnimal || ''), movimiento);
+  });
+  const pesajes = (state.animalesTrazabilidad || []).map(animal => ({ inicial: Number(animal.pesoInicialKg || 0), final: Number(movimientosPorAnimal.get(String(animal.idAnimal || ''))?.pesoKg || 0) })).filter(item => item.inicial > 0 && item.final > 0);
+  const kilosIniciales = pesajes.reduce((total, item) => total + item.inicial, 0);
+  const kilosFinales = pesajes.reduce((total, item) => total + item.final, 0);
+  const kilosComprados = (state.hacienda || []).filter(item => item.tipo === 'Compra').reduce((total, item) => total + Number(item.pesoTotalKg || 0), 0);
+  const kilosVendidos = ventasGanaderas.reduce((total, item) => total + Number(item.pesoTotalKg || 0), 0);
+  const kilosProducidos = kilosFinales + kilosVendidos - kilosIniciales - kilosComprados;
+  const costoPorKilo = kilosProducidos > 0 ? costoGanadero / kilosProducidos : null;
+
   // ---- KPIs globales ----
   const ingTotal = ingresoTotal + ingresoGan;
-  const cosTotal = costoAgricolaTotal + (Object.values(alimentCosto).reduce((a,b)=>a+b,0));
+  const cosTotal = costoAgricolaTotal + costoGanadero;
   const margenTotal = ingTotal - cosTotal;
   const pct = ingTotal > 0 ? ((margenTotal / ingTotal) * 100).toFixed(1) : 0;
 
@@ -12209,7 +12663,11 @@ function calcularRentabilidad() {
   setEl('rentKpiIngreso', fmt(ingTotal));
   setEl('rentKpiIngresoSub', `Agrícola: ${fmt(ingresoTotal)} | Ganadero: ${fmt(ingresoGan)}`);
   setEl('rentKpiCosto', fmt(cosTotal));
-  setEl('rentKpiCostoSub', `Directo calculado desde registros`);
+  setEl('rentKpiCostoSub', `Agrícola: ${fmt(costoAgricolaTotal)} | Ganadero (alimentación): ${fmt(costoGanadero)}`);
+  setEl('rentKpiKgProducidos', `${kilosProducidos.toLocaleString('es-AR', { maximumFractionDigits: 1 })} kg`);
+  setEl('rentKpiKgSub', pesajes.length ? `${kilosProducidos < 0 ? 'Revisar pesos: ' : ''}Final ${kilosFinales.toLocaleString('es-AR')} + vendidos ${kilosVendidos.toLocaleString('es-AR')} - inicial ${kilosIniciales.toLocaleString('es-AR')} - comprados ${kilosComprados.toLocaleString('es-AR')}` : 'Faltan peso inicial y último pesaje');
+  setEl('rentKpiCostoKg', costoPorKilo === null ? '--' : fmt(costoPorKilo));
+  setEl('rentKpiCostoKgSub', costoPorKilo === null ? 'Requiere pesajes comparables' : 'Costo de alimentación / kg de ganancia registrado');
   setEl('rentKpiMargen', fmt(margenTotal));
   const margenEl = document.getElementById('rentKpiMargen')?.closest('.kpi');
   if (margenEl) { margenEl.className = 'kpi ' + (margenTotal >= 0 ? 'green' : 'red'); }
@@ -12242,7 +12700,7 @@ function calcularRentabilidad() {
   const tbodyGan = document.getElementById('rentTablaGanaderaBody');
   if (tbodyGan) {
     if (filasGan.length === 0) {
-      tbodyGan.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);">Sin ventas ganaderas registradas (Tipo: Venta en Hacienda)</td></tr>';
+      tbodyGan.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);">Sin ventas ganaderas registradas</td></tr>';
     } else {
       tbodyGan.innerHTML = filasGan.map(f => `
         <tr>
@@ -12547,7 +13005,7 @@ function setEl(id, txt) {
 
 
 <div id="pampaSyncPanel" class="pampa-sync-panel" style="display:none">
-  <strong>☁️ Sincronización PampaAgro</strong>
+  <strong>☁️ Sincronización PampaAgropecuario</strong>
   <div class="pampa-sync-grid" style="margin-top:10px">
     <div><label>API de la nube del cliente</label><input id="pampaSyncApiUrl" placeholder="https://servidor-cliente.com/api"></div>
     <div><label>ID de dispositivo</label><input id="pampaSyncDeviceId" readonly></div>
@@ -12648,7 +13106,7 @@ function setEl(id, txt) {
 
 
 <div id="pampaV9Config" class="pampa-v9-card" style="display:none">
-  <strong>🧩 Configuración de servicios PampaAgro</strong>
+  <strong>🧩 Configuración de servicios PampaAgropecuario</strong>
   <div class="pampa-v9-grid" style="margin-top:10px">
     <div>
       <label>API de sincronización del cliente</label>
@@ -12683,7 +13141,7 @@ function setEl(id, txt) {
         body:JSON.stringify({
           action,
           payload,
-          app:'PampaAgro',
+          app:'PampaAgropecuario',
           version:'v9',
           offlineFirst:true
         })
@@ -12734,7 +13192,7 @@ function setEl(id, txt) {
 
 <button id="pampaV10ConfigBtn" type="button" onclick="pampaV10OpenConfig()" style="display:none">⚙️ Configuración</button>
 <div id="pampaV10Overlay"><div id="pampaV10Modal">
-<div style="display:flex;justify-content:space-between;align-items:center"><div><h2 style="margin:0">⚙️ Configuración de PampaAgro</h2><small>Servicios, sincronización y PampaIA</small></div><button class="btn" onclick="pampaV10CloseConfig()">✕</button></div>
+<div style="display:flex;justify-content:space-between;align-items:center"><div><h2 style="margin:0">⚙️ Configuración de PampaAgropecuario</h2><small>Servicios, sincronización y PampaIA</small></div><button class="btn" onclick="pampaV10CloseConfig()">✕</button></div>
 <div class="pv10-tabs"><button id="pv10tSync" class="pv10-tab active" onclick="pampaV10Tab('sync')">☁️ Sincronización</button><button id="pv10tAI" class="pv10-tab" onclick="pampaV10Tab('ai')">🤖 PampaIA</button><button id="pv10tDev" class="pv10-tab" onclick="pampaV10Tab('dev')">📱 Dispositivo</button></div>
 <section id="pv10sSync" class="pv10-sec active"><h3>☁️ Nube propia del cliente</h3><div class="pv10-field"><label>URL de API de sincronización</label><input id="pv10SyncUrl" placeholder="https://servidor-cliente.com/api"></div><div class="pv10-actions"><button class="btn btn-primary" onclick="pampaV10Save()">💾 Guardar</button><button class="btn" onclick="pampaV10TestSync()">🔌 Probar conexión</button><button class="btn" onclick="pampaSyncNow()">🔄 Sincronizar ahora</button></div><div id="pv10SyncStatus" class="pv10-status">Sin probar.</div></section>
 <section id="pv10sAI" class="pv10-sec"><h3>🤖 PampaIA</h3><div class="pv10-field"><label>Endpoint de IA</label><input id="pv10AIUrl" placeholder="https://servidor-cliente.com/ai"></div><div class="pv10-field"><label>Modo</label><select id="pv10AIMode"><option value="server">IA del servidor / cliente</option><option value="hybrid">Híbrida: local + servidor</option></select></div><div class="pv10-actions"><button class="btn btn-primary" onclick="pampaV10Save()">💾 Guardar</button><button class="btn" onclick="pampaV10TestAI()">🧪 Probar IA</button></div><div id="pv10AIStatus" class="pv10-status">Sin probar.</div></section>

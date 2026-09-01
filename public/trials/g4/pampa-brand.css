@@ -1,4 +1,3 @@
-<<<<<<< HEAD:public/pampaganaderia-erp/pampa-brand.css
 /* Marca PAMPA N S.I.A. — fuente unica: packages/share-styles/brand.css
    Se distribuye a las apps con: npm run sync-brand */
 
@@ -35,41 +34,3 @@
 .brand .brand-badge {
   color: var(--brand-badge-color-dark, #c7d2d8);
 }
-=======
-/* Marca PAMPA N S.I.A. — fuente unica: packages/share-styles/brand.css
-   Se distribuye a las apps con: npm run sync-brand */
-
-/* Agrupa el logo y la insignia de servicio */
-.brand-container {
-  display: inline-flex;
-  align-items: flex-start;
-  position: relative;
-}
-
-/* Para logos que se muestran con <img> */
-.brand-logo {
-  height: 45px;
-  width: auto;
-  display: block;
-}
-
-/* Simbolo de marca de servicio */
-.brand-badge {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--brand-badge-color, #555555);
-  margin-left: 2px;
-  line-height: 1;
-  user-select: none;
-  pointer-events: none;
-}
-
-/* Las apps con barra lateral oscura pintan el logo como fondo de .logo-icon.
-   Ahi la insignia necesita contraste claro. */
-.sidebar .brand-badge,
-.logo .brand-badge,
-.brand .brand-badge {
-  color: var(--brand-badge-color-dark, #c7d2d8);
-}
->>>>>>> 16a23115 (Publicar catálogo con trials privados):public/trials/g4/pampa-brand.css
