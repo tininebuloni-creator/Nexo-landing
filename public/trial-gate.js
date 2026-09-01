@@ -60,10 +60,10 @@
 
   function bindLandingLinks() {
     document.addEventListener('click', function (event) {
-      var link = event.target.closest('a[href^="/t/"]');
+      var link = event.target.closest('a[href^="/t/"], a[href^="/trials/"]');
       if (!link) return;
       event.preventDefault();
-      var trialMatch = link.getAttribute('href').match(/^\/t\/([a-z0-9]+)\/?$/i);
+      var trialMatch = link.getAttribute('href').match(/^\/(?:t|trials)\/([a-z0-9]+)\/?$/i);
       if (!trialMatch) return;
       var trialCode = trialMatch[1].toLowerCase();
       dialog('pampaLandingTrialConsent', 'Prueba gratuita de 10 días', 'La aplicación se abrirá en modo de prueba. Los datos que cargues durante la prueba se guardan localmente en este dispositivo.', [
