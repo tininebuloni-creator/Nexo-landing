@@ -265,10 +265,6 @@ class PampaAPI {
     return this.request(`/tenants/${tenantId}/arca/cpe`, { method: 'POST', body: JSON.stringify(data) });
   }
 
-  async getArcaCpes(tenantId) {
-    return this.request(`/tenants/${tenantId}/arca/cpe`);
-  }
-
   async getCashAccounts(tenantId) {
     return this.request(`/tenants/${tenantId}/cash-accounts`);
   }

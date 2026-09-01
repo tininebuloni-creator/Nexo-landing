@@ -1,14 +1,15 @@
 (function () {
   const params = new URLSearchParams(window.location.search);
+  if (params.get('trial') !== 'auto') return;
+
   const cacheKey = 'pampa-license-cache';
   const syncKey = 'pampa-license-sync-time';
-  const consumedKey = 'pampa-trial-consumed';
   const current = (() => {
     try { return JSON.parse(localStorage.getItem(cacheKey) || 'null'); } catch { return null; }
   })();
   const currentExpiry = current?.license?.expiresAt ? new Date(current.license.expiresAt).getTime() : 0;
 
-  if ((!currentExpiry || currentExpiry <= Date.now()) && !localStorage.getItem(consumedKey)) {
+  if (!currentExpiry || currentExpiry <= Date.now()) {
     const now = new Date();
     const expiresAt = new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000).toISOString();
     localStorage.setItem(cacheKey, JSON.stringify({
@@ -17,12 +18,9 @@
       license: { valid: true, type: 'trial', plan: 'trial', name: 'Trial', expiresAt }
     }));
     localStorage.setItem(syncKey, now.toISOString());
-    localStorage.setItem(consumedKey, '1');
   }
 
-  if (params.get('trial') === 'auto') {
-    window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.hash}`);
-  }
+  window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.hash}`);
 
   function showBanner() {
     if (document.getElementById('trialBlueBanner')) return;
