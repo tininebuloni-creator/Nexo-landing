@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8">
@@ -7,7 +7,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <script src="./pampa-licensing.js"></script>
   <script src="./pampa-offline-core.js"></script>
-  <script src="./pampa-search.js?v=2"></script>
+  <script src="./pampa-search.js?v=20260901-171352"></script>
   <script src="./pampa-trial-links.js"></script>
   <link rel="stylesheet" href="./leaflet/leaflet.css">
 <link rel="stylesheet" href="./pampa-brand.css">
@@ -298,11 +298,11 @@
   <div id="modalRoot"></div>
   <div class="connection-status" id="connectionStatus" role="status"></div>
   <script src="./leaflet/leaflet.js"></script>
-  <script src="./offline-db.js?v=1"></script>
-  <script src="./sync-manager.js?v=1"></script>
-  <script src="./api-client.js?v=8"></script>
-  <script src="./pampa-trial-precision.js?v=1"></script>
-    <script src="./sync-handlers.js?v=1"></script>
+  <script src="./offline-db.js?v=20260901-171352"></script>
+  <script src="./sync-manager.js?v=20260901-171352"></script>
+  <script src="./api-client.js?v=20260901-171352"></script>
+  <script src="./pampa-trial-precision.js?v=20260901-171352"></script>
+    <script src="./sync-handlers.js?v=20260901-171352"></script>
   <script>
     const toast = document.querySelector('#toast');
     const modalRoot = document.querySelector('#modalRoot');
@@ -372,7 +372,7 @@
       event.returnValue = 'Tenés cambios locales sin respaldo. Descargá un respaldo antes de cerrar.';
     });
     updateConnectionStatus();
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=74').catch(() => showToast('Modo offline local activo'));
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=20260901-171352').catch(() => showToast('Modo offline local activo'));
     const userSelector = document.querySelector('#userSelector');
     function refreshUserOptions() {
       userSelector.innerHTML = registeredUsers.map(user => `<option>${user}</option>`).join('');
@@ -1775,7 +1775,7 @@
         <header class="topbar"><div><div class="eyebrow">Workspace / Control</div><h1>Licencias</h1></div><div class="toolbar"><button class="button primary" data-action="Activar licencia">+ Activar Licencia</button></div></header>
         <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Estado</span><strong id="licenseStatus">Sin activar</strong></article><article class="panel module-stat"><span>Tipo</span><strong id="licenseTipo">-</strong></article><article class="panel module-stat warning"><span>Módulos</span><strong id="licenseModuleCount">0</strong></article><article class="panel module-stat"><span>Activada desde</span><strong id="licenseActivatedAt">-</strong></article></div>
         <section class="panel"><div class="panel-head"><div><h2>Licencia activa</h2><p class="panel-caption">Información actual del sistema</p></div><span class="pill" id="licenseActivePill">Sin licencia</span></div><div id="licenseInfo" style="padding:20px;color:#64748b;">Ingresa una clave de licencia para activar el sistema.</div></section>
-        <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Disponibilidad por versión</h2><p class="panel-caption">Características de cada plan</p></div></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:15px;padding:20px;"><div style="background:#252b3b;padding:15px;border-radius:6px;border:1px solid #2d3548;"><h3 style="color:#10b981;margin:0 0 10px 0;">Básica (B)</h3><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Usuarios:</strong> 3</p><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Ha máximo:</strong> 500</p><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Módulos:</strong> 4 básicos</p></div><div style="background:#252b3b;padding:15px;border-radius:6px;border:1px solid #2d3548;"><h3 style="color:#3b82f6;margin:0 0 10px 0;">Profesional (P)</h3><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Usuarios:</strong> 10</p><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Ha máximo:</strong> 5.000</p><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Módulos:</strong> 7 profesionales</p></div><div style="background:#252b3b;padding:15px;border-radius:6px;border:1px solid #2d3548;border-color:#f59e0b;"><h3 style="color:#f59e0b;margin:0 0 10px 0;">Premium (M)</h3><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Usuarios:</strong> Ilimitado</p><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Ha máximo:</strong> Ilimitado</p><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Módulos:</strong> Todos</p></div></div></section>
+        <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Disponibilidad por versión</h2><p class="panel-caption">Características de cada plan</p></div></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:15px;padding:20px;"><div style="background:#252b3b;padding:15px;border-radius:6px;border:1px solid #2d3548;"><h3 style="color:#10b981;margin:0 0 10px 0;">Básica (B)</h3><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Usuarios:</strong> 3</p><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Ha máximo:</strong> 500</p><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Módulos base:</strong> 9 (incluye Empresa)</p></div><div style="background:#252b3b;padding:15px;border-radius:6px;border:1px solid #2d3548;"><h3 style="color:#3b82f6;margin:0 0 10px 0;">Profesional (P)</h3><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Usuarios:</strong> 10</p><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Ha máximo:</strong> 5.000</p><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Módulos base:</strong> 9 + adicionales</p></div><div style="background:#252b3b;padding:15px;border-radius:6px;border:1px solid #2d3548;border-color:#f59e0b;"><h3 style="color:#f59e0b;margin:0 0 10px 0;">Premium (M)</h3><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Usuarios:</strong> Ilimitado</p><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Ha máximo:</strong> Ilimitado</p><p style="color:#94a3b8;font-size:12px;margin:5px 0;"><strong>Módulos base:</strong> 9 + catálogo completo</p></div></div></section>
         <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Historial de activaciones</h2><p class="panel-caption">Cliente, versión y vencimiento de cada licencia activada</p></div></div><table class="data-table"><thead><tr><th>Cliente</th><th>Versión</th><th>Vence</th><th>Activada</th><th>Estado</th></tr></thead><tbody id="licenseHistoryRows"><tr><td colspan="5" style="text-align:center;color:#64748b;">Cargando historial...</td></tr></tbody></table></section></section>`
     };
 
