@@ -756,6 +756,13 @@
     }
     async function loadLicensesModule() {
       try {
+        main.querySelectorAll('h3').forEach(title => {
+          const moduleText = title.parentElement?.querySelector('p:last-child');
+          if (!moduleText) return;
+          if (title.textContent.includes('Básica')) moduleText.innerHTML = '<strong>Módulos base:</strong> 9 (incluye Empresa)';
+          if (title.textContent.includes('Profesional')) moduleText.innerHTML = '<strong>Módulos base:</strong> 9 + adicionales';
+          if (title.textContent.includes('Premium')) moduleText.innerHTML = '<strong>Módulos base:</strong> 9 + catálogo completo';
+        });
         // Obtener status usando caché offline
         const status = await licenseCache.getStatus(api);
         const history = await api.getLicenseHistory().catch(() => ({ history: [] }));
