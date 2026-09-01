@@ -15,6 +15,7 @@ const sources = {
 
 const ignored = new Set(['node_modules', '.git', '.wrangler', 'data', 'services', 'server', 'controllers', 'models', 'routes', 'scripts', 'dist', 'public_protected']);
 const ignoredPrefixes = ['dist-', 'release-'];
+const privacyPopup = path.join(projectsRoot, 'PAMPA N-ecosystem', 'packages', 'pampa-privacy-popup.js');
 
 // El catálogo usa /trials/<código>/; eliminar el bundle histórico que incluía node_modules y excedía el límite de Cloudflare.
 fs.rmSync(path.join(landingRoot, 'public', 'pampaagro-erp'), { recursive: true, force: true });
@@ -34,6 +35,13 @@ for (const [code, source] of Object.entries(sources)) {
         && !entry.endsWith('.crt');
     }
   });
+  fs.copyFileSync(privacyPopup, path.join(destination, 'pampa-privacy-popup.js'));
+  const entryPoint = path.join(destination, 'index.html');
+  const html = fs.readFileSync(entryPoint, 'utf8');
+  const popupTag = '<script src="./pampa-privacy-popup.js"></script>';
+  if (!html.includes(popupTag)) {
+    fs.writeFileSync(entryPoint, html.replace('</body>', `  ${popupTag}\n</body>`));
+  }
   console.log(`Trial publicado: ${code}`);
 }
 

@@ -3,21 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PampaTambo ERP - Gestión Agropecuaria Integral</title>
+  <title>NEXO Tambo</title>
   <link rel="manifest" href="./manifest.webmanifest" />
   <script src="./pampa-licensing.js"></script>
-  <script src="./pampa-sync-envelope.js?v=1"></script>
   <script src="./pampa-offline-core.js"></script>
-  <script src="./pampa-report-voice.js"></script>
   <script src="./pampa-search.js?v=5"></script>
   <script src="./pampa-trial-links.js"></script>
   <meta name="theme-color" content="#f59e0b" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <link rel="stylesheet" href="leaflet/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="stylesheet" href="pampa-brand.css">
-  <script src="leaflet/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     :root {
       --bg-primary: #0f1419;
@@ -402,18 +400,6 @@
     .finance-flow-fill.net {
       background: linear-gradient(90deg, rgba(59, 130, 246, 0.95), rgba(59, 130, 246, 0.55));
     }
-    .finance-flow-fill.cat-alimentacion {
-      background: linear-gradient(90deg, rgba(41, 128, 185, 0.95), rgba(41, 128, 185, 0.55));
-    }
-    .finance-flow-fill.cat-sanidad {
-      background: linear-gradient(90deg, rgba(243, 156, 18, 0.95), rgba(243, 156, 18, 0.55));
-    }
-    .finance-flow-fill.cat-personal {
-      background: linear-gradient(90deg, rgba(155, 89, 182, 0.95), rgba(155, 89, 182, 0.55));
-    }
-    .finance-flow-fill.cat-otros {
-      background: linear-gradient(90deg, rgba(100, 116, 139, 0.95), rgba(100, 116, 139, 0.55));
-    }
     @media (max-width: 980px) {
       .production-summary {
         grid-template-columns: 1fr;
@@ -659,16 +645,12 @@
     }
     .modal.active { display: flex; }
     .modal-card {
-      width: min(85%, 900px);
-      max-height: calc(100vh - 36px);
+      width: min(560px, 100%);
       background: var(--bg-secondary);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
-      overflow: auto;
-      display: flex;
-      flex-direction: column;
+      overflow: hidden;
     }
-    .modal-body { padding: 14px 16px; overflow-y: auto; max-height: calc(100vh - 200px); }
     .quick-wa-fab {
       position: fixed;
       right: 18px;
@@ -870,54 +852,19 @@
     }
 
     @media (max-width: 680px) {
-      html, body { width: 100%; min-width: 0; overflow-x: hidden; overflow-y: auto; }
-      .app { flex-direction: column; min-width: 0; height: auto; min-height: 100vh; }
-      .sidebar { width: 100%; max-width: 100%; max-height: 235px; }
-      .sidebar-header {
-        min-height: 64px;
-        padding: 10px 14px;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .sidebar-header .brand-container { display: none; }
-      .logo-text { font-size: 20px; text-align: left; }
-      .logo-sub { display: none; }
-      .main, .content { width: 100%; min-width: 0; }
-      .content { padding: 14px; overflow: visible; }
-      .dashboard-top, .dashboard-finance-layout, .grid-2, .grid-3, .production-summary { grid-template-columns: 1fr; display: grid; width: 100%; }
-      .empresa-hero, .dashboard-actions { width: 100%; min-width: 0; max-width: none; }
-      .empresa-hero { min-height: 0; padding: 16px; }
-      .empresa-hero-meta, .dashboard-top-actions-grid, .role-seats-actions { width: 100%; }
-      .mobile-menu-btn {
-        display: inline-flex;
-        width: 42px;
-        height: 42px;
-        margin: 0;
-        padding: 0;
-        align-items: center;
-        justify-content: center;
-        font-size: 0;
-        flex: 0 0 42px;
-      }
-      .mobile-menu-btn::before {
-        content: '☰';
-        font-size: 24px;
-        line-height: 1;
-      }
+      .sidebar { width: 100%; max-height: 235px; }
+      .app { flex-direction: column; }
+      .mobile-menu-btn { display: block; }
       .sidebar.is-collapsed {
-        max-height: 64px;
+        max-height: 98px;
         overflow: hidden;
       }
       .sidebar.is-collapsed .nav-section,
       .sidebar.is-collapsed .sidebar-danger {
         display: none;
       }
-      .sidebar.is-collapsed .mobile-menu-btn::before { content: '☰'; }
-      .sidebar:not(.is-collapsed) .mobile-menu-btn::before { content: '✕'; }
       .form-grid { grid-template-columns: 1fr; }
-      .toolbar { display: flex; flex-direction: column; align-items: stretch; gap: 8px; }
-      .toolbar .btn, .toolbar select, .topbar-right-row .btn, .topbar-right-row select { width: 100%; white-space: normal; }
+      .toolbar { grid-template-columns: 1fr; }
       .empresa-hero { width: 100%; min-height: 0; }
       .empresa-hero-main { grid-template-columns: 1fr; }
       .empresa-hero-logo { width: 98px; height: 98px; }
@@ -956,23 +903,17 @@
       #connectivityPanel .conn-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
-      .table-wrap, .tablewrap { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-      .table-wrap table, .tablewrap table { min-width: 640px; }
-      .modal, .modal-card { width: calc(100vw - 24px); max-width: none; max-height: calc(100dvh - 24px); overflow: auto; }
-      .modal-foot, .modal-actions { flex-wrap: wrap; }
-      .modal-foot .btn, .modal-actions .btn { flex: 1 1 140px; }
     }
   </style>
-<script src="/trial-gate.js"></script>
 </head>
 <body>
   <div class="app">
     <aside class="sidebar">
       <div class="sidebar-header">
-        <div class="brand-container"><div class="logo-icon" aria-label="Logo PampaTambo"></div><span class="brand-badge">℠</span></div>
+        <div class="brand-container"><div class="logo-icon"><img src="logo2.png" alt="Logo PampaTambo"></div><span class="brand-badge">℠</span></div>
         <div class="logo-text">PampaTambo</div>
         <div class="logo-sub">Soluciones agropecuarias</div>
-        <button class="mobile-menu-btn" id="btnMobileMenu" type="button" aria-label="Abrir menú de navegación" aria-expanded="false" onclick="toggleMobileMenu()">☰ Menú</button>
+        <button class="mobile-menu-btn" id="btnMobileMenu" type="button">☰ Menú</button>
       </div>
       <div class="nav-section">
         <div class="nav-title">Módulos</div>
@@ -993,7 +934,6 @@
         <div class="nav-item nav-group-title" data-module="inventario" onclick="openInventarioSummary()">📦 Inventario</div>
         <div class="nav-submenu" aria-label="Submódulos de Inventario">
           <div class="nav-subitem" onclick="openModule('alimentos')">• Alimentos</div>
-          <div class="nav-subitem" onclick="openModule('silos')">• Silos</div>
           <div class="nav-subitem" data-submodule="inventario-sanidad-stock" onclick="openInventarioSanidad()">• Sanidad (stock)</div>
           <div class="nav-subitem" onclick="openModule('instalaciones')">• Instalaciones</div>
           <div class="nav-subitem" onclick="openInventarioMaquinaria()">• Maquinarias</div>
@@ -1018,15 +958,14 @@
           <div class="nav-subitem" onclick="openFinanceSection('finanzas-cheques-cobrar')">• Cheques por Cobrar</div>
           <div class="nav-subitem" onclick="openFinanceSection('finanzas-cheques-cubrir')">• Cheques por Cubrir</div>
         </div>
-        <div class="nav-item" data-module="arca" onclick="openArcaResumen()">💰 Fiscal Tambo</div>
-        <div class="nav-submenu" aria-label="Submódulos de Fiscal Tambo">
+        <div class="nav-item" data-module="arca" onclick="openArcaResumen()">🗂️ Administración / ARCA</div>
+        <div class="nav-submenu" aria-label="Submódulos de Administración/ARCA">
           <div class="nav-subitem" data-submodule="arca-lume" onclick="openArcaSection('arca-lume')">• Liquidación de leche (LUME)</div>
           <div class="nav-subitem" data-submodule="arca-ventas" onclick="openArcaSection('arca-ventas')">• Venta de hacienda</div>
           <div class="nav-subitem" data-submodule="arca-compras" onclick="openArcaSection('arca-compras')">• Compras de insumos</div>
           <div class="nav-subitem" data-submodule="arca-gastos" onclick="openArcaSection('arca-gastos')">• Gastos</div>
           <div class="nav-subitem" data-submodule="arca-comprobantes" onclick="openArcaSection('arca-comprobantes')">• Comprobantes</div>
           <div class="nav-subitem" data-submodule="arca-cobros-pagos" onclick="openArcaSection('arca-cobros-pagos')">• Cobros y pagos</div>
-          <div class="nav-subitem" data-submodule="arca-senasa" onclick="openArcaSection('arca-senasa')">• 🛡️ SENASA - Sanitario</div>
         </div>
         <div class="nav-item" data-module="reportes">📋 Reportes</div>
         <div class="nav-item" data-module="rentabilidad">📈 Rentabilidad</div>
@@ -1085,9 +1024,9 @@
           <div class="dashboard-top">
             <div class="empresa-hero">
               <div class="empresa-hero-main">
-                <div class="empresa-hero-logo" aria-label="Logo empresa"></div>
+                <div class="empresa-hero-logo"><img src="logo2.png" alt="Logo PampaTambo"></div>
                 <div>
-                  <div class="empresa-hero-title" id="dashboardEmpresaNombre">Agropecuaria Pampa N S.I.A.</div>
+                  <div class="empresa-hero-title" id="dashboardEmpresaNombre">Agropecuaria NEXO</div>
                   <div class="empresa-hero-sub" id="dashboardEmpresaSub">Panel operativo de la empresa</div>
                 </div>
               </div>
@@ -1104,11 +1043,11 @@
               <button class="btn" id="btnAbrirReportes">WhatsApp reportes</button>
               <button class="btn" id="btnLimpiezaBasica">Limpieza básica</button>
               <select id="roleSelector" class="btn">
-                <option value="propietario">Rol: Propietario / Responsable</option>
-                <option value="administracion">Rol: Administración</option>
-                <option value="ingeniero">Rol: Ingeniero / Veterinario</option>
-                <option value="veterinario">Rol: Ingeniero / Veterinario</option>
-                <option value="operador">Rol: Operario de campo</option>
+                <option value="propietario">Rol: Propietario</option>
+                <option value="administracion">Rol: Administracion</option>
+                <option value="ingeniero">Rol: Ingeniero</option>
+                <option value="veterinario">Rol: Veterinario</option>
+                <option value="operador">Rol: Operador</option>
               </select>
               <button class="btn" id="btnActivarLicencia">Activar licencia</button>
               <div id="licenseStatus">Licencia: sin activar</div>
@@ -1150,17 +1089,6 @@
           </div>
           <div class="card">
             <div class="card-header">
-              <div class="card-title">🔬 Plan Sanitario SENASA · Cronograma DOES</div>
-              <div class="muted">Certificación anual de Tambo Libre</div>
-            </div>
-            <div class="kpi-grid" style="padding: 0 16px 16px;">
-              <div class="kpi" id="doesTuberculosisCard"><div class="label">Tuberculosis (PPD)</div><div class="value" id="doesTuberculosisValor">-</div><div class="sub" id="doesTuberculosisSub">Sin registros</div></div>
-              <div class="kpi" id="doesBrucelosisCard"><div class="label">Brucelosis (DOES)</div><div class="value" id="doesBrucelosisValor">-</div><div class="sub" id="doesBrucelosisSub">Sin registros</div></div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-header">
               <div class="card-title">💉 Alertas sanitarias</div>
               <div class="muted" id="dashboardSanidadAlertasCount">0 alertas</div>
             </div>
@@ -1178,30 +1106,13 @@
             <div style="padding:14px 16px; display:grid; gap:12px;">
               <div class="form-grid">
                 <div class="field">
-                  <label for="reportTypeSelect">Tipo de reporte</label>
-                  <select id="reportTypeSelect">
-                    <option value="cambiosDiarios">Reporte operativo diario completo</option>
-                    <option value="cambiosInstantaneos">Reporte operativo instantáneo completo</option>
-                    <option value="reporteOperativo">Reporte operativo completo</option>
-                    <option value="produccion">Producción y ordeñe</option>
-                    <option value="sanidad">Sanidad y tratamientos</option>
-                    <option value="alimentacion">Alimentación y rollos</option>
-                    <option value="finanzas">Finanzas</option>
-                    <option value="costos">Costos de producción</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="reportInstantDetail">Descripción del cambio instantáneo</label>
-                  <input id="reportInstantDetail" type="text" placeholder="Ej.: Nacieron 2 terneros en lote X, caravana XX">
-                </div>
-                <div class="field">
                   <label for="reportRoleSelect">Rol destino</label>
                   <select id="reportRoleSelect">
-                    <option value="propietario">Propietario / Responsable</option>
-                    <option value="administracion">Administración</option>
-                    <option value="ingeniero">Ingeniero / Veterinario</option>
-                    <option value="veterinario">Ingeniero / Veterinario</option>
-                    <option value="operador">Operario de campo</option>
+                    <option value="propietario">Propietario</option>
+                    <option value="administracion">Administracion</option>
+                    <option value="ingeniero">Ingeniero</option>
+                    <option value="veterinario">Veterinario</option>
+                    <option value="operador">Operador</option>
                   </select>
                 </div>
                 <div class="field">
@@ -1253,7 +1164,7 @@
               <div class="form-grid">
                 <div class="field">
                   <label class="sr-only" for="empresaNombreInput">Nombre de la empresa</label>
-                  <input id="empresaNombreInput" type="text" placeholder="Agropecuaria Pampa N S.I.A." aria-label="Nombre de la empresa" />
+                  <input id="empresaNombreInput" type="text" placeholder="Agropecuaria NEXO" aria-label="Nombre de la empresa" />
                 </div>
                 <div class="field">
                   <label for="empresaCuitInput">CUIT</label>
@@ -1279,19 +1190,19 @@
                       <input id="empresaWhatsAppPropietarioInput" type="text" placeholder="54911..." />
                     </div>
                     <div class="field">
-                      <label for="empresaWhatsAppAdministracionInput">Administración</label>
+                      <label for="empresaWhatsAppAdministracionInput">Administracion</label>
                       <input id="empresaWhatsAppAdministracionInput" type="text" placeholder="54911..." />
                     </div>
                     <div class="field">
-                      <label for="empresaWhatsAppIngenieroInput">Ingeniero / Veterinario</label>
+                      <label for="empresaWhatsAppIngenieroInput">Ingeniero</label>
                       <input id="empresaWhatsAppIngenieroInput" type="text" placeholder="54911..." />
                     </div>
                     <div class="field">
-                      <label for="empresaWhatsAppVeterinarioInput">Ingeniero / Veterinario</label>
+                      <label for="empresaWhatsAppVeterinarioInput">Veterinario</label>
                       <input id="empresaWhatsAppVeterinarioInput" type="text" placeholder="54911..." />
                     </div>
                     <div class="field">
-                      <label for="empresaWhatsAppOperadorInput">Operario de campo</label>
+                      <label for="empresaWhatsAppOperadorInput">Operador</label>
                       <input id="empresaWhatsAppOperadorInput" type="text" placeholder="54911..." />
                     </div>
                   </div>
@@ -1435,7 +1346,6 @@
                     <th>Padre</th>
                     <th>Madre</th>
                     <th>Estado</th>
-                    <th>Retiro leche</th>
                     <th>Observaciones</th>
                     <th>Acciones</th>
                   </tr>
@@ -1550,97 +1460,6 @@
           </div>
         </div>
 
-        <div class="module" id="mod-silos">
-          <div class="kpi-grid">
-            <div class="kpi"><div class="label">Silos</div><div class="value" id="kpiSilosTotal">0</div><div class="sub">Estructuras registradas</div></div>
-            <div class="kpi blue"><div class="label">Stock total</div><div class="value" id="kpiSilosStock">0 TN</div><div class="sub">Suma de todos los silos</div></div>
-            <div class="kpi red"><div class="label">Reposición urgente</div><div class="value" id="kpiSilosAlerta">0</div><div class="sub">≤ umbral de alerta</div></div>
-          </div>
-
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">🌾 Silos y capacidad de cubicaje</div>
-              <button class="btn primary" id="btnNuevoSilo">+ Nuevo silo</button>
-            </div>
-            <div style="padding: 14px 16px; display:grid; gap:12px;" id="panelSilos"></div>
-          </div>
-
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">📋 Registrar carga o consumo</div>
-            </div>
-            <div style="padding: 14px 16px; display:grid; gap:10px;">
-              <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                <div style="flex:1; min-width:160px;">
-                  <label style="font-size:12px; display:block;">Silo</label>
-                  <select id="movSiloId" style="width:100%; padding:8px;"></select>
-                </div>
-                <div style="width:140px;">
-                  <label style="font-size:12px; display:block;">Tipo</label>
-                  <select id="movTipo" style="width:100%; padding:8px;">
-                    <option value="CONSUMO">Consumo</option>
-                    <option value="CARGA">Carga (descarga de camión)</option>
-                  </select>
-                </div>
-                <div style="width:120px;">
-                  <label style="font-size:12px; display:block;">Toneladas</label>
-                  <input type="number" id="movToneladas" step="0.1" min="0" style="width:100%; padding:8px;">
-                </div>
-              </div>
-              <div id="movCamposCarga" style="display:none; gap:8px; flex-wrap:wrap;">
-                <div style="flex:1; min-width:140px;">
-                  <label style="font-size:12px; display:block;">Grano/alimento</label>
-                  <input type="text" id="movTipoGrano" placeholder="Maíz, Soja, Balanceado..." style="width:100%; padding:8px;">
-                </div>
-                <div style="width:140px;">
-                  <label style="font-size:12px; display:block;">Proveedor</label>
-                  <input type="text" id="movProveedor" style="width:100%; padding:8px;">
-                </div>
-                <div style="width:130px;">
-                  <label style="font-size:12px; display:block;">N° lote proveedor</label>
-                  <input type="text" id="movLote" style="width:100%; padding:8px;">
-                </div>
-                <div style="width:130px;">
-                  <label style="font-size:12px; display:block;">Precio/TN ($)</label>
-                  <input type="number" id="movPrecio" min="0" style="width:100%; padding:8px;">
-                </div>
-              </div>
-              <div id="movCamposConsumo" style="display:flex; gap:8px; flex-wrap:wrap;">
-                <div style="flex:1; min-width:160px;">
-                  <label style="font-size:12px; display:block;">Destino (mixer/lote animal)</label>
-                  <input type="text" id="movDestino" style="width:100%; padding:8px;">
-                </div>
-              </div>
-              <div>
-                <label style="font-size:12px; display:block;">Responsable</label>
-                <input type="text" id="movResponsable" style="width:100%; padding:8px;">
-              </div>
-              <button class="btn primary" onclick="registrarMovimientoSilo()">Confirmar</button>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-header"><div class="card-title">🧾 Historial de movimientos</div></div>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Fecha</th>
-                    <th>Silo</th>
-                    <th>Tipo</th>
-                    <th>Grano</th>
-                    <th>Toneladas</th>
-                    <th>Detalle</th>
-                    <th>Costo</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody id="tbodySiloMovimientos"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
         <div class="module" id="mod-inventario">
           <div class="card is-hidden" id="invFiltersCard">
             <div class="card-header">
@@ -1726,7 +1545,6 @@
                     <th>Categoría</th>
                     <th>Stock</th>
                     <th>Unidad</th>
-                    <th>Días retiro</th>
                     <th>Vencimiento</th>
                     <th>Semáforo</th>
                     <th>Acciones</th>
@@ -1741,63 +1559,48 @@
         <div class="module" id="mod-mantenimiento">
           <div class="card">
             <div class="card-header">
-              <div class="card-title">🔧 Mantenimiento de Flota y Alertas Mecánicas</div>
-              <div style="display:flex; gap:8px; flex-wrap: wrap;">
-                <button class="btn primary" id="btnNuevoService">+ Registrar Service</button>
-                <button class="btn" id="btnNuevoEquipoMantenimiento">+ Nuevo equipo</button>
-                <button class="btn" id="btnNuevaTareaMantenimiento">+ Nueva tarea</button>
-              </div>
+              <div class="card-title">🔧 Mantenimiento de equipos de trabajo y producción</div>
+              <button class="btn primary" id="btnNuevoMantenimiento">+ Nueva orden</button>
             </div>
-            
-            <!-- ALERTAS CRÍTICAS -->
-            <div style="margin-bottom: 20px;" id="alertasMantenimientoContainer"></div>
-
-            <!-- TABLERO DE MAQUINARIAS Y ESTADO -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; margin-bottom: 20px;" id="maquinariasGridContainer"></div>
-
-            <!-- FORMULARIO RÁPIDO PARA REGISTRAR HORÓMETRO -->
-            <div class="card" style="margin-top: 20px; background-color: #f8f9fa; border-left: 4px solid #3498db;">
-              <div class="card-header">
-                <div class="card-title">⏱️ Actualizar Horómetro Diario</div>
-              </div>
-              <form id="formHorometro" style="padding: 15px;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                  <div>
-                    <label for="sel_maquinaHoro" style="display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem;">Maquinaria</label>
-                    <select id="sel_maquinaHoro" required style="width: 100%; padding: 8px; border: 1px solid #bdc3c7; border-radius: 4px;">
-                      <option value="">Seleccionar...</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label for="inp_horometroActual" style="display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem;">Lectura Horómetro (hs totales)</label>
-                    <input type="number" id="inp_horometroActual" placeholder="Ej: 2460" required style="width: 100%; padding: 8px; border: 1px solid #bdc3c7; border-radius: 4px;" />
-                  </div>
-                </div>
-                <button type="submit" class="btn primary" style="width: 100%; margin-top: 15px;">Registrar Horas</button>
-              </form>
-            </div>
-
-            <!-- TABLA HISTÓRICO DE TAREAS -->
-            <div style="margin-top: 20px;">
-              <div style="font-weight: bold; margin-bottom: 10px; font-size: 1.05rem;">Histórico de Tareas por Maquinaria</div>
-              <div class="table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Maquinaria</th>
-                      <th>Tarea</th>
-                      <th>Última ejecución</th>
-                      <th>Horómetro último</th>
-                      <th>Próxima alerta (hs/días)</th>
-                      <th>Estado</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody id="tbodyTareasMantenimiento"></tbody>
-                </table>
-              </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Equipo</th>
+                    <th>Tipo</th>
+                    <th>Tarea</th>
+                    <th>Responsable</th>
+                    <th>Horas parada</th>
+                    <th>Costo</th>
+                    <th>Estado</th>
+                    <th>Próximo servicio</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyMantenimiento"></tbody>
+              </table>
             </div>
           </div>
+        </div>
+
+        <div class="module" id="mod-rrhh">
+          <div class="kpi-grid">
+            <div class="kpi"><div class="label">Personal activo</div><div class="value" id="tamboHrActive">0</div><div class="sub">Registros activos</div></div>
+            <div class="kpi blue"><div class="label">Nómina estimada</div><div class="value" id="tamboHrPayroll">$0</div><div class="sub">Remuneración mensual</div></div>
+            <div class="kpi red"><div class="label">Ausencias</div><div class="value" id="tamboHrAbsences">0</div><div class="sub">Días registrados</div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Recursos Humanos</div><button class="btn" id="btnTamboHrSave">Guardar personal</button></div>
+            <div class="form-grid">
+              <div class="field"><label for="tamboHrName">Nombre y apellido</label><input id="tamboHrName" required></div>
+              <div class="field"><label for="tamboHrRole">Puesto</label><input id="tamboHrRole" placeholder="Encargado, operario..." required></div>
+              <div class="field"><label for="tamboHrStatus">Estado</label><select id="tamboHrStatus"><option value="Activo">Activo</option><option value="Licencia">Licencia</option><option value="Baja">Baja</option></select></div>
+              <div class="field"><label for="tamboHrSalary">Remuneración mensual</label><input id="tamboHrSalary" type="number" min="0" step="0.01"></div>
+              <div class="field"><label for="tamboHrAbsence">Días de ausencia</label><input id="tamboHrAbsence" type="number" min="0" step="1" value="0"></div>
+            </div>
+          </div>
+          <div class="card"><div class="table-wrap"><table><thead><tr><th>Nombre</th><th>Puesto</th><th>Estado</th><th>Remuneración</th><th>Ausencias</th></tr></thead><tbody id="tamboHrRows"></tbody></table></div></div>
         </div>
 
         <div class="module" id="mod-auditoria">
@@ -2161,14 +1964,6 @@
             </div>
             <div style="padding: 14px 16px; display:grid; gap:8px;" id="rentabilidadBreakdown"></div>
           </div>
-
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">🌾 Distribución de gastos por categoría (mes actual)</div>
-              <div class="muted">Alimentación · Sanidad · Personal · Otros</div>
-            </div>
-            <div style="padding: 14px 16px; display:grid; gap:8px;" id="rentabilidadCategorias"></div>
-          </div>
         </div>
 
         <div class="module" id="mod-arca">
@@ -2189,19 +1984,6 @@
             <div style="padding: 12px 16px; display:grid; gap:8px;" id="arcaResumenFlow"></div>
           </div>
 
-          <div class="card" id="arcaOperacionFiscalCard">
-            <div class="card-header">
-              <div class="card-title">🔐 Estado fiscal Tambo / LEL</div>
-              <button class="btn" type="button" onclick="actualizarEstadoFiscalTambo()">Actualizar</button>
-            </div>
-            <div class="kpi-grid" style="margin-bottom:12px;">
-              <div class="kpi"><div class="label">Preparación ARCA</div><div class="value" id="arcaFiscalPreparacion">--</div><div class="sub" id="arcaFiscalEntorno">Consultando backend</div></div>
-              <div class="kpi blue"><div class="label">Cola fiscal</div><div class="value" id="arcaFiscalCola">--</div><div class="sub" id="arcaFiscalColaDetalle">Operaciones pendientes</div></div>
-              <div class="kpi orange"><div class="label">Retenciones LUME</div><div class="value" id="arcaFiscalRetenciones">--</div><div class="sub" id="arcaFiscalRetencionesDetalle">Libro fiscal</div></div>
-            </div>
-            <div class="muted" id="arcaFiscalAviso">El estado se consulta al backend local; una simulación no equivale a emisión oficial.</div>
-          </div>
-
           <div class="card arca-section" id="arca-lume">
             <div class="card-header">
               <div class="card-title">🥛 Liquidación de leche / LUME</div>
@@ -2214,7 +1996,6 @@
                     <th>Fecha</th>
                     <th>Usina</th>
                     <th>N.º LUME</th>
-                    <th>COE</th>
                     <th>Período</th>
                     <th>Litros liquidados</th>
                     <th>Grasa %</th>
@@ -2226,18 +2007,12 @@
                     <th>Descuentos</th>
                     <th>Neto</th>
                     <th>Fecha cobro</th>
-                    <th>ARCA</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody id="tbodyLiquidacionesLeche"></tbody>
               </table>
             </div>
-            <div class="card-header" style="margin-top: 10px;">
-              <div class="card-title">🔍 Cotejo litros propios vs. litros liquidados</div>
-              <div class="muted">Ordeñe registrado en el ERP vs. lo declarado por la usina en el LUME</div>
-            </div>
-            <div style="padding: 0 16px 16px; display:grid; gap:8px;" id="cotejoLitrosLume"></div>
           </div>
 
           <div class="card arca-section" id="arca-ventas">
@@ -2258,7 +2033,6 @@
                     <th>Precio/kg</th>
                     <th>Importe</th>
                     <th>Comprobante</th>
-                    <th>Carta de Porte</th>
                     <th>Cobrado</th>
                     <th>Acciones</th>
                   </tr>
@@ -2375,30 +2149,6 @@
               </table>
             </div>
           </div>
-
-          <div class="card arca-section" id="arca-senasa">
-            <div class="card-header">
-              <div class="card-title">🛡️ SENASA - Control Sanitario Obligatorio</div>
-              <button class="btn primary" id="btnNuevoRegistroSenasa">+ Nuevo registro</button>
-            </div>
-            <div class="muted" style="padding: 0 16px 8px;">Tuberculosis, Brucelosis (DOES), Aftosa y Cepa 19 · registros cargados desde Hacienda &gt; Sanidad</div>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Fecha</th>
-                    <th>Vaca</th>
-                    <th>Tipo de control</th>
-                    <th>Producto</th>
-                    <th>Días retiro</th>
-                    <th>Responsable</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody id="tbodySenasa"></tbody>
-              </table>
-            </div>
-          </div>
         </div>
 
         <div class="module" id="mod-rrhh">
@@ -2454,14 +2204,6 @@
                 <tbody id="tbodyAsistencias"></tbody>
               </table>
             </div>
-          </div>
-
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">🤠 Liquidación Tambero Mediero</div>
-              <div class="muted">% pactado sobre el neto fiscal de cada LUME ya calculada</div>
-            </div>
-            <div style="padding: 14px 16px; display:grid; gap:12px;" id="listaLiquidacionesMediero"></div>
           </div>
         </div>
 
@@ -2555,8 +2297,6 @@
           <div class="card">
             <div class="card-header">
               <div class="card-title">💉 Hacienda: Sanidad</div>
-              <a class="btn" href="monitor-ordene.html" target="_blank" rel="noopener">📋 Monitor de ordeñe</a>
-              <a class="btn" href="tratamientos.html" target="_blank" rel="noopener">📱 Pantalla pozo de ordeñe</a>
               <button class="btn primary" id="btnNuevaSanidad">+ Nuevo registro</button>
             </div>
             <div class="table-wrap">
@@ -2704,7 +2444,7 @@
       return Array.from(new Set(bases));
     })();
     let apiBaseCache = API_BASE_CANDIDATES[0];
-    const modules = ['empresa', 'dashboard', 'reportes', 'campos', 'hacienda', 'instalaciones', 'inventario', 'mantenimiento', 'auditoria', 'animales', 'toros', 'guachera', 'recria', 'alimentos', 'silos', 'ordenes', 'entregas', 'costosOperativos', 'costos', 'finanzas', 'arca', 'rentabilidad', 'rrhh', 'reproduccion', 'partos', 'produccion', 'sanidad'];
+    const modules = ['empresa', 'dashboard', 'reportes', 'campos', 'hacienda', 'instalaciones', 'inventario', 'mantenimiento', 'auditoria', 'animales', 'toros', 'guachera', 'recria', 'alimentos', 'ordenes', 'entregas', 'costosOperativos', 'costos', 'finanzas', 'arca', 'rentabilidad', 'rrhh', 'reproduccion', 'partos', 'produccion', 'sanidad'];
     const endpointMap = {
       campos: '/campos',
       lotes: '/lotes',
@@ -2735,13 +2475,8 @@
       reproduccion: '/reproduccion',
       sanidad: '/sanidad',
       maquinas: '/maquinas',
-      mantenimientoMaquinas: '/mantenimiento-maquinas',
-      tareasMantenimiento: '/tareas-mantenimiento',
       insumosSanidad: '/insumosSanidad',
       mantenimiento: '/mantenimiento',
-      liquidacionesMediero: '/liquidaciones-mediero',
-      silos: '/silos',
-      siloMovimientos: '/silo-movimientos',
     };
     const state = {
       campos: [],
@@ -2775,13 +2510,8 @@
       maquinas: [],
       insumosSanidad: [],
       mantenimiento: [],
-      mantenimientoMaquinas: [],
-      tareasMantenimiento: [],
-      liquidacionesMediero: [],
-      silos: [],
-      siloMovimientos: [],
       empresa: {
-        nombre: 'Agropecuaria Pampa N S.I.A.',
+        nombre: 'Agropecuaria NEXO',
         cuit: '30-00000000-0',
         direccion: '',
         telefono: '',
@@ -2832,12 +2562,12 @@
     const ROLE_SEATS_STORAGE_KEY = 'tambo_role_seats';
     const DEVICE_ID_STORAGE_KEY = 'tambo_device_id';
     const ROLE_SEAT_TTL_MS = 1000 * 60 * 60 * 12;
-    const OFFLINE_COLLECTIONS = ['campos', 'lotes', 'instalaciones', 'entregasUsina', 'costos', 'costosOperativos', 'finanzas', 'caja', 'bancos', 'creditos', 'chequesCobrar', 'chequesCubrir', 'liquidacionesLeche', 'ventasHacienda', 'comprasInsumos', 'gastosArca', 'comprobantesArca', 'cobrosPagos', 'empleados', 'asistencias', 'animales', 'toros', 'guachera', 'recria', 'alimentos', 'ordenes', 'reproduccion', 'sanidad', 'maquinas', 'insumosSanidad', 'mantenimiento', 'mantenimientoMaquinas', 'tareasMantenimiento', 'liquidacionesMediero', 'silos', 'siloMovimientos'];
+    const OFFLINE_COLLECTIONS = ['campos', 'lotes', 'instalaciones', 'entregasUsina', 'costos', 'costosOperativos', 'finanzas', 'caja', 'bancos', 'creditos', 'chequesCobrar', 'chequesCubrir', 'liquidacionesLeche', 'ventasHacienda', 'comprasInsumos', 'gastosArca', 'comprobantesArca', 'cobrosPagos', 'empleados', 'asistencias', 'animales', 'toros', 'guachera', 'recria', 'alimentos', 'ordenes', 'reproduccion', 'sanidad', 'maquinas', 'insumosSanidad', 'mantenimiento'];
 
     const ROLE_PERMISSIONS = {
       propietario: {
-        name: 'Propietario / Responsable',
-        modules: ['empresa', 'dashboard', 'reportes', 'campos', 'hacienda', 'instalaciones', 'inventario', 'mantenimiento', 'auditoria', 'animales', 'toros', 'guachera', 'recria', 'alimentos', 'silos', 'ordenes', 'entregas', 'costosOperativos', 'costos', 'finanzas', 'arca', 'rentabilidad', 'rrhh', 'reproduccion', 'partos', 'produccion', 'sanidad'],
+        name: 'Propietario',
+        modules: ['empresa', 'dashboard', 'reportes', 'campos', 'hacienda', 'instalaciones', 'inventario', 'mantenimiento', 'auditoria', 'animales', 'toros', 'guachera', 'recria', 'alimentos', 'ordenes', 'entregas', 'costosOperativos', 'costos', 'finanzas', 'arca', 'rentabilidad', 'rrhh', 'reproduccion', 'partos', 'produccion', 'sanidad'],
         canCreate: true,
         canEdit: true,
         canDelete: true,
@@ -2846,8 +2576,8 @@
         canClearAudit: true,
       },
       administracion: {
-        name: 'Administración',
-        modules: ['empresa', 'dashboard', 'reportes', 'campos', 'hacienda', 'instalaciones', 'inventario', 'mantenimiento', 'auditoria', 'animales', 'toros', 'guachera', 'recria', 'alimentos', 'silos', 'ordenes', 'entregas', 'costosOperativos', 'costos', 'finanzas', 'arca', 'rentabilidad', 'rrhh', 'reproduccion', 'partos', 'produccion'],
+        name: 'Administracion',
+        modules: ['empresa', 'dashboard', 'reportes', 'campos', 'hacienda', 'instalaciones', 'inventario', 'mantenimiento', 'auditoria', 'animales', 'toros', 'guachera', 'recria', 'alimentos', 'ordenes', 'entregas', 'costosOperativos', 'costos', 'finanzas', 'arca', 'rentabilidad', 'rrhh', 'reproduccion', 'partos', 'produccion'],
         canCreate: true,
         canEdit: true,
         canDelete: true,
@@ -2856,8 +2586,8 @@
         canClearAudit: false,
       },
       ingeniero: {
-        name: 'Ingeniero / Veterinario',
-        modules: ['empresa', 'dashboard', 'reportes', 'campos', 'hacienda', 'instalaciones', 'inventario', 'mantenimiento', 'alimentos', 'silos', 'ordenes', 'entregas', 'costosOperativos', 'finanzas', 'arca', 'rentabilidad', 'rrhh', 'animales', 'toros', 'guachera', 'recria', 'reproduccion', 'partos', 'produccion'],
+        name: 'Ingeniero',
+        modules: ['empresa', 'dashboard', 'reportes', 'campos', 'hacienda', 'instalaciones', 'inventario', 'mantenimiento', 'alimentos', 'ordenes', 'entregas', 'costosOperativos', 'finanzas', 'arca', 'rentabilidad', 'rrhh', 'animales', 'toros', 'guachera', 'recria', 'reproduccion', 'partos', 'produccion'],
         canCreate: true,
         canEdit: true,
         canDelete: false,
@@ -2866,7 +2596,7 @@
         canClearAudit: false,
       },
       veterinario: {
-        name: 'Ingeniero / Veterinario',
+        name: 'Veterinario',
         modules: ['empresa', 'dashboard', 'reportes', 'hacienda', 'animales', 'toros', 'guachera', 'recria', 'reproduccion', 'partos', 'produccion', 'sanidad', 'ordenes', 'entregas', 'inventario', 'mantenimiento', 'costosOperativos'],
         canCreate: true,
         canEdit: true,
@@ -2876,8 +2606,8 @@
         canClearAudit: false,
       },
       operador: {
-        name: 'Operario de campo',
-        modules: ['empresa', 'dashboard', 'reportes', 'campos', 'hacienda', 'inventario', 'mantenimiento', 'animales', 'toros', 'guachera', 'recria', 'alimentos', 'silos', 'reproduccion', 'partos', 'produccion', 'ordenes', 'entregas', 'sanidad', 'costosOperativos', 'finanzas', 'arca', 'rentabilidad'],
+        name: 'Operador',
+        modules: ['empresa', 'dashboard', 'reportes', 'campos', 'hacienda', 'inventario', 'mantenimiento', 'animales', 'toros', 'guachera', 'recria', 'alimentos', 'reproduccion', 'partos', 'produccion', 'ordenes', 'entregas', 'sanidad', 'costosOperativos', 'finanzas', 'arca', 'rentabilidad'],
         canCreate: true,
         canEdit: true,
         canDelete: false,
@@ -3055,21 +2785,14 @@
       },
       sanidad: {
         vaca: ['V-001', 'V-002'],
-        tipo: ['TUBERCULINA_PPD', 'BRUCELOSIS_DOES', 'AFTOSA', 'BRUCELOSIS_CEPA19', 'MASTITIS_TRATAMIENTO', 'VACUNACION', 'TRATAMIENTO', 'DESPARASITACION', 'CONTROL'],
-        producto: ['PPD Bovina', 'Antigeno BPA/FPA', 'Vacuna Antiaftosa', 'Vacuna Cepa 19', 'Antibiotico intramamario', 'Ivermectina', 'Vacuna Clostridial'],
-        responsable: ['Veterinario oficial', 'Veterinario', 'Operador', 'Encargado'],
+        tipo: ['VACUNACION', 'TRATAMIENTO', 'DESPARASITACION', 'CONTROL'],
+        producto: ['Ivermectina', 'Antibiotico', 'Vacuna Clostridial'],
+        responsable: ['Veterinario', 'Operador', 'Encargado'],
       },
       maquinas: {
         nombre: ['Tractor Principal', 'Tractor Auxiliar', 'Mixer', 'Ordeñadora', 'Ordeñador', 'Generador', 'Picadora', 'Segadora', 'Enfardadora', 'Pulverizadora', 'Cargador Frontal', 'Tanque Frio', 'Bomba de Agua'],
         categoria: ['Traccion', 'Alimentacion', 'Ordeñe', 'Ordeñadores', 'Transporte'],
         estado: ['OPERATIVA', 'SERVICIO', 'TALLER'],
-      },
-      mantenimientoMaquinas: {
-        estado: ['OPERATIVO', 'EN TALLER', 'PARADO'],
-      },
-      tareasMantenimiento: {
-        tarea: ['Cambio de aceite', 'Cambio de filtros', 'Engrase de mandos', 'Inspección de cuchillas', 'Cambio de pezoneras', 'Revisión de bomba', 'Calibración de sistema', 'Cambio de correas'],
-        estado: ['PENDIENTE', 'COMPLETO', 'VENCIDO'],
       },
       mantenimiento: {
         equipo: ['MQ-001 - Tractor Principal', 'MQ-002 - Mixer'],
@@ -3158,17 +2881,6 @@
         { key: 'em_mcal', label: 'EM Mcal', type: 'number' },
         { key: 'stock', label: 'Stock', type: 'number', required: true },
         { key: 'unidad', label: 'Unidad', type: 'text' }
-      ],
-      silos: [
-        { key: 'nombre', label: 'Nombre', type: 'text', required: true },
-        { key: 'radio_metros', label: 'Radio (m)', type: 'number', required: true },
-        { key: 'altura_cilindro_metros', label: 'Altura cilindro (m)', type: 'number', required: true },
-        { key: 'altura_cono_metros', label: 'Altura cono (m)', type: 'number', required: true },
-        { key: 'tipo_grano_actual', label: 'Grano/alimento actual', type: 'text' },
-        { key: 'densidad_tn_m3', label: 'Densidad (TN/m³)', type: 'number', required: true },
-        { key: 'toneladas_actuales', label: 'Stock inicial (TN, ajuste manual)', type: 'number' },
-        { key: 'umbral_alerta_pct', label: 'Umbral de alerta (%)', type: 'number' },
-        { key: 'observaciones', label: 'Observaciones', type: 'textarea', full: true }
       ],
       ordenes: [
         { key: 'fecha', label: 'Fecha', type: 'date', required: true },
@@ -3277,15 +2989,10 @@
         { key: 'fecha', label: 'Fecha', type: 'date', required: true },
         { key: 'usina', label: 'Usina', type: 'text', required: true },
         { key: 'numero_lume', label: 'N.º LUME', type: 'text', required: true },
-        { key: 'coe', label: 'Código de Operación Electrónica (COE)', type: 'text' },
-        { key: 'renspa', label: 'RENSPA', type: 'text' },
-        { key: 'codigo_tambo', label: 'Código de Tambo (SENASA)', type: 'text' },
         { key: 'periodo', label: 'Período', type: 'text', required: true },
         { key: 'litros_liquidados', label: 'Litros liquidados', type: 'number', required: true },
         { key: 'grasa_pct', label: 'Grasa %', type: 'number' },
         { key: 'proteina_pct', label: 'Proteína %', type: 'number' },
-        { key: 'grasa_kg', label: 'Grasa (kg, según LUME)', type: 'number' },
-        { key: 'proteina_kg', label: 'Proteína (kg, según LUME)', type: 'number' },
         { key: 'rcs', label: 'RCS', type: 'number' },
         { key: 'ufc', label: 'UFC', type: 'number' },
         { key: 'precio_litro', label: 'Precio/litro', type: 'number' },
@@ -3293,10 +3000,6 @@
         { key: 'descuentos', label: 'Descuentos', type: 'number' },
         { key: 'neto', label: 'Neto', type: 'number' },
         { key: 'fecha_cobro', label: 'Fecha cobro', type: 'date' },
-        { key: 'porcentaje_tambero', label: '% tambero asociado', type: 'number' },
-        { key: 'tipo_inscripcion_tambero', label: 'Inscripción fiscal tambero', type: 'select', options: ['SIN_DECLARAR', 'MONOTRIBUTO', 'RESPONSABLE_INSCRIPTO', 'AUTONOMO'] },
-        { key: 'estado_sisa', label: 'Estado SISA', type: 'select', options: ['1', '2', '3', 'INACTIVO', 'MONOTRIBUTO'], required: true },
-        { key: 'provincia_compradora', label: 'Provincia compradora (IIBB)', type: 'text' },
         { key: 'observaciones', label: 'Observaciones', type: 'textarea', full: true }
       ],
       ventasHacienda: [
@@ -3309,12 +3012,6 @@
         { key: 'precio_kg', label: 'Precio/kg', type: 'number' },
         { key: 'importe', label: 'Importe', type: 'number', required: true },
         { key: 'comprobante', label: 'Documento/Comprobante', type: 'text' },
-        { key: 'carta_porte_numero', label: 'Carta de Porte', type: 'text', placeholder: 'Se genera al guardar' },
-        { key: 'carta_porte_origen', label: 'Origen de carga', type: 'text' },
-        { key: 'carta_porte_destino', label: 'Destino de carga', type: 'text' },
-        { key: 'carta_porte_transportista', label: 'Transportista', type: 'text' },
-        { key: 'carta_porte_vehiculo', label: 'Vehículo / dominio', type: 'text' },
-        { key: 'carta_porte_estado', label: 'Estado Carta de Porte', type: 'select', options: ['Pendiente', 'Generada', 'Presentada'] },
         { key: 'cobrado', label: 'Cobrado', type: 'select', options: ['SI', 'NO', 'PARCIAL'] },
         { key: 'observaciones', label: 'Observaciones', type: 'textarea', full: true }
       ],
@@ -3347,13 +3044,10 @@
       comprobantesArca: [
         { key: 'fecha', label: 'Fecha', type: 'date', required: true },
         { key: 'tipo_comprobante', label: 'Tipo de comprobante', type: 'text', required: true },
-        { key: 'punto_venta', label: 'Punto de venta Web Services', type: 'text', required: true },
+        { key: 'punto_venta', label: 'Punto de venta', type: 'text' },
         { key: 'numero_comprobante', label: 'N.º comprobante', type: 'text', required: true },
         { key: 'razon_social', label: 'Proveedor/Cliente', type: 'text', required: true },
         { key: 'cuit', label: 'CUIT', type: 'text' },
-        { key: 'condicion_iva_receptor', label: 'Condición IVA receptor', type: 'select', options: ['RESPONSABLE_INSCRIPTO', 'MONOTRIBUTO', 'EXENTO', 'CONSUMIDOR_FINAL'], required: true },
-        { key: 'receptor_nombre', label: 'Nombre receptor (consumidor final)', type: 'text' },
-        { key: 'receptor_domicilio', label: 'Domicilio receptor (consumidor final)', type: 'text' },
         { key: 'concepto', label: 'Concepto', type: 'text' },
         { key: 'neto', label: 'Neto', type: 'number' },
         { key: 'iva', label: 'IVA', type: 'number' },
@@ -3458,7 +3152,6 @@
         { key: 'categoria', label: 'Categoría', type: 'text' },
         { key: 'stock', label: 'Stock', type: 'number', required: true },
         { key: 'unidad', label: 'Unidad', type: 'text', required: true },
-        { key: 'dias_retiro', label: 'Días retiro (carencia leche)', type: 'number' },
         { key: 'vencimiento', label: 'Vencimiento', type: 'date' },
         { key: 'lote', label: 'Lote', type: 'text' }
       ],
@@ -3811,10 +3504,6 @@
         usina: 'usina',
         numerolume: 'numero_lume',
         numero_lume: 'numero_lume',
-        coe: 'coe',
-        renspa: 'renspa',
-        codigotambo: 'codigo_tambo',
-        codigo_tambo: 'codigo_tambo',
         periodo: 'periodo',
         litrosliquidados: 'litros_liquidados',
         litros_liquidados: 'litros_liquidados',
@@ -3822,10 +3511,6 @@
         grasa_pct: 'grasa_pct',
         proteina: 'proteina_pct',
         proteina_pct: 'proteina_pct',
-        grasakg: 'grasa_kg',
-        grasa_kg: 'grasa_kg',
-        proteinakg: 'proteina_kg',
-        proteina_kg: 'proteina_kg',
         rcs: 'rcs',
         ufc: 'ufc',
         preciolitro: 'precio_litro',
@@ -4065,7 +3750,7 @@
       creditos: ['monto', 'tasa_anual', 'cuotas'],
       chequesCobrar: ['importe'],
       chequesCubrir: ['importe'],
-      liquidacionesLeche: ['litros_liquidados', 'grasa_pct', 'proteina_pct', 'grasa_kg', 'proteina_kg', 'rcs', 'ufc', 'precio_litro', 'bonificaciones', 'descuentos', 'neto'],
+      liquidacionesLeche: ['litros_liquidados', 'grasa_pct', 'proteina_pct', 'rcs', 'ufc', 'precio_litro', 'bonificaciones', 'descuentos', 'neto'],
       ventasHacienda: ['kg_vivo', 'precio_kg', 'importe'],
       comprasInsumos: ['cantidad', 'precio_unitario', 'total'],
       gastosArca: ['importe'],
@@ -4076,104 +3761,13 @@
       reproduccion: ['dias_para_parto', 'dias_gestacion'],
       sanidad: ['dias_retiro'],
       maquinas: ['stock_repuestos'],
-      insumosSanidad: ['stock', 'dias_retiro'],
+      insumosSanidad: ['stock'],
       campos: ['superficie_ha', 'latitud', 'longitud'],
       lotes: ['superficie_ha', 'latitud', 'longitud'],
       instalaciones: ['valor_compra', 'vida_util_anios', 'valor_residual', 'costo_mantenimiento_anual', 'frecuencia_mantenimiento_dias'],
     };
 
     function byId(id) { return document.getElementById(id); }
-
-    let lectorBluetoothConectado = null;
-
-    function setEstadoLectorBluetooth(texto, conectado = false) {
-      const estado = byId('lectorBluetoothEstado');
-      if (!estado) return;
-      estado.textContent = texto;
-      estado.style.color = conectado ? 'var(--green)' : 'var(--text-muted, #64748b)';
-    }
-
-    function cerrarSelectorBluetooth() {
-      byId('selectorLectorBluetooth')?.remove();
-    }
-
-    function mostrarDispositivosBluetooth(dispositivos) {
-      cerrarSelectorBluetooth();
-      const selector = document.createElement('div');
-      selector.id = 'selectorLectorBluetooth';
-      selector.style.cssText = 'position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:rgba(15,23,42,.62);padding:16px;';
-      selector.innerHTML = '<section style="width:min(460px,100%);background:var(--panel,#fff);color:var(--text,#172033);border-radius:8px;padding:20px;box-shadow:0 24px 60px rgba(0,0,0,.3);"><div style="display:flex;justify-content:space-between;gap:16px;align-items:center;"><strong>Seleccionar lector Bluetooth</strong><button type="button" class="btn" data-bt-cancel="1">Cerrar</button></div><p class="muted">Elegí el lector de caravanas detectado.</p><div id="selectorLectorBluetoothLista"></div></section>';
-      document.body.appendChild(selector);
-      const cancelar = () => {
-        window.electronAPI?.cancelBluetoothSelection?.();
-        cerrarSelectorBluetooth();
-      };
-      selector.querySelector('[data-bt-cancel]')?.addEventListener('click', cancelar);
-      selector.addEventListener('click', (event) => { if (event.target === selector) cancelar(); });
-      const lista = byId('selectorLectorBluetoothLista');
-      if (!dispositivos.length) {
-        lista.innerHTML = '<p class="muted">Buscando dispositivos cercanos...</p>';
-        return;
-      }
-      dispositivos.forEach((dispositivo) => {
-        const boton = document.createElement('button');
-        boton.className = 'btn';
-        boton.type = 'button';
-        boton.style.cssText = 'display:block;width:100%;text-align:left;margin:8px 0;';
-        boton.textContent = dispositivo.name;
-        boton.addEventListener('click', async () => {
-          const resultado = await window.electronAPI?.selectBluetoothDevice?.(dispositivo.id);
-          if (!resultado?.ok) alert(resultado?.message || 'No se pudo seleccionar el lector.');
-          else cerrarSelectorBluetooth();
-        });
-        lista.appendChild(boton);
-      });
-    }
-
-    async function conectarLectorBluetooth() {
-      if (!navigator.bluetooth?.requestDevice) {
-        setEstadoLectorBluetooth('Bluetooth BLE no está disponible aquí. Usá el modo HID emparejado en Windows.');
-        return;
-      }
-      const cancelarEscucha = window.electronAPI?.onBluetoothDevices?.(mostrarDispositivosBluetooth);
-      setEstadoLectorBluetooth('Buscando lectores Bluetooth cercanos...');
-      try {
-        const dispositivo = await navigator.bluetooth.requestDevice({ acceptAllDevices: true });
-        cerrarSelectorBluetooth();
-        if (!dispositivo.gatt) throw new Error('El dispositivo seleccionado no expone conexión BLE GATT.');
-        await dispositivo.gatt.connect();
-        lectorBluetoothConectado = dispositivo;
-        localStorage.setItem('pampaTamboBluetoothReader', JSON.stringify({ nombre: dispositivo.name || 'Lector Bluetooth', conectadoEn: new Date().toISOString() }));
-        dispositivo.addEventListener('gattserverdisconnected', () => {
-          if (lectorBluetoothConectado === dispositivo) {
-            lectorBluetoothConectado = null;
-            setEstadoLectorBluetooth('Lector Bluetooth desconectado. Podés volver a conectar o usar modo HID.');
-          }
-        });
-        setEstadoLectorBluetooth(`Lector BLE conectado: ${dispositivo.name || 'sin nombre'}. Configurá su protocolo para leer caravanas.`, true);
-      } catch (error) {
-        cerrarSelectorBluetooth();
-        setEstadoLectorBluetooth(error?.name === 'NotFoundError' ? 'Conexión Bluetooth cancelada. Modo HID disponible.' : `No se pudo conectar el lector BLE: ${error?.message || 'error desconocido'}`);
-      } finally {
-        if (typeof cancelarEscucha === 'function') cancelarEscucha();
-      }
-    }
-
-    function configurarLectorBluetoothCaravana(contenedor) {
-      const input = contenedor?.querySelector('input[name="caravana"]');
-      if (!input || byId('lectorBluetoothCaravana')) return;
-      const controles = document.createElement('div');
-      controles.id = 'lectorBluetoothCaravana';
-      controles.style.cssText = 'display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;';
-      controles.innerHTML = '<button class="btn" type="button">Bluetooth</button><button class="btn" type="button">Escanear HID</button><span class="muted" id="lectorBluetoothEstado">Modo HID: emparejá el lector en Windows y escaneá directo en el campo.</span>';
-      input.closest('.field')?.appendChild(controles);
-      const [bluetoothBtn, hidBtn] = controles.querySelectorAll('button');
-      bluetoothBtn?.addEventListener('click', conectarLectorBluetooth);
-      hidBtn?.addEventListener('click', () => {
-        input.focus();
-        setEstadoLectorBluetooth('Campo listo para escanear con un lector HID emparejado.');
-      });
-    }
 
     function isMobileViewport() {
       return window.matchMedia('(max-width: 680px)').matches;
@@ -5130,13 +4724,6 @@
       }
     }
 
-    async function maybeStartTrialOnEntry() {
-      const params = new URLSearchParams(window.location.search || '');
-      if (params.get('trial') === 'auto' || params.get('trial_token')) return;
-      if (loadLicenseData()) return;
-      await activateTrial();
-    }
-
     async function activateLicenseFromInput() {
       const input = byId('licenseInput')?.value || '';
       try {
@@ -5169,7 +4756,7 @@
     function collectionToModule(type) {
       if (type === 'lotes') return 'campos';
       if (type === 'maquinas' || type === 'insumosSanidad') return 'inventario';
-      if (type === 'mantenimiento' || type === 'mantenimientoMaquinas' || type === 'tareasMantenimiento') return 'mantenimiento';
+      if (type === 'mantenimiento') return 'mantenimiento';
       if (type === 'entregasUsina') return 'entregas';
       if (type === 'liquidacionesLeche' || type === 'ventasHacienda' || type === 'comprasInsumos' || type === 'gastosArca' || type === 'comprobantesArca' || type === 'cobrosPagos') return 'arca';
       if (type === 'caja' || type === 'bancos' || type === 'creditos' || type === 'chequesCobrar' || type === 'chequesCubrir') return 'finanzas';
@@ -5375,7 +4962,6 @@
       setVisible('btnNuevaGuachera', canWrite && cfg.modules.includes('guachera'));
       setVisible('btnNuevaRecria', canWrite && cfg.modules.includes('recria'));
       setVisible('btnNuevoAlimento', canWrite && cfg.modules.includes('alimentos'));
-      setVisible('btnNuevoSilo', canWrite && cfg.modules.includes('silos'));
       setVisible('btnNuevaOrdene', canWrite && cfg.modules.includes('ordenes'));
       setVisible('btnNuevaEntregaUsina', canWrite && cfg.modules.includes('entregas'));
       setVisible('btnNuevoCostoOperativo', canWrite && cfg.modules.includes('costosOperativos'));
@@ -5390,7 +4976,6 @@
       setVisible('btnNuevoGasto', canWrite && cfg.modules.includes('arca'));
       setVisible('btnNuevoComprobanteArca', canWrite && cfg.modules.includes('arca'));
       setVisible('btnNuevoCobroPago', canWrite && cfg.modules.includes('arca'));
-      setVisible('btnNuevoRegistroSenasa', canWrite && cfg.modules.includes('arca') && cfg.modules.includes('sanidad'));
       setVisible('btnNuevoEmpleado', canWrite && cfg.modules.includes('rrhh'));
       setVisible('btnNuevaAsistencia', canWrite && cfg.modules.includes('rrhh'));
       setVisible('btnNuevaReproduccion', canWrite && cfg.modules.includes('reproduccion'));
@@ -5484,12 +5069,11 @@
     }
 
     function buildBackupPayload() {
-      return window.PampaSyncEnvelope.buildEnvelope({
-        app: 'PampaTambo',
-        version: '1.0',
+      return {
         exportedAt: new Date().toISOString(),
-        company: state.empresa,
-        data: {
+        app: 'NEXO Tambo',
+        version: '1.0',
+        state: {
           empresa: state.empresa,
           campos: state.campos,
           lotes: state.lotes,
@@ -5522,8 +5106,8 @@
           maquinas: state.maquinas,
           mantenimiento: state.mantenimiento,
           insumosSanidad: state.insumosSanidad,
-        }
-      });
+        },
+      };
     }
 
     function openSyncHandleDb() {
@@ -5857,7 +5441,7 @@
 
     function renderEmpresaDashboard() {
       const emp = state.empresa || {};
-      byId('dashboardEmpresaNombre').textContent = emp.nombre || 'Agropecuaria Pampa N S.I.A.';
+      byId('dashboardEmpresaNombre').textContent = emp.nombre || 'Agropecuaria NEXO';
       byId('dashboardEmpresaSub').textContent = 'Panel operativo de la empresa';
       byId('dashboardEmpresaCuit').textContent = emp.cuit || 'Sin definir';
       byId('dashboardEmpresaDireccion').textContent = emp.direccion || 'Sin definir';
@@ -5916,29 +5500,14 @@
       };
     }
 
-    function buildQuickReportMessage(type = 'cambiosDiarios', instantDetail = '') {
+    function buildQuickReportMessage() {
       const hoy = new Date().toLocaleString('es-AR');
-      const fechaHoy = new Date().toISOString().slice(0, 10);
-      const recientes = row => type === 'cambiosInstantaneos' || !row?.fecha || String(row.fecha).slice(0, 10) === fechaHoy;
-      const limite = type === 'cambiosInstantaneos' ? 20 : Infinity;
-      const nacimientos = (state.animales || []).filter(row => recientes(row) && ['Nacimiento', 'nacimiento', 'Alta'].includes(row?.tipo)).slice(0, limite);
-      const sanidad = (state.sanidad || []).filter(recientes).slice(0, limite);
-      const alimentacion = (state.alimentos || []).filter(recientes).slice(0, limite);
-      const rollos = alimentacion.filter(row => /rollo/i.test(`${row?.producto || row?.alimento || row?.item || ''}`));
-      const litrosHoy = Number((state.ordenes || []).filter(recientes).reduce((acc, row) => acc + Number(row?.litros || 0), 0));
-      const ingresos = Number((state.finanzas || []).filter((x) => normalizeSignal(x.tipo || x.movimiento || '').includes('ING')).reduce((acc, row) => acc + Number(row?.monto || row?.importe || 0), 0));
-      const egresos = Number((state.finanzas || []).filter((x) => normalizeSignal(x.tipo || x.movimiento || '').includes('EGR')).reduce((acc, row) => acc + Number(row?.monto || row?.importe || 0), 0));
+      const litrosHoy = Number((state.ordenes || []).reduce((acc, row) => acc + toNumber(row?.litros, 0), 0));
+      const ingresos = Number((state.finanzas || []).filter((x) => normalizeSignal(x.tipo || x.movimiento || '').includes('ING')).reduce((acc, row) => acc + toNumber(row?.monto || row?.importe, 0), 0));
+      const egresos = Number((state.finanzas || []).filter((x) => normalizeSignal(x.tipo || x.movimiento || '').includes('EGR')).reduce((acc, row) => acc + toNumber(row?.monto || row?.importe, 0), 0));
       const saldo = ingresos - egresos;
       return [
-        `Reporte ${({ cambiosInstantaneos: 'instantáneo', cambiosDiarios: 'diario', reporteOperativo: 'operativo completo', produccion: 'de producción', sanidad: 'de sanidad', alimentacion: 'de alimentación', finanzas: 'financiero', costos: 'de costos' })[type] || 'diario'} PampaTambo (${hoy})`,
-        ...(type === 'cambiosInstantaneos' && instantDetail ? [`Descripción: ${instantDetail}`] : []),
-        `Nacimientos: ${nacimientos.length}`,
-        ...nacimientos.map(row => `- Nacimiento: ${row.cantidad || 1} · lote: ${row.lote || row.destino || 'sin lote'} · caravana: ${row.caravana || row.rfid || 'sin caravana'}`),
-        `Eventos sanitarios: ${sanidad.length}`,
-        ...sanidad.slice(0, 5).map(row => `- Sanidad: ${row.producto || row.tipo || 'evento'} · animal: ${row.animal || row.caravana || '-'}`),
-        `Eventos de alimentación: ${alimentacion.length}`,
-        `Ingreso de rollos: ${rollos.length}`,
-        ...rollos.slice(0, 5).map(row => `- Rollo: ${row.producto || row.alimento || row.item} · cantidad: ${row.cantidad || row.kg || '-'}`),
+        `Reporte operativo NEXO Tambo (${hoy})`,
         `Animales: ${(state.animales || []).length}`,
         `Producción diaria (litros): ${litrosHoy.toFixed(2)}`,
         `Costos cargados: ${(state.costos || []).length}`,
@@ -5985,7 +5554,7 @@
       if (phonePreview) phonePreview.value = contacts[selectedRole] || '';
       const msg = byId('reportMessage');
       if (msg && !msg.value.trim()) {
-        msg.value = buildQuickReportMessage(byId('reportTypeSelect')?.value || 'cambiosDiarios');
+        msg.value = buildQuickReportMessage();
       }
     }
 
@@ -5998,7 +5567,7 @@
     function generarReporteRapido() {
       const box = byId('reportMessage');
       if (!box) return;
-      box.value = buildQuickReportMessage(byId('reportTypeSelect')?.value || 'cambiosDiarios', byId('reportInstantDetail')?.value || '');
+      box.value = buildQuickReportMessage();
       byId('reportWhatsappStatus').textContent = 'Reporte generado.';
     }
 
@@ -6011,12 +5580,6 @@
       const role = normalizeRole(byId('reportRoleSelect')?.value || '');
       const phone = getEmpresaWhatsAppRoles()[role] || '';
       const message = (byId('reportMessage')?.value || '').trim();
-      const reportType = byId('reportTypeSelect')?.value || '';
-      if (reportType === 'cambiosInstantaneos' && !byId('reportInstantDetail')?.value.trim()) {
-        byId('reportWhatsappStatus').textContent = 'Describí el cambio instantáneo antes de enviarlo.';
-        byId('reportInstantDetail')?.focus();
-        return;
-      }
       if (!phone) {
         byId('reportWhatsappStatus').textContent = 'El rol seleccionado no tiene WhatsApp cargado. Completalo en Empresa.';
         return;
@@ -6148,7 +5711,6 @@
         produccion: 'Producción',
         sanidad: 'Sanidad',
         alimentos: 'Alimentos',
-        silos: 'Silos',
         instalaciones: 'Instalaciones',
         mantenimiento: 'Mantenimiento',
         ordenes: 'Ordeñes',
@@ -6190,11 +5752,37 @@
       if (name === 'reportes') {
         renderReportesPanel();
       }
+      if (name === 'rrhh') renderTamboHr();
 
       if (isMobileViewport()) {
         setMobileMenuState(false);
       }
     }
+
+    const TAMBO_HR_KEY = 'tambo_rrhh_records';
+    function getTamboHr() {
+      try { return JSON.parse(localStorage.getItem(TAMBO_HR_KEY) || '[]'); } catch { return []; }
+    }
+    function renderTamboHr() {
+      const records = getTamboHr();
+      const active = records.filter((record) => record.status === 'Activo');
+      byId('tamboHrActive').textContent = active.length;
+      byId('tamboHrPayroll').textContent = active.reduce((sum, record) => sum + Number(record.salary || 0), 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
+      byId('tamboHrAbsences').textContent = records.reduce((sum, record) => sum + Number(record.absences || 0), 0);
+      const rows = byId('tamboHrRows');
+      if (rows) rows.innerHTML = records.length ? records.map((record) => `<tr><td>${record.name}</td><td>${record.role}</td><td>${record.status}</td><td>${Number(record.salary || 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</td><td>${record.absences || 0}</td></tr>`).join('') : '<tr><td colspan="5">Sin registros de personal.</td></tr>';
+    }
+    byId('btnTamboHrSave')?.addEventListener('click', () => {
+      const name = byId('tamboHrName').value.trim();
+      const role = byId('tamboHrRole').value.trim();
+      if (!name || !role) return showToast('Completá nombre y puesto.');
+      const records = getTamboHr();
+      records.push({ name, role, status: byId('tamboHrStatus').value, salary: Number(byId('tamboHrSalary').value || 0), absences: Number(byId('tamboHrAbsence').value || 0), createdAt: new Date().toISOString() });
+      localStorage.setItem(TAMBO_HR_KEY, JSON.stringify(records));
+      byId('tamboHrName').value = ''; byId('tamboHrRole').value = ''; byId('tamboHrSalary').value = ''; byId('tamboHrAbsence').value = '0';
+      renderTamboHr();
+      showToast('Registro de RRHH guardado localmente.');
+    });
 
     function openHaciendaAnimales() {
       openModule('animales');
@@ -6399,7 +5987,7 @@
       loadDataHadApiSuccess = false;
       loadDataHadConnectivityError = false;
       const arcaLocal = loadArcaLocalState();
-      const [campos, lotes, instalaciones, entregasUsina, costos, costosOperativos, finanzas, caja, bancos, creditos, chequesCobrar, chequesCubrir, liquidacionesLeche, ventasHacienda, comprasInsumos, gastosArca, comprobantesArca, cobrosPagos, empleados, asistencias, animales, toros, guachera, recria, alimentos, ordenes, reproduccion, sanidad, maquinas, insumosSanidad, mantenimiento, mantenimientoMaquinas, tareasMantenimiento, liquidacionesMediero, silos, siloMovimientos] = await Promise.all([
+      const [campos, lotes, instalaciones, entregasUsina, costos, costosOperativos, finanzas, caja, bancos, creditos, chequesCobrar, chequesCubrir, liquidacionesLeche, ventasHacienda, comprasInsumos, gastosArca, comprobantesArca, cobrosPagos, empleados, asistencias, animales, toros, guachera, recria, alimentos, ordenes, reproduccion, sanidad, maquinas, insumosSanidad, mantenimiento] = await Promise.all([
         request('/campos').catch(() => []),
         request('/lotes').catch(() => []),
         request('/instalaciones').catch(() => []),
@@ -6431,11 +6019,6 @@
         request('/maquinas').catch(() => []),
         request('/insumosSanidad').catch(() => []),
         request('/mantenimiento').catch(() => loadMantenimientoLocal()),
-        request('/mantenimiento-maquinas').catch(() => []),
-        request('/tareas-mantenimiento').catch(() => []),
-        request('/liquidaciones-mediero').catch(() => []),
-        request('/silos').catch(() => []),
-        request('/silo-movimientos').catch(() => []),
       ]);
 
       if (!loadDataHadApiSuccess && loadDataHadConnectivityError) {
@@ -6480,11 +6063,6 @@
       state.maquinas = maquinas;
       state.insumosSanidad = insumosSanidad;
       state.mantenimiento = mantenimiento;
-      state.mantenimientoMaquinas = mantenimientoMaquinas;
-      state.tareasMantenimiento = tareasMantenimiento;
-      state.liquidacionesMediero = liquidacionesMediero;
-      state.silos = silos;
-      state.siloMovimientos = siloMovimientos;
       saveArcaLocalState();
       saveOfflineSnapshot();
       renderConnectivityStatus();
@@ -6499,94 +6077,11 @@
         .toUpperCase();
     }
 
-    function isPartialState(value) {
-      const norm = normalizeSignal(value);
-      return norm === 'PARCIAL' || norm === 'PARTIAL';
-    }
-
-    function isSettledState(value) {
-      const norm = normalizeSignal(value);
-      return ['SI', 'PAGADO', 'COBRADO', 'COBRADA', 'ENTREGADO', 'OK'].includes(norm);
-    }
-
-    // --- Plan Sanitario SENASA (Tambo): retiro de leche y cronograma DOES ---
-    function parseFlexibleDate(value) {
-      const raw = `${value || ''}`.trim();
-      if (!raw) return null;
-      const iso = new Date(`${raw}T00:00:00`);
-      if (!Number.isNaN(iso.getTime())) return iso;
-      const slash = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-      if (!slash) return null;
-      const day = Number(slash[1]);
-      const month = Number(slash[2]);
-      const year = Number(slash[3]);
-      const parsed = new Date(year, month - 1, day);
-      return Number.isNaN(parsed.getTime()) ? null : parsed;
-    }
-
-    function todayStart() {
-      const now = new Date();
-      return new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    }
-
-    // Devuelve el retiro de leche vigente (mas restrictivo) para una vaca, o null si puede ordenarse.
-    function getRetiroActivo(vacaValue, referenceDate = todayStart()) {
-      const vaca = normalizeCatalogValue(vacaValue).toUpperCase();
-      if (!vaca) return null;
-      const msPerDay = 1000 * 60 * 60 * 24;
-      let activo = null;
-      (state.sanidad || []).forEach((row) => {
-        const rowVaca = normalizeCatalogValue(row?.vaca).toUpperCase();
-        if (rowVaca !== vaca) return;
-        const retiro = Number(row?.dias_retiro || 0);
-        if (retiro <= 0) return;
-        const fecha = parseFlexibleDate(row?.fecha);
-        if (!fecha) return;
-        const finRetiro = new Date(fecha);
-        finRetiro.setDate(finRetiro.getDate() + retiro);
-        const diasRestantes = Math.ceil((finRetiro - referenceDate) / msPerDay);
-        if (diasRestantes < 0) return;
-        if (!activo || diasRestantes > activo.diasRestantes) {
-          activo = { diasRestantes, producto: row?.producto || row?.tipo || 'Tratamiento sanitario', fecha: row?.fecha, finRetiro };
-        }
-      });
-      return activo;
-    }
-
-    // DOES (Determinacion Obligatoria de Estatus Sanitario): certificacion anual de Tuberculosis y Brucelosis.
-    const DOES_CICLO_MESES = 12;
-    const DOES_ALERTA_DIAS = 60;
-
-    function computeDoesEstado(tipoRegex) {
-      let ultima = null;
-      (state.sanidad || []).forEach((row) => {
-        if (!tipoRegex.test(normalizeSignal(row?.tipo))) return;
-        const fecha = parseFlexibleDate(row?.fecha);
-        if (!fecha) return;
-        if (!ultima || fecha > ultima) ultima = fecha;
-      });
-      if (!ultima) return { ultima: null, proxima: null, diasRestantes: null, estado: 'SIN_DATOS' };
-      const proxima = new Date(ultima);
-      proxima.setMonth(proxima.getMonth() + DOES_CICLO_MESES);
-      const msPerDay = 1000 * 60 * 60 * 24;
-      const diasRestantes = Math.ceil((proxima - todayStart()) / msPerDay);
-      const estado = diasRestantes < 0 ? 'VENCIDO' : (diasRestantes <= DOES_ALERTA_DIAS ? 'POR_VENCER' : 'VIGENTE');
-      return { ultima, proxima, diasRestantes, estado };
-    }
-
-    function computeDoesStatus() {
-      return {
-        tuberculosis: computeDoesEstado(/TUBERCUL/),
-        brucelosis: computeDoesEstado(/BRUCELOSIS.?DOES|^BRUCELOSIS$|BRUCELOSIS(?!.*CEPA)/),
-      };
-    }
-
     function estadoPill(value) {
       const text = value || '';
       const norm = normalizeSignal(text);
       if (norm === 'ACTIVO' || norm === 'LACTANCIA' || norm === 'VACIA') return '<span class="pill ok">' + text + '</span>';
-      if (norm === 'SECA' || norm === 'SERVIDA' || norm === 'DESCANSO' || norm === 'PENDIENTE' || norm === 'PARCIAL' || norm === 'PARTIAL') return '<span class="pill warn">' + text + '</span>';
-      if (norm === 'COBRADO' || norm === 'PAGADO' || norm === 'SI') return '<span class="pill ok">' + text + '</span>';
+      if (norm === 'SECA' || norm === 'SERVIDA' || norm === 'DESCANSO') return '<span class="pill warn">' + text + '</span>';
       return '<span class="pill bad">' + text + '</span>';
     }
 
@@ -6702,8 +6197,7 @@
         } catch {
           throw new Error('El archivo no es un JSON valido');
         }
-        const normalized = window.PampaSyncEnvelope.normalizeImport(parsed);
-        return normalizeImportPayload(normalized.data || normalized.stores, file.name || '');
+        return normalizeImportPayload(parsed, file.name || '');
       }
 
       if (!window.XLSX) {
@@ -6968,7 +6462,6 @@
           <td>${row.padre || ''}</td>
           <td>${row.madre || ''}</td>
           <td>${estadoPill(row.estado)}</td>
-          <td>${renderRetiroBadge(row.caravana)}</td>
           <td>${row.observaciones || ''}</td>
           <td>
             <button class="btn" onclick="editRow('animales','${row.id}')">Editar</button>
@@ -6976,44 +6469,6 @@
           </td>
         </tr>
       `).join('');
-    }
-
-    function renderRetiroBadge(caravana) {
-      const retiro = getRetiroActivo(caravana);
-      if (!retiro) return '<span class="pill ok">Habilitada</span>';
-      return `<span class="pill bad" title="${escapeHtml(retiro.producto)}">\u26d4 LECHE DESCARTADA \u00b7 ${retiro.diasRestantes} d\u00eda(s)</span>`;
-    }
-
-    function renderDoesPanel() {
-      const doesTuberculosisValor = byId('doesTuberculosisValor');
-      if (!doesTuberculosisValor) return;
-      const { tuberculosis, brucelosis } = computeDoesStatus();
-
-      const pintar = (estadoObj, valorId, subId) => {
-        const valorNode = byId(valorId);
-        const subNode = byId(subId);
-        if (!valorNode || !subNode) return;
-        if (!estadoObj.ultima) {
-          valorNode.textContent = 'Sin datos';
-          valorNode.style.color = 'var(--text-muted, #64748b)';
-          subNode.textContent = 'Cargar el primer diagn\u00f3stico en Sanidad';
-          return;
-        }
-        const dias = estadoObj.diasRestantes;
-        const meses = Math.floor(Math.abs(dias) / 30);
-        if (estadoObj.estado === 'VENCIDO') {
-          valorNode.textContent = `Vencido hace ${Math.abs(dias)} d\u00eda(s)`;
-          valorNode.style.color = 'var(--red, #dc2626)';
-          subNode.textContent = 'Riesgo de p\u00e9rdida de estatus Tambo Libre';
-        } else {
-          valorNode.textContent = `${dias} d\u00eda(s) (~${meses} mes${meses === 1 ? '' : 'es'})`;
-          valorNode.style.color = estadoObj.estado === 'POR_VENCER' ? 'var(--orange, #d97706)' : 'var(--green, #16a34a)';
-          subNode.textContent = `Pr\u00f3ximo raspaje/sangrado: ${estadoObj.proxima.toISOString().slice(0, 10)}`;
-        }
-      };
-
-      pintar(tuberculosis, 'doesTuberculosisValor', 'doesTuberculosisSub');
-      pintar(brucelosis, 'doesBrucelosisValor', 'doesBrucelosisSub');
     }
 
     function renderToros() {
@@ -7092,148 +6547,6 @@
           </td>
         </tr>
       `).join('');
-    }
-
-    // Volumen cilindro + cono convertido a toneladas, mismo cálculo que hace el backend (services/siloStock.service.js).
-    const DIAS_ALERTA_ALMACENAMIENTO_SILO = 90;
-    function calcularCapacidadSilo(silo) {
-      const radio = Number(silo.radio_metros || 0);
-      const alturaCilindro = Number(silo.altura_cilindro_metros || 0);
-      const alturaCono = Number(silo.altura_cono_metros || 0);
-      const densidad = Number(silo.densidad_tn_m3 || 0);
-      const volumenCilindro = Math.PI * radio * radio * alturaCilindro;
-      const volumenCono = (1 / 3) * Math.PI * radio * radio * alturaCono;
-      return Math.round((volumenCilindro + volumenCono) * densidad * 100) / 100;
-    }
-
-    function ultimaCargaSilo(siloId) {
-      const cargas = (state.siloMovimientos || [])
-        .filter((m) => String(m.silo_id) === String(siloId) && normalizeSignal(m.tipo) === 'CARGA')
-        .map((m) => parseFlexibleDate(m.fecha))
-        .filter(Boolean);
-      if (!cargas.length) return null;
-      return new Date(Math.max(...cargas.map((d) => d.getTime())));
-    }
-
-    function renderSilos() {
-      const silos = state.silos || [];
-      const contenedor = byId('panelSilos');
-      const selectMov = byId('movSiloId');
-      if (!contenedor) return;
-
-      const hoy = new Date();
-      let alertas = 0;
-      let stockTotal = 0;
-
-      contenedor.innerHTML = silos.length ? silos.map((silo) => {
-        const capacidad = calcularCapacidadSilo(silo);
-        const actual = Number(silo.toneladas_actuales || 0);
-        stockTotal += actual;
-        const pct = capacidad > 0 ? Math.min(100, (actual / capacidad) * 100) : 0;
-        const umbral = Number(silo.umbral_alerta_pct ?? 25);
-        const bajoStock = capacidad > 0 && pct <= umbral;
-        if (bajoStock) alertas += 1;
-
-        const ultimaCarga = ultimaCargaSilo(silo.id);
-        const diasAlmacenado = ultimaCarga ? Math.floor((hoy - ultimaCarga) / (1000 * 60 * 60 * 24)) : null;
-        const riesgoMicotoxinas = diasAlmacenado !== null && diasAlmacenado > DIAS_ALERTA_ALMACENAMIENTO_SILO;
-
-        return `
-          <div style="display:flex; gap:14px; border:1px solid rgba(148,163,184,0.25); border-radius:8px; padding:12px; flex-wrap:wrap;">
-            <div style="width:70px; height:100px; border:3px solid var(--text-primary,#2c3e50); border-radius:4px 4px 16px 16px; position:relative; background:#e2e8f0; overflow:hidden; flex-shrink:0;">
-              <div style="position:absolute; bottom:0; width:100%; height:${pct}%; background-color:${bajoStock ? '#e74c3c' : '#f39c12'};"></div>
-            </div>
-            <div style="flex:1; min-width:200px;">
-              <div style="font-weight:bold;">${escapeHtml(silo.nombre)}</div>
-              <div class="muted">${escapeHtml(silo.tipo_grano_actual || 'Sin grano cargado')} · ${actual.toFixed(1)} TN / ${capacidad.toFixed(1)} TN (${pct.toFixed(0)}%)</div>
-              <div style="margin-top:4px; display:flex; gap:6px; flex-wrap:wrap;">
-                ${bajoStock ? '<span class="pill bad">⚠️ Reposición urgente</span>' : '<span class="pill ok">Stock seguro</span>'}
-                ${riesgoMicotoxinas ? `<span class="pill bad">⏳ ${diasAlmacenado} días sin recarga (riesgo micotoxinas)</span>` : (diasAlmacenado !== null ? `<span class="pill">${diasAlmacenado} días desde última carga</span>` : '')}
-              </div>
-              <div style="margin-top:6px;">
-                <button class="btn" onclick="editRow('silos','${silo.id}')">Editar</button>
-                <button class="btn" onclick="deleteRow('silos','${silo.id}')">Borrar</button>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('') : '<div class="muted">No hay silos cargados todavía. Creá el primero con "+ Nuevo silo".</div>';
-
-      byId('kpiSilosTotal').textContent = silos.length;
-      byId('kpiSilosStock').textContent = `${stockTotal.toFixed(1)} TN`;
-      byId('kpiSilosAlerta').textContent = alertas;
-
-      if (selectMov) {
-        const valorPrevio = selectMov.value;
-        selectMov.innerHTML = silos.map((s) => `<option value="${s.id}">${escapeHtml(s.nombre)}</option>`).join('');
-        if (valorPrevio && silos.some((s) => `${s.id}` === valorPrevio)) selectMov.value = valorPrevio;
-      }
-    }
-
-    function renderSiloMovimientos() {
-      const tbody = byId('tbodySiloMovimientos');
-      if (!tbody) return;
-      const silosPorId = new Map((state.silos || []).map((s) => [String(s.id), s.nombre]));
-      const rows = [...(state.siloMovimientos || [])].sort((a, b) => `${b.fecha}`.localeCompare(`${a.fecha}`));
-      tbody.innerHTML = rows.length ? rows.map((row) => `
-        <tr>
-          <td>${row.fecha || ''}</td>
-          <td>${escapeHtml(silosPorId.get(String(row.silo_id)) || `#${row.silo_id}`)}</td>
-          <td>${row.tipo === 'CARGA' ? '📥 Carga' : '📤 Consumo'}</td>
-          <td>${escapeHtml(row.tipo_grano || '')}</td>
-          <td>${Number(row.toneladas || 0).toFixed(2)}</td>
-          <td>${row.tipo === 'CARGA' ? escapeHtml(`${row.proveedor || ''} ${row.numero_lote_proveedor ? '· Lote ' + row.numero_lote_proveedor : ''}`) : escapeHtml(row.destino || '')}</td>
-          <td>${row.costo_total ? formatMoney(row.costo_total) : '-'}</td>
-          <td><button class="btn" onclick="deleteRow('siloMovimientos','${row.id}')">Borrar</button></td>
-        </tr>
-      `).join('') : '<tr><td colspan="8" class="muted">Todavía no hay cargas ni consumos registrados.</td></tr>';
-    }
-
-    function toggleCamposMovimientoSilo() {
-      const tipo = byId('movTipo')?.value;
-      byId('movCamposCarga').style.display = tipo === 'CARGA' ? 'flex' : 'none';
-      byId('movCamposConsumo').style.display = tipo === 'CARGA' ? 'none' : 'flex';
-    }
-
-    async function registrarMovimientoSilo() {
-      const siloId = byId('movSiloId')?.value;
-      if (!siloId) { showToast('Cargá un silo antes de registrar movimientos.', 'error'); return; }
-      const tipo = byId('movTipo').value;
-      const toneladas = Number(byId('movToneladas').value || 0);
-      if (!(toneladas > 0)) { showToast('Ingresá una cantidad de toneladas mayor a cero.', 'error'); return; }
-
-      const payload = {
-        tipo,
-        toneladas,
-        responsable: byId('movResponsable').value.trim(),
-        fecha: new Date().toISOString().slice(0, 10),
-      };
-      if (tipo === 'CARGA') {
-        payload.tipoGrano = byId('movTipoGrano').value.trim();
-        payload.proveedor = byId('movProveedor').value.trim();
-        payload.numeroLoteProveedor = byId('movLote').value.trim();
-        payload.precioTonelada = Number(byId('movPrecio').value || 0);
-      } else {
-        payload.destino = byId('movDestino').value.trim();
-      }
-
-      try {
-        const resultado = await request(`/silos/${encodeURIComponent(siloId)}/movimientos`, {
-          method: 'POST',
-          body: JSON.stringify(payload),
-        });
-        showToast(`${tipo === 'CARGA' ? 'Carga' : 'Consumo'} registrado: ${toneladas} TN. Stock actual: ${Number(resultado.silo.toneladas_actuales).toFixed(1)} TN.`, 'success');
-        byId('movToneladas').value = '';
-        byId('movTipoGrano').value = '';
-        byId('movProveedor').value = '';
-        byId('movLote').value = '';
-        byId('movPrecio').value = '';
-        byId('movDestino').value = '';
-        byId('movResponsable').value = '';
-        await loadData();
-      } catch (error) {
-        showToast(error.message || 'No se pudo registrar el movimiento del silo.', 'error');
-      }
     }
 
     function renderOrdenes() {
@@ -7692,67 +7005,6 @@
           return `<div class="finance-flow-row"><div class="finance-flow-head"><span>${row.label}</span><strong>${formatMoney(row.value)} (${pct.toFixed(1)}%)</strong></div><div class="finance-flow-track"><div class="finance-flow-fill egr" style="width:${Math.min(100, pct).toFixed(1)}%"></div></div></div>`;
         }).join('');
       }
-
-      renderRentabilidadCategorias({ costosRows, costosOperativosRows, inCurrentMonth });
-    }
-
-    // Reclasifica los costos reales del mes en Alimentación / Sanidad / Personal / Otros (sin datos inventados).
-    function renderRentabilidadCategorias({ costosRows, costosOperativosRows, inCurrentMonth }) {
-      const contenedor = byId('rentabilidadCategorias');
-      if (!contenedor) return;
-
-      const esAlimentacion = (texto) => /aliment/i.test(texto);
-      const esSanidad = (texto) => /sanidad|veterinari|medicaci[oó]n/i.test(texto);
-
-      let alimentacion = 0;
-      let sanidad = 0;
-      let otros = 0;
-
-      costosRows.filter(inCurrentMonth).forEach((row) => {
-        const monto = Number(row?.monto || 0);
-        const texto = `${row?.categoria || ''} ${row?.concepto || ''}`;
-        if (esAlimentacion(texto)) alimentacion += monto;
-        else if (esSanidad(texto)) sanidad += monto;
-        else otros += monto;
-      });
-
-      costosOperativosRows.filter(inCurrentMonth).forEach((row) => {
-        const monto = Number(row?.monto || 0);
-        const texto = `${row?.sector || ''} ${row?.actividad || ''} ${row?.concepto || ''}`;
-        if (esAlimentacion(texto)) alimentacion += monto;
-        else if (esSanidad(texto)) sanidad += monto;
-        else otros += monto;
-      });
-
-      (state.comprasInsumos || []).filter(inCurrentMonth).forEach((row) => {
-        const monto = Number(row?.total || 0);
-        const texto = `${row?.tipo || ''} ${row?.producto || ''}`;
-        if (esAlimentacion(texto)) alimentacion += monto;
-        else if (esSanidad(texto)) sanidad += monto;
-      });
-
-      // Nómina mensual estimada = misma fórmula que el KPI de RRHH (sueldo_base de empleados activos).
-      const personal = (state.empleados || [])
-        .filter((x) => `${x.estado || 'ACTIVO'}`.toUpperCase().includes('ACTIVO'))
-        .reduce((acc, x) => acc + Number(x.sueldo_base || 0), 0);
-
-      const categorias = [
-        { label: '🌾 Alimentación', value: alimentacion, clase: 'cat-alimentacion' },
-        { label: '💉 Sanidad y control oficial', value: sanidad, clase: 'cat-sanidad' },
-        { label: '🤠 Personal (nómina estimada)', value: personal, clase: 'cat-personal' },
-        { label: '📦 Otros costos', value: otros, clase: 'cat-otros' },
-      ];
-      const total = categorias.reduce((acc, c) => acc + c.value, 0);
-
-      if (total <= 0) {
-        contenedor.innerHTML = '<div class="muted">Cargá costos, compras de insumos o empleados para ver la distribución real de gastos.</div>';
-        return;
-      }
-
-      contenedor.innerHTML = categorias.map((c) => {
-        const pct = (c.value / total) * 100;
-        return `<div class="finance-flow-row"><div class="finance-flow-head"><span>${c.label}</span><strong>${formatMoney(c.value)} (${pct.toFixed(1)}%)</strong></div><div class="finance-flow-track"><div class="finance-flow-fill ${c.clase}" style="width:${Math.max(0, Math.min(100, pct)).toFixed(1)}%"></div></div></div>`;
-      }).join('');
     }
 
     function renderArca() {
@@ -7768,11 +7020,10 @@
           <td>${row.fecha || ''}</td>
           <td>${row.usina || ''}</td>
           <td><strong>${row.numero_lume || ''}</strong></td>
-          <td>${row.coe || '<span class="muted">Sin COE</span>'}</td>
           <td>${row.periodo || ''}</td>
           <td>${Number(row.litros_liquidados || 0).toFixed(1)}</td>
-          <td>${row.grasa_pct ?? ''}${row.grasa_kg ? ` (${row.grasa_kg} kg)` : ''}</td>
-          <td>${row.proteina_pct ?? ''}${row.proteina_kg ? ` (${row.proteina_kg} kg)` : ''}</td>
+          <td>${row.grasa_pct ?? ''}</td>
+          <td>${row.proteina_pct ?? ''}</td>
           <td>${row.rcs ?? ''}</td>
           <td>${row.ufc ?? ''}</td>
           <td>${formatMoney(row.precio_litro)}</td>
@@ -7780,11 +7031,7 @@
           <td>${formatMoney(row.descuentos)}</td>
           <td><strong>${formatMoney(row.neto)}</strong></td>
           <td>${row.fecha_cobro || ''}</td>
-          <td>${estadoPill(row.estado_arca || 'SIN_ENVIAR')}${row.resumen_fiscal ? `<small>IVA ret. ${formatMoney(row.resumen_fiscal.retenciones?.iva_sisa || 0)}<br>Neto banco ${formatMoney(row.resumen_fiscal.neto_estimado_tambo || 0)}${row.resumen_fiscal.auditoriaArca ? `<br>CondicionIVAReceptorId: ${row.resumen_fiscal.auditoriaArca.pendienteDeclararCondicionIva ? '<span style="color:var(--red,#dc2626)">sin declarar</span>' : row.resumen_fiscal.auditoriaArca.condicionIvaReceptorId}` : ''}</small>` : ''}</td>
           <td>
-            <button class="btn" onclick="calcularRetencionesLiquidacionLeche('${row.id}')">Calcular fiscal</button>
-            <button class="btn" onclick="simularLiquidacionLecheArca('${row.id}')">Simular ARCA</button>
-            <button class="btn" onclick="encolarLiquidacionLecheArca('${row.id}')">${row.estado_arca === 'PENDIENTE_ARCA' ? 'Ver cola' : 'Encolar ARCA'}</button>
             <button class="btn" onclick="editRow('liquidacionesLeche','${row.id}')">Editar</button>
             <button class="btn" onclick="deleteRow('liquidacionesLeche','${row.id}')">Borrar</button>
           </td>
@@ -7802,7 +7049,6 @@
           <td>${formatMoney(row.precio_kg)}</td>
           <td><strong>${formatMoney(row.importe)}</strong></td>
           <td>${row.comprobante || ''}</td>
-          <td>${row.carta_porte_numero || '-'}</td>
           <td>${estadoPill(row.cobrado || 'NO')}</td>
           <td>
             <button class="btn" onclick="editRow('ventasHacienda','${row.id}')">Editar</button>
@@ -7900,14 +7146,14 @@
       const litrosLiquidadosMes = liquidaciones.filter(inCurrentMonth).reduce((acc, row) => acc + Number(row?.litros_liquidados || 0), 0);
       const netoCobradoMes = liquidaciones
         .filter((row) => inCurrentMonth(row) && `${row?.fecha_cobro || ''}`)
-        .reduce((acc, row) => acc + Number(row?.resumen_fiscal?.neto_estimado_tambo ?? row?.neto ?? 0), 0);
+        .reduce((acc, row) => acc + Number(row?.neto || 0), 0);
 
-      const pagosPendCompras = compras.filter((row) => !isSettledState(row.pagado)).length;
-      const pagosPendGastos = gastos.filter((row) => !isSettledState(row.pagado)).length;
+      const pagosPendCompras = compras.filter((row) => normalizeSignal(row.pagado) !== 'SI').length;
+      const pagosPendGastos = gastos.filter((row) => normalizeSignal(row.pagado) !== 'SI').length;
       const cobrosPend = cobrosPagos.filter((row) => {
         const tipo = normalizeSignal(row.tipo);
         const estado = normalizeSignal(row.estado);
-        return tipo === 'COBRO' && !isSettledState(estado);
+        return tipo === 'COBRO' && !['COBRADO', 'SI'].includes(estado);
       }).length;
 
       byId('kpiArcaOrdeneMes').textContent = `${litrosOrdeneMes.toFixed(1)} L`;
@@ -7928,142 +7174,6 @@
           <div class="finance-flow-row"><div class="finance-flow-head"><span>Importe cobrado</span><strong>${formatMoney(netoCobradoMes)}</strong></div></div>
         `;
       }
-      actualizarEstadoFiscalTambo();
-      renderCotejoLitrosLume(liquidaciones);
-    }
-
-    // Compara los litros declarados en cada LUME contra lo ordeñado en el ERP para ese mismo período (formato periodo: AAAA-MM).
-    function renderCotejoLitrosLume(liquidaciones) {
-      const contenedor = byId('cotejoLitrosLume');
-      if (!contenedor) return;
-      if (!liquidaciones.length) {
-        contenedor.innerHTML = '<div class="muted">Cargá liquidaciones de leche para comparar contra el ordeñe propio.</div>';
-        return;
-      }
-
-      const parsePeriodo = (str) => {
-        const m = `${str || ''}`.match(/^(\d{4})-(\d{2})/);
-        if (!m) return null;
-        return { year: Number(m[1]), month: Number(m[2]) - 1 };
-      };
-
-      contenedor.innerHTML = liquidaciones.map((row) => {
-        const periodo = parsePeriodo(row.periodo);
-        const declarados = Number(row.litros_liquidados || 0);
-        const etiqueta = `${row.usina || 'Usina'} · ${row.periodo || 'sin período'}`;
-
-        if (!periodo) {
-          return `<div class="finance-flow-row"><div class="finance-flow-head"><span>${etiqueta}</span><strong>Período no reconocido (usar formato AAAA-MM)</strong></div></div>`;
-        }
-
-        const litrosPropios = (state.ordenes || []).reduce((acc, o) => {
-          const d = new Date(`${o?.fecha || ''}T00:00:00`);
-          if (Number.isNaN(d.getTime()) || d.getFullYear() !== periodo.year || d.getMonth() !== periodo.month) return acc;
-          return acc + Number(o?.litros || 0);
-        }, 0);
-
-        if (litrosPropios <= 0) {
-          return `<div class="finance-flow-row"><div class="finance-flow-head"><span>${etiqueta}</span><strong>${declarados.toFixed(1)} L declarados · sin ordeñes propios cargados en ese período</strong></div></div>`;
-        }
-
-        const desvioPct = ((declarados - litrosPropios) / litrosPropios) * 100;
-        const nivel = Math.abs(desvioPct) > 5 ? 'var(--red, #dc2626)' : (Math.abs(desvioPct) > 2 ? 'var(--orange, #d97706)' : 'var(--green, #16a34a)');
-        return `<div class="finance-flow-row"><div class="finance-flow-head"><span>${etiqueta}</span><strong style="color:${nivel}">${declarados.toFixed(1)} L declarados vs ${litrosPropios.toFixed(1)} L propios (${desvioPct >= 0 ? '+' : ''}${desvioPct.toFixed(1)}%)</strong></div></div>`;
-      }).join('');
-    }
-
-    async function actualizarEstadoFiscalTambo() {
-      const setText = (id, value) => { const element = byId(id); if (element) element.textContent = value; };
-      try {
-        const [estado, cola, retenciones] = await Promise.all([
-          request('/fiscal/arca/estado'),
-          request('/fiscal/cola'),
-          request('/fiscal/retenciones')
-        ]);
-        const configurada = Boolean(estado?.listoParaSolicitarToken);
-        const pendientes = (cola || []).filter((item) => ['PENDIENTE_ARCA', 'EN_PROCESO'].includes(item.estado)).length;
-        const totalRetenciones = (retenciones || []).reduce((total, item) => total
-          + Number(item.retencion_iva_sisa || 0)
-          + Number(item.retencion_ganancias_sisa || 0)
-          + Number(item.retencion_iibb || 0)
-          + Number(item.retencion_suss_tambero || 0), 0);
-        setText('arcaFiscalPreparacion', configurada ? 'Lista' : 'Pendiente');
-        setText('arcaFiscalEntorno', estado?.configuracion?.entorno || 'Sin entorno');
-        setText('arcaFiscalCola', pendientes);
-        setText('arcaFiscalColaDetalle', `${(cola || []).length} operación(es) registradas`);
-        setText('arcaFiscalRetenciones', formatMoney(totalRetenciones));
-        setText('arcaFiscalRetencionesDetalle', `${(retenciones || []).length} LUME(s) en libro fiscal`);
-        setText('arcaFiscalAviso', estado?.emisionOficialDisponible ? 'Emisión oficial habilitada.' : (estado?.motivo || 'Emisión oficial no habilitada.'));
-      } catch (error) {
-        setText('arcaFiscalPreparacion', 'Sin conexión');
-        setText('arcaFiscalEntorno', 'Backend fiscal no disponible');
-        setText('arcaFiscalCola', '--');
-        setText('arcaFiscalRetenciones', '--');
-        setText('arcaFiscalAviso', error.message || 'No se pudo consultar el backend fiscal.');
-      }
-    }
-
-    async function encolarLiquidacionLecheArca(id) {
-      try {
-        const resultado = await request(`/fiscal/lel/${encodeURIComponent(id)}/encolar`, { method: 'POST' });
-        showToast(resultado.queued ? 'Liquidación encolada para ARCA.' : 'La liquidación ya está pendiente en la cola fiscal.');
-        await loadData();
-      } catch (error) {
-        showToast(error.message || 'No se pudo encolar la liquidación fiscal.');
-      }
-    }
-
-    async function calcularRetencionesLiquidacionLeche(id) {
-      const liquidacion = (state.liquidacionesLeche || []).find((row) => `${row.id}` === `${id}`);
-      if (!liquidacion) return showToast('No se encontró la liquidación de leche.');
-      if (!liquidacion.estado_sisa) return showToast('Cargá el Estado SISA al editar la liquidación antes de calcular.', 'error');
-      try {
-        const resultado = await request(`/fiscal/lel/${encodeURIComponent(id)}/calcular-retenciones`, {
-          method: 'POST',
-          body: JSON.stringify({
-            estadoSisa: liquidacion.estado_sisa,
-            provinciaCompradora: liquidacion.provincia_compradora,
-            porcentajeTambero: liquidacion.porcentaje_tambero,
-            tipoInscripcionTambero: liquidacion.tipo_inscripcion_tambero
-          })
-        });
-        showToast(`Fiscal calculado. Neto banco: ${formatMoney(resultado.resumenFiscal.neto_estimado_tambo)}.`);
-        await loadData();
-      } catch (error) {
-        showToast(error.message || 'No se pudo calcular la liquidación fiscal.', 'error');
-      }
-    }
-
-    async function simularLiquidacionLecheArca(id) {
-      try {
-        const resultado = await request(`/fiscal/lel/${encodeURIComponent(id)}/simular`, { method: 'POST' });
-        showToast(`Simulación completada: ${resultado.resultado.identificador}. No fue enviada a ARCA.`, 'info');
-        mostrarPreviewArca(resultado.resultado.feCAEReqPreview);
-        await loadData();
-      } catch (error) {
-        showToast(error.message || 'No se pudo simular la liquidación LEL.', 'error');
-      }
-    }
-
-    // Muestra el request FeCAEReq (WSFEv1) calculado a partir de los datos reales, solo como comparación/reconciliación
-    // contra el LUME real que emite la usina. PampaTambo no lo envía a ARCA (la usina es quien emite ese comprobante).
-    // Overlay propio en la misma pestaña: window.open() puede quedar bloqueado por el navegador como pop-up.
-    function mostrarPreviewArca(preview) {
-      if (!preview) return;
-      byId('previewArcaOverlay')?.remove();
-      const overlay = document.createElement('div');
-      overlay.id = 'previewArcaOverlay';
-      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.75);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
-      overlay.innerHTML = `
-        <div style="background:#0f172a;color:#e2e8f0;max-width:640px;width:100%;max-height:85vh;overflow:auto;border-radius:10px;padding:20px;font-family:monospace;">
-          <div style="background:#fff7e6;color:#8a5a00;padding:10px;border-radius:6px;font-family:-apple-system,sans-serif;margin-bottom:12px;">⚠️ ${escapeHtml(preview._aviso || 'Previsualización local, no enviada a ARCA.')}</div>
-          <pre style="white-space:pre-wrap;word-break:break-word;">${escapeHtml(JSON.stringify(preview, null, 2))}</pre>
-          <button class="btn" style="margin-top:12px;" id="btnCerrarPreviewArca">Cerrar</button>
-        </div>
-      `;
-      document.body.appendChild(overlay);
-      byId('btnCerrarPreviewArca').addEventListener('click', () => overlay.remove());
-      overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
     }
 
     function renderRrhh() {
@@ -8114,82 +7224,6 @@
       byId('kpiRrhhPresentes').textContent = presentes;
       byId('kpiRrhhAusentes').textContent = ausentes;
       byId('kpiRrhhNomina').textContent = formatMoney(nomina);
-      renderLiquidacionesMediero();
-    }
-
-    // Estatuto del Tambero Mediero: % pactado sobre el neto fiscal ya calculado de cada LUME, menos descuentos compartidos.
-    function renderLiquidacionesMediero() {
-      const contenedor = byId('listaLiquidacionesMediero');
-      if (!contenedor) return;
-
-      const elegibles = (state.liquidacionesLeche || []).filter((row) => Number(row.porcentaje_tambero || 0) > 0);
-      if (!elegibles.length) {
-        contenedor.innerHTML = '<div class="muted">Cargá el % de tambero asociado en una liquidación de leche (LUME) y calculá su fiscal para habilitar la liquidación de haberes.</div>';
-        return;
-      }
-
-      contenedor.innerHTML = elegibles.map((liq) => {
-        const recibo = (state.liquidacionesMediero || []).find((r) => `${r.liquidacion_leche_id}` === `${liq.id}`);
-        const mederia = liq.resumen_fiscal?.mederia;
-        const etiqueta = `${liq.usina || 'Usina'} · ${liq.periodo || 'sin período'} · ${liq.numero_lume || ''}`;
-
-        if (!mederia) {
-          return `<div class="finance-flow-row" style="border:1px solid rgba(148,163,184,0.25); border-radius:8px; padding:12px;"><div class="finance-flow-head"><span>${etiqueta}</span><strong>Falta "Calcular fiscal" en esta LUME</strong></div></div>`;
-        }
-
-        const quimicos = recibo?.deduccion_quimicos ?? 0;
-        const adelantos = recibo?.deduccion_adelantos ?? 0;
-        const otros = recibo?.deduccion_otros ?? 0;
-        const netoPreview = Number(mederia.neto_tambero || 0) - quimicos - adelantos - otros;
-        const estadoTxt = recibo
-          ? `<span class="pill ok">PAGADO · ${formatMoney(recibo.neto_a_transferir)}</span>`
-          : '<span class="pill warn">Pendiente de emitir</span>';
-
-        return `
-          <div class="finance-flow-row" style="border:1px solid rgba(148,163,184,0.25); border-radius:8px; padding:12px;">
-            <div class="finance-flow-head"><span>${etiqueta}</span>${estadoTxt}</div>
-            <div class="muted">Bruto tambero (${mederia.porcentaje_tambero}%): ${formatMoney(mederia.bruto_tambero)} · SUSS: ${formatMoney(liq.resumen_fiscal?.retenciones?.suss_tambero || 0)} · Neto fiscal: ${formatMoney(mederia.neto_tambero)}</div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
-              <div><label style="font-size:12px; display:block;">Tambero</label><input type="text" id="med-tambero-${liq.id}" value="${escapeHtml(recibo?.tambero || '')}" placeholder="Nombre" style="width:160px;"></div>
-              <div><label style="font-size:12px; display:block;">Químicos ($)</label><input type="number" min="0" id="med-quimicos-${liq.id}" value="${quimicos}" style="width:120px;" oninput="actualizarPreviewMediero('${liq.id}')"></div>
-              <div><label style="font-size:12px; display:block;">Adelantos ($)</label><input type="number" min="0" id="med-adelantos-${liq.id}" value="${adelantos}" style="width:120px;" oninput="actualizarPreviewMediero('${liq.id}')"></div>
-              <div><label style="font-size:12px; display:block;">Otros ($)</label><input type="number" min="0" id="med-otros-${liq.id}" value="${otros}" style="width:120px;" oninput="actualizarPreviewMediero('${liq.id}')"></div>
-            </div>
-            <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-              <span class="muted">Neto a transferir estimado: <strong id="med-preview-${liq.id}">${formatMoney(netoPreview)}</strong></span>
-              <button class="btn primary" onclick="emitirLiquidacionMediero('${liq.id}')">${recibo ? 'Actualizar y remitir' : 'Emitir recibo y cerrar período'}</button>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function actualizarPreviewMediero(liquidacionId) {
-      const liq = (state.liquidacionesLeche || []).find((r) => `${r.id}` === `${liquidacionId}`);
-      const mederia = liq?.resumen_fiscal?.mederia;
-      if (!mederia) return;
-      const quimicos = Number(byId(`med-quimicos-${liquidacionId}`)?.value || 0);
-      const adelantos = Number(byId(`med-adelantos-${liquidacionId}`)?.value || 0);
-      const otros = Number(byId(`med-otros-${liquidacionId}`)?.value || 0);
-      const preview = byId(`med-preview-${liquidacionId}`);
-      if (preview) preview.textContent = formatMoney(Number(mederia.neto_tambero || 0) - quimicos - adelantos - otros);
-    }
-
-    async function emitirLiquidacionMediero(liquidacionId) {
-      const tambero = byId(`med-tambero-${liquidacionId}`)?.value.trim() || '';
-      const quimicos = Number(byId(`med-quimicos-${liquidacionId}`)?.value || 0);
-      const adelantos = Number(byId(`med-adelantos-${liquidacionId}`)?.value || 0);
-      const otros = Number(byId(`med-otros-${liquidacionId}`)?.value || 0);
-      try {
-        const resultado = await request(`/fiscal/lel/${encodeURIComponent(liquidacionId)}/liquidar-mediero`, {
-          method: 'POST',
-          body: JSON.stringify({ tambero, deduccionQuimicos: quimicos, deduccionAdelantos: adelantos, deduccionOtros: otros }),
-        });
-        showToast(`Liquidación emitida: ${formatMoney(resultado.recibo.neto_a_transferir)} a transferir. Egreso registrado en Finanzas.`);
-        await loadData();
-      } catch (error) {
-        showToast(error.message || 'No se pudo emitir la liquidación del tambero mediero.', 'error');
-      }
     }
 
     function parseFlexibleDate(value) {
@@ -8422,30 +7456,6 @@
           </td>
         </tr>
       `).join('');
-      renderSenasaObligatorio();
-    }
-
-    // Registros del plan sanitario obligatorio SENASA: subconjunto de Sanidad por tipo.
-    const SENASA_TIPOS_OBLIGATORIOS = ['TUBERCULINA_PPD', 'BRUCELOSIS_DOES', 'AFTOSA', 'BRUCELOSIS_CEPA19'];
-
-    function renderSenasaObligatorio() {
-      const tbody = byId('tbodySenasa');
-      if (!tbody) return;
-      const rows = (state.sanidad || []).filter((row) => SENASA_TIPOS_OBLIGATORIOS.includes(normalizeSignal(row?.tipo)));
-      tbody.innerHTML = rows.length ? rows.map((row) => `
-        <tr>
-          <td>${row.fecha || ''}</td>
-          <td><strong>${row.vaca || ''}</strong></td>
-          <td>${row.tipo || ''}</td>
-          <td>${row.producto || ''}</td>
-          <td>${row.dias_retiro ?? 0}</td>
-          <td>${row.responsable || ''}</td>
-          <td>
-            <button class="btn" onclick="editRow('sanidad','${row.id}')">Editar</button>
-            <button class="btn" onclick="deleteRow('sanidad','${row.id}')">Borrar</button>
-          </td>
-        </tr>
-      `).join('') : '<tr><td colspan="7" class="muted">Sin registros de Tuberculosis, Brucelosis, Aftosa o Cepa 19 todavía.</td></tr>';
     }
 
     function nombreCampo(campoId) {
@@ -8549,28 +7559,6 @@
       }
 
       setTimeout(() => camposMap.invalidateSize(), 80);
-    }
-
-    // Notificación flotante real (nunca existió: todos los llamados a showToast tiraban ReferenceError en consola).
-    function showToast(message, type = 'info') {
-      let container = byId('toastContainer');
-      if (!container) {
-        container = document.createElement('div');
-        container.id = 'toastContainer';
-        container.style.cssText = 'position:fixed;bottom:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;max-width:320px;';
-        document.body.appendChild(container);
-      }
-      const colores = {
-        info: { bg: '#eef2ff', color: '#3730a3' },
-        error: { bg: '#fdecea', color: '#c0392b' },
-        success: { bg: '#e6f7ee', color: '#1e7a4a' },
-      };
-      const paleta = colores[type] || colores.info;
-      const toast = document.createElement('div');
-      toast.textContent = message;
-      toast.style.cssText = `background:${paleta.bg};color:${paleta.color};padding:10px 14px;border-radius:6px;font-size:0.85rem;box-shadow:0 2px 8px rgba(0,0,0,0.15);`;
-      container.appendChild(toast);
-      setTimeout(() => toast.remove(), 5000);
     }
 
     function formatMoney(value) {
@@ -8679,7 +7667,6 @@
           <td>${row.categoria || ''}</td>
           <td>${row.stock ?? 0}</td>
           <td>${row.unidad || ''}</td>
-          <td>${row.dias_retiro ?? 0}</td>
           <td>${row.vencimiento || ''}</td>
           <td>${semaforoVencimiento(row.vencimiento)}</td>
           <td>
@@ -8851,28 +7838,6 @@
             level: 'warn',
             title: 'Responsable faltante',
             detail: `${row.vaca || 'Sin vaca'} · ${row.producto || row.tipo || 'Evento sanitario'}`,
-          });
-        }
-      });
-
-      const doesStatus = computeDoesStatus();
-      [
-        { key: 'tuberculosis', label: 'Tuberculosis (PPD)' },
-        { key: 'brucelosis', label: 'Brucelosis (DOES)' },
-      ].forEach(({ key, label }) => {
-        const estadoDoes = doesStatus[key];
-        if (!estadoDoes.ultima) return;
-        if (estadoDoes.estado === 'VENCIDO') {
-          alerts.push({
-            level: 'bad',
-            title: 'DOES vencida',
-            detail: `${label} · venció hace ${Math.abs(estadoDoes.diasRestantes)} día(s) · riesgo de perder estatus Tambo Libre`,
-          });
-        } else if (estadoDoes.estado === 'POR_VENCER') {
-          alerts.push({
-            level: 'warn',
-            title: 'DOES por vencer',
-            detail: `${label} · faltan ${estadoDoes.diasRestantes} día(s) para el próximo raspaje/sangrado`,
           });
         }
       });
@@ -9241,8 +8206,6 @@
       renderGuachera();
       renderRecria();
       renderAlimentos();
-      renderSilos();
-      renderSiloMovimientos();
       renderOrdenes();
       renderProduccionResumen();
       renderEntregasUsina();
@@ -9260,7 +8223,6 @@
       renderMantenimiento();
       renderAuditoria();
       renderDashboardSanidadAlertas();
-      renderDoesPanel();
       renderKpis();
       renderHaciendaResumen();
       renderCamposMap();
@@ -9358,7 +8320,7 @@
             <div class="coord-tools-head">
               <span class="muted">Coordenadas automáticas: hacé clic en el mini mapa o usá geolocalización.</span>
               <div class="coord-tools-actions">
-                <button type="button" class="btn" id="btnGeoLocation">Usar mi ubicación actual</button>
+                <button type="button" class="btn" id="btnGeoLocation">Usar mi ubicación</button>
                 <button type="button" class="btn" id="btnCoordFromMainMap">Usar centro del mapa</button>
               </div>
             </div>
@@ -9475,7 +8437,6 @@
       bindSelectSearch(byId('fieldsContainer'));
       bindReproduccionPartoEstimator(byId('fieldsContainer'));
       bindVacasPostpartoEstimator(byId('fieldsContainer'));
-      configurarLectorBluetoothCaravana(byId('fieldsContainer'));
 
       setupAutoCoordinates(type, row || {});
 
@@ -9835,8 +8796,6 @@
         if (!payload.importe || Number(payload.importe) === 0) {
           payload.importe = kg * precioKg;
         }
-        payload.carta_porte_numero = payload.carta_porte_numero || `CP-${new Date().getFullYear()}-${Date.now().toString().slice(-8)}`;
-        payload.carta_porte_estado = payload.carta_porte_estado || 'Generada';
       }
 
       if (type === 'comprasInsumos') {
@@ -9869,14 +8828,6 @@
             const d = `${celoDate.getDate()}`.padStart(2, '0');
             payload.proximo_celo_esperado = `${y}-${m}-${d}`;
           }
-        }
-      }
-
-      if (type === 'ordenes') {
-        const retiro = getRetiroActivo(payload.vaca);
-        if (retiro) {
-          alert(`⛔ ¡LECHE DESCARTADA! ${payload.vaca || 'Esta vaca'} tiene un período de retiro activo por ${retiro.diasRestantes} día(s) más (${retiro.producto}). No se puede registrar el ordeñe en el tanque de frío.`);
-          return;
         }
       }
 
@@ -10294,9 +9245,6 @@
     byId('btnNuevaGuachera').addEventListener('click', () => openModal('guachera'));
     byId('btnNuevaRecria').addEventListener('click', () => openModal('recria'));
     byId('btnNuevoAlimento').addEventListener('click', () => openModal('alimentos'));
-    byId('btnNuevoSilo')?.addEventListener('click', () => openModal('silos'));
-    byId('movTipo')?.addEventListener('change', toggleCamposMovimientoSilo);
-    toggleCamposMovimientoSilo();
     byId('btnInvNuevoAlimento').addEventListener('click', () => openModal('alimentos'));
     byId('btnNuevaMaquina').addEventListener('click', () => openModal('maquinas'));
     byId('btnNuevoInsumoSanidad').addEventListener('click', () => openModal('insumosSanidad'));
@@ -10323,7 +9271,6 @@
     byId('btnNuevaAsistencia').addEventListener('click', () => openModal('asistencias'));
     byId('btnNuevaReproduccion').addEventListener('click', () => openModal('reproduccion'));
     byId('btnNuevaSanidad').addEventListener('click', () => openModal('sanidad'));
-    byId('btnNuevoRegistroSenasa')?.addEventListener('click', () => openModal('sanidad'));
     byId('empresaNombreInput')?.addEventListener('input', syncEmpresaFromForm);
     byId('empresaCuitInput')?.addEventListener('input', syncEmpresaFromForm);
     byId('empresaDireccionInput')?.addEventListener('input', syncEmpresaFromForm);
@@ -10338,7 +9285,6 @@
     byId('btnAbrirReportes')?.addEventListener('click', () => openModule('reportes'));
     byId('reportRoleSelect')?.addEventListener('change', refreshReportRolePhone);
     byId('btnGenerarReporteRapido')?.addEventListener('click', generarReporteRapido);
-    byId('reportTypeSelect')?.addEventListener('change', generarReporteRapido);
     byId('btnEnviarReporteWhatsApp')?.addEventListener('click', enviarReporteWhatsApp);
     byId('btnQuickWhatsApp')?.addEventListener('click', openQuickWhatsAppModal);
     byId('btnCloseQuickWhatsApp')?.addEventListener('click', closeQuickWhatsAppModal);
@@ -10398,6 +9344,7 @@
       panel.classList.toggle('is-hidden');
       positionConnectivityPanel();
     });
+    byId('btnMobileMenu')?.addEventListener('click', toggleMobileMenu);
     window.addEventListener('resize', positionConnectivityPanel);
     window.addEventListener('resize', syncMobileMenuByViewport);
     window.addEventListener('scroll', positionConnectivityPanel, { passive: true });
@@ -10512,7 +9459,6 @@
       byId('trialPublicBaseUrl').value = localStorage.getItem(TRIAL_PUBLIC_BASE_URL_KEY) || DEFAULT_TRIAL_PUBLIC_BASE_URL;
     }
     maybeAutoActivateTrialFromQuery();
-    maybeStartTrialOnEntry().catch(() => {});
     state.auditoria = loadAuditLogs();
     currentRole = normalizeRole(localStorage.getItem(ROLE_STORAGE_KEY) || 'propietario');
     byId('roleSelector').addEventListener('change', (event) => setRole(event.target.value));
@@ -10523,159 +9469,6 @@
     renderConnectivityStatus();
     startAutoSync();
     loadData();
-
-    // ===== MANTENIMIENTO DE MAQUINARIAS =====
-    byId('btnNuevoService')?.addEventListener('click', () => {
-      if (!(state.maquinas || []).length) {
-        showToast('Primero registrá maquinarias en el inventario.', 'error');
-        openModule('inventario');
-        return;
-      }
-      openModal('mantenimientoMaquinas');
-    });
-
-    byId('btnNuevoEquipoMantenimiento')?.addEventListener('click', () => openModal('maquinas'));
-    byId('btnNuevaTareaMantenimiento')?.addEventListener('click', () => openModal('tareasMantenimiento'));
-
-    byId('formHorometro')?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const maquinaId = byId('sel_maquinaHoro').value;
-      const horometroActual = Number(byId('inp_horometroActual').value || 0);
-      if (!maquinaId || horometroActual <= 0) {
-        showToast('Completá todos los campos correctamente.', 'error');
-        return;
-      }
-      try {
-        const mant = await request('/mantenimiento-maquinas', {
-          method: 'POST',
-          body: JSON.stringify({ maquina_id: maquinaId, horometro_actual: horometroActual, fecha_ultimo_service: new Date().toISOString().split('T')[0], estado: 'OPERATIVO' }),
-        });
-        if (!state.mantenimientoMaquinas) state.mantenimientoMaquinas = [];
-        const idx = state.mantenimientoMaquinas.findIndex(m => String(m.maquina_id) === String(maquinaId));
-        if (idx >= 0) state.mantenimientoMaquinas[idx] = mant;
-        else state.mantenimientoMaquinas.push(mant);
-        renderMantenimientoUI();
-        byId('formHorometro').reset();
-        showToast('⏱️ Horómetro actualizado correctamente.', 'success');
-      } catch (e) {
-        showToast(`Error: ${e.message}`, 'error');
-      }
-    });
-
-    async function renderMantenimientoUI() {
-      const maquinas = state.maquinas || [];
-      const mantenimientos = state.mantenimientoMaquinas || [];
-      const tareas = state.tareasMantenimiento || [];
-
-      // Actualizar select de maquinarias
-      const select = byId('sel_maquinaHoro');
-      if (select) {
-        select.innerHTML = `<option value="">Seleccionar...</option>${maquinas.map(m => `<option value="${m.id}">${escapeHtml(m.nombre)}</option>`).join('')}`;
-      }
-
-      // Renderizar alertas críticas
-      const alertasContainer = byId('alertasMantenimientoContainer');
-      if (alertasContainer) {
-        let html = '';
-        for (const mant of mantenimientos) {
-          const taresMaq = tareas.filter(t => String(t.maquina_id) === String(mant.maquina_id));
-          const maquina = maquinas.find(m => String(m.id) === String(mant.maquina_id));
-          let critica = false;
-          let alertasText = [];
-
-          taresMaq.forEach(t => {
-            const proxHoras = (t.frecuencia_horas || 0) - (mant.horometro_actual - (t.ultimo_horometro || 0));
-            const proxDias = t.frecuencia_dias ? Math.ceil((new Date(t.ultima_fecha).getTime() + t.frecuencia_dias * 86400000 - Date.now()) / 86400000) : 999;
-
-            if (proxHoras <= 0 || proxDias <= 0) {
-              critica = true;
-              alertasText.push(`❌ ${t.tarea} VENCIDO`);
-            } else if (proxHoras <= 15 || proxDias <= 7) {
-              alertasText.push(`⚠️ ${t.tarea} en ${Math.min(proxHoras, proxDias)} unidades`);
-            }
-          });
-
-          if (alertasText.length > 0) {
-            html += `
-              <div style="background: ${critica ? '#fee' : '#fef3cd'}; border: 2px solid ${critica ? '#e74c3c' : '#f39c12'}; border-radius: 8px; padding: 15px; margin-bottom: 10px;">
-                <div style="font-weight: bold; color: ${critica ? '#c0392b' : '#856404'}; margin-bottom: 8px;">
-                  ${critica ? '🚨 ALERTA CRÍTICA' : '⚠️ ALERTA'} - ${escapeHtml(maquina?.nombre || `Maquina #${mant.maquina_id}`)}
-                </div>
-                <div style="font-size: 0.9rem; color: #555; line-height: 1.5;">
-                  ${alertasText.map(a => `<div>• ${a}</div>`).join('')}
-                </div>
-              </div>
-            `;
-          }
-        }
-        alertasContainer.innerHTML = html || '<div class="muted">✅ Todas las maquinarias en estado seguro.</div>';
-      }
-
-      // Renderizar grid de maquinarias
-      const gridContainer = byId('maquinariasGridContainer');
-      if (gridContainer) {
-        gridContainer.innerHTML = maquinas.map(maq => {
-          const mant = mantenimientos.find(m => String(m.maquina_id) === String(maq.id));
-          const tareasMaq = tareas.filter(t => String(t.maquina_id) === String(maq.id));
-          const proxAlerta = tareasMaq.reduce((min, t) => {
-            const h = (t.frecuencia_horas || 0) - ((mant?.horometro_actual || 0) - (t.ultimo_horometro || 0));
-            const d = t.frecuencia_dias ? Math.ceil((new Date(t.ultima_fecha).getTime() + t.frecuencia_dias * 86400000 - Date.now()) / 86400000) : 999;
-            return Math.min(min, Math.min(h, d));
-          }, 999);
-
-          const estadoColor = proxAlerta <= 0 ? '#e74c3c' : proxAlerta <= 15 ? '#f39c12' : '#27ae60';
-          const estadoText = proxAlerta <= 0 ? '🔴 CRÍTICO' : proxAlerta <= 15 ? '🟡 PRÓXIMO' : '🟢 SEGURO';
-
-          return `
-            <div style="border: 2px solid ${estadoColor}; border-radius: 8px; padding: 15px; background: #f8f9fa;">
-              <div style="font-weight: bold; font-size: 1.05rem; margin-bottom: 8px;">${escapeHtml(maq.nombre)}</div>
-              <div style="font-size: 0.9rem; color: #666; margin-bottom: 10px;">
-                <div>Tipo: ${escapeHtml(maq.categoria || 'Sin clasificar')}</div>
-                <div>Horómetro: ${mant?.horometro_actual || 0} hs</div>
-                <div>Tareas: ${tareasMaq.length}</div>
-              </div>
-              <div style="padding: 8px; background: white; border-radius: 4px; text-align: center; font-weight: bold; color: ${estadoColor}; margin-bottom: 10px;">
-                ${estadoText}
-              </div>
-              <button class="btn" onclick="editRow('maquinas','${maq.id}')">Ver Detalles</button>
-            </div>
-          `;
-        }).join('');
-      }
-
-      // Renderizar tabla de tareas
-      const tbody = byId('tbodyTareasMantenimiento');
-      if (tbody) {
-        tbody.innerHTML = tareas.length ? tareas.map(tarea => {
-          const maq = maquinas.find(m => String(m.id) === String(tarea.maquina_id));
-          const proxHoras = (tarea.frecuencia_horas || 0) - ((mantenimientos.find(m => String(m.maquina_id) === String(tarea.maquina_id))?.horometro_actual || 0) - (tarea.ultimo_horometro || 0));
-          const proxDias = tarea.frecuencia_dias ? Math.ceil((new Date(tarea.ultima_fecha).getTime() + tarea.frecuencia_dias * 86400000 - Date.now()) / 86400000) : null;
-          const estado = proxHoras <= 0 || proxDias <= 0 ? '🔴 VENCIDO' : proxHoras <= 15 || (proxDias && proxDias <= 7) ? '🟡 PRÓXIMO' : '🟢 SEGURO';
-
-          return `
-            <tr>
-              <td>${escapeHtml(maq?.nombre || `#${tarea.maquina_id}`)}</td>
-              <td>${escapeHtml(tarea.tarea)}</td>
-              <td>${tarea.ultima_fecha || '-'}</td>
-              <td>${tarea.ultimo_horometro} hs</td>
-              <td>${tarea.frecuencia_horas ? `${proxHoras} hs` : '-'}${tarea.frecuencia_dias ? ` / ${proxDias} días` : ''}</td>
-              <td>${estado}</td>
-              <td><button class="btn small" onclick="editRow('tareasMantenimiento','${tarea.id}')">Editar</button> <button class="btn small" onclick="deleteRow('tareasMantenimiento','${tarea.id}')">Borrar</button></td>
-            </tr>
-          `;
-        }).join('') : '<tr><td colspan="7" class="muted">Sin tareas definidas. Agregá tareas por maquinaria.</td></tr>';
-      }
-    }
-
-    // Cargar UI al abrir módulo de mantenimiento
-    const originalOpenModule = window.openModule;
-    window.openModule = function(name, force) {
-      originalOpenModule.call(this, name, force);
-      if (name === 'mantenimiento') {
-        setTimeout(() => renderMantenimientoUI(), 100);
-      }
-    };
-  
   </script>
 <script src="pampaia-source.js?v=pampaia-published-6"></script>
 <script>
@@ -10683,5 +9476,6 @@
     window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
   }
 </script>
+  <script src="./pampa-privacy-popup.js"></script>
 </body>
 </html>
