@@ -1,0 +1,17 @@
+VERSION MOVIL (PWA) - PampaAgro ERP Premium
+
+Esta carpeta contiene la aplicacion para telefonos y tablets.
+NO es un programa que se abre con doble clic: es un sitio web.
+Se publica en un servidor con HTTPS y se comparte el enlace al cliente.
+
+El cliente abre el enlace, activa su licencia y toca "Instalar en el movil"
+para dejar el icono en la pantalla de inicio. Funciona sin conexion.
+
+IMPORTANTE: los archivos de la version movil son identicos en los tres packs.
+La version (Premium) la define la licencia firmada que se le entrega al
+cliente, no esta carpeta. Si el cliente amplia su plan, solo se le envia una
+licencia nueva: no hace falta reinstalar ni volver a publicar nada.
+
+La misma licencia habilita el escritorio y el movil.
+
+Ver GUIA-CLIENTE-PAMPAAGRO-MOVIL.pdf para las instrucciones del usuario final.

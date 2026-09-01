@@ -1,8 +1,0 @@
-node_modules/
-dist/
-dist-*/
-*.log
-.env
-.DS_Store
-*.jsc
-data/trial-link-tokens.json
