@@ -1,0 +1,26 @@
+name: Deploy trial to Cloudflare
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'public/trials/r3/**'
+      - 'public/index.html'
+      - 'index.js'
+      - 'wrangler.toml'
+      - '.github/workflows/deploy-trial.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          command: deploy
