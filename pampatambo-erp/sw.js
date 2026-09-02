@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pampatambo-pwa-v2';
+const CACHE_NAME = 'pampatambo-pwa-v3';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './logo.png', './pampaia-source.js'];
 
 self.addEventListener('install', (event) => {
