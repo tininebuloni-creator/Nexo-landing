@@ -1,11 +1,12 @@
 name: Deploy trial to Cloudflare
 
-on:
+"on":
   push:
     branches:
       - main
     paths:
       - 'public/trials/r3/**'
+      - 'functions/**'
       - 'public/index.html'
       - 'index.js'
       - 'wrangler.toml'
