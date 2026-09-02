@@ -76,7 +76,7 @@
       align-items: center;
       gap: 12px;
     }
-    .logo-icon {
+    .logo-icon, .logo-wrapper {
       width: 140px;
       height: 140px;
       background: #1a1f2a url('logo2.png') center/cover no-repeat;
@@ -87,6 +87,23 @@
       justify-content: center;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
       overflow: hidden;
+      position: relative;
+    }
+    .logo-sidebar {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .simbolo-sm {
+      position: absolute;
+      bottom: 4px;
+      right: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-dim);
+      background: rgba(15, 20, 26, 0.7);
+      padding: 1px 4px;
+      border-radius: 4px;
     }
     .logo-text { font-size: 24px; font-weight: 700; text-align: center; }
     .logo-sub { font-size: 11px; color: var(--text-dim); font-family: var(--font-mono); text-align: center; }
@@ -137,13 +154,21 @@
       position: relative;
       z-index: 1;
     }
-    .empresa-hero-logo {
+    .empresa-hero-logo, .logo-wrapper-dashboard {
       width: 136px;
       height: 136px;
       border-radius: 16px;
       border: 1px solid rgba(255, 255, 255, 0.45);
       background: rgba(255, 255, 255, 0.18) url('logo2.png') center/cover no-repeat;
       box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      position: relative;
+    }
+    .logo-dashboard {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: inherit;
     }
     .empresa-hero-title {
       font-size: 27px;
@@ -910,7 +935,7 @@
   <div class="app">
     <aside class="sidebar">
       <div class="sidebar-header">
-        <div class="brand-container"><div class="logo-icon"><img src="logo2.png" alt="Logo PampaTambo" style="width:100%;height:100%;object-fit:cover;"></div><span class="brand-badge">℠</span></div>
+        <div class="brand-container"><div class="logo-icon logo-wrapper"><img src="logo2.png" alt="Logo" class="logo-sidebar"></div><span class="brand-badge">℠</span></div>
         <div class="logo-text">PampaTambo</div>
         <div class="logo-sub">Soluciones agropecuarias</div>
         <button class="mobile-menu-btn" id="btnMobileMenu" type="button">☰ Menú</button>
@@ -1024,7 +1049,7 @@
           <div class="dashboard-top">
             <div class="empresa-hero">
               <div class="empresa-hero-main">
-                <div class="empresa-hero-logo"><img src="logo2.png" alt="Logo PampaTambo" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;"></div>
+                <div class="empresa-hero-logo logo-wrapper-dashboard"><img src="logo2.png" alt="Logo Corporativo" class="logo-dashboard"></div>
                 <div>
                   <div class="empresa-hero-title" id="dashboardEmpresaNombre">Agropecuaria NEXO</div>
                   <div class="empresa-hero-sub" id="dashboardEmpresaSub">Panel operativo de la empresa</div>
