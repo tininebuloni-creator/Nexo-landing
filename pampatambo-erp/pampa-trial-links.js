@@ -34,7 +34,8 @@
       banner.id = 'trialBlueBanner';
       banner.setAttribute('role', 'status');
       banner.textContent = `Prueba gratuita activa: quedan ${remaining} día(s).`;
-      banner.style.cssText = 'position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:100000;background:#2563eb;color:#fff;padding:10px 18px;border-radius:8px;box-shadow:0 6px 20px rgba(15,23,42,.25);font:600 14px Arial,sans-serif;max-width:calc(100vw - 32px);text-align:center;';
+      const topOffset = global.innerWidth <= 640 ? 104 : 14;
+      banner.style.cssText = `position:fixed;top:${topOffset}px;left:50%;transform:translateX(-50%);z-index:100000;background:#2563eb;color:#fff;padding:10px 18px;border-radius:8px;box-shadow:0 6px 20px rgba(15,23,42,.25);font:600 14px Arial,sans-serif;max-width:calc(100vw - 32px);text-align:center;`;
       document.body.appendChild(banner);
     } catch {}
   }
