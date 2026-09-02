@@ -128,6 +128,19 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
   .payment-option{padding:24px 20px}
 }
 
+/* Estilos del Popup / Modal de Trial */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 1000; }
+.modal-overlay.active { opacity: 1; pointer-events: auto; }
+.modal { background: white; padding: 32px; border-radius: 16px; max-width: 400px; width: 90%; text-align: left; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); transform: scale(0.9); transition: transform 0.3s ease; font-family: sans-serif; }
+.modal-overlay.active .modal { transform: scale(1); }
+.modal h3 { margin-top: 0; font-size: 22px; color: #1e293b; }
+.btn-popup { display: block; text-align: center; background-color: #2563eb; color: white; padding: 12px; border-radius: 8px; text-decoration: none; font-weight: 600; cursor: pointer; border: none; font-size: 14px; }
+.btn-popup:hover { background-color: #1d4ed8; }
+.btn-popup-cancel { display: block; width: 100%; text-align: center; background-color: #f1f5f9; color: #475569; padding: 12px; border-radius: 8px; text-decoration: none; font-weight: 600; cursor: pointer; border: none; font-size: 14px; margin-top: 10px; }
+.btn-popup-cancel:hover { background-color: #e2e8f0; }
+.alert-box { background-color: #ffedd5; border-left: 4px solid #f97316; padding: 12px; margin-bottom: 15px; border-radius: 4px; font-size: 13px; color: #7c2d12; font-weight: 500; }
+.privacy-box { background-color: #f0fdf4; border-left: 4px solid #22c55e; padding: 12px; margin-bottom: 25px; border-radius: 4px; font-size: 13px; color: #14532d; }
+
     </style>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-PDCKSP6QMR">
@@ -431,13 +444,13 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
 
                     </p>
 
-                                             <a href="/pampaagro-erp/?trial=auto"
+                                             <button type="button" onclick="abrirTrial('/pampaagro-erp/?trial=auto')"
                          class="mt-6 inline-block bg-amber-500 hover:bg-amber-600 text-black font-bold px-6 py-3 rounded-lg">
 
 
                         Ver aplicación
 
-                    </a>
+                    </button>
 
                 </div>
 
@@ -468,10 +481,10 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
                     </p>
 
                     <div class="mt-6">
-                                <a href="/pampatambo-erp/?trial=auto"
+                                <button type="button" onclick="abrirTrial('/pampatambo-erp/?trial=auto')"
                            class="inline-block bg-amber-500 hover:bg-amber-600 text-black font-bold px-5 py-3 rounded-lg">
                             Ver aplicación
-                        </a>
+                        </button>
                     </div>
 
                 </div>
@@ -504,10 +517,10 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
                     </p>
 
                     <div class="mt-6">
-                        <a href="/PampaTopografia/"
+                        <button type="button" onclick="abrirTrial('/PampaTopografia/?trial=auto')"
                            class="inline-block bg-amber-500 hover:bg-amber-600 text-black font-bold px-5 py-3 rounded-lg">
                             Ver aplicación
-                        </a>
+                        </button>
                     </div>
 
                 </div>
@@ -541,13 +554,13 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
 
                           </p>
 
-                            <a href="/pampaganaderia-erp/?trial=auto"
+                            <button type="button" onclick="abrirTrial('/pampaganaderia-erp/?trial=auto')"
                          class="mt-6 inline-block bg-amber-500 hover:bg-amber-600 text-black font-bold px-6 py-3 rounded-lg">
 
 
                         Ver aplicación
 
-                    </a>
+                    </button>
 
                 </div>
 
@@ -562,7 +575,7 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
                     <span class="text-xs font-mono text-amber-500">DISPONIBLE</span>
                     <h3 class="text-2xl font-bold text-white mt-2">PampaPorcinos ERP</h3>
                     <p class="text-[#94a3b8] mt-4">Gestión de producción porcina, sanidad, alimentación, ventas, trazabilidad y fiscalidad operativa.</p>
-                    <a href="/pampaporcinos-erp/?trial=auto" class="mt-6 inline-block bg-amber-500 hover:bg-amber-600 text-black font-bold px-6 py-3 rounded-lg">Ver aplicación</a>
+                    <button type="button" onclick="abrirTrial('/pampaporcinos-erp/?trial=auto')" class="mt-6 inline-block bg-amber-500 hover:bg-amber-600 text-black font-bold px-6 py-3 rounded-lg">Ver aplicación</button>
                 </div>
             </div>
 
@@ -575,7 +588,7 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
                     <span class="text-xs font-mono text-amber-500">DISPONIBLE</span>
                     <h3 class="text-2xl font-bold text-white mt-2">PampaPrecision ERP</h3>
                     <p class="text-[#94a3b8] mt-4">Agricultura de precisión, lotes georreferenciados, prescripciones, campañas, finanzas y fiscalidad de granos.</p>
-                    <a href="/pampaprecision-erp/?trial=auto" class="mt-6 inline-block bg-amber-500 hover:bg-amber-600 text-black font-bold px-6 py-3 rounded-lg">Ver aplicación</a>
+                    <button type="button" onclick="abrirTrial('/pampaprecision-erp/?trial=auto')" class="mt-6 inline-block bg-amber-500 hover:bg-amber-600 text-black font-bold px-6 py-3 rounded-lg">Ver aplicación</button>
                 </div>
             </div>
 
@@ -718,5 +731,37 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1}' crossorigin="anonymous"></script>
+
+    <!-- POPUP ÚNICO PARA TODAS LAS CARDS -->
+    <div class="modal-overlay" id="trialModal">
+        <div class="modal">
+            <h3>⚠️ Aviso de Prueba</h3>
+
+            <div class="alert-box">
+                ⏱️ Esta versión de prueba (Trial) estará activa de forma gratuita por <strong>10 días</strong>.
+            </div>
+
+            <div class="privacy-box">
+                🔒 <strong>Tus datos son privados:</strong> Toda la información registrada está encriptada. Nadie externo tiene acceso a tus datos.
+            </div>
+
+            <a href="#" id="enlaceFinalTrial" class="btn-popup" target="_blank" onclick="cerrarModal()">Entendido, ir al Trial Web</a>
+            <button class="btn-popup-cancel" onclick="cerrarModal()">Cancelar</button>
+        </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('trialModal');
+        const enlaceFinal = document.getElementById('enlaceFinalTrial');
+
+        function abrirTrial(urlDestino) {
+            enlaceFinal.href = urlDestino;
+            modal.classList.add('active');
+        }
+
+        function cerrarModal() {
+            modal.classList.remove('active');
+        }
+    </script>
 </body>
 </html>

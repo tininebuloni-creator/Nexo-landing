@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tratamientos Sanitarios · PampaTambo</title>
+    <link rel="stylesheet" href="pampa-brand.css">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #2980b9;
+            --danger: #e74c3c;
+            --success: #27ae60;
+            --warn: #d97706;
+            --bg: #f5f6fa;
+            --card: #ffffff;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--primary);
+            margin: 0;
+            padding: 15px;
+        }
+        .container { max-width: 500px; margin: 0 auto; }
+        h2 { text-align: center; font-size: 1.3rem; margin-bottom: 5px; }
+        .subtitle { text-align: center; font-size: 0.85rem; color: #7f8c8d; margin-bottom: 12px; }
+        .status-bar {
+            display: flex; justify-content: center; align-items: center; gap: 8px;
+            font-size: 0.8rem; margin-bottom: 15px; flex-wrap: wrap;
+        }
+        .pill { padding: 3px 10px; border-radius: 999px; font-weight: bold; }
+        .pill.online { background: #e6f7ee; color: var(--success); }
+        .pill.offline { background: #fdecea; color: var(--danger); }
+        .pill.pending { background: #fff7e6; color: var(--warn); }
+        .form-card {
+            background: var(--card);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+        }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; color: #34495e; }
+        input, select, textarea {
+            width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;
+            font-size: 0.95rem; box-sizing: border-box; font-family: inherit;
+        }
+        input:focus, select:focus, textarea:focus { border-color: var(--accent); outline: none; }
+        .row { display: flex; gap: 10px; }
+        .row .form-group { flex: 1; }
+        .hint { font-size: 0.75rem; color: #7f8c8d; margin-top: 4px; }
+        .retirement-alert {
+            display: none;
+            background-color: #fff5f5;
+            border: 2px dashed var(--danger);
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            color: #c53030;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            text-align: center;
+        }
+        .retirement-alert strong { font-size: 1.1rem; display: block; margin-bottom: 5px; }
+        .no-retiro-alert {
+            display: none;
+            background-color: #e6f7ee;
+            border: 2px dashed var(--success);
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 15px;
+            color: #1e7a4a;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+        .btn-submit {
+            display: block; width: 100%; background-color: var(--success); color: white;
+            border: none; padding: 15px; font-size: 1rem; font-weight: bold;
+            border-radius: 6px; cursor: pointer; margin-top: 15px;
+        }
+        .btn-submit:disabled { background-color: #95a5a6; cursor: not-allowed; }
+        .feedback {
+            display: none; margin-top: 12px; padding: 12px; border-radius: 6px; font-size: 0.85rem; line-height: 1.4;
+        }
+        .feedback.ok { display: block; background: #e6f7ee; color: #1e7a4a; }
+        .feedback.error { display: block; background: #fdecea; color: #c0392b; }
+        .feedback.queued { display: block; background: #fff7e6; color: #8a5a00; }
+        .top-link { display: block; text-align: center; font-size: 0.8rem; margin-bottom: 10px; }
+        .top-link a { color: var(--accent); text-decoration: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="top-link"><a href="index.html">← Volver al ERP PampaTambo</a> · <a href="monitor-ordene.html">📋 Monitor de ordeñe</a></div>
+    <h2>🍼 Sanidad Individual de Tambo</h2>
+    <div class="subtitle">Registro de tratamientos y control de período de retiro · pozo de ordeñe</div>
+    <div class="status-bar">
+        <span class="pill" id="connStatus">…</span>
+        <span class="pill pending" id="pendingBadge" style="display:none;"></span>
+    </div>
+
+    <form id="tamboSanidadForm">
+        <div class="form-card">
+            <div class="row">
+                <div class="form-group">
+                    <label for="RP">Nro. de Caravana / RP</label>
+                    <input type="text" id="RP" placeholder="Ej: V-4052" required autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="fecha_trata">Fecha Aplicación</label>
+                    <input type="date" id="fecha_trata" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="diagnostico">Patología / Diagnóstico</label>
+                <select id="diagnostico" required>
+                    <option value="">-- Seleccionar --</option>
+                    <option value="mastitis_cl">Mastitis Clínica</option>
+                    <option value="mastitis_sub">Mastitis Subclínica</option>
+                    <option value="pietin">Pietín (Afección podal)</option>
+                    <option value="metritis">Metritis (Infección uterina)</option>
+                    <option value="otro">Otro</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="medicamento">Medicamento Aplicado</label>
+                <select id="medicamento" required>
+                    <option value="">-- Cargando inventario... --</option>
+                </select>
+                <div class="hint" id="medicamentoHint"></div>
+            </div>
+
+            <div class="row" id="manualMedRow" style="display:none;">
+                <div class="form-group">
+                    <label for="medManualNombre">Nombre del producto</label>
+                    <input type="text" id="medManualNombre" placeholder="Ej: Oxitetraciclina">
+                </div>
+                <div class="form-group">
+                    <label for="medManualRetiro">Días de retiro (según prospecto)</label>
+                    <input type="number" id="medManualRetiro" min="0" placeholder="Ej: 5">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label for="dosis">Dosis Aplicada</label>
+                    <input type="text" id="dosis" placeholder="Ej: 1 jeringa / 20 ml" required>
+                </div>
+                <div class="form-group">
+                    <label for="cuarto">Cuarto Mamario (Si aplica)</label>
+                    <select id="cuarto">
+                        <option value="na">No aplica</option>
+                        <option value="AD">Anterior Derecho</option>
+                        <option value="AI">Anterior Izquierdo</option>
+                        <option value="PD">Posterior Derecho</option>
+                        <option value="PI">Posterior Izquierdo</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="responsable">Responsable</label>
+                <input type="text" id="responsable" placeholder="Ej: Operario pozo de ordeñe" value="Operario pozo de ordeñe">
+            </div>
+
+            <div id="alertaRetiro" class="retirement-alert">
+                <strong>🚨 ¡ATENCIÓN: LECHE DESCARTADA!</strong>
+                Esta vaca queda bloqueada para el tanque. Enviar producción a fosa/terneros hasta el día: <span id="fecha_liberacion" style="font-weight: bold; text-decoration: underline;"></span>.
+            </div>
+            <div id="alertaSinRetiro" class="no-retiro-alert">
+                ✓ Este producto no tiene período de retiro de leche registrado.
+            </div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="btnGuardar">Guardar Registro Clínico</button>
+        <div class="feedback" id="feedback"></div>
+    </form>
+</div>
+
+<script>
+    const API_BASE_CANDIDATES = (() => {
+      const protocol = window.location.protocol || 'http:';
+      const host = window.location.hostname || 'localhost';
+      const bases = [];
+      if (window.location.port === '5500') {
+        bases.push(`${protocol}//${host}:3000/tambo`);
+        bases.push(`http://${host}:3000/tambo`);
+        if (host === 'localhost') bases.push(`${protocol}//127.0.0.1:3000/tambo`);
+        if (host === '127.0.0.1') bases.push(`${protocol}//localhost:3000/tambo`);
+        bases.push('/tambo');
+      } else {
+        bases.push('/tambo');
+      }
+      return Array.from(new Set(bases));
+    })();
+    let apiBase = API_BASE_CANDIDATES[0];
+
+    const QUEUE_KEY = 'pampatambo_tratamientos_pendientes';
+    // Valores de referencia SOLO para cuando no hay conexión al inventario real; verificar con el veterinario.
+    const CARENCIA_REFERENCIA_OFFLINE = [
+      { producto: 'Cefalexina Intramamaria', dias_retiro: 3 },
+      { producto: 'Penicilina Inyectable', dias_retiro: 4 },
+      { producto: 'Antinflamatorio / Flunixin', dias_retiro: 0 },
+    ];
+
+    let insumosDisponibles = [];
+    let usandoReferenciaOffline = false;
+
+    function byId(id) { return document.getElementById(id); }
+
+    async function apiFetch(path, options = {}) {
+      let lastError = null;
+      for (const base of API_BASE_CANDIDATES) {
+        try {
+          const res = await fetch(`${base}${path}`, options);
+          apiBase = base;
+          return res;
+        } catch (err) {
+          lastError = err;
+        }
+      }
+      throw lastError || new Error('Sin conexión');
+    }
+
+    function renderConnStatus() {
+      const pill = byId('connStatus');
+      if (navigator.onLine) {
+        pill.textContent = '🟢 Online';
+        pill.className = 'pill online';
+      } else {
+        pill.textContent = '🔴 Sin conexión (modo offline)';
+        pill.className = 'pill offline';
+      }
+      renderPendingBadge();
+    }
+
+    function getQueue() {
+      try { return JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]'); } catch { return []; }
+    }
+    function setQueue(items) { localStorage.setItem(QUEUE_KEY, JSON.stringify(items)); renderPendingBadge(); }
+
+    function renderPendingBadge() {
+      const items = getQueue();
+      const badge = byId('pendingBadge');
+      if (!items.length) { badge.style.display = 'none'; return; }
+      badge.style.display = 'inline-block';
+      badge.textContent = `⏳ ${items.length} pendiente(s) de sincronizar`;
+    }
+
+    async function cargarInsumos() {
+      const select = byId('medicamento');
+      try {
+        const res = await apiFetch('/insumosSanidad');
+        if (!res.ok) throw new Error('No se pudo leer el inventario');
+        const data = await res.json();
+        insumosDisponibles = Array.isArray(data) ? data.filter((x) => Number(x.stock || 0) > 0) : [];
+        usandoReferenciaOffline = false;
+        if (!insumosDisponibles.length) {
+          select.innerHTML = '<option value="">-- Sin stock cargado en Inventario --</option><option value="__manual__">Otro (ingresar manualmente)</option>';
+        } else {
+          select.innerHTML = '<option value="">-- Seleccionar de Veterinaria --</option>'
+            + insumosDisponibles.map((i) => `<option value="${i.id}" data-retiro="${Number(i.dias_retiro || 0)}" data-producto="${escapeHtml(i.producto || '')}">${escapeHtml(i.producto || 'Sin nombre')} (Retiro: ${Number(i.dias_retiro || 0)}d) · Stock: ${i.stock} ${i.unidad || ''}</option>`).join('')
+            + '<option value="__manual__">Otro (ingresar manualmente)</option>';
+        }
+        byId('medicamentoHint').textContent = 'Inventario real de PampaTambo. El stock se descuenta al guardar.';
+      } catch (err) {
+        usandoReferenciaOffline = true;
+        select.innerHTML = '<option value="">-- Sin conexión: valores de referencia --</option>'
+          + CARENCIA_REFERENCIA_OFFLINE.map((m, idx) => `<option value="ref-${idx}" data-retiro="${m.dias_retiro}" data-producto="${escapeHtml(m.producto)}">${escapeHtml(m.producto)} (Retiro: ${m.dias_retiro} días)</option>`).join('')
+          + '<option value="__manual__">Otro (ingresar manualmente)</option>';
+        byId('medicamentoHint').textContent = '⚠️ Sin conexión al inventario: estos son valores de referencia. Verificá el prospecto real. No se descontará stock hasta sincronizar.';
+      }
+    }
+
+    function escapeHtml(text) {
+      return `${text ?? ''}`
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function diasRetiroSeleccionado() {
+      const select = byId('medicamento');
+      if (select.value === '__manual__') {
+        const n = Number(byId('medManualRetiro').value);
+        return Number.isFinite(n) && n >= 0 ? n : null;
+      }
+      const opt = select.selectedOptions[0];
+      if (!opt || !opt.dataset.retiro) return null;
+      return Number(opt.dataset.retiro);
+    }
+
+    function evaluarRetiroLeche() {
+      const dias = diasRetiroSeleccionado();
+      const inputFecha = byId('fecha_trata').value;
+      const panelAlerta = byId('alertaRetiro');
+      const panelSinRetiro = byId('alertaSinRetiro');
+
+      if (dias === null || !inputFecha) {
+        panelAlerta.style.display = 'none';
+        panelSinRetiro.style.display = 'none';
+        return;
+      }
+      if (dias === 0) {
+        panelAlerta.style.display = 'none';
+        panelSinRetiro.style.display = 'block';
+        return;
+      }
+      panelSinRetiro.style.display = 'none';
+      let fechaTratamiento = new Date(`${inputFecha}T00:00:00`);
+      fechaTratamiento.setDate(fechaTratamiento.getDate() + dias);
+      byId('fecha_liberacion').innerText = fechaTratamiento.toLocaleDateString('es-AR');
+      panelAlerta.style.display = 'block';
+    }
+
+    function mapearTipoSanidad(diagnostico) {
+      if (diagnostico === 'mastitis_cl' || diagnostico === 'mastitis_sub') return 'MASTITIS_TRATAMIENTO';
+      return 'TRATAMIENTO';
+    }
+
+    function nombreProductoSeleccionado() {
+      const select = byId('medicamento');
+      if (select.value === '__manual__') return byId('medManualNombre').value.trim();
+      const opt = select.selectedOptions[0];
+      return opt ? (opt.dataset.producto || opt.textContent) : '';
+    }
+
+    function mostrarFeedback(tipo, mensaje) {
+      const el = byId('feedback');
+      el.className = `feedback ${tipo}`;
+      el.textContent = mensaje;
+    }
+
+    async function flushQueue() {
+      if (!navigator.onLine) return;
+      const items = getQueue();
+      if (!items.length) return;
+      const restantes = [];
+      for (const item of items) {
+        try {
+          const res = await apiFetch('/sanidad', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(item.payload),
+          });
+          if (!res.ok) throw new Error('Error al sincronizar');
+          if (item.insumoId && item.decrementarA !== undefined) {
+            await apiFetch(`/insumosSanidad/${item.insumoId}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ stock: item.decrementarA }),
+            }).catch(() => {});
+          }
+        } catch {
+          restantes.push(item);
+        }
+      }
+      setQueue(restantes);
+      if (restantes.length < items.length) cargarInsumos();
+    }
+
+    byId('fecha_trata').valueAsDate = new Date();
+    byId('medicamento').addEventListener('change', () => {
+      const isManual = byId('medicamento').value === '__manual__';
+      byId('manualMedRow').style.display = isManual ? 'flex' : 'none';
+      evaluarRetiroLeche();
+    });
+    byId('medManualRetiro').addEventListener('input', evaluarRetiroLeche);
+    byId('fecha_trata').addEventListener('change', evaluarRetiroLeche);
+
+    byId('tamboSanidadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = byId('btnGuardar');
+      const rp = byId('RP').value.trim().toUpperCase();
+      const diagnostico = byId('diagnostico').value;
+      const dosis = byId('dosis').value.trim();
+      const cuarto = byId('cuarto').value;
+      const responsable = byId('responsable').value.trim() || 'Operario pozo de ordeñe';
+      const fecha = byId('fecha_trata').value;
+      const producto = nombreProductoSeleccionado();
+      const diasRetiro = diasRetiroSeleccionado();
+
+      if (!producto) { mostrarFeedback('error', 'Elegí un medicamento o completá el nombre manual.'); return; }
+      if (diasRetiro === null) { mostrarFeedback('error', 'Indicá los días de retiro del producto manual.'); return; }
+
+      const select = byId('medicamento');
+      const esInsumoReal = select.value && select.value !== '__manual__' && !select.value.startsWith('ref-') && !usandoReferenciaOffline;
+      const insumoId = esInsumoReal ? select.value : null;
+      const insumoActual = esInsumoReal ? insumosDisponibles.find((i) => `${i.id}` === `${insumoId}`) : null;
+
+      const payload = {
+        fecha,
+        vaca: rp,
+        tipo: mapearTipoSanidad(diagnostico),
+        producto,
+        dias_retiro: diasRetiro,
+        responsable,
+        observaciones: `Diagnóstico: ${byId('diagnostico').selectedOptions[0]?.textContent || diagnostico} · Dosis: ${dosis} · Cuarto: ${cuarto}`,
+      };
+
+      btn.disabled = true;
+      btn.textContent = 'Guardando...';
+
+      try {
+        const res = await apiFetch('/sanidad', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error('El servidor rechazó el registro');
+
+        let avisoStock = '';
+        if (insumoActual) {
+          const nuevoStock = Math.max(0, Number(insumoActual.stock || 0) - 1);
+          try {
+            const resStock = await apiFetch(`/insumosSanidad/${insumoActual.id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ stock: nuevoStock }),
+            });
+            if (resStock.ok) {
+              avisoStock = ` Se descontó 1 unidad de stock de "${insumoActual.producto}" (quedan ${nuevoStock} ${insumoActual.unidad || ''}).`;
+              insumoActual.stock = nuevoStock;
+            } else {
+              avisoStock = ' No se pudo descontar el stock automáticamente: ajustalo manualmente en Inventario.';
+            }
+          } catch {
+            avisoStock = ' No se pudo descontar el stock automáticamente: ajustalo manualmente en Inventario.';
+          }
+        } else if (usandoReferenciaOffline) {
+          avisoStock = ' (Se usó un valor de referencia sin conexión al inventario real.)';
+        }
+
+        const mensajeRetiro = diasRetiro > 0
+          ? ` Leche descartada hasta ${(() => { const d = new Date(`${fecha}T00:00:00`); d.setDate(d.getDate() + diasRetiro); return d.toLocaleDateString('es-AR'); })()}.`
+          : ' Sin período de retiro.';
+        mostrarFeedback('ok', `✓ Tratamiento de ${rp} guardado en PampaTambo.${mensajeRetiro}${avisoStock}`);
+        e.target.reset();
+        byId('fecha_trata').valueAsDate = new Date();
+        byId('alertaRetiro').style.display = 'none';
+        byId('alertaSinRetiro').style.display = 'none';
+        byId('manualMedRow').style.display = 'none';
+      } catch (err) {
+        const queue = getQueue();
+        queue.push({ payload, insumoId: insumoActual ? insumoActual.id : null, decrementarA: insumoActual ? Math.max(0, Number(insumoActual.stock || 0) - 1) : undefined, createdAt: new Date().toISOString() });
+        setQueue(queue);
+        mostrarFeedback('queued', `⏳ Sin conexión con el servidor: el tratamiento de ${rp} quedó guardado localmente y se enviará solo cuando vuelva la señal. No se descontó stock todavía.`);
+        e.target.reset();
+        byId('fecha_trata').valueAsDate = new Date();
+        byId('alertaRetiro').style.display = 'none';
+        byId('alertaSinRetiro').style.display = 'none';
+        byId('manualMedRow').style.display = 'none';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Guardar Registro Clínico';
+      }
+    });
+
+    window.addEventListener('online', () => { renderConnStatus(); flushQueue(); });
+    window.addEventListener('offline', renderConnStatus);
+
+    renderConnStatus();
+    cargarInsumos();
+    flushQueue();
+</script>
+
+</body>
+</html>

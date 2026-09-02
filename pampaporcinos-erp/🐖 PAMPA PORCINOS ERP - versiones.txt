@@ -1,0 +1,474 @@
+🐖 PAMPA PORCINOS ERP
+Gestión integral de producción porcina
+Versiones
+🟢 Básica
+🔵 Profesional
+🟣 Premium
+
+El sistema reconoce las tres licencias mediante los códigos B / P / M respectivamente.
+
+🟢 PAMPA PORCINOS ERP — BÁSICA
+Para pequeñas y medianas explotaciones porcinas
+🐖 1. Animales
+Registro de movimientos
+Fecha
+Tipo de movimiento
+Categoría
+Sistema
+Origen
+Destino
+Cantidad
+Peso
+Valor
+Observaciones
+Categorías porcinas
+
+El sistema contempla:
+
+Madres gestantes
+Madres lactantes
+Cachorras de reposición
+Padrillos
+Lechones de maternidad
+Destetados
+Recría
+Engorde
+Capones
+Otros
+
+Estas categorías están definidas directamente en el sistema.
+
+Listado de movimientos
+Historial
+Cantidades
+Categorías
+Fechas
+Movimientos productivos
+🔄 2. Movimientos
+Resumen de etapas
+Stock por categoría
+Madres gestantes
+Madres lactantes
+Maternidad
+Destetados
+Recría
+Engorde
+Capones
+Padrillos
+
+El dashboard también muestra los últimos movimientos y el stock por categoría.
+
+💉 3. Sanidad
+Registro sanitario
+Fecha
+Categoría
+Tipo de tratamiento
+Producto
+Cantidad
+Costo
+Responsable
+Observaciones
+Historial sanitario
+Tratamientos realizados
+Productos utilizados
+Costos sanitarios
+Responsable
+
+El código contempla expresamente el registro de sanidad y su historial.
+
+📦 4. Inventario
+Registro de inventario
+Fecha
+Insumo
+Movimiento
+Cantidad
+Unidad
+Costo unitario
+Lote/proveedor
+Resumen de inventario
+Stock actual
+Valor del stock
+Unidad
+Último movimiento
+
+El sistema calcula el stock acumulando ingresos y egresos de cada insumo.
+
+🌽 5. Alimentación
+Registro de alimentación
+Fecha
+Categoría
+Lote/sector
+Insumo/ración
+Kg suministrados
+Costo por kg
+Animales alimentados
+Observaciones
+Alertas de consumo
+Historial de alimentación
+
+Estas tres áreas están definidas en la estructura del ERP.
+
+🗺️ 6. Campos
+
+Aunque sea un ERP porcino, incorpora gestión de establecimientos/lotes.
+
+Registro de lote
+Fecha
+Número de lote
+RENSPA
+Nombre del lote
+Superficie
+Latitud
+Longitud
+Uso
+Estado
+Mapa de lotes
+Georreferenciación
+Ubicación
+Marcadores
+Superficie
+RENSPA
+Listado de lotes
+
+El módulo tiene mapa georreferenciado y control de RENSPA.
+
+🚜 7. Maquinarias
+Inventario de maquinarias
+Equipos
+Identificación
+Estado
+Datos técnicos
+Mantenimiento
+Mantenimiento preventivo
+Mantenimiento correctivo
+Órdenes
+Costos
+Historial de mantenimiento
+Instalaciones
+Instalaciones productivas
+Infraestructura
+Estado
+Listado de instalaciones
+
+El propio ERP agrupa estos seis bloques dentro de Maquinarias.
+
+🚚 8. Transporte
+Registro de viaje
+Fecha
+Transporte
+Origen
+Destino
+Carga
+Datos del viaje
+Enlaces oficiales
+SENASA
+Municipio
+Historial de viajes
+
+El sistema almacena los enlaces oficiales y los viajes realizados.
+
+👥 9. Recursos Humanos
+Registro de personal y novedades
+Nombre y apellido
+DNI
+Puesto
+Modalidad
+Estado
+Fecha de ingreso
+Remuneración
+Novedades
+Ausencias
+Apto médico
+Observaciones
+Historial de RRHH
+
+Los puestos previstos incluyen Encargado, Operario, Administración, Veterinaria, Mantenimiento y Otros.
+
+🔵 PROFESIONAL
+
+La versión Profesional debe posicionarse como la gestión integral de la producción porcina, incorporando a la Básica:
+
+🐖 Producción avanzada
+Control por categorías
+Movimientos entre etapas
+Seguimiento de lotes
+Maternidad
+Destete
+Recría
+Engorde
+Capones
+🩺 Sanidad avanzada
+Historial sanitario
+Costos sanitarios
+Control de tratamientos
+Responsable sanitario
+🌽 Alimentación
+Consumo por categoría
+Consumo por lote
+Costo de alimentación
+Cantidad de animales alimentados
+Historial
+Indicadores productivos
+
+El sistema ya contempla indicadores de conversión alimenticia cuando existen datos de alimento y kilos ganados por lote.
+
+🚜 Gestión operativa
+Maquinaria
+Mantenimiento
+Instalaciones
+Transporte
+💰 Finanzas
+Finanzas
+Costos
+Ventas
+🟣 PREMIUM
+La gestión integral de la empresa porcina
+
+Incluye todo lo anterior y agrega las funcionalidades administrativas y fiscales avanzadas.
+
+💰 10. Finanzas
+Movimiento financiero
+Ingresos
+Egresos
+Categorías
+Importes
+Comprobantes
+Home Banking
+Enlaces a bancos
+Acceso desde el sistema
+Configuración
+Historial financiero
+
+El módulo Finanzas está incluido en la estructura principal de la aplicación.
+
+🧾 11. ARCA
+
+Este es un módulo especialmente importante para esta versión.
+
+Datos fiscales
+CUIT
+Razón social
+IVA
+Ganancias
+Domicilio
+Establecimientos
+RENSPA
+SIOCAL
+Punto de venta
+CLAE
+Estado registral
+Web Services
+
+Esos campos están efectivamente contemplados en el código.
+
+Liquidación electrónica
+Operación porcina
+Facturación
+Documentación cárnica
+Trazabilidad ARCA
+
+El propio catálogo interno del ERP identifica esos cinco bloques dentro de ARCA.
+
+💵 12. Costos
+Registro de costos
+Fecha
+Tipo
+Categoría/lote
+Importe
+Proveedor
+Comprobante
+Detalle
+Resumen de costos
+Indicadores operativos
+Costo por categoría
+Historial de costos
+
+Los campos de costos están definidos específicamente para alimentación, sanidad y demás costos productivos.
+
+🧾 13. Ventas
+Registro de ventas
+Fecha
+Lote de salida
+Cliente
+Tipo
+Cantidad
+Peso total
+Precio/kg
+Importe total
+Comprobante
+Observaciones
+Historial de ventas
+
+La estructura de ventas contempla expresamente cantidad, kilos, precio por kilo y total.
+
+🐖 14. Señales identificatorias
+Señal identificatoria porcina
+Fecha
+Número de señal
+Propietario/titular
+CUIT/documento
+Establecimiento
+RENSPA
+Tipo de señal
+Descripción
+Registro
+Estado
+
+Esta funcionalidad está implementada como almacenamiento independiente (boletosSenal).
+
+📊 15. Reportes
+Exportaciones
+
+El sistema permite exportar:
+
+Movimientos
+Sanidad
+Inventario
+Alimentación
+Campos
+Transporte
+RRHH
+Finanzas
+ARCA Operaciones
+ARCA Facturas
+ARCA REC
+Costos
+Ventas
+Señales identificatorias
+
+Indicadores
+Stock por categoría
+Últimos movimientos
+Costos de alimentación
+Costos sanitarios
+Otros costos
+Indicadores productivos
+RENSPA
+⚙️ 16. Sistema
+Licencia
+Activación
+Identificación de versión
+Estado de licencia
+
+El sistema reconoce:
+
+Código	Versión
+B	Básica
+P	Profesional
+M	Premium
+
+Datos
+Respaldo
+Configuración
+Exportaciones
+Recuperación de información
+
+El backup incluye todos los almacenes de datos principales, además de empresa, home banking, transporte y configuración fiscal ARCA.
+
+📋 COMPARATIVA COMERCIAL DEFINITIVA
+Módulo	🟢 Básica	🔵 Profesional	🟣 Premium
+Dashboard	✓	✓	✓
+Empresa	✓	✓	✓
+Animales	✓	✓	✓
+Movimientos	✓	✓	✓
+Sanidad	✓	✓	✓
+Inventario	✓	✓	✓
+Alimentación	✓	✓	✓
+Campos	✓	✓	✓
+Maquinarias	—	✓	✓
+Mantenimiento	—	✓	✓
+Instalaciones	—	✓	✓
+Transporte	—	✓	✓
+Recursos Humanos	—	✓	✓
+Finanzas	—	✓	✓
+Costos	✓	✓	✓
+Ventas	—	✓	✓
+Señales identificatorias	—	✓	✓
+ARCA	—	—	✓
+Facturación	—	—	✓
+Documentación cárnica	—	—	✓
+Trazabilidad ARCA	—	—	✓
+Reportes	✓	✓	✓
+Licencia	✓	✓	✓
+Datos / Backup	✓	✓	✓
+👤 ROLES
+
+Acá hay una diferencia importante respecto del ERP agrícola que analizamos antes.
+
+Este HTML actualmente define cuatro roles:
+
+Rol	Perfil comercial
+👑 Propietario	Administración integral
+🧾 Administración	Gestión administrativa y financiera
+🩺 Ingeniero/Veterinario	Gestión productiva y sanitaria
+👷 Operador	Operación diaria del establecimiento
+
+Los cuatro aparecen actualmente en el selector de “Rol activo” del Dashboard.
+
+Pero atención
+
+No encontré en el HTML una estructura del tipo:
+
+rolePermissions
+
+ni una matriz que diga:
+
+Propietario → puede acceder a X
+Veterinario → puede acceder a Y
+Operador → puede acceder a Z
+
+Por lo tanto, no sería correcto afirmar que esos permisos ya están implementados.
+
+🔐 MATRIZ DE ROLES QUE RECOMIENDO DEFINIR
+
+Para que este ERP quede comercialmente bien armado, yo establecería esta matriz:
+
+Módulo	👑 Propietario	🧾 Administración	🩺 Ing./Vet.	👷 Operador
+Dashboard	✓	✓	✓	✓
+Empresa	✓	✓	—	—
+Animales	✓	—	✓	✓
+Movimientos	✓	—	✓	✓
+Sanidad	✓	—	✓	✓
+Inventario	✓	✓	✓*	✓*
+Alimentación	✓	—	✓	✓
+Campos	✓	✓*	✓	✓
+Maquinarias	✓	—	—	✓
+Mantenimiento	✓	—	—	✓
+Instalaciones	✓	—	—	✓
+Transporte	✓	✓	✓*	✓
+RRHH	✓	✓	—	—
+Finanzas	✓	✓	—	—
+ARCA	✓	✓	—	—
+Costos	✓	✓	✓*	—
+Ventas	✓	✓	✓*	—
+Señales porcinas	✓	✓	✓	✓
+Reportes	✓	✓	✓	✓
+Licencia	✓	—	—	—
+Datos/Backup	✓	—	—	—
+
+* Acceso que puede configurarse según el establecimiento.
+
+🏷️ Posicionamiento comercial final
+🟢 BÁSICA
+
+“Controlá tu producción porcina día a día.”
+
+Animales · Movimientos · Sanidad · Alimentación · Inventario · Campos · Costos · Reportes.
+
+🔵 PROFESIONAL
+
+“Gestioná integralmente tu granja porcina.”
+
+Todo lo de Básica + Maquinaria · Mantenimiento · Instalaciones · Transporte · RRHH · Finanzas · Ventas · Señales.
+
+🟣 PREMIUM
+
+“Toda tu empresa porcina, integrada y trazable.”
+
+Todo lo de Profesional + ARCA · Facturación · Documentación cárnica · Trazabilidad · Gestión fiscal avanzada.
+
+⚠️ Una diferencia importante con el catálogo anterior
+
+En este ERP no te recomiendo copiar la estructura de módulos de PampaAgro agrícola. Este archivo tiene una arquitectura propia, mucho más orientada a producción porcina, y además ya contiene elementos específicos como RENSPA, señales identificatorias, ARCA, documentación cárnica, trazabilidad, categorías porcinas y seguimiento por etapas.
+
+Y hay algo que yo corregiría en el próximo paso: hacer que Básica/Profesional/Premium realmente bloqueen módulos y que los cuatro roles realmente tengan permisos, porque actualmente la licencia se puede identificar, pero la matriz de acceso por módulo/rol no está definida en el código.
