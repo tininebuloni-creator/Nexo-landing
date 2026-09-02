@@ -172,7 +172,6 @@
     input?.addEventListener('keydown', (event) => { if (event.key === 'Enter') reply(); });
     render('empresa');
     mountTrialDemos(panel);
-    mountPlanCapabilities(panel);
   }
 
   window.pampaIAAnalizar = render;

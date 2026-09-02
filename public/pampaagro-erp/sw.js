@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pampaagro-erp-v2';
+const CACHE_NAME = 'pampaagro-erp-v1';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './logo2.png'];
 
 self.addEventListener('install', (event) => {
@@ -16,13 +16,6 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   if (url.origin === self.location.origin && url.pathname.startsWith('/api/')) {
     event.respondWith(fetch(event.request).catch(() => new Response(JSON.stringify({ ok: false, offline: true, message: 'Sin conexión: API no disponible.' }), { status: 503, headers: { 'Content-Type': 'application/json' } })));
-    return;
-  }
-  if (event.request.mode === 'navigate' || url.pathname.endsWith('/index.html')) {
-    event.respondWith(fetch(event.request).then((response) => {
-      if (response.ok) caches.open(CACHE_NAME).then((cache) => cache.put(event.request, response.clone()));
-      return response;
-    }).catch(() => caches.match(event.request).then((cached) => cached || caches.match('./index.html'))));
     return;
   }
   event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request).then((response) => {

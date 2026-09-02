@@ -1,0 +1,11 @@
+{
+  "name": "pampaporcinos-erp",
+  "version": "1.1.1",
+  "private": true,
+  "description": "ERP porcino offline-first",
+  "author": "Pampa N S.I.A.",
+  "scripts": {
+    "start": "node server.js",
+    "start:static": "npx http-server . -p 3121"
+  }
+}

@@ -5,9 +5,7 @@ name: Deploy trial to Cloudflare
     branches:
       - main
     paths:
-      - 'public/trials/r3/**'
-      - 'functions/**'
-      - 'public/index.html'
+      - 'public/**'
       - 'index.js'
       - 'wrangler.toml'
       - '.github/workflows/deploy-trial.yml'
