@@ -12,6 +12,7 @@ export default {
       const assetUrl = new URL(`/trials/${code}/${assetPath}`, url);
       const assetResponse = await env.ASSETS.fetch(new Request(assetUrl, request));
       if (!assetResponse.ok || !assetPath.endsWith('.html')) return assetResponse;
+      if (code === 'x9') return assetResponse;
 
       const source = await assetResponse.text();
       const bootstrap = trialBootstrap(code);

@@ -2360,14 +2360,14 @@ body {
         <input type="text" class="activation-input" id="activationKey" placeholder="Pegue aquí su token de licencia">
         <div class="activation-error" id="activationError">Clave de activación inválida</div>
         <button class="activation-btn" onclick="activateLicense()">Activar Licencia</button>
-        <button class="activation-btn-secondary" onclick="activateTrial()">Iniciar Prueba Gratis (7 días)</button>
+        <button class="activation-btn-secondary" onclick="activateTrial()">Iniciar Prueba Gratis (10 días)</button>
         <button class="activation-btn-secondary" onclick="sendTrialLinkByWhatsApp()">Enviar Link Trial por WhatsApp</button>
         <button class="activation-btn-secondary" onclick="copyTrialLink()">Copiar Link Trial</button>
       </div>
       <div class="activation-info">
         Ingrese la clave de activación proporcionada al comprar el software.<br>
         Guarde este token en un lugar seguro: será necesario si cambia de equipo o reinstala Windows.<br>
-        O inicie una prueba gratis por 7 días para evaluar el sistema.<br>
+        O inicie una prueba gratis por 10 días para evaluar el sistema.<br>
         También puede compartir un enlace de trial por WhatsApp para activación automática.
       </div>
     </div>
@@ -8667,7 +8667,7 @@ function activateTrial() {
 
   const trialLicense = {
     type: 'trial',
-    key: 'TRIAL-7DIAS',
+    key: 'TRIAL-10DIAS',
     activatedAt: now.toISOString(),
     expiresAt: end.toISOString(),
     deviceId: generateDeviceId()

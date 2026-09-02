@@ -2512,12 +2512,12 @@ body {
         <input type="text" class="activation-input" id="activationKey" placeholder="PAMPAN1..." autocomplete="off" spellcheck="false">
         <div class="activation-error" id="activationError">Clave de activación inválida</div>
         <button class="activation-btn" onclick="activateLicense()">Activar Licencia</button>
-        <button class="activation-btn-secondary" onclick="activateTrial()">Iniciar Prueba Gratis (7 días)</button>
+        <button class="activation-btn-secondary" onclick="activateTrial()">Iniciar Prueba Gratis (10 días)</button>
         <button class="activation-btn-secondary" onclick="enviarTrialPorWhatsApp()" style="margin-top: 8px;">Activar trial ahora</button>
       </div>
       <div class="activation-info">
         Ingrese la clave de activación proporcionada al comprar el software.<br>
-        O inicie una prueba gratis por 7 días para evaluar el sistema.
+        O inicie una prueba gratis por 10 días para evaluar el sistema.
       </div>
     </div>
   </div>
@@ -9210,7 +9210,7 @@ function mostrarTodosLosLotes() {
 
 // === SISTEMA DE LICENCIAMIENTO ===
 
-const TRIAL_DAYS = 7;
+const TRIAL_DAYS = 10;
 appInitialized = false;
 
 function getLicenseData() {
@@ -9693,7 +9693,7 @@ function activateTrial() {
 
   const trialLicense = {
     type: 'trial',
-    key: 'TRIAL-7DIAS',
+    key: 'TRIAL-10DIAS',
     activatedAt: now.toISOString(),
     expiresAt: end.toISOString(),
     deviceId: generateDeviceId()
