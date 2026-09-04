@@ -934,6 +934,14 @@
       }
     }
   </style>
+  <style>
+    @media print {
+      .sidebar, .dashboard-actions, .modal, .quick-wa-fab, button, input, select, textarea { display: none !important; }
+      .main, .content, .module.active { display: block !important; width: 100% !important; margin: 0 !important; }
+      .module:not(.active) { display: none !important; }
+      body { background: #fff !important; color: #000 !important; }
+    }
+  </style>
 </head>
 <body>
   <div class="app">
@@ -948,6 +956,12 @@
         <div class="nav-title">Módulos</div>
         <div class="nav-item" data-module="empresa">🏢 Empresa</div>
         <div class="nav-item active" data-module="dashboard">📊 Dashboard</div>
+        <div class="nav-item" data-module="arca" onclick="openArcaResumen()">💰 Fiscal Tambo (ARCA)</div>
+        <div class="nav-submenu" aria-label="Submódulos de Fiscal Tambo">
+          <div class="nav-subitem" data-submodule="arca-lume" onclick="openArcaSection('arca-lume')">• Liquidación de leche (LUME)</div>
+          <div class="nav-subitem" data-submodule="arca-ventas" onclick="openArcaSection('arca-ventas')">• Venta de hacienda</div>
+          <div class="nav-subitem" data-submodule="arca-comprobantes" onclick="openArcaSection('arca-comprobantes')">• Comprobantes</div>
+        </div>
         <div class="nav-item" data-module="campos">🗺️ Campos</div>
         <div class="nav-item nav-group-title" data-module="hacienda">🏡 Hacienda</div>
         <div class="nav-submenu" aria-label="Submódulos de Hacienda">
@@ -959,10 +973,12 @@
           <div class="nav-subitem" data-submodule="hacienda-partos" onclick="openHaciendaPartos()">• Partos</div>
           <div class="nav-subitem" data-submodule="hacienda-produccion" onclick="openHaciendaProduccion()">• Producción</div>
           <div class="nav-subitem" data-submodule="hacienda-sanidad" onclick="openHaciendaSanidad()">• Sanidad</div>
+          <div class="nav-subitem" data-submodule="hacienda-senasa" onclick="openHaciendaSenasaObligatorio()">• 🛡️ SENASA - Sanitario</div>
         </div>
         <div class="nav-item nav-group-title" data-module="inventario" onclick="openInventarioSummary()">📦 Inventario</div>
         <div class="nav-submenu" aria-label="Submódulos de Inventario">
           <div class="nav-subitem" onclick="openModule('alimentos')">• Alimentos</div>
+          <div class="nav-subitem" onclick="openModule('silos')">• Silos</div>
           <div class="nav-subitem" data-submodule="inventario-sanidad-stock" onclick="openInventarioSanidad()">• Sanidad (stock)</div>
           <div class="nav-subitem" onclick="openModule('instalaciones')">• Instalaciones</div>
           <div class="nav-subitem" onclick="openInventarioMaquinaria()">• Maquinarias</div>
@@ -977,6 +993,9 @@
         <div class="nav-submenu" aria-label="Submódulos de Costos">
           <div class="nav-subitem" onclick="openCostosDetail()">• Costos generales</div>
           <div class="nav-subitem" onclick="openModule('costosOperativos')">• Costo Operativo</div>
+          <div class="nav-subitem" data-submodule="costos-compras" onclick="openCostosSection('costos-compras')">• Compras de insumos</div>
+          <div class="nav-subitem" data-submodule="costos-gastos" onclick="openCostosSection('costos-gastos')">• Gastos</div>
+          <div class="nav-subitem" data-submodule="costos-cobros-pagos" onclick="openCostosSection('costos-cobros-pagos')">• Cobros y pagos</div>
         </div>
         <div class="nav-item" data-module="finanzas" onclick="openFinanzasResumen()">🏦 Finanzas</div>
         <div class="nav-submenu" aria-label="Submódulos de Finanzas">
@@ -986,15 +1005,6 @@
           <div class="nav-subitem" onclick="openFinanceSection('finanzas-creditos')">• Créditos</div>
           <div class="nav-subitem" onclick="openFinanceSection('finanzas-cheques-cobrar')">• Cheques por Cobrar</div>
           <div class="nav-subitem" onclick="openFinanceSection('finanzas-cheques-cubrir')">• Cheques por Cubrir</div>
-        </div>
-        <div class="nav-item" data-module="arca" onclick="openArcaResumen()">🗂️ Administración / ARCA</div>
-        <div class="nav-submenu" aria-label="Submódulos de Administración/ARCA">
-          <div class="nav-subitem" data-submodule="arca-lume" onclick="openArcaSection('arca-lume')">• Liquidación de leche (LUME)</div>
-          <div class="nav-subitem" data-submodule="arca-ventas" onclick="openArcaSection('arca-ventas')">• Venta de hacienda</div>
-          <div class="nav-subitem" data-submodule="arca-compras" onclick="openArcaSection('arca-compras')">• Compras de insumos</div>
-          <div class="nav-subitem" data-submodule="arca-gastos" onclick="openArcaSection('arca-gastos')">• Gastos</div>
-          <div class="nav-subitem" data-submodule="arca-comprobantes" onclick="openArcaSection('arca-comprobantes')">• Comprobantes</div>
-          <div class="nav-subitem" data-submodule="arca-cobros-pagos" onclick="openArcaSection('arca-cobros-pagos')">• Cobros y pagos</div>
         </div>
         <div class="nav-item" data-module="reportes">📋 Reportes</div>
         <div class="nav-item" data-module="rentabilidad">📈 Rentabilidad</div>
@@ -1068,6 +1078,7 @@
             </div>
             <div class="dashboard-actions">
               <button class="btn" id="btnConnectivity">Conectividad</button>
+              <button class="btn" type="button" onclick="window.print()" title="Imprimir el módulo actual">Imprimir</button>
               <button class="btn" id="btnExportarRespaldo">Exportar respaldo JSON</button>
               <button class="btn" id="btnAbrirReportes">WhatsApp reportes</button>
               <button class="btn" id="btnLimpiezaBasica">Limpieza básica</button>
@@ -1489,6 +1500,97 @@
           </div>
         </div>
 
+        <div class="module" id="mod-silos">
+          <div class="kpi-grid">
+            <div class="kpi"><div class="label">Silos</div><div class="value" id="kpiSilosTotal">0</div><div class="sub">Estructuras registradas</div></div>
+            <div class="kpi blue"><div class="label">Stock total</div><div class="value" id="kpiSilosStock">0 TN</div><div class="sub">Suma de todos los silos</div></div>
+            <div class="kpi red"><div class="label">Reposición urgente</div><div class="value" id="kpiSilosAlerta">0</div><div class="sub">≤ umbral de alerta</div></div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🌾 Silos y capacidad de cubicaje</div>
+              <button class="btn primary" id="btnNuevoSilo">+ Nuevo silo</button>
+            </div>
+            <div style="padding: 14px 16px; display:grid; gap:12px;" id="panelSilos"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📋 Registrar carga o consumo</div>
+            </div>
+            <div style="padding: 14px 16px; display:grid; gap:10px;">
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <div style="flex:1; min-width:160px;">
+                  <label style="font-size:12px; display:block;">Silo</label>
+                  <select id="movSiloId" style="width:100%; padding:8px;"></select>
+                </div>
+                <div style="width:140px;">
+                  <label style="font-size:12px; display:block;">Tipo</label>
+                  <select id="movTipo" style="width:100%; padding:8px;">
+                    <option value="CONSUMO">Consumo</option>
+                    <option value="CARGA">Carga (descarga de camión)</option>
+                  </select>
+                </div>
+                <div style="width:120px;">
+                  <label style="font-size:12px; display:block;">Toneladas</label>
+                  <input type="number" id="movToneladas" step="0.1" min="0" style="width:100%; padding:8px;">
+                </div>
+              </div>
+              <div id="movCamposCarga" style="display:none; gap:8px; flex-wrap:wrap;">
+                <div style="flex:1; min-width:140px;">
+                  <label style="font-size:12px; display:block;">Grano/alimento</label>
+                  <input type="text" id="movTipoGrano" placeholder="Maíz, Soja, Balanceado..." style="width:100%; padding:8px;">
+                </div>
+                <div style="width:140px;">
+                  <label style="font-size:12px; display:block;">Proveedor</label>
+                  <input type="text" id="movProveedor" style="width:100%; padding:8px;">
+                </div>
+                <div style="width:130px;">
+                  <label style="font-size:12px; display:block;">N° lote proveedor</label>
+                  <input type="text" id="movLote" style="width:100%; padding:8px;">
+                </div>
+                <div style="width:130px;">
+                  <label style="font-size:12px; display:block;">Precio/TN ($)</label>
+                  <input type="number" id="movPrecio" min="0" style="width:100%; padding:8px;">
+                </div>
+              </div>
+              <div id="movCamposConsumo" style="display:flex; gap:8px; flex-wrap:wrap;">
+                <div style="flex:1; min-width:160px;">
+                  <label style="font-size:12px; display:block;">Destino (mixer/lote animal)</label>
+                  <input type="text" id="movDestino" style="width:100%; padding:8px;">
+                </div>
+              </div>
+              <div>
+                <label style="font-size:12px; display:block;">Responsable</label>
+                <input type="text" id="movResponsable" style="width:100%; padding:8px;">
+              </div>
+              <button class="btn primary" onclick="registrarMovimientoSilo()">Confirmar</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><div class="card-title">🧾 Historial de movimientos</div></div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Silo</th>
+                    <th>Tipo</th>
+                    <th>Grano</th>
+                    <th>Toneladas</th>
+                    <th>Detalle</th>
+                    <th>Costo</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodySiloMovimientos"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
         <div class="module" id="mod-inventario">
           <div class="card is-hidden" id="invFiltersCard">
             <div class="card-header">
@@ -1611,25 +1713,6 @@
               </table>
             </div>
           </div>
-        </div>
-
-        <div class="module" id="mod-rrhh">
-          <div class="kpi-grid">
-            <div class="kpi"><div class="label">Personal activo</div><div class="value" id="tamboHrActive">0</div><div class="sub">Registros activos</div></div>
-            <div class="kpi blue"><div class="label">Nómina estimada</div><div class="value" id="tamboHrPayroll">$0</div><div class="sub">Remuneración mensual</div></div>
-            <div class="kpi red"><div class="label">Ausencias</div><div class="value" id="tamboHrAbsences">0</div><div class="sub">Días registrados</div></div>
-          </div>
-          <div class="card">
-            <div class="card-header"><div class="card-title">Recursos Humanos</div><button class="btn" id="btnTamboHrSave">Guardar personal</button></div>
-            <div class="form-grid">
-              <div class="field"><label for="tamboHrName">Nombre y apellido</label><input id="tamboHrName" required></div>
-              <div class="field"><label for="tamboHrRole">Puesto</label><input id="tamboHrRole" placeholder="Encargado, operario..." required></div>
-              <div class="field"><label for="tamboHrStatus">Estado</label><select id="tamboHrStatus"><option value="Activo">Activo</option><option value="Licencia">Licencia</option><option value="Baja">Baja</option></select></div>
-              <div class="field"><label for="tamboHrSalary">Remuneración mensual</label><input id="tamboHrSalary" type="number" min="0" step="0.01"></div>
-              <div class="field"><label for="tamboHrAbsence">Días de ausencia</label><input id="tamboHrAbsence" type="number" min="0" step="1" value="0"></div>
-            </div>
-          </div>
-          <div class="card"><div class="table-wrap"><table><thead><tr><th>Nombre</th><th>Puesto</th><th>Estado</th><th>Remuneración</th><th>Ausencias</th></tr></thead><tbody id="tamboHrRows"></tbody></table></div></div>
         </div>
 
         <div class="module" id="mod-auditoria">
@@ -1808,6 +1891,86 @@
                   </tr>
                 </thead>
                 <tbody id="tbodyCostos"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card costos-section is-hidden" id="costos-compras">
+            <div class="card-header">
+              <div class="card-title">🌾 Compras de insumos</div>
+              <button class="btn primary" id="btnNuevaCompraInsumo">+ Nueva compra</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Proveedor</th>
+                    <th>Tipo</th>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Unidad</th>
+                    <th>Precio unitario</th>
+                    <th>Total</th>
+                    <th>Factura</th>
+                    <th>Vencimiento</th>
+                    <th>Pagado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyComprasInsumos"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card costos-section is-hidden" id="costos-gastos">
+            <div class="card-header">
+              <div class="card-title">💰 Gastos</div>
+              <button class="btn primary" id="btnNuevoGasto">+ Nuevo gasto</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Concepto</th>
+                    <th>Categoría</th>
+                    <th>Proveedor</th>
+                    <th>Comprobante</th>
+                    <th>Importe</th>
+                    <th>Medio pago</th>
+                    <th>Vencimiento</th>
+                    <th>Pagado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyGastosArca"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card costos-section is-hidden" id="costos-cobros-pagos">
+            <div class="card-header">
+              <div class="card-title">🏦 Cobros y pagos</div>
+              <button class="btn primary" id="btnNuevoCobroPago">+ Nuevo movimiento</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Tipo</th>
+                    <th>Origen/Destino</th>
+                    <th>Comprobante</th>
+                    <th>Concepto</th>
+                    <th>Importe</th>
+                    <th>Medio</th>
+                    <th>Cuenta</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyCobrosPagos"></tbody>
               </table>
             </div>
           </div>
@@ -2013,6 +2176,19 @@
             <div style="padding: 12px 16px; display:grid; gap:8px;" id="arcaResumenFlow"></div>
           </div>
 
+          <div class="card" id="arcaOperacionFiscalCard">
+            <div class="card-header">
+              <div class="card-title">🔐 Estado fiscal Tambo / LEL</div>
+              <button class="btn" type="button" onclick="actualizarEstadoFiscalTambo()">Actualizar</button>
+            </div>
+            <div class="kpi-grid" style="margin-bottom:12px;">
+              <div class="kpi"><div class="label">Preparación ARCA</div><div class="value" id="arcaFiscalPreparacion">--</div><div class="sub" id="arcaFiscalEntorno">Consultando backend</div></div>
+              <div class="kpi blue"><div class="label">Cola fiscal</div><div class="value" id="arcaFiscalCola">--</div><div class="sub" id="arcaFiscalColaDetalle">Operaciones pendientes</div></div>
+              <div class="kpi orange"><div class="label">Retenciones LUME</div><div class="value" id="arcaFiscalRetenciones">--</div><div class="sub" id="arcaFiscalRetencionesDetalle">Libro fiscal</div></div>
+            </div>
+            <div class="muted" id="arcaFiscalAviso">El estado se consulta al backend local; una simulación no equivale a emisión oficial.</div>
+          </div>
+
           <div class="card arca-section" id="arca-lume">
             <div class="card-header">
               <div class="card-title">🥛 Liquidación de leche / LUME</div>
@@ -2025,6 +2201,7 @@
                     <th>Fecha</th>
                     <th>Usina</th>
                     <th>N.º LUME</th>
+                    <th>COE</th>
                     <th>Período</th>
                     <th>Litros liquidados</th>
                     <th>Grasa %</th>
@@ -2036,12 +2213,18 @@
                     <th>Descuentos</th>
                     <th>Neto</th>
                     <th>Fecha cobro</th>
+                    <th>ARCA</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody id="tbodyLiquidacionesLeche"></tbody>
               </table>
             </div>
+            <div class="card-header" style="margin-top: 10px;">
+              <div class="card-title">🔍 Cotejo litros propios vs. litros liquidados</div>
+              <div class="muted">Ordeñe registrado en el ERP vs. lo declarado por la usina en el LUME</div>
+            </div>
+            <div style="padding: 0 16px 16px; display:grid; gap:8px;" id="cotejoLitrosLume"></div>
           </div>
 
           <div class="card arca-section" id="arca-ventas">
@@ -2071,60 +2254,6 @@
             </div>
           </div>
 
-          <div class="card arca-section" id="arca-compras">
-            <div class="card-header">
-              <div class="card-title">🌾 Compras de insumos</div>
-              <button class="btn primary" id="btnNuevaCompraInsumo">+ Nueva compra</button>
-            </div>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Fecha</th>
-                    <th>Proveedor</th>
-                    <th>Tipo</th>
-                    <th>Producto</th>
-                    <th>Cantidad</th>
-                    <th>Unidad</th>
-                    <th>Precio unitario</th>
-                    <th>Total</th>
-                    <th>Factura</th>
-                    <th>Vencimiento</th>
-                    <th>Pagado</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody id="tbodyComprasInsumos"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <div class="card arca-section" id="arca-gastos">
-            <div class="card-header">
-              <div class="card-title">💰 Gastos</div>
-              <button class="btn primary" id="btnNuevoGasto">+ Nuevo gasto</button>
-            </div>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Fecha</th>
-                    <th>Concepto</th>
-                    <th>Categoría</th>
-                    <th>Proveedor</th>
-                    <th>Comprobante</th>
-                    <th>Importe</th>
-                    <th>Medio pago</th>
-                    <th>Vencimiento</th>
-                    <th>Pagado</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody id="tbodyGastosArca"></tbody>
-              </table>
-            </div>
-          </div>
-
           <div class="card arca-section" id="arca-comprobantes">
             <div class="card-header">
               <div class="card-title">🧾 Comprobantes / ARCA</div>
@@ -2149,32 +2278,6 @@
                   </tr>
                 </thead>
                 <tbody id="tbodyComprobantesArca"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <div class="card arca-section" id="arca-cobros-pagos">
-            <div class="card-header">
-              <div class="card-title">🏦 Cobros y pagos</div>
-              <button class="btn primary" id="btnNuevoCobroPago">+ Nuevo movimiento</button>
-            </div>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Fecha</th>
-                    <th>Tipo</th>
-                    <th>Origen/Destino</th>
-                    <th>Comprobante</th>
-                    <th>Concepto</th>
-                    <th>Importe</th>
-                    <th>Medio</th>
-                    <th>Cuenta</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody id="tbodyCobrosPagos"></tbody>
               </table>
             </div>
           </div>
@@ -2345,6 +2448,30 @@
               </table>
             </div>
           </div>
+
+          <div class="card" id="arca-senasa">
+            <div class="card-header">
+              <div class="card-title">🛡️ SENASA - Control Sanitario Obligatorio</div>
+              <button class="btn primary" id="btnNuevoRegistroSenasa">+ Nuevo registro</button>
+            </div>
+            <div class="muted" style="padding: 0 16px 8px;">Tuberculosis, Brucelosis (DOES), Aftosa y Cepa 19 · subconjunto obligatorio de los registros de Sanidad</div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Vaca</th>
+                    <th>Tipo de control</th>
+                    <th>Producto</th>
+                    <th>Días retiro</th>
+                    <th>Responsable</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodySenasa"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </section>
       <button class="btn quick-wa-fab" id="btnQuickWhatsApp" type="button">WhatsApp roles</button>
@@ -2473,7 +2600,7 @@
       return Array.from(new Set(bases));
     })();
     let apiBaseCache = API_BASE_CANDIDATES[0];
-    const modules = ['empresa', 'dashboard', 'reportes', 'campos', 'hacienda', 'instalaciones', 'inventario', 'mantenimiento', 'auditoria', 'animales', 'toros', 'guachera', 'recria', 'alimentos', 'ordenes', 'entregas', 'costosOperativos', 'costos', 'finanzas', 'arca', 'rentabilidad', 'rrhh', 'reproduccion', 'partos', 'produccion', 'sanidad'];
+    const modules = ['empresa', 'dashboard', 'reportes', 'campos', 'hacienda', 'instalaciones', 'inventario', 'mantenimiento', 'auditoria', 'animales', 'toros', 'guachera', 'recria', 'alimentos', 'silos', 'ordenes', 'entregas', 'costosOperativos', 'costos', 'finanzas', 'arca', 'rentabilidad', 'rrhh', 'reproduccion', 'partos', 'produccion', 'sanidad'];
     const endpointMap = {
       campos: '/campos',
       lotes: '/lotes',
@@ -2506,6 +2633,8 @@
       maquinas: '/maquinas',
       insumosSanidad: '/insumosSanidad',
       mantenimiento: '/mantenimiento',
+      silos: '/silos',
+      siloMovimientos: '/silo-movimientos',
     };
     const state = {
       campos: [],
@@ -2539,6 +2668,8 @@
       maquinas: [],
       insumosSanidad: [],
       mantenimiento: [],
+      silos: [],
+      siloMovimientos: [],
       empresa: {
         nombre: 'Agropecuaria NEXO',
         cuit: '30-00000000-0',
@@ -2591,12 +2722,12 @@
     const ROLE_SEATS_STORAGE_KEY = 'tambo_role_seats';
     const DEVICE_ID_STORAGE_KEY = 'tambo_device_id';
     const ROLE_SEAT_TTL_MS = 1000 * 60 * 60 * 12;
-    const OFFLINE_COLLECTIONS = ['campos', 'lotes', 'instalaciones', 'entregasUsina', 'costos', 'costosOperativos', 'finanzas', 'caja', 'bancos', 'creditos', 'chequesCobrar', 'chequesCubrir', 'liquidacionesLeche', 'ventasHacienda', 'comprasInsumos', 'gastosArca', 'comprobantesArca', 'cobrosPagos', 'empleados', 'asistencias', 'animales', 'toros', 'guachera', 'recria', 'alimentos', 'ordenes', 'reproduccion', 'sanidad', 'maquinas', 'insumosSanidad', 'mantenimiento'];
+    const OFFLINE_COLLECTIONS = ['campos', 'lotes', 'instalaciones', 'entregasUsina', 'costos', 'costosOperativos', 'finanzas', 'caja', 'bancos', 'creditos', 'chequesCobrar', 'chequesCubrir', 'liquidacionesLeche', 'ventasHacienda', 'comprasInsumos', 'gastosArca', 'comprobantesArca', 'cobrosPagos', 'empleados', 'asistencias', 'animales', 'toros', 'guachera', 'recria', 'alimentos', 'ordenes', 'reproduccion', 'sanidad', 'maquinas', 'insumosSanidad', 'mantenimiento', 'silos', 'siloMovimientos'];
 
     const ROLE_PERMISSIONS = {
       propietario: {
         name: 'Propietario',
-        modules: ['empresa', 'dashboard', 'reportes', 'campos', 'hacienda', 'instalaciones', 'inventario', 'mantenimiento', 'auditoria', 'animales', 'toros', 'guachera', 'recria', 'alimentos', 'ordenes', 'entregas', 'costosOperativos', 'costos', 'finanzas', 'arca', 'rentabilidad', 'rrhh', 'reproduccion', 'partos', 'produccion', 'sanidad'],
+        modules: ['empresa', 'dashboard', 'reportes', 'campos', 'hacienda', 'instalaciones', 'inventario', 'mantenimiento', 'auditoria', 'animales', 'toros', 'guachera', 'recria', 'alimentos', 'silos', 'ordenes', 'entregas', 'costosOperativos', 'costos', 'finanzas', 'arca', 'rentabilidad', 'rrhh', 'reproduccion', 'partos', 'produccion', 'sanidad'],
         canCreate: true,
         canEdit: true,
         canDelete: true,
@@ -2606,7 +2737,7 @@
       },
       administracion: {
         name: 'Administracion',
-        modules: ['empresa', 'dashboard', 'reportes', 'campos', 'hacienda', 'instalaciones', 'inventario', 'mantenimiento', 'auditoria', 'animales', 'toros', 'guachera', 'recria', 'alimentos', 'ordenes', 'entregas', 'costosOperativos', 'costos', 'finanzas', 'arca', 'rentabilidad', 'rrhh', 'reproduccion', 'partos', 'produccion'],
+        modules: ['empresa', 'dashboard', 'reportes', 'campos', 'hacienda', 'instalaciones', 'inventario', 'mantenimiento', 'auditoria', 'animales', 'toros', 'guachera', 'recria', 'alimentos', 'silos', 'ordenes', 'entregas', 'costosOperativos', 'costos', 'finanzas', 'arca', 'rentabilidad', 'rrhh', 'reproduccion', 'partos', 'produccion'],
         canCreate: true,
         canEdit: true,
         canDelete: true,
@@ -2616,7 +2747,7 @@
       },
       ingeniero: {
         name: 'Ingeniero',
-        modules: ['empresa', 'dashboard', 'reportes', 'campos', 'hacienda', 'instalaciones', 'inventario', 'mantenimiento', 'alimentos', 'ordenes', 'entregas', 'costosOperativos', 'finanzas', 'arca', 'rentabilidad', 'rrhh', 'animales', 'toros', 'guachera', 'recria', 'reproduccion', 'partos', 'produccion'],
+        modules: ['empresa', 'dashboard', 'reportes', 'campos', 'hacienda', 'instalaciones', 'inventario', 'mantenimiento', 'alimentos', 'silos', 'ordenes', 'entregas', 'costosOperativos', 'finanzas', 'arca', 'rentabilidad', 'rrhh', 'animales', 'toros', 'guachera', 'recria', 'reproduccion', 'partos', 'produccion'],
         canCreate: true,
         canEdit: true,
         canDelete: false,
@@ -2636,7 +2767,7 @@
       },
       operador: {
         name: 'Operador',
-        modules: ['empresa', 'dashboard', 'reportes', 'campos', 'hacienda', 'inventario', 'mantenimiento', 'animales', 'toros', 'guachera', 'recria', 'alimentos', 'reproduccion', 'partos', 'produccion', 'ordenes', 'entregas', 'sanidad', 'costosOperativos', 'finanzas', 'arca', 'rentabilidad'],
+        modules: ['empresa', 'dashboard', 'reportes', 'campos', 'hacienda', 'inventario', 'mantenimiento', 'animales', 'toros', 'guachera', 'recria', 'alimentos', 'silos', 'reproduccion', 'partos', 'produccion', 'ordenes', 'entregas', 'sanidad', 'costosOperativos', 'finanzas', 'arca', 'rentabilidad'],
         canCreate: true,
         canEdit: true,
         canDelete: false,
@@ -2911,6 +3042,17 @@
         { key: 'stock', label: 'Stock', type: 'number', required: true },
         { key: 'unidad', label: 'Unidad', type: 'text' }
       ],
+      silos: [
+        { key: 'nombre', label: 'Nombre', type: 'text', required: true },
+        { key: 'radio_metros', label: 'Radio (m)', type: 'number', required: true },
+        { key: 'altura_cilindro_metros', label: 'Altura cilindro (m)', type: 'number', required: true },
+        { key: 'altura_cono_metros', label: 'Altura cono (m)', type: 'number', required: true },
+        { key: 'tipo_grano_actual', label: 'Grano/alimento actual', type: 'text' },
+        { key: 'densidad_tn_m3', label: 'Densidad (TN/m³)', type: 'number', required: true },
+        { key: 'toneladas_actuales', label: 'Stock inicial (TN, ajuste manual)', type: 'number' },
+        { key: 'umbral_alerta_pct', label: 'Umbral de alerta (%)', type: 'number' },
+        { key: 'observaciones', label: 'Observaciones', type: 'textarea', full: true }
+      ],
       ordenes: [
         { key: 'fecha', label: 'Fecha', type: 'date', required: true },
         { key: 'turno', label: 'Turno', type: 'text', required: true },
@@ -3018,6 +3160,7 @@
         { key: 'fecha', label: 'Fecha', type: 'date', required: true },
         { key: 'usina', label: 'Usina', type: 'text', required: true },
         { key: 'numero_lume', label: 'N.º LUME', type: 'text', required: true },
+        { key: 'coe', label: 'Código de Operación Electrónica (COE)', type: 'text' },
         { key: 'periodo', label: 'Período', type: 'text', required: true },
         { key: 'litros_liquidados', label: 'Litros liquidados', type: 'number', required: true },
         { key: 'grasa_pct', label: 'Grasa %', type: 'number' },
@@ -3029,6 +3172,10 @@
         { key: 'descuentos', label: 'Descuentos', type: 'number' },
         { key: 'neto', label: 'Neto', type: 'number' },
         { key: 'fecha_cobro', label: 'Fecha cobro', type: 'date' },
+        { key: 'porcentaje_tambero', label: '% tambero asociado', type: 'number' },
+        { key: 'tipo_inscripcion_tambero', label: 'Inscripción fiscal tambero', type: 'select', options: ['SIN_DECLARAR', 'MONOTRIBUTO', 'RESPONSABLE_INSCRIPTO', 'AUTONOMO'] },
+        { key: 'estado_sisa', label: 'Estado SISA', type: 'select', options: ['1', '2', '3', 'INACTIVO', 'MONOTRIBUTO'], required: true },
+        { key: 'provincia_compradora', label: 'Provincia compradora (IIBB)', type: 'text' },
         { key: 'observaciones', label: 'Observaciones', type: 'textarea', full: true }
       ],
       ventasHacienda: [
@@ -4991,6 +5138,7 @@
       setVisible('btnNuevaGuachera', canWrite && cfg.modules.includes('guachera'));
       setVisible('btnNuevaRecria', canWrite && cfg.modules.includes('recria'));
       setVisible('btnNuevoAlimento', canWrite && cfg.modules.includes('alimentos'));
+      setVisible('btnNuevoSilo', canWrite && cfg.modules.includes('silos'));
       setVisible('btnNuevaOrdene', canWrite && cfg.modules.includes('ordenes'));
       setVisible('btnNuevaEntregaUsina', canWrite && cfg.modules.includes('entregas'));
       setVisible('btnNuevoCostoOperativo', canWrite && cfg.modules.includes('costosOperativos'));
@@ -5001,10 +5149,11 @@
       setVisible('btnNuevoCredito', canWrite && cfg.modules.includes('finanzas'));
       setVisible('btnNuevaLiquidacionLeche', canWrite && cfg.modules.includes('arca'));
       setVisible('btnNuevaVentaHacienda', canWrite && cfg.modules.includes('arca'));
-      setVisible('btnNuevaCompraInsumo', canWrite && cfg.modules.includes('arca'));
-      setVisible('btnNuevoGasto', canWrite && cfg.modules.includes('arca'));
+      setVisible('btnNuevaCompraInsumo', canWrite && cfg.modules.includes('costos'));
+      setVisible('btnNuevoGasto', canWrite && cfg.modules.includes('costos'));
       setVisible('btnNuevoComprobanteArca', canWrite && cfg.modules.includes('arca'));
-      setVisible('btnNuevoCobroPago', canWrite && cfg.modules.includes('arca'));
+      setVisible('btnNuevoCobroPago', canWrite && cfg.modules.includes('costos'));
+      setVisible('btnNuevoRegistroSenasa', canWrite && cfg.modules.includes('sanidad'));
       setVisible('btnNuevoEmpleado', canWrite && cfg.modules.includes('rrhh'));
       setVisible('btnNuevaAsistencia', canWrite && cfg.modules.includes('rrhh'));
       setVisible('btnNuevaReproduccion', canWrite && cfg.modules.includes('reproduccion'));
@@ -5740,6 +5889,7 @@
         produccion: 'Producción',
         sanidad: 'Sanidad',
         alimentos: 'Alimentos',
+        silos: 'Silos',
         instalaciones: 'Instalaciones',
         mantenimiento: 'Mantenimiento',
         ordenes: 'Ordeñes',
@@ -5781,37 +5931,11 @@
       if (name === 'reportes') {
         renderReportesPanel();
       }
-      if (name === 'rrhh') renderTamboHr();
 
       if (isMobileViewport()) {
         setMobileMenuState(false);
       }
     }
-
-    const TAMBO_HR_KEY = 'tambo_rrhh_records';
-    function getTamboHr() {
-      try { return JSON.parse(localStorage.getItem(TAMBO_HR_KEY) || '[]'); } catch { return []; }
-    }
-    function renderTamboHr() {
-      const records = getTamboHr();
-      const active = records.filter((record) => record.status === 'Activo');
-      byId('tamboHrActive').textContent = active.length;
-      byId('tamboHrPayroll').textContent = active.reduce((sum, record) => sum + Number(record.salary || 0), 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
-      byId('tamboHrAbsences').textContent = records.reduce((sum, record) => sum + Number(record.absences || 0), 0);
-      const rows = byId('tamboHrRows');
-      if (rows) rows.innerHTML = records.length ? records.map((record) => `<tr><td>${record.name}</td><td>${record.role}</td><td>${record.status}</td><td>${Number(record.salary || 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</td><td>${record.absences || 0}</td></tr>`).join('') : '<tr><td colspan="5">Sin registros de personal.</td></tr>';
-    }
-    byId('btnTamboHrSave')?.addEventListener('click', () => {
-      const name = byId('tamboHrName').value.trim();
-      const role = byId('tamboHrRole').value.trim();
-      if (!name || !role) return showToast('Completá nombre y puesto.');
-      const records = getTamboHr();
-      records.push({ name, role, status: byId('tamboHrStatus').value, salary: Number(byId('tamboHrSalary').value || 0), absences: Number(byId('tamboHrAbsence').value || 0), createdAt: new Date().toISOString() });
-      localStorage.setItem(TAMBO_HR_KEY, JSON.stringify(records));
-      byId('tamboHrName').value = ''; byId('tamboHrRole').value = ''; byId('tamboHrSalary').value = ''; byId('tamboHrAbsence').value = '0';
-      renderTamboHr();
-      showToast('Registro de RRHH guardado localmente.');
-    });
 
     function openHaciendaAnimales() {
       openModule('animales');
@@ -5851,6 +5975,14 @@
     function openHaciendaSanidad() {
       openModule('sanidad');
       setActiveSubmodule('hacienda-sanidad');
+    }
+
+    function openHaciendaSenasaObligatorio() {
+      openModule('sanidad');
+      setActiveSubmodule('hacienda-senasa');
+      setTimeout(() => {
+        document.getElementById('arca-senasa')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 80);
     }
 
     function setInventarioView(mode = 'summary') {
@@ -5904,6 +6036,20 @@
       const showSummary = mode === 'summary';
       byId('costosKpiGrid')?.classList.toggle('is-hidden', !showSummary);
       byId('costosDataCard')?.classList.toggle('is-hidden', showSummary);
+      document.querySelectorAll('.costos-section').forEach((section) => section.classList.add('is-hidden'));
+    }
+
+    function openCostosSection(sectionId) {
+      openModule('costos');
+      byId('costosKpiGrid')?.classList.add('is-hidden');
+      byId('costosDataCard')?.classList.add('is-hidden');
+      document.querySelectorAll('.costos-section').forEach((section) => {
+        section.classList.toggle('is-hidden', section.id !== sectionId);
+      });
+      setActiveSubmodule(sectionId);
+      setTimeout(() => {
+        document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 80);
     }
 
     function openFinanzasResumen() {
@@ -6016,7 +6162,7 @@
       loadDataHadApiSuccess = false;
       loadDataHadConnectivityError = false;
       const arcaLocal = loadArcaLocalState();
-      const [campos, lotes, instalaciones, entregasUsina, costos, costosOperativos, finanzas, caja, bancos, creditos, chequesCobrar, chequesCubrir, liquidacionesLeche, ventasHacienda, comprasInsumos, gastosArca, comprobantesArca, cobrosPagos, empleados, asistencias, animales, toros, guachera, recria, alimentos, ordenes, reproduccion, sanidad, maquinas, insumosSanidad, mantenimiento] = await Promise.all([
+      const [campos, lotes, instalaciones, entregasUsina, costos, costosOperativos, finanzas, caja, bancos, creditos, chequesCobrar, chequesCubrir, liquidacionesLeche, ventasHacienda, comprasInsumos, gastosArca, comprobantesArca, cobrosPagos, empleados, asistencias, animales, toros, guachera, recria, alimentos, ordenes, reproduccion, sanidad, maquinas, insumosSanidad, mantenimiento, silos, siloMovimientos] = await Promise.all([
         request('/campos').catch(() => []),
         request('/lotes').catch(() => []),
         request('/instalaciones').catch(() => []),
@@ -6048,6 +6194,8 @@
         request('/maquinas').catch(() => []),
         request('/insumosSanidad').catch(() => []),
         request('/mantenimiento').catch(() => loadMantenimientoLocal()),
+        request('/silos').catch(() => []),
+        request('/silo-movimientos').catch(() => []),
       ]);
 
       if (!loadDataHadApiSuccess && loadDataHadConnectivityError) {
@@ -6092,6 +6240,8 @@
       state.maquinas = maquinas;
       state.insumosSanidad = insumosSanidad;
       state.mantenimiento = mantenimiento;
+      state.silos = silos;
+      state.siloMovimientos = siloMovimientos;
       saveArcaLocalState();
       saveOfflineSnapshot();
       renderConnectivityStatus();
@@ -6578,6 +6728,149 @@
       `).join('');
     }
 
+    // Volumen cilindro + cono convertido a toneladas, mismo cálculo que hace el backend (services/siloStock.service.js).
+    const DIAS_ALERTA_ALMACENAMIENTO_SILO = 90;
+    function calcularCapacidadSilo(silo) {
+      const radio = Number(silo.radio_metros || 0);
+      const alturaCilindro = Number(silo.altura_cilindro_metros || 0);
+      const alturaCono = Number(silo.altura_cono_metros || 0);
+      const densidad = Number(silo.densidad_tn_m3 || 0);
+      const volumenCilindro = Math.PI * radio * radio * alturaCilindro;
+      const volumenCono = (1 / 3) * Math.PI * radio * radio * alturaCono;
+      return Math.round((volumenCilindro + volumenCono) * densidad * 100) / 100;
+    }
+
+    function ultimaCargaSilo(siloId) {
+      const cargas = (state.siloMovimientos || [])
+        .filter((m) => String(m.silo_id) === String(siloId) && normalizeSignal(m.tipo) === 'CARGA')
+        .map((m) => parseFlexibleDate(m.fecha))
+        .filter(Boolean);
+      if (!cargas.length) return null;
+      return new Date(Math.max(...cargas.map((d) => d.getTime())));
+    }
+
+    function renderSilos() {
+      const silos = state.silos || [];
+      const contenedor = byId('panelSilos');
+      const selectMov = byId('movSiloId');
+      if (!contenedor) return;
+
+      const hoy = new Date();
+      let alertas = 0;
+      let stockTotal = 0;
+
+      contenedor.innerHTML = silos.length ? silos.map((silo) => {
+        const capacidad = calcularCapacidadSilo(silo);
+        const actual = Number(silo.toneladas_actuales || 0);
+        stockTotal += actual;
+        const pct = capacidad > 0 ? Math.min(100, (actual / capacidad) * 100) : 0;
+        const umbral = Number(silo.umbral_alerta_pct ?? 25);
+        const bajoStock = capacidad > 0 && pct <= umbral;
+        if (bajoStock) alertas += 1;
+
+        const ultimaCarga = ultimaCargaSilo(silo.id);
+        const diasAlmacenado = ultimaCarga ? Math.floor((hoy - ultimaCarga) / (1000 * 60 * 60 * 24)) : null;
+        const riesgoMicotoxinas = diasAlmacenado !== null && diasAlmacenado > DIAS_ALERTA_ALMACENAMIENTO_SILO;
+
+        return `
+          <div style="display:flex; gap:14px; border:1px solid rgba(148,163,184,0.25); border-radius:8px; padding:12px; flex-wrap:wrap;">
+            <div style="width:70px; height:100px; border:3px solid var(--text-primary,#2c3e50); border-radius:4px 4px 16px 16px; position:relative; background:#e2e8f0; overflow:hidden; flex-shrink:0;">
+              <div style="position:absolute; bottom:0; width:100%; height:${pct}%; background-color:${bajoStock ? '#e74c3c' : '#f39c12'};"></div>
+            </div>
+            <div style="flex:1; min-width:200px;">
+              <div style="font-weight:bold;">${escapeHtml(silo.nombre)}</div>
+              <div class="muted">${escapeHtml(silo.tipo_grano_actual || 'Sin grano cargado')} · ${actual.toFixed(1)} TN / ${capacidad.toFixed(1)} TN (${pct.toFixed(0)}%)</div>
+              <div style="margin-top:4px; display:flex; gap:6px; flex-wrap:wrap;">
+                ${bajoStock ? '<span class="pill bad">⚠️ Reposición urgente</span>' : '<span class="pill ok">Stock seguro</span>'}
+                ${riesgoMicotoxinas ? `<span class="pill bad">⏳ ${diasAlmacenado} días sin recarga (riesgo micotoxinas)</span>` : (diasAlmacenado !== null ? `<span class="pill">${diasAlmacenado} días desde última carga</span>` : '')}
+              </div>
+              <div style="margin-top:6px;">
+                <button class="btn" onclick="editRow('silos','${silo.id}')">Editar</button>
+                <button class="btn" onclick="deleteRow('silos','${silo.id}')">Borrar</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('') : '<div class="muted">No hay silos cargados todavía. Creá el primero con "+ Nuevo silo".</div>';
+
+      byId('kpiSilosTotal').textContent = silos.length;
+      byId('kpiSilosStock').textContent = `${stockTotal.toFixed(1)} TN`;
+      byId('kpiSilosAlerta').textContent = alertas;
+
+      if (selectMov) {
+        const valorPrevio = selectMov.value;
+        const placeholder = silos.length ? '<option value="">Seleccioná un silo…</option>' : '<option value="">Sin silos cargados todavía</option>';
+        selectMov.innerHTML = placeholder + silos.map((s) => `<option value="${s.id}">${escapeHtml(s.nombre)}</option>`).join('');
+        if (valorPrevio && silos.some((s) => `${s.id}` === valorPrevio)) selectMov.value = valorPrevio;
+      }
+    }
+
+    function renderSiloMovimientos() {
+      const tbody = byId('tbodySiloMovimientos');
+      if (!tbody) return;
+      const silosPorId = new Map((state.silos || []).map((s) => [String(s.id), s.nombre]));
+      const rows = [...(state.siloMovimientos || [])].sort((a, b) => `${b.fecha}`.localeCompare(`${a.fecha}`));
+      tbody.innerHTML = rows.length ? rows.map((row) => `
+        <tr>
+          <td>${row.fecha || ''}</td>
+          <td>${escapeHtml(silosPorId.get(String(row.silo_id)) || `#${row.silo_id}`)}</td>
+          <td>${row.tipo === 'CARGA' ? '📥 Carga' : '📤 Consumo'}</td>
+          <td>${escapeHtml(row.tipo_grano || '')}</td>
+          <td>${Number(row.toneladas || 0).toFixed(2)}</td>
+          <td>${row.tipo === 'CARGA' ? escapeHtml(`${row.proveedor || ''} ${row.numero_lote_proveedor ? '· Lote ' + row.numero_lote_proveedor : ''}`) : escapeHtml(row.destino || '')}</td>
+          <td>${row.costo_total ? formatMoney(row.costo_total) : '-'}</td>
+          <td><button class="btn" onclick="deleteRow('siloMovimientos','${row.id}')">Borrar</button></td>
+        </tr>
+      `).join('') : '<tr><td colspan="8" class="muted">Todavía no hay cargas ni consumos registrados.</td></tr>';
+    }
+
+    function toggleCamposMovimientoSilo() {
+      const tipo = byId('movTipo')?.value;
+      byId('movCamposCarga').style.display = tipo === 'CARGA' ? 'flex' : 'none';
+      byId('movCamposConsumo').style.display = tipo === 'CARGA' ? 'none' : 'flex';
+    }
+
+    async function registrarMovimientoSilo() {
+      const siloId = byId('movSiloId')?.value;
+      if (!siloId) { alert('Cargá un silo antes de registrar movimientos.'); return; }
+      const tipo = byId('movTipo').value;
+      const toneladas = Number(byId('movToneladas').value || 0);
+      if (!(toneladas > 0)) { alert('Ingresá una cantidad de toneladas mayor a cero.'); return; }
+
+      const payload = {
+        tipo,
+        toneladas,
+        responsable: byId('movResponsable').value.trim(),
+        fecha: new Date().toISOString().slice(0, 10),
+      };
+      if (tipo === 'CARGA') {
+        payload.tipoGrano = byId('movTipoGrano').value.trim();
+        payload.proveedor = byId('movProveedor').value.trim();
+        payload.numeroLoteProveedor = byId('movLote').value.trim();
+        payload.precioTonelada = Number(byId('movPrecio').value || 0);
+      } else {
+        payload.destino = byId('movDestino').value.trim();
+      }
+
+      try {
+        const resultado = await request(`/silos/${encodeURIComponent(siloId)}/movimientos`, {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        });
+        alert(`${tipo === 'CARGA' ? 'Carga' : 'Consumo'} registrado: ${toneladas} TN. Stock actual: ${Number(resultado.silo.toneladas_actuales).toFixed(1)} TN.`);
+        byId('movToneladas').value = '';
+        byId('movTipoGrano').value = '';
+        byId('movProveedor').value = '';
+        byId('movLote').value = '';
+        byId('movPrecio').value = '';
+        byId('movDestino').value = '';
+        byId('movResponsable').value = '';
+        await loadData();
+      } catch (error) {
+        alert(error.message || 'No se pudo registrar el movimiento del silo.');
+      }
+    }
+
     function renderOrdenes() {
       byId('tbodyOrdenes').innerHTML = state.ordenes.map((row) => `
         <tr>
@@ -7049,6 +7342,7 @@
           <td>${row.fecha || ''}</td>
           <td>${row.usina || ''}</td>
           <td><strong>${row.numero_lume || ''}</strong></td>
+          <td>${row.coe || '<span class="muted">Sin COE</span>'}</td>
           <td>${row.periodo || ''}</td>
           <td>${Number(row.litros_liquidados || 0).toFixed(1)}</td>
           <td>${row.grasa_pct ?? ''}</td>
@@ -7060,7 +7354,11 @@
           <td>${formatMoney(row.descuentos)}</td>
           <td><strong>${formatMoney(row.neto)}</strong></td>
           <td>${row.fecha_cobro || ''}</td>
+          <td>${estadoPill(row.estado_arca || 'SIN_ENVIAR')}${row.resumen_fiscal ? `<small>IVA ret. ${formatMoney(row.resumen_fiscal.retenciones?.iva_sisa || 0)}<br>Neto banco ${formatMoney(row.resumen_fiscal.neto_estimado_tambo || 0)}</small>` : ''}</td>
           <td>
+            <button class="btn" onclick="calcularRetencionesLiquidacionLeche('${row.id}')">Calcular fiscal</button>
+            <button class="btn" onclick="simularLiquidacionLecheArca('${row.id}')">Simular ARCA</button>
+            <button class="btn" onclick="encolarLiquidacionLecheArca('${row.id}')">Encolar ARCA</button>
             <button class="btn" onclick="editRow('liquidacionesLeche','${row.id}')">Editar</button>
             <button class="btn" onclick="deleteRow('liquidacionesLeche','${row.id}')">Borrar</button>
           </td>
@@ -7203,6 +7501,140 @@
           <div class="finance-flow-row"><div class="finance-flow-head"><span>Importe cobrado</span><strong>${formatMoney(netoCobradoMes)}</strong></div></div>
         `;
       }
+      actualizarEstadoFiscalTambo();
+      renderCotejoLitrosLume(liquidaciones);
+    }
+
+    // Compara los litros declarados en cada LUME contra lo ordeñado en el ERP para ese mismo período (formato periodo: AAAA-MM).
+    function renderCotejoLitrosLume(liquidaciones) {
+      const contenedor = byId('cotejoLitrosLume');
+      if (!contenedor) return;
+      if (!liquidaciones.length) {
+        contenedor.innerHTML = '<div class="muted">Cargá liquidaciones de leche para comparar contra el ordeñe propio.</div>';
+        return;
+      }
+
+      const parsePeriodo = (str) => {
+        const m = `${str || ''}`.match(/^(\d{4})-(\d{2})/);
+        if (!m) return null;
+        return { year: Number(m[1]), month: Number(m[2]) - 1 };
+      };
+
+      contenedor.innerHTML = liquidaciones.map((row) => {
+        const periodo = parsePeriodo(row.periodo);
+        const declarados = Number(row.litros_liquidados || 0);
+        const etiqueta = `${row.usina || 'Usina'} · ${row.periodo || 'sin período'}`;
+
+        if (!periodo) {
+          return `<div class="finance-flow-row"><div class="finance-flow-head"><span>${etiqueta}</span><strong>Período no reconocido (usar formato AAAA-MM)</strong></div></div>`;
+        }
+
+        const litrosPropios = (state.ordenes || []).reduce((acc, o) => {
+          const d = new Date(`${o?.fecha || ''}T00:00:00`);
+          if (Number.isNaN(d.getTime()) || d.getFullYear() !== periodo.year || d.getMonth() !== periodo.month) return acc;
+          return acc + Number(o?.litros || 0);
+        }, 0);
+
+        if (litrosPropios <= 0) {
+          return `<div class="finance-flow-row"><div class="finance-flow-head"><span>${etiqueta}</span><strong>${declarados.toFixed(1)} L declarados · sin ordeñes propios cargados en ese período</strong></div></div>`;
+        }
+
+        const desvioPct = ((declarados - litrosPropios) / litrosPropios) * 100;
+        const nivel = Math.abs(desvioPct) > 5 ? 'var(--red, #dc2626)' : (Math.abs(desvioPct) > 2 ? 'var(--orange, #d97706)' : 'var(--green, #16a34a)');
+        return `<div class="finance-flow-row"><div class="finance-flow-head"><span>${etiqueta}</span><strong style="color:${nivel}">${declarados.toFixed(1)} L declarados vs ${litrosPropios.toFixed(1)} L propios (${desvioPct >= 0 ? '+' : ''}${desvioPct.toFixed(1)}%)</strong></div></div>`;
+      }).join('');
+    }
+
+    async function actualizarEstadoFiscalTambo() {
+      const setText = (id, value) => { const element = byId(id); if (element) element.textContent = value; };
+      try {
+        const [estado, cola, retenciones] = await Promise.all([
+          request('/fiscal/arca/estado'),
+          request('/fiscal/cola'),
+          request('/fiscal/retenciones')
+        ]);
+        const configurada = Boolean(estado?.listoParaSolicitarToken);
+        const pendientes = (cola || []).filter((item) => ['PENDIENTE_ARCA', 'EN_PROCESO'].includes(item.estado)).length;
+        const totalRetenciones = (retenciones || []).reduce((total, item) => total
+          + Number(item.retencion_iva_sisa || 0)
+          + Number(item.retencion_ganancias_sisa || 0)
+          + Number(item.retencion_iibb || 0)
+          + Number(item.retencion_suss_tambero || 0), 0);
+        setText('arcaFiscalPreparacion', configurada ? 'Lista' : 'Pendiente');
+        setText('arcaFiscalEntorno', estado?.configuracion?.entorno || 'Sin entorno');
+        setText('arcaFiscalCola', pendientes);
+        setText('arcaFiscalColaDetalle', `${(cola || []).length} operación(es) registradas`);
+        setText('arcaFiscalRetenciones', formatMoney(totalRetenciones));
+        setText('arcaFiscalRetencionesDetalle', `${(retenciones || []).length} LUME(s) en libro fiscal`);
+        setText('arcaFiscalAviso', estado?.emisionOficialDisponible ? 'Emisión oficial habilitada.' : (estado?.motivo || 'Emisión oficial no habilitada.'));
+      } catch (error) {
+        setText('arcaFiscalPreparacion', 'Sin conexión');
+        setText('arcaFiscalEntorno', 'Backend fiscal no disponible');
+        setText('arcaFiscalCola', '--');
+        setText('arcaFiscalRetenciones', '--');
+        setText('arcaFiscalAviso', error.message || 'No se pudo consultar el backend fiscal.');
+      }
+    }
+
+    async function encolarLiquidacionLecheArca(id) {
+      try {
+        const resultado = await request(`/fiscal/lel/${encodeURIComponent(id)}/encolar`, { method: 'POST' });
+        alert(resultado.queued ? 'Liquidación encolada para ARCA.' : 'La liquidación ya está pendiente en la cola fiscal.');
+        await loadData();
+      } catch (error) {
+        alert(error.message || 'No se pudo encolar la liquidación fiscal.');
+      }
+    }
+
+    async function calcularRetencionesLiquidacionLeche(id) {
+      const liquidacion = (state.liquidacionesLeche || []).find((row) => `${row.id}` === `${id}`);
+      if (!liquidacion) return alert('No se encontró la liquidación de leche.');
+      if (!liquidacion.estado_sisa) return alert('Cargá el Estado SISA al editar la liquidación antes de calcular.');
+      try {
+        const resultado = await request(`/fiscal/lel/${encodeURIComponent(id)}/calcular-retenciones`, {
+          method: 'POST',
+          body: JSON.stringify({
+            estadoSisa: liquidacion.estado_sisa,
+            provinciaCompradora: liquidacion.provincia_compradora,
+            porcentajeTambero: liquidacion.porcentaje_tambero,
+            tipoInscripcionTambero: liquidacion.tipo_inscripcion_tambero
+          })
+        });
+        alert(`Fiscal calculado. Neto banco: ${formatMoney(resultado.resumenFiscal.neto_estimado_tambo)}.`);
+        await loadData();
+      } catch (error) {
+        alert(error.message || 'No se pudo calcular la liquidación fiscal.');
+      }
+    }
+
+    async function simularLiquidacionLecheArca(id) {
+      try {
+        const resultado = await request(`/fiscal/lel/${encodeURIComponent(id)}/simular`, { method: 'POST' });
+        mostrarPreviewArca(resultado.resultado.feCAEReqPreview);
+        await loadData();
+      } catch (error) {
+        alert(error.message || 'No se pudo simular la liquidación LEL.');
+      }
+    }
+
+    // Muestra el request FeCAEReq (WSFEv1) calculado a partir de los datos reales, solo como comparación/reconciliación
+    // contra el LUME real que emite la usina. PampaTambo no lo envía a ARCA (la usina es quien emite ese comprobante).
+    function mostrarPreviewArca(preview) {
+      if (!preview) return;
+      byId('previewArcaOverlay')?.remove();
+      const overlay = document.createElement('div');
+      overlay.id = 'previewArcaOverlay';
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.75);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+      overlay.innerHTML = `
+        <div style="background:#0f172a;color:#e2e8f0;max-width:640px;width:100%;max-height:85vh;overflow:auto;border-radius:10px;padding:20px;font-family:monospace;">
+          <div style="background:#fff7e6;color:#8a5a00;padding:10px;border-radius:6px;font-family:-apple-system,sans-serif;margin-bottom:12px;">⚠️ ${escapeHtml(preview._aviso || 'Previsualización local, no enviada a ARCA.')}</div>
+          <pre style="white-space:pre-wrap;word-break:break-word;">${escapeHtml(JSON.stringify(preview, null, 2))}</pre>
+          <button class="btn" style="margin-top:12px;" id="btnCerrarPreviewArca">Cerrar</button>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      byId('btnCerrarPreviewArca').addEventListener('click', () => overlay.remove());
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
     }
 
     function renderRrhh() {
@@ -7485,6 +7917,30 @@
           </td>
         </tr>
       `).join('');
+      renderSenasaObligatorio();
+    }
+
+    // Registros del plan sanitario obligatorio SENASA: subconjunto de Sanidad por tipo.
+    const SENASA_TIPOS_OBLIGATORIOS = ['TUBERCULINA_PPD', 'BRUCELOSIS_DOES', 'AFTOSA', 'BRUCELOSIS_CEPA19'];
+
+    function renderSenasaObligatorio() {
+      const tbody = byId('tbodySenasa');
+      if (!tbody) return;
+      const rows = (state.sanidad || []).filter((row) => SENASA_TIPOS_OBLIGATORIOS.includes(normalizeSignal(row?.tipo)));
+      tbody.innerHTML = rows.length ? rows.map((row) => `
+        <tr>
+          <td>${row.fecha || ''}</td>
+          <td><strong>${row.vaca || ''}</strong></td>
+          <td>${row.tipo || ''}</td>
+          <td>${row.producto || ''}</td>
+          <td>${row.dias_retiro ?? 0}</td>
+          <td>${row.responsable || ''}</td>
+          <td>
+            <button class="btn" onclick="editRow('sanidad','${row.id}')">Editar</button>
+            <button class="btn" onclick="deleteRow('sanidad','${row.id}')">Borrar</button>
+          </td>
+        </tr>
+      `).join('') : '<tr><td colspan="7" class="muted">Sin registros de Tuberculosis, Brucelosis, Aftosa o Cepa 19 todavía.</td></tr>';
     }
 
     function nombreCampo(campoId) {
@@ -8235,6 +8691,8 @@
       renderGuachera();
       renderRecria();
       renderAlimentos();
+      renderSilos();
+      renderSiloMovimientos();
       renderOrdenes();
       renderProduccionResumen();
       renderEntregasUsina();
@@ -9274,6 +9732,9 @@
     byId('btnNuevaGuachera').addEventListener('click', () => openModal('guachera'));
     byId('btnNuevaRecria').addEventListener('click', () => openModal('recria'));
     byId('btnNuevoAlimento').addEventListener('click', () => openModal('alimentos'));
+    byId('btnNuevoSilo')?.addEventListener('click', () => openModal('silos'));
+    byId('movTipo')?.addEventListener('change', toggleCamposMovimientoSilo);
+    toggleCamposMovimientoSilo();
     byId('btnInvNuevoAlimento').addEventListener('click', () => openModal('alimentos'));
     byId('btnNuevaMaquina').addEventListener('click', () => openModal('maquinas'));
     byId('btnNuevoInsumoSanidad').addEventListener('click', () => openModal('insumosSanidad'));
@@ -9296,6 +9757,7 @@
     byId('btnNuevoGasto').addEventListener('click', () => openModal('gastosArca'));
     byId('btnNuevoComprobanteArca').addEventListener('click', () => openModal('comprobantesArca'));
     byId('btnNuevoCobroPago').addEventListener('click', () => openModal('cobrosPagos'));
+    byId('btnNuevoRegistroSenasa')?.addEventListener('click', () => openModal('sanidad'));
     byId('btnNuevoEmpleado').addEventListener('click', () => openModal('empleados'));
     byId('btnNuevaAsistencia').addEventListener('click', () => openModal('asistencias'));
     byId('btnNuevaReproduccion').addEventListener('click', () => openModal('reproduccion'));
