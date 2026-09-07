@@ -1,0 +1,28 @@
+name: Deploy Nexo landing to Cloudflare Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - public/**
+      - wrangler.toml
+      - .github/workflows/deploy-pages.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy public to Cloudflare Pages
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          command: pages deploy public --project-name nexo-landing
