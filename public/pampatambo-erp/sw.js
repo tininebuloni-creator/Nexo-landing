@@ -1,5 +1,5 @@
-const CACHE_NAME = 'pampatambo-pwa-v3';
-const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './logo.png', './pampaia-source.js'];
+const CACHE_NAME = 'pampatambo-pwa-v4-mobile-nav';
+const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './logo2.png', './pampaia-source.js'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));

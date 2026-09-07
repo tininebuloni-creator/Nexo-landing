@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pampaagro-erp-v1';
+const CACHE_NAME = 'pampaagro-erp-v2-mobile-nav';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './logo2.png'];
 
 self.addEventListener('install', (event) => {

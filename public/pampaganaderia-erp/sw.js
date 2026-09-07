@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pampa-erp-v1';
+const CACHE_NAME = 'pampaganaderia-erp-v2-mobile-nav';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
