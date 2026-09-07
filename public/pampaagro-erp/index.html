@@ -972,6 +972,10 @@ body {
 @media (max-width: 768px) {
   .mobile-menu-btn { display: inline-flex; align-items: center; gap: 6px; }
   .app { flex-direction: column; }
+  body.sidebar-open {
+    overflow: hidden;
+    touch-action: none;
+  }
   .sidebar {
     display: flex;
     flex-direction: column;
@@ -980,14 +984,27 @@ body {
     top: 0;
     bottom: 0;
     width: min(86vw, 320px);
-    z-index: 2000;
+    z-index: 2060;
     transition: left 0.25s ease;
     border-right: 1px solid var(--border);
     border-top: none;
-    overflow-y: auto;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    touch-action: pan-y;
+    overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
   }
   .sidebar.open { left: 0; }
+  .sidebar-nav {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    touch-action: pan-y;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 24px;
+  }
   .main {
     width: 100%;
     min-height: 100vh;
@@ -3538,6 +3555,7 @@ function openSidebarMobile() {
   const backdrop = document.getElementById('sidebarBackdrop');
   if (sidebar) sidebar.classList.add('open');
   if (backdrop) backdrop.classList.add('active');
+  document.body.classList.add('sidebar-open');
 }
 
 function closeSidebarMobile() {
@@ -3545,6 +3563,7 @@ function closeSidebarMobile() {
   const backdrop = document.getElementById('sidebarBackdrop');
   if (sidebar) sidebar.classList.remove('open');
   if (backdrop) backdrop.classList.remove('active');
+  document.body.classList.remove('sidebar-open');
 }
 
 function toggleSidebarMobile() {

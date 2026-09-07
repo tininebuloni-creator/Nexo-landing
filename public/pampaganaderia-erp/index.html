@@ -1095,6 +1095,15 @@ body {
     padding-bottom: 24px;
   }
   .sidebar.open { left: 0; }
+  .sidebar-nav {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    touch-action: pan-y;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 24px;
+  }
   .main {
     width: 100%;
     min-height: 100vh;
@@ -9818,8 +9827,7 @@ function imprimirPreDut(index) {
   const qr = item.preDutQrData || generarQrPreDut(item);
   const ventana = window.open('', '_blank', 'width=420,height=650');
   if (!ventana) return showToast('El navegador bloqueó la ventana de impresión.', 'error');
-  ventana.document.write(`<html><head><title>Orden de Carga ${item.id}</title><style>body{font-family:Arial,sans-serif;text-align:center;padding:18px}img{width:230px;height:230px}table{width:100%;text-align:left;border-collapse:collapse}td{padding:6px;border-bottom:1px solid #ddd}.notice{margin:14px 0;padding:10px;border:1px solid #d97706;background:#fff7ed}</style></head><body><h2>ORDEN DE CARGA PROVISIONAL</h2><div class="notice">PRE-DUT INTERNO - NO REEMPLAZA EL DUT OFICIAL DE SENASA</div><img src="${qr.startsWith('data:image/') ? qr : ''}" alt="QR Pre-DUT"><table>${[['Origen', item.renspaOrigen],['Destino', item.renspaDestino],['Cabezas', item.cantidadCabezas],['Categoría', item.categoriaId],['Chofer', item.cuitTransportista],['Camión', item.patenteChasis],['Creado', item.creadoEn]].map(row => `<tr><td><b>${row[0]}</b></td><td>${row[1] || ''}</td></tr>`).join('')}</table><p>Presentar el DUT oficial cuando sea emitido.</p><script>window.onload=()=>window.print();<\/script>  <script src="./pampa-privacy-popup.js"></script>
-</body></html>`);
+  ventana.document.write(`<html><head><title>Orden de Carga ${item.id}</title><style>body{font-family:Arial,sans-serif;text-align:center;padding:18px}img{width:230px;height:230px}table{width:100%;text-align:left;border-collapse:collapse}td{padding:6px;border-bottom:1px solid #ddd}.notice{margin:14px 0;padding:10px;border:1px solid #d97706;background:#fff7ed}</style></head><body><h2>ORDEN DE CARGA PROVISIONAL</h2><div class="notice">PRE-DUT INTERNO - NO REEMPLAZA EL DUT OFICIAL DE SENASA</div><img src="${qr.startsWith('data:image/') ? qr : ''}" alt="QR Pre-DUT"><table>${[['Origen', item.renspaOrigen],['Destino', item.renspaDestino],['Cabezas', item.cantidadCabezas],['Categoría', item.categoriaId],['Chofer', item.cuitTransportista],['Camión', item.patenteChasis],['Creado', item.creadoEn]].map(row => `<tr><td><b>${row[0]}</b></td><td>${row[1] || ''}</td></tr>`).join('')}</table><p>Presentar el DUT oficial cuando sea emitido.</p><script>window.onload=()=>window.print();<\/script></body></html>`);
   ventana.document.close();
 }
 
