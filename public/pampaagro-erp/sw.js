@@ -18,6 +18,10 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(fetch(event.request).catch(() => new Response(JSON.stringify({ ok: false, offline: true, message: 'Sin conexión: API no disponible.' }), { status: 503, headers: { 'Content-Type': 'application/json' } })));
     return;
   }
+  if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+    event.respondWith(fetch(event.request, { cache: 'no-store' }).catch(() => caches.match('./index.html')));
+    return;
+  }
   event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request).then((response) => {
     if (response.ok && response.type === 'basic') caches.open(CACHE_NAME).then((cache) => cache.put(event.request, response.clone()));
     return response;

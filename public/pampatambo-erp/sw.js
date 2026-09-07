@@ -19,9 +19,8 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(fetch(event.request).catch(() => new Response(JSON.stringify({ ok: false, offline: true, error: 'Sin conexión: operación pendiente.' }), { status: 503, headers: { 'Content-Type': 'application/json' } })));
     return;
   }
-
-  if (event.request.mode === 'navigate') {
-    event.respondWith(fetch(event.request).then((response) => {
+  if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+    event.respondWith(fetch(event.request, { cache: 'no-store' }).then((response) => {
       caches.open(CACHE_NAME).then((cache) => cache.put('./index.html', response.clone()));
       return response;
     }).catch(() => caches.match('./index.html')));

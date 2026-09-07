@@ -40,17 +40,8 @@ self.addEventListener('fetch', (event) => {
     })));
     return;
   }
-
   if (req.mode === 'navigate' || req.destination === 'document') {
-    event.respondWith(
-      fetch(req)
-        .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put('/index.html', copy)).catch(() => {});
-          return res;
-        })
-        .catch(() => caches.match('/index.html'))
-    );
+    event.respondWith(fetch(req, { cache: 'no-store' }).catch(() => caches.match('/index.html')));
     return;
   }
 
