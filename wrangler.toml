@@ -1,6 +1,6 @@
 name = "nexo-landing"
 compatibility_date = "2026-08-05"
-main = "index.js"
+pages_build_output_dir = "./public"
 
 [assets]
 directory = "./public"
