@@ -1081,8 +1081,8 @@ body {
 <script src="js/pampa-report-voice.js"></script>
 <script src="js/pampa-search.js?v=2"></script>
 <script src="js/pampa-trial-links.js"></script>
-<script src="./pampa-privacy-popup.js"></script>
-<script src="../trial-gate.js"></script>
+<script src="../../../packages/pampa-privacy-popup.js"></script>
+<script src="../../packages/pampa-onpremise-disclaimer.js"></script>
 <meta name="theme-color" content="#166534">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1119,6 +1119,7 @@ body {
 <style id="pampa-v10-config-css">
 #pampaV10ConfigBtn{position:fixed;top:14px;right:14px;z-index:100000;border:0;border-radius:10px;padding:10px 14px;background:#166534;color:#fff;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.16)}
 #pampaV10Overlay{position:fixed;inset:0;background:rgba(15,23,42,.48);z-index:99999;display:none;align-items:center;justify-content:center;padding:18px}
+#pampaSyncPanel,#pampaV9Config,#pampaV10ConfigBtn{display:none!important}
 #pampaV10Modal{width:min(760px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:16px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
 .pv10-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.pv10-tab{border:1px solid #cbd5e1;background:#fff;padding:8px 12px;border-radius:9px;cursor:pointer}.pv10-tab.active{background:#166534;color:#fff}
 .pv10-sec{display:none}.pv10-sec.active{display:block}.pv10-field{margin:10px 0}.pv10-field label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}.pv10-field input,.pv10-field select{width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd5e1;border-radius:9px}.pv10-status{margin-top:10px;padding:10px;border-radius:9px;background:#f8fafc;font-size:12px}.pv10-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
@@ -14014,5 +14015,6 @@ function setEl(id, txt) {
 </script>
 
 <script src="js/pampaia-source.js?v=pampaia-published-6"></script>
+<script src="../../packages/core-fiscal-arca/normative-update.browser.js"></script>
 </body>
 </html>
