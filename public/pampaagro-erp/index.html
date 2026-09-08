@@ -2958,6 +2958,15 @@ body {
         <span class="sync-info-label">Cambios pendientes:</span>
         <span class="sync-info-value" id="syncPendingChanges">0</span>
       </div>
+      <div class="sync-info-row">
+        <span class="sync-info-label">Carpeta de respaldo:</span>
+        <span class="sync-info-value" id="syncFolderPath">No configurada</span>
+      </div>
+    </div>
+    <div style="margin-top:14px; padding:12px; background:var(--bg-tertiary); border-radius:6px; font-size:12px;">
+      <strong>📁 Respaldo local / nube</strong>
+      <div style="margin-top:6px;color:var(--text-secondary);">Elegí una carpeta local, de red o sincronizada por OneDrive, Google Drive o Dropbox para guardar las exportaciones del ERP.</div>
+      <button class="btn" type="button" style="margin-top:10px;" onclick="elegirCarpetaRespaldo()">Elegir carpeta de respaldo</button>
     </div>
     <div style="margin-top:14px; padding:12px; background:var(--bg-tertiary); border-radius:6px; font-size:12px;">
       <strong>Evidencias RAD locales</strong>
@@ -12941,6 +12950,25 @@ function cerrarModalSincronizacion() {
   document.getElementById('syncModal').classList.remove('active');
 }
 
+async function elegirCarpetaRespaldo() {
+  if (!window.electronAPI?.chooseSyncFolder) {
+    showToast('La elección de carpeta de respaldo está disponible en la aplicación de escritorio.', 'info');
+    return;
+  }
+  const result = await window.electronAPI.chooseSyncFolder();
+  if (result?.ok) {
+    actualizarCarpetaRespaldo(result.path);
+    showToast('Carpeta de respaldo configurada.', 'success');
+  } else if (!result?.canceled) {
+    showToast(result?.message || 'No se pudo configurar la carpeta de respaldo.', 'error');
+  }
+}
+
+function actualizarCarpetaRespaldo(path) {
+  const el = document.getElementById('syncFolderPath');
+  if (el) el.textContent = path || 'No configurada';
+}
+
 function actualizarModalSincronizacion() {
   const statusEl = document.getElementById('syncModalStatus');
   const lastTimeEl = document.getElementById('syncLastTime');
@@ -12974,6 +13002,12 @@ function actualizarModalSincronizacion() {
   
   // Cambios pendientes (simplificado)
   pendingEl.textContent = '0';
+  actualizarCarpetaRespaldo('Consultando...');
+  if (window.electronAPI?.getSyncFolder) {
+    window.electronAPI.getSyncFolder().then(result => actualizarCarpetaRespaldo(result?.path || 'No configurada')).catch(() => actualizarCarpetaRespaldo('No disponible'));
+  } else {
+    actualizarCarpetaRespaldo('Configurable en la app de escritorio');
+  }
   updateRadEvidenceCapacity();
 }
 
