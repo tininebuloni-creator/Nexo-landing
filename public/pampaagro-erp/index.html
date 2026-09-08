@@ -1081,8 +1081,8 @@ body {
 <script src="js/pampa-report-voice.js"></script>
 <script src="js/pampa-search.js?v=2"></script>
 <script src="js/pampa-trial-links.js"></script>
-<script src="../../../packages/pampa-privacy-popup.js"></script>
-<script src="../../packages/pampa-onpremise-disclaimer.js"></script>
+<script src="./pampa-privacy-popup.js"></script>
+<script src="../trial-gate.js"></script>
 <meta name="theme-color" content="#166534">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -3499,7 +3499,7 @@ let currentRoleInstanceId = null;
 const PLAN_ROLE_LIMITS = {
   basica: 4,
   profesional: 10,
-  premium: Number.POSITIVE_INFINITY,
+  premium: 10,
   trial: Number.POSITIVE_INFINITY
 };
 
@@ -3510,6 +3510,9 @@ function getEffectiveLicensePlan() {
 }
 
 function getPlanRoleLimit() {
+  const license = getLicenseData();
+  const licensedUsers = Number(license?.maxUsers);
+  if (Number.isInteger(licensedUsers) && licensedUsers > 0) return licensedUsers;
   const plan = getEffectiveLicensePlan();
   return PLAN_ROLE_LIMITS[plan] ?? PLAN_ROLE_LIMITS.basica;
 }
@@ -11928,10 +11931,33 @@ let subscriptionRefreshTimer = null;
 function getSubscriptionApiUrl() {
   try {
     const settings = window.electronAPI?.getAppSettings?.() || {};
-    return String(settings.subscriptionApiUrl || '').replace(/\/+$/, '');
+    return String(settings.subscriptionApiUrl || 'https://solucioneseningenieria.com.ar').replace(/\/+$/, '');
   } catch {
-    return '';
+    return 'https://solucioneseningenieria.com.ar';
   }
+}
+
+async function registerSubscriptionActivation(license, deviceId) {
+  const apiUrl = getSubscriptionApiUrl();
+  if (!apiUrl || license?.type !== 'signed') return { ok: true, offline: true };
+  const response = await fetch(`${apiUrl}/v1/client/activate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: license.key, product: 'pampa-agro', deviceId })
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok || body.ok === false) throw new Error(body.message || 'No hay cupos disponibles para esta licencia.');
+  return body;
+}
+
+async function releaseSubscriptionActivation(license) {
+  const apiUrl = getSubscriptionApiUrl();
+  if (!apiUrl || license?.type !== 'signed' || !license.deviceId) return;
+  await fetch(`${apiUrl}/v1/client/release`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: license.key, product: 'pampa-agro', deviceId: license.deviceId })
+  }).catch(() => {});
 }
 
 async function refreshSubscriptionAuthorization() {
@@ -11988,6 +12014,14 @@ async function activateLicense() {
   }
 
   license.deviceId = license.deviceId || generateDeviceId();
+  try {
+    const activation = await registerSubscriptionActivation(license, license.deviceId);
+    if (activation.activeUsers && activation.maxUsers) license.subscriptionSeats = activation;
+  } catch (error) {
+    errorMsg.style.display = 'block';
+    errorMsg.textContent = error.message;
+    return;
+  }
   
   errorMsg.style.display = 'none';
   localStorage.setItem('nexoAgroLicense', JSON.stringify(license));
@@ -12116,6 +12150,8 @@ function deactivateLicense() {
     return;
   }
   
+  const license = getLicenseData();
+  releaseSubscriptionActivation(license);
   localStorage.removeItem('nexoAgroLicense');
   closeLicenseModal();
   updateTrialBlueBanner();
@@ -14049,6 +14085,7 @@ function setEl(id, txt) {
 </script>
 
 <script src="js/pampaia-source.js?v=pampaia-published-6"></script>
-<script src="../../packages/core-fiscal-arca/normative-update.browser.js"></script>
+<script src=""></script>
 </body>
 </html>
+
