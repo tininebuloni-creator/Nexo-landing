@@ -2,7 +2,7 @@
   const config = {
     baseUrl: 'https://solucioneseningenieria.com.ar',
     apps: {
-      pampaagro: '/pampaagro-erp/public/?trial=auto',
+      pampaagro: '/pampaagro-erp/?trial=auto',
       pampaganaderia: '/pampaganaderia-erp/?trial=auto',
       pampaprecision: '/pampaprecision-erp/public/?trial=auto',
       pampatambo: '/pampatambo-erp/public/?trial=auto',
@@ -38,7 +38,26 @@
       document.body.appendChild(banner);
     } catch {}
   }
-  global.PampaTrialLinks = { config, getTrialLandingUrl, openTrialWhatsApp, showTrialBanner };
-  document.addEventListener('DOMContentLoaded', showTrialBanner);
-  setTimeout(showTrialBanner, 1200);
+  function activateTrialFromQuery() {
+    if (new URLSearchParams(global.location.search).get('trial') !== 'auto') return;
+    const key = 'nexoAgroLicense';
+    let license;
+    try { license = JSON.parse(localStorage.getItem(key) || 'null'); } catch { license = null; }
+    if (!license || license.type !== 'trial' || new Date(license.expiresAt).getTime() <= Date.now()) {
+      const now = Date.now();
+      license = {
+        type: 'trial',
+        key: 'TRIAL-10DIAS',
+        plan: 'trial',
+        issuedAt: new Date(now).toISOString(),
+        expiresAt: new Date(now + 10 * 86400000).toISOString()
+      };
+      localStorage.setItem(key, JSON.stringify(license));
+    }
+    showTrialBanner();
+  }
+
+  global.PampaTrialLinks = { config, getTrialLandingUrl, openTrialWhatsApp, showTrialBanner, activateTrialFromQuery };
+  document.addEventListener('DOMContentLoaded', activateTrialFromQuery);
+  setTimeout(activateTrialFromQuery, 1200);
 }(window));
