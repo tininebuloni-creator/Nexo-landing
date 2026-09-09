@@ -10,7 +10,7 @@ export async function onRequestGet({ request, env }) {
     const current = await getStore(env, licenseId);
     if (!current || !current.devices?.some((item) => item.deviceId === deviceId)) return json({ ok: false, message: 'Dispositivo no activado' }, 403);
     const payload = await verifyToken(current.token, current.product);
-    return json({ ok: true, token: current.token, activeUsers: current.devices.length, maxUsers: payload.maxUsers });
+    return json({ ok: true, token: current.token, activeUsers: current.devices.length, maxUsers: payload.maxUsers, devices: current.devices.map((item) => ({ deviceId: item.deviceId, activatedAt: item.activatedAt })) });
   } catch (error) {
     return json({ ok: false, message: error.message || 'No autorizado' }, 403);
   }
