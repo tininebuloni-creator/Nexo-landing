@@ -106,6 +106,15 @@
 			.submodule-panel { display: grid; gap: 12px; margin-top: 14px; border-top: 1px solid var(--line); padding-top: 18px; }
 			.submodule-panel h3 { margin: 0; font-family: var(--display); font-size: 21px; font-weight: 500; }
 			.submodule-panel p { margin: 0; color: var(--muted); font-size: 12px; }
+			.digestor-checklist { gap: 16px; }
+			.checklist-shift { display: grid; gap: 8px; }
+			.checklist-shift h4 { margin: 0; color: var(--green); font-family: var(--display); font-size: 18px; font-weight: 500; }
+			.checklist-item { display: flex; align-items: flex-start; gap: 10px; border: 1px solid var(--line); border-radius: 6px; padding: 11px; background: #fbfcf9; cursor: pointer; }
+			.checklist-item:has(input:checked) { border-color: #9fc994; background: #f0f7ed; }
+			.checklist-item input { flex: 0 0 auto; width: 17px; height: 17px; margin-top: 2px; accent-color: var(--green); }
+			.checklist-item span { display: grid; gap: 4px; }
+			.checklist-item strong { font-size: 13px; }
+			.checklist-item small { color: var(--muted); font-size: 11px; line-height: 1.45; }
 			@keyframes rise { from { transform: scaleY(0); } to { transform: scaleY(1); } }
 			@media (max-width: 850px) { .app { grid-template-columns: 1fr; } .sidebar { padding: 18px 20px; } .brand { margin-bottom: 18px; } .nav { grid-template-columns: repeat(4, minmax(0, 1fr)); } .nav button { justify-content: center; padding: 9px 4px; font-size: 0; } .sidebar-note { display: none; } }
 			@media (max-width: 620px) { main { padding: 25px 16px 34px; } .topbar { margin-bottom: 25px; } .date { display: none; } .metrics, .content-grid, .lower-grid, .module-grid { grid-template-columns: 1fr; } .metric { min-height: 125px; } .chart { gap: 7px; } .module-hero { display: block; } }
@@ -280,6 +289,37 @@
 			loadLiveTasks();
 
 			const moduleWorkspace = document.querySelector('.module-workspace');
+			const digestorChecklist = [
+				{ id: 1, time: '06:00', shift: 'Mañana', type: 'Seguridad', title: 'Inspección visual de seguridad', detail: 'Verificar fugas audibles, válvulas PVRV y estado de cúpulas o membranas del gasómetro.' },
+				{ id: 2, time: '07:00', shift: 'Mañana', type: 'Monitoreo', title: 'Registro de temperatura y presión', detail: 'Registrar temperatura del digestor y presión interna en mbar. Revisar variaciones de temperatura mayores a 1 °C por día.' },
+				{ id: 3, time: '08:00', shift: 'Mañana', type: 'Químico', title: 'Muestra de laboratorio', detail: 'Medir pH (referencia 6,8–7,4) y relación FOS/TAC (referencia 0,3–0,4; revisar si supera 0,5).' },
+				{ id: 4, time: '09:30', shift: 'Mañana', type: 'Alimentación', title: 'Preparación y pesaje de sustrato', detail: 'Dosificar estiércol, restos agrícolas o silo según la carga de sólidos volátiles planificada.' },
+				{ id: 5, time: '11:00', shift: 'Mañana', type: 'Alimentación', title: 'Primera alimentación del día', detail: 'Activar las bombas e introducir el sustrato lentamente para evitar choques térmicos o químicos.' },
+				{ id: 6, time: '13:00', shift: 'Tarde', type: 'Mantenimiento', title: 'Monitoreo de agitación', detail: 'Verificar ciclos de agitadores, ruidos extraños y sobrecargas eléctricas en motores.' },
+				{ id: 7, time: '14:30', shift: 'Tarde', type: 'Mantenimiento', title: 'Purga de condensado', detail: 'Abrir las válvulas de las trampas de agua para evitar obstrucciones y daños en medidores.' },
+				{ id: 8, time: '16:00', shift: 'Tarde', type: 'Alimentación', title: 'Segunda alimentación del día', detail: 'Realizar una carga fraccionada para evitar una sobrecarga puntual del digestor.' },
+				{ id: 9, time: '17:00', shift: 'Tarde', type: 'Gas', title: 'Inspección de desulfuración', detail: 'Revisar microaireación o filtros de carbón/óxido de hierro y registrar H₂S según requerimientos del cogenerador.' },
+				{ id: 10, time: '19:00', shift: 'Noche', type: 'Producción', title: 'Registro de producción de biogás', detail: 'Registrar caudal (m³/h), CH₄ y CO₂. Usar 50–65 % de CH₄ como referencia operativa.' },
+				{ id: 11, time: '21:00', shift: 'Noche', type: 'Digestato', title: 'Control del nivel de digestato', detail: 'Verificar rebose o bombeo hacia almacenamiento para mantener constante el volumen del reactor.' },
+				{ id: 12, time: '23:00', shift: 'Noche', type: 'Seguridad', title: 'Revisión de alertas nocturnas', detail: 'Confirmar alarmas remotas de alta presión, baja temperatura y detección de gas ambiental.' },
+			];
+
+			function renderDigestorChecklist(container) {
+				const dateKey = new Date().toISOString().slice(0, 10);
+				const storageKey = `pampaBiogasChecklist:${dateKey}`;
+				let completed = {};
+				try { completed = JSON.parse(localStorage.getItem(storageKey) || '{}'); } catch {}
+				const groups = digestorChecklist.reduce((acc, item) => { (acc[item.shift] ||= []).push(item); return acc; }, {});
+				const panel = document.createElement('section');
+				panel.className = 'submodule-panel digestor-checklist';
+				panel.innerHTML = `<h3>Checklist diario del digestor</h3><p>Rutina cronológica para reducir riesgo de acidificación y sostener la producción de metano. Fecha: ${dateKey}</p>${Object.entries(groups).map(([shift, items]) => `<div class="checklist-shift"><h4>${shift}</h4>${items.map(item => `<label class="checklist-item"><input type="checkbox" data-check-id="${item.id}" ${completed[item.id] ? 'checked' : ''}><span><strong>${item.time} · ${item.title}</strong><small>${item.type} · ${item.detail}</small></span></label>`).join('')}</div>`).join('')}`;
+				container.prepend(panel);
+				panel.querySelectorAll('input[data-check-id]').forEach(input => input.addEventListener('change', () => {
+					completed[input.dataset.checkId] = input.checked;
+					localStorage.setItem(storageKey, JSON.stringify(completed));
+				}));
+			}
+
 			const moduleViews = {
 				telemetry: { label: 'Telemetría', title: 'Lecturas y alertas del proceso', description: 'Un espacio para observar variables críticas, recibir eventos en tiempo real y revisar la salud del digestor.', cards: [['Temperatura', '37.8 °C', 'Rango mesofílico estable'], ['pH', '7.2', 'Sin desviaciones activas'], ['Alertas críticas', '0', 'WebSocket protegido por planta']] },
 				operations: { label: 'Operaciones', title: 'Trabajo de campo y activos', description: 'Tareas, recepción de biomasa, inventario de digestato y estado de los equipos instalados.', cards: [['Tareas pendientes', '3', 'Prioridad ordenada'], ['Stock de biol', '245 m³', '82% de capacidad'], ['Equipos en alerta', '1', 'Requiere revisión']], extras: '<div class="module-tools"><button type="button" data-submodule="tasks">Tareas</button><button type="button" data-submodule="biomass">Ingreso de biomasa</button><button type="button" data-submodule="digestate">Digestato</button></div><form class="module-form" data-form="biomass" hidden><label>Proveedor<input name="supplier_name" required /></label><label>Tipo de biomasa<input name="biomass_type" required placeholder="estiércol_vacuno" /></label><label>Peso neto (t)<input name="net_weight_tons" type="number" min="0.001" step="0.001" required /></label><label>Humedad (%)<input name="moisture_percentage" type="number" min="0" max="100" step="0.1" /></label><label class="form-wide">Observaciones<input name="observations" /></label><button type="submit">Registrar ingreso</button></form><p class="module-feedback"></p>' },
@@ -307,6 +347,7 @@
 				if (!isSummary) {
 					const view = moduleViews[moduleName];
 					moduleWorkspace.innerHTML = `<section class="module-hero"><div><p class="eyebrow">Centro de control / ${view.label}</p><h2>${view.title}</h2><p>${view.description}</p></div><span class="status">Conectado al backend</span></section><section class="module-grid">${view.cards.map(([title, value, detail]) => `<article class="module-card"><p class="eyebrow">${title}</p><div class="module-value">${value}</div><p>${detail}</p></article>`).join('')}</section>${view.extras || ''}`;
+					if (moduleName === 'tasks') renderDigestorChecklist(moduleWorkspace);
 					if (moduleName === 'fiscal') {
 						const fiscalForm = moduleWorkspace.querySelector('[data-form="fiscal-biogas"]');
 						if (fiscalForm) {
