@@ -307,6 +307,16 @@
 				if (!isSummary) {
 					const view = moduleViews[moduleName];
 					moduleWorkspace.innerHTML = `<section class="module-hero"><div><p class="eyebrow">Centro de control / ${view.label}</p><h2>${view.title}</h2><p>${view.description}</p></div><span class="status">Conectado al backend</span></section><section class="module-grid">${view.cards.map(([title, value, detail]) => `<article class="module-card"><p class="eyebrow">${title}</p><div class="module-value">${value}</div><p>${detail}</p></article>`).join('')}</section>${view.extras || ''}`;
+					if (moduleName === 'fiscal') {
+						const fiscalForm = moduleWorkspace.querySelector('[data-form="fiscal-biogas"]');
+						if (fiscalForm) {
+							fiscalForm.elements.disposal_rate.value = '12.5';
+							fiscalForm.elements.co2_factor.value = '0.000717';
+							fiscalForm.elements.carbon_price.value = '25';
+							fiscalForm.elements.co2_factor.readOnly = true;
+							fiscalForm.elements.co2_factor.closest('label').firstChild.textContent = 'Factor CH₄ a toneladas (estándar)';
+						}
+					}
 					moduleWorkspace.querySelectorAll('input[name="api_base_url"]').forEach((input) => { input.value = apiBaseUrl; });
 					if (moduleName === 'settings' || moduleName === 'connection') loadPlantCatalog();
 					if (moduleName === 'settings') configureSessionView();
