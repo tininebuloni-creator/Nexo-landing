@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>BioLoop | Centro de control</title>
+		<style>
+			:root {
+				--ink: #17221d;
+				--muted: #6c7a72;
+				--line: #dce5dd;
+				--paper: #f5f7f2;
+				--panel: #ffffff;
+				--green: #1d6b4d;
+				--lime: #d8ed78;
+				--amber: #c58b2d;
+				--red: #b65a4e;
+				--display: Georgia, 'Times New Roman', serif;
+				--body: 'Trebuchet MS', 'Segoe UI', sans-serif;
+			}
+			* { box-sizing: border-box; }
+			[hidden] { display: none !important; }
+			body { margin: 0; color: var(--ink); background: var(--paper); font-family: var(--body); }
+			button { font: inherit; }
+			.app { display: grid; grid-template-columns: 238px minmax(0, 1fr); min-height: 100vh; }
+			.sidebar { display: flex; flex-direction: column; padding: 28px 20px; color: #eef6e8; background: var(--green); }
+			.brand { display: flex; align-items: center; gap: 11px; margin-bottom: 52px; }
+			.brand-mark { display: grid; place-items: center; width: 35px; height: 35px; border-radius: 50%; color: var(--green); background: var(--lime); font-size: 20px; }
+			.brand strong { font-family: var(--display); font-size: 22px; font-weight: 500; letter-spacing: .02em; }
+			.eyebrow { margin: 0 0 9px; color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+			.sidebar .eyebrow { color: #a7c7af; }
+			.plant-switcher { display: grid; gap: 6px; margin: 0 0 18px; }
+			.plant-switcher select { width: 100%; border: 1px solid #5d9570; border-radius: 6px; padding: 9px 8px; color: #f2f8e9; background: #255f46; font: inherit; font-size: 12px; }
+			.company-link { display: flex; align-items: center; gap: 8px; width: 100%; margin-bottom: 10px; border: 0; border-radius: 6px; padding: 9px; color: #eef6e8; background: #255f46; text-align: left; cursor: pointer; }
+			.company-link:hover { color: var(--ink); background: var(--lime); }
+			.nav { display: grid; gap: 6px; }
+			.nav button { display: flex; align-items: center; gap: 12px; border: 0; border-radius: 8px; padding: 12px; color: #b9d3bd; background: transparent; text-align: left; cursor: pointer; }
+			.nav button:hover, .nav button.active { color: var(--ink); background: var(--lime); }
+			.nav-icon { width: 19px; text-align: center; font-size: 16px; }
+			.sidebar-note { margin-top: auto; border-top: 1px solid #477f62; padding-top: 18px; color: #c4dcc8; font-size: 12px; line-height: 1.5; }
+			.sidebar-note strong { display: block; margin-top: 4px; color: #fff; font-size: 14px; }
+			main { min-width: 0; padding: 28px clamp(22px, 4vw, 56px) 46px; }
+			.topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 34px; }
+			h1, h2, h3, p { margin-top: 0; }
+			h1 { max-width: 650px; margin-bottom: 9px; font-family: var(--display); font-size: clamp(34px, 4vw, 54px); font-weight: 500; line-height: .98; letter-spacing: -.02em; }
+			.intro { max-width: 600px; margin-bottom: 0; color: var(--muted); font-size: 14px; }
+			.date { color: var(--muted); font-size: 12px; text-align: right; white-space: nowrap; }
+			.status { display: inline-flex; align-items: center; gap: 7px; margin-top: 10px; color: var(--green); font-size: 12px; font-weight: 700; }
+			.status::before { width: 8px; height: 8px; border-radius: 50%; background: #65ae61; content: ''; }
+			.metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 14px; }
+			.metric { position: relative; overflow: hidden; min-height: 145px; border: 1px solid var(--line); border-radius: 8px; padding: 20px; background: var(--panel); }
+			.metric.featured { color: #eff8db; border-color: var(--green); background: var(--green); }
+			.metric-label { color: var(--muted); font-size: 12px; }
+			.featured .metric-label { color: #b5d0bb; }
+			.metric-value { margin: 19px 0 4px; font-family: var(--display); font-size: 42px; line-height: 1; }
+			.metric-unit { font-size: 12px; }
+			.metric-detail { color: var(--muted); font-size: 11px; }
+			.featured .metric-detail { color: #c6debc; }
+			.spark { position: absolute; right: 16px; bottom: 18px; color: var(--lime); font-size: 24px; letter-spacing: -5px; }
+			.content-grid, .lower-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, .85fr); gap: 14px; }
+			.panel { border: 1px solid var(--line); border-radius: 8px; padding: 22px; background: var(--panel); }
+			.panel-header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 22px; }
+			h2 { margin-bottom: 0; font-family: var(--display); font-size: 24px; font-weight: 500; }
+			.panel-link { border: 0; color: var(--green); background: transparent; font-size: 11px; cursor: pointer; }
+			.chart { display: grid; grid-template-columns: repeat(7, 1fr); align-items: end; gap: 12px; height: 177px; padding: 15px 0 0; border-bottom: 1px solid var(--line); background: repeating-linear-gradient(to bottom, transparent 0, transparent 43px, #edf1ec 44px); }
+			.bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: end; }
+			.bar { width: min(34px, 75%); min-height: 13px; border-radius: 4px 4px 0 0; background: #b4d77d; animation: rise .7s ease both; transform-origin: bottom; }
+			.bar.today { background: var(--green); }
+			.bar-wrap small { color: var(--muted); font-size: 10px; }
+			.chart-note { display: flex; justify-content: space-between; margin-top: 15px; color: var(--muted); font-size: 11px; }
+			.alert-list, .task-list { display: grid; gap: 13px; margin: 0; padding: 0; list-style: none; }
+			.alert, .task { display: flex; align-items: flex-start; gap: 11px; padding-bottom: 13px; border-bottom: 1px solid #edf1ed; }
+			.alert:last-child, .task:last-child { border-bottom: 0; padding-bottom: 0; }
+			.dot { flex: 0 0 auto; width: 9px; height: 9px; margin-top: 5px; border-radius: 50%; background: var(--amber); }
+			.dot.green { background: #69a860; }
+			.dot.red { background: var(--red); }
+			.alert strong, .task strong { display: block; margin-bottom: 3px; font-size: 13px; font-weight: 700; }
+			.alert span, .task span { color: var(--muted); font-size: 11px; line-height: 1.4; }
+			.lower-grid { margin-top: 14px; }
+			.task input { width: 16px; height: 16px; margin: 1px 2px 0 0; accent-color: var(--green); }
+			.task.done strong { color: var(--muted); text-decoration: line-through; }
+			.meter { height: 9px; margin: 16px 0 8px; overflow: hidden; border-radius: 20px; background: #e8eee7; }
+			.meter span { display: block; width: 73%; height: 100%; border-radius: inherit; background: var(--green); }
+			.split { display: flex; justify-content: space-between; color: var(--muted); font-size: 11px; }
+			.module-workspace { display: grid; gap: 14px; }
+			.module-hero { display: flex; align-items: end; justify-content: space-between; gap: 18px; padding: 24px; border: 1px solid var(--line); border-radius: 8px; background: #eef4e8; }
+			.module-hero h2 { margin-bottom: 7px; }
+			.module-hero p { max-width: 620px; margin-bottom: 0; color: var(--muted); font-size: 13px; }
+			.module-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+			.module-card { min-height: 150px; border: 1px solid var(--line); border-radius: 8px; padding: 20px; background: var(--panel); }
+			.module-card h3 { margin-bottom: 9px; font-family: var(--display); font-size: 20px; font-weight: 500; }
+			.module-card p { margin-bottom: 16px; color: var(--muted); font-size: 12px; line-height: 1.45; }
+			.module-value { color: var(--green); font-family: var(--display); font-size: 30px; }
+			.module-list { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
+			.module-list li { display: flex; justify-content: space-between; gap: 14px; padding-bottom: 9px; border-bottom: 1px solid #edf1ed; color: var(--muted); font-size: 12px; }
+			.module-list strong { color: var(--ink); }
+			.module-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+			.module-tools button { border: 1px solid var(--line); border-radius: 6px; padding: 8px 11px; color: var(--green); background: var(--panel); cursor: pointer; }
+			.module-tools button.active, .module-tools button:hover { color: var(--ink); border-color: var(--green); background: var(--lime); }
+			.module-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+			.module-form label { display: grid; gap: 5px; color: var(--muted); font-size: 11px; }
+			.module-form input, .module-form select { width: 100%; border: 1px solid var(--line); border-radius: 5px; padding: 10px; color: var(--ink); background: #fbfcf9; }
+			.module-form .form-wide { grid-column: 1 / -1; }
+			.module-form button { grid-column: 1 / -1; border: 0; border-radius: 6px; padding: 11px; color: #eff8db; background: var(--green); cursor: pointer; }
+			.module-feedback { min-height: 18px; margin: 0; color: var(--muted); font-size: 12px; }
+			.submodule-panel { display: grid; gap: 12px; margin-top: 14px; border-top: 1px solid var(--line); padding-top: 18px; }
+			.submodule-panel h3 { margin: 0; font-family: var(--display); font-size: 21px; font-weight: 500; }
+			.submodule-panel p { margin: 0; color: var(--muted); font-size: 12px; }
+			@keyframes rise { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+			@media (max-width: 850px) { .app { grid-template-columns: 1fr; } .sidebar { padding: 18px 20px; } .brand { margin-bottom: 18px; } .nav { grid-template-columns: repeat(4, minmax(0, 1fr)); } .nav button { justify-content: center; padding: 9px 4px; font-size: 0; } .sidebar-note { display: none; } }
+			@media (max-width: 620px) { main { padding: 25px 16px 34px; } .topbar { margin-bottom: 25px; } .date { display: none; } .metrics, .content-grid, .lower-grid, .module-grid { grid-template-columns: 1fr; } .metric { min-height: 125px; } .chart { gap: 7px; } .module-hero { display: block; } }
+		</style>
+	</head>
+	<body>
+		<div class="app">
+			<aside class="sidebar">
+				<div class="brand"><span class="brand-mark">↗</span><strong>BioLoop</strong></div>
+				<p class="eyebrow">Planta seleccionada</p>
+				<button class="company-link" type="button" data-module="company" onclick="window.showModule('company')"><span class="nav-icon">▣</span> Empresa</button>
+				<div class="plant-switcher"><label class="eyebrow" for="plant-selector">Empresa / planta</label><select id="plant-selector" aria-label="Seleccionar empresa y planta"><option value="">Cargando empresas y plantas...</option></select></div>
+				<nav class="nav" aria-label="Navegación principal">
+					<button type="button" data-module="connection" onclick="window.showModule('connection')"><span class="nav-icon">↔</span>Conectar sesión</button>
+					<button class="active" type="button" data-module="summary" onclick="window.showModule('summary')"><span class="nav-icon">⌂</span>Resumen</button>
+					<button type="button" data-module="telemetry" onclick="window.showModule('telemetry')"><span class="nav-icon">◌</span>Telemetría</button>
+					<button type="button" data-module="operations" onclick="window.showModule('operations')"><span class="nav-icon">◫</span>Operaciones</button>
+					<button type="button" data-module="tasks" onclick="window.showModule('tasks')"><span class="nav-icon">✓</span>Tareas</button>
+					<button type="button" data-module="inventory" onclick="window.showModule('inventory')"><span class="nav-icon">▤</span>Inventario</button>
+					<button type="button" data-module="equipment" onclick="window.showModule('equipment')"><span class="nav-icon">⚙</span>Equipamiento</button>
+					<button type="button" data-module="finance" onclick="window.showModule('finance')"><span class="nav-icon">$</span>Finanzas</button>
+					<button type="button" data-module="fiscal" onclick="window.showModule('fiscal')"><span class="nav-icon">▦</span>Fiscal ambiental</button>
+					<button type="button" data-module="design" onclick="window.showModule('design')"><span class="nav-icon">⌘</span>Diseño de planta</button>
+					<button type="button" data-module="transport" onclick="window.showModule('transport')"><span class="nav-icon">▱</span>Transporte</button>
+					<button type="button" data-module="hr" onclick="window.showModule('hr')"><span class="nav-icon">♙</span>RRHH</button>
+					<button type="button" data-module="settings" onclick="window.showModule('settings')"><span class="nav-icon">⚑</span>Configuración</button>
+				</nav>
+				<div class="sidebar-note">Planta Norte<strong>Digestor anaeróbico · D-01</strong></div>
+			</aside>
+			<main>
+				<header class="topbar"><div><p class="eyebrow">Centro de control / Resumen</p><h1>La planta está trabajando a buen ritmo.</h1><p class="intro">Una lectura rápida de la operación, el rendimiento y lo que requiere atención hoy.</p><div class="status">Todos los sistemas operativos</div></div><div class="date">19 AGO 2026<br />Última actualización: 10:42</div></header>
+				<section class="metrics dashboard-only" aria-label="Indicadores de telemetría"><article class="metric featured"><div class="metric-label">Metano en biogás</div><div class="metric-value">62.4<span class="metric-unit">%</span></div><div class="metric-detail">+4.2% frente a ayer</div><div class="spark">⌁⌁⌁</div></article><article class="metric"><div class="metric-label">Temperatura del digestor</div><div class="metric-value">37.8<span class="metric-unit"> °C</span></div><div class="metric-detail">Rango óptimo: 35–40 °C</div></article><article class="metric"><div class="metric-label">pH del proceso</div><div class="metric-value">7.2</div><div class="metric-detail">Estable durante las últimas 8 h</div></article></section>
+				<div class="content-grid dashboard-only"><section class="panel"><div class="panel-header"><h2>Producción de biogás</h2><button class="panel-link" type="button">Últimos 7 días →</button></div><div class="chart" aria-label="Producción diaria de biogás en metros cúbicos"><div class="bar-wrap"><div class="bar" style="height: 61%"></div><small>Jue</small></div><div class="bar-wrap"><div class="bar" style="height: 69%"></div><small>Vie</small></div><div class="bar-wrap"><div class="bar" style="height: 58%"></div><small>Sáb</small></div><div class="bar-wrap"><div class="bar" style="height: 75%"></div><small>Dom</small></div><div class="bar-wrap"><div class="bar" style="height: 68%"></div><small>Lun</small></div><div class="bar-wrap"><div class="bar" style="height: 82%"></div><small>Mar</small></div><div class="bar-wrap"><div class="bar today" style="height: 91%"></div><small>Hoy</small></div></div><div class="chart-note"><span>Promedio diario</span><strong>1,284 m³</strong></div></section><section class="panel"><div class="panel-header"><h2>Alertas</h2><button class="panel-link" type="button">Ver todas →</button></div><ul class="alert-list"><li class="alert"><span class="dot green"></span><div><strong>Digestor estable</strong><span>Temperatura y pH dentro del rango esperado.</span></div></li><li class="alert"><span class="dot"></span><div><strong>Revisar nivel de alimentación</strong><span>El tanque de carga está al 73%.</span></div></li><li class="alert"><span class="dot red"></span><div><strong>Mantenimiento próximo</strong><span>Bomba de recirculación · vence mañana.</span></div></li></ul></section></div>
+				<div class="lower-grid dashboard-only"><section class="panel"><div class="panel-header"><h2>Tareas de hoy</h2><button class="panel-link" type="button">Operaciones →</button></div><ul class="task-list"><li class="task done"><input type="checkbox" checked aria-label="Completar inspección visual" /><div><strong>Inspección visual del digestor</strong><span>Completada a las 08:15 · Martín R.</span></div></li><li class="task"><input type="checkbox" aria-label="Completar purga de condensados" /><div><strong>Purgar línea de condensados</strong><span>Asignada a Lucía M. · Prioridad normal</span></div></li><li class="task"><input type="checkbox" aria-label="Completar lectura de caudal" /><div><strong>Registrar lectura de caudal</strong><span>Asignada a Martín R. · Antes de las 14:00</span></div></li></ul></section><section class="panel"><div class="panel-header"><h2>Alimentación</h2><span class="eyebrow">Capacidad</span></div><div class="metric-value">73<span class="metric-unit">%</span></div><div class="meter"><span></span></div><div class="split"><span>6.8 t disponibles</span><strong>9.3 t total</strong></div></section></div>
+				<section class="module-workspace" aria-live="polite" hidden></section>
+			</main>
+		</div>
+		<script>
+			const telemetryReadings = [
+				{ sensor_tag: 'DIG_01_TEMP', metric_type: 'temperature', value: 37.8, unit: 'celsius' },
+				{ sensor_tag: 'DIG_01_PH', metric_type: 'ph', value: 7.2, unit: 'ph' },
+				{ sensor_tag: 'GAS_01_CH4', metric_type: 'methane', value: 62.4, unit: 'percentage' },
+			];
+
+			const readingByType = Object.fromEntries(telemetryReadings.map((reading) => [reading.metric_type, reading]));
+			const metricValues = document.querySelectorAll('.metrics .metric-value');
+			metricValues[0].firstChild.textContent = readingByType.methane.value;
+			metricValues[1].firstChild.textContent = readingByType.temperature.value;
+			metricValues[2].firstChild.textContent = readingByType.ph.value;
+
+			const detectedApiBaseUrl = (() => {
+				if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+					const url = new URL(window.location.href);
+					url.port = '3001';
+					return url.origin;
+				}
+				return 'http://127.0.0.1:3001';
+			})();
+			const apiBaseUrl = localStorage.getItem('api_base_url') || detectedApiBaseUrl;
+			const accessToken = localStorage.getItem('access_token') || localStorage.getItem('jwt');
+			const plantId = localStorage.getItem('user_plant_id');
+			const hasActiveSession = Boolean(accessToken && plantId);
+			let telemetryInterval = null;
+
+			async function fetchJson(path) {
+				if (!accessToken || !plantId) return null;
+				const response = await fetch(`${apiBaseUrl}${path}`, {
+					headers: { Authorization: `Bearer ${accessToken}` },
+				});
+				if (response.status === 401) {
+					localStorage.removeItem('access_token');
+					localStorage.removeItem('jwt');
+					localStorage.removeItem('user_plant_id');
+					throw new Error('La sesión expiró. Volvé a iniciar sesión desde Configuración.');
+				}
+				if (!response.ok) throw new Error(`API respondió HTTP ${response.status}`);
+				return response.json();
+			}
+
+			async function loadPlantPortfolio() {
+				const selector = document.querySelector('#plant-selector');
+				if (!selector || !accessToken) return;
+				try {
+					const companies = await fetchJson('/v1/plants/portfolio');
+					selector.innerHTML = '';
+					companies.forEach((company) => {
+						const group = document.createElement('optgroup');
+						group.label = company.name;
+						company.plants.forEach((plant) => {
+							const option = document.createElement('option');
+							option.value = plant.id;
+							option.textContent = plant.name;
+							option.selected = plant.id === plantId;
+							group.appendChild(option);
+						});
+						selector.appendChild(group);
+					});
+				} catch (error) {
+					selector.innerHTML = `<option value="">No se pudo cargar: ${error.message}</option>`;
+				}
+			}
+
+			async function loadPlantCatalog() {
+				try {
+					const response = await fetch(`${apiBaseUrl}/v1/plants/catalog`);
+					if (!response.ok) throw new Error(`API respondió HTTP ${response.status}`);
+					const companies = await response.json();
+					const targets = [document.querySelector('#plant-selector'), ...document.querySelectorAll('[data-plant-options]')].filter(Boolean);
+					for (const selector of targets) {
+						selector.innerHTML = '<option value="">Seleccioná empresa y planta</option>';
+						companies.forEach((company) => {
+							const group = document.createElement('optgroup');
+							group.label = company.name;
+							company.plants.forEach((plant) => {
+								const option = document.createElement('option');
+								option.value = plant.id;
+								option.textContent = plant.name;
+								option.selected = plant.id === plantId;
+								group.appendChild(option);
+							});
+							selector.appendChild(group);
+						});
+					}
+				} catch (error) {
+					const selector = document.querySelector('#plant-selector');
+					if (selector) selector.innerHTML = `<option value="">No se pudo cargar: ${error.message}</option>`;
+				}
+			}
+
+			document.querySelector('#plant-selector').addEventListener('change', (event) => {
+				if (!event.target.value || event.target.value === plantId) return;
+				localStorage.setItem('user_plant_id', event.target.value);
+				location.reload();
+			});
+
+			loadPlantPortfolio();
+			loadPlantCatalog();
+
+			async function loadLiveDashboard() {
+				try {
+					const dashboard = await fetchJson(`/v1/finance/plants/${plantId}/dashboard`);
+					if (!dashboard) return;
+					const earnings = document.querySelector('.metrics .metric.featured .metric-detail');
+					const chartTotal = document.querySelector('.chart-note strong');
+					if (earnings) earnings.textContent = `Ingresos hoy: $${dashboard.roi_metrics.earnings_today_usd.toFixed(2)} USD`;
+					if (chartTotal) chartTotal.textContent = `${dashboard.energy_output.current_generation_kwh.toFixed(1)} kWh hoy`;
+					const status = document.querySelector('.status');
+					if (status) status.textContent = dashboard.status === 'OPERATIONAL' ? 'Todos los sistemas operativos' : `Estado: ${dashboard.status}`;
+				} catch (error) {
+					console.warn('No se pudo cargar el dashboard en vivo:', error.message);
+				}
+			}
+
+			async function loadLiveTasks() {
+				try {
+					const tasks = await fetchJson(`/v1/operations/plants/${plantId}/tasks?status=pending`);
+					if (!tasks) return;
+					const list = document.querySelector('.task-list');
+					if (!list) return;
+					list.innerHTML = tasks.slice(0, 4).map((task) => `
+						<li class="task">
+							<input type="checkbox" aria-label="Completar ${task.title}" />
+							<div><strong>${task.title}</strong><span>Prioridad ${task.priority} · Vence: ${task.due_time ? new Date(task.due_time).toLocaleString('es-AR') : 'sin fecha'}</span></div>
+						</li>`).join('') || '<li class="task"><div><strong>No hay tareas pendientes</strong><span>La planta está al día.</span></div></li>';
+					list.querySelectorAll('input').forEach((checkbox) => checkbox.addEventListener('change', () => checkbox.closest('.task').classList.toggle('done', checkbox.checked)));
+				} catch (error) {
+					console.warn('No se pudieron cargar las tareas en vivo:', error.message);
+				}
+			}
+
+			loadLiveDashboard();
+			loadLiveTasks();
+
+			const moduleWorkspace = document.querySelector('.module-workspace');
+			const moduleViews = {
+				telemetry: { label: 'Telemetría', title: 'Lecturas y alertas del proceso', description: 'Un espacio para observar variables críticas, recibir eventos en tiempo real y revisar la salud del digestor.', cards: [['Temperatura', '37.8 °C', 'Rango mesofílico estable'], ['pH', '7.2', 'Sin desviaciones activas'], ['Alertas críticas', '0', 'WebSocket protegido por planta']] },
+				operations: { label: 'Operaciones', title: 'Trabajo de campo y activos', description: 'Tareas, recepción de biomasa, inventario de digestato y estado de los equipos instalados.', cards: [['Tareas pendientes', '3', 'Prioridad ordenada'], ['Stock de biol', '245 m³', '82% de capacidad'], ['Equipos en alerta', '1', 'Requiere revisión']], extras: '<div class="module-tools"><button type="button" data-submodule="tasks">Tareas</button><button type="button" data-submodule="biomass">Ingreso de biomasa</button><button type="button" data-submodule="digestate">Digestato</button></div><form class="module-form" data-form="biomass" hidden><label>Proveedor<input name="supplier_name" required /></label><label>Tipo de biomasa<input name="biomass_type" required placeholder="estiércol_vacuno" /></label><label>Peso neto (t)<input name="net_weight_tons" type="number" min="0.001" step="0.001" required /></label><label>Humedad (%)<input name="moisture_percentage" type="number" min="0" max="100" step="0.1" /></label><label class="form-wide">Observaciones<input name="observations" /></label><button type="submit">Registrar ingreso</button></form><p class="module-feedback"></p>' },
+				tasks: { label: 'Tareas', title: 'Centro de control de tareas', description: 'Seguimiento de mantenimiento, inspecciones y acciones de campo de la planta.', cards: [['Pendientes', '0', 'Se actualiza desde el backend'], ['Prioridad alta', '0', 'Requieren atención'], ['Completadas', '0', 'Historial de ejecución']], extras: '<div class="module-tools"><button type="button" data-submodule="tasks">Actualizar tareas</button><button type="button" data-submodule="maintenance">Mantenimiento</button><button type="button" data-submodule="task-evidence">Evidencias</button></div>' },
+				finance: { label: 'Finanzas', title: 'Ingresos, OPEX y margen', description: 'El balance conecta energía, digestato, carbono y costos operativos con trazabilidad mensual.', cards: [['Ingresos consolidados', '$12.3k', 'Energía + subproductos'], ['OPEX del período', '$2.1k', 'Costos registrados'], ['Margen EBITDA', '82.9%', 'Balance estimado']], extras: '<div class="module-tools"><button type="button" data-submodule="balance">Balance consolidado</button><button type="button" data-submodule="opex">Registrar OPEX</button><button type="button" data-submodule="ppa">Contratos PPA</button><button type="button" data-submodule="carbon">Créditos de carbono</button><button type="button" data-submodule="chp">Balance CHP</button><button type="button" data-submodule="exports">Exportar reportes</button></div>' },
+				fiscal: { label: 'Fiscal ambiental', title: 'Liquidación fiscal y trazabilidad ambiental', description: 'Cálculo local auditable de sustrato procesado, metano capturado, tasas configuradas y créditos de carbono. Los parámetros deben validarse contra la normativa aplicable.', cards: [['Tasa de disposición', 'Configurable', 'Por tonelada de sustrato'], ['Crédito de carbono', 'Configurable', 'Por unidad de CO₂ evitado'], ['Estado', 'Borrador local', 'No es una declaración oficial']], extras: '<form class="module-form" data-form="fiscal-biogas"><label>Sustrato procesado (t)<input name="substrate_tons" type="number" min="0" step="0.001" value="150" required /></label><label>Metano capturado (m³)<input name="methane_m3" type="number" min="0" step="0.001" value="4500" required /></label><label>Tasa disposición / t<input name="disposal_rate" type="number" min="0" step="0.01" value="12.5" required /></label><label>CO₂ evitado por m³ CH₄<input name="co2_factor" type="number" min="0" step="0.000001" value="0.002" required /></label><label>Valor crédito / t CO₂<input name="carbon_price" type="number" min="0" step="0.01" value="25" required /></label><button type="submit">Calcular liquidación local</button></form><p class="module-feedback">Parámetros de trabajo. No reemplaza una declaración jurada oficial.</p><section class="submodule-panel" data-fiscal-result hidden><h3>Resultado auditable</h3><ul class="module-list"><li><strong>Tasa de disposición</strong><span data-fiscal="disposal">-</span></li><li><strong>CO₂ evitado estimado</strong><span data-fiscal="co2">-</span></li><li><strong>Crédito de carbono</strong><span data-fiscal="credit">-</span></li><li><strong>Impuesto neto estimado</strong><span data-fiscal="net">-</span></li></ul><p class="module-feedback" data-fiscal="status"></p><button type="button" data-fiscal-export>Exportar auditoría</button></section>' },
+				inventory: { label: 'Inventario', title: 'Stock y movimientos', description: 'Control de SKU, existencias por planta y kardex transaccional.', cards: [['SKU activos', '3', 'Presentaciones comerciales'], ['Stock líquido', '245 m³', 'Lectura de planta'], ['Movimientos', '12', 'Últimos registros']], extras: '<div class="module-tools"><button type="button" data-submodule="stock">Stock por planta</button><button type="button" data-submodule="adjust">Ajustar stock</button><button type="button" data-submodule="kardex">Kardex</button></div><form class="module-form" data-form="inventory-adjust" hidden><label>SKU ID<input name="sku_id" required placeholder="UUID del SKU" /></label><label>Cantidad<input name="quantity" type="number" min="0.001" step="0.001" required /></label><label class="form-wide">Referencia<input name="reference" /></label><button type="submit">Registrar producción</button></form><p class="module-feedback"></p>' },
+				equipment: { label: 'Equipamiento', title: 'Activos y mantenimiento', description: 'Catálogo físico de bombas, digestores, agitadores, CHP y gateways.', cards: [['Equipos registrados', '18', 'Catálogo por planta'], ['En mantenimiento', '2', 'Órdenes abiertas'], ['Estado crítico', '0', 'Sin paradas activas']], extras: '<div class="module-tools"><button type="button" data-submodule="equipment-list">Ver equipos</button><button type="button" data-submodule="equipment-create">Cargar equipo</button><button type="button" data-submodule="maintenance">Mantenimiento</button></div><form class="module-form" data-form="equipment-create" hidden><label>Nombre<input name="name" required placeholder="Agitador Digestor 01" /></label><label>Tipo<select name="type"><option>AGITATOR</option><option>PUMP</option><option>COGENERATOR</option><option>DIGESTER</option><option>OTHER</option></select></label><label>Escala<select name="scale"><option>MEDIANA</option><option>PEQUENA</option><option>INDUSTRIAL</option></select></label><label>Fabricante<input name="manufacturer" /></label><label class="form-wide">Notas<input name="notes" /></label><button type="submit">Guardar equipo</button></form><p class="module-feedback"></p>' },
+				design: { label: 'Diseño de planta', title: 'PFD, P&ID y topología', description: 'Visualiza el diseño conceptual, unidades de proceso y conexiones hidráulicas.', cards: [['Esquema', 'CSTR', 'Serie o paralelo'], ['Unidades', '12', 'Bloques de proceso'], ['Conexiones', '14', 'Flujos definidos']], extras: '<div class="module-tools"><button type="button" data-submodule="pfd">Diagrama de proceso</button><button type="button" data-submodule="topology">Topología</button><button type="button" data-submodule="recipes">Recetas</button></div>' },
+				transport: { label: 'Transporte', title: 'Flota, rutas y tracking', description: 'Planificación de despachos, capacidad de camiones, kilómetros auditados y ubicación en ruta.', cards: [['Camiones disponibles', '0', 'Flota pendiente de alta'], ['Rutas programadas', '0', 'Despachos del período'], ['En ruta', '0', 'Tracking GPS']], extras: '<div class="module-tools"><button type="button" data-submodule="fleet">Flota</button><button type="button" data-submodule="routes">Rutas</button><button type="button" data-submodule="tracking">Tracking GPS</button><button type="button" data-submodule="fleet-maintenance">Mantenimiento de flota</button></div>' },
+				hr: { label: 'RRHH', title: 'Personal y liquidaciones', description: 'Administra operarios, encargados, gerentes, administrativos y choferes. Los choferes cobran por toneladas transportadas.', cards: [['Personal configurado', '5', 'Perfiles laborales'], ['Toneladas transportadas', '450 t', 'Base variable del chofer'], ['Liquidaciones', '1', 'Pendiente de aprobación']], extras: '<div class="module-tools"><button type="button" data-submodule="driver-rate">Configurar empleado</button><button type="button" data-submodule="payroll">Liquidar haberes</button><button type="button" data-submodule="payroll-history">Historial de liquidaciones</button></div><form class="module-form" data-form="driver-rate" hidden><label>Usuario ID<input name="user_id" required placeholder="UUID del usuario" /></label><label>Legajo<input name="employee_number" required /></label><label>Perfil<select name="employee_type"><option>OPERARIO_PLANTA</option><option>ENCARGADO_PLANTA</option><option>GERENTE</option><option>ADMINISTRATIVO</option><option>CHOFER</option></select></label><label>Salario base USD<input name="base_salary_usd" type="number" min="0" step="0.01" required /></label><label>Pago por tonelada USD<input name="pay_per_ton_usd" type="number" min="0" step="0.001" value="0" required /></label><label>Pago por km USD opcional<input name="pay_per_km_usd" type="number" min="0" step="0.001" value="0" /></label><label>Fecha de ingreso<input name="hire_date" type="date" required /></label><button type="submit">Guardar perfil laboral</button></form><form class="module-form" data-form="payroll" hidden><label>Usuario chofer ID<input name="user_id" required placeholder="UUID del chofer" /></label><label>Período<input name="period" required placeholder="2026-08" /></label><label>Toneladas transportadas<input name="transported_tons" type="number" min="0" step="0.01" required /></label><label>Km auditados opcional<input name="audited_km" type="number" min="0" step="0.01" value="0" /></label><button type="submit">Generar liquidación</button></form><p class="module-feedback"></p>' },
+				settings: { label: 'Configuración', title: 'Parámetros del sistema', description: 'Conecta la interfaz con tu backend, selecciona la planta y administra seguridad, dispositivos y WhatsApp.', cards: [['API', 'LOCAL', 'Backend configurable'], ['WhatsApp', 'PENDING', 'Sesión de planta'], ['Seguridad', 'RBAC', 'JWT + planta']], extras: '<div class="module-tools"><button type="button" data-submodule="connection">Conectar sesión</button><button type="button" data-submodule="devices">Dispositivos IoT</button><button type="button" data-submodule="alerts">Reglas de alerta</button><button type="button" data-submodule="whatsapp">WhatsApp</button></div><form class="module-form" data-form="connection"><label>URL del backend<input name="api_base_url" value="http://localhost:3001" required /></label><label>Empresa / planta<select name="plant_id" data-plant-options required><option value="">Cargando empresas y plantas...</option></select></label><label>Email<input name="email" type="email" required placeholder="inversor@biogas.com" /></label><label>Contraseña<input name="password" type="password" required /></label><button type="submit">Iniciar sesión y conectar</button></form><p class="module-feedback"></p>' },
+				company: { label: 'Empresa', title: 'Datos fiscales de la empresa', description: 'Información legal y de contacto de la empresa asociada a la planta seleccionada.', cards: [['Razón social', 'Consultar', 'Empresa propietaria'], ['CUIT / RUT', 'Consultar', 'Identificación fiscal'], ['Domicilio fiscal', 'Consultar', 'Dirección registrada']], extras: '<div class="module-tools"><button type="button" data-submodule="company-data">Actualizar datos fiscales</button></div>' },
+				connection: { label: 'Conectar sesión', title: hasActiveSession ? 'Sesión activa' : 'Conectar con el centro de control', description: hasActiveSession ? 'La aplicación ya tiene una sesión guardada y puede cargar los datos de la planta.' : 'Elegí la empresa/planta, iniciá sesión una vez y habilitá todos los módulos.', cards: [['Backend', apiBaseUrl, 'Servidor configurado'], ['Planta', plantId || 'Sin seleccionar', 'Contexto operativo'], ['Sesión', hasActiveSession ? 'ACTIVA' : 'PENDIENTE', hasActiveSession ? 'JWT guardado localmente' : 'Requiere autenticación']], extras: hasActiveSession ? '<div class="module-tools"><button type="button" data-submodule="logout">Cerrar sesión</button></div><p class="module-feedback">La sesión se reutilizará al volver a abrir la aplicación.</p>' : '<form class="module-form" data-form="connection"><label>URL del backend<input name="api_base_url" value="http://localhost:3001" required /></label><label>Empresa / planta<select name="plant_id" data-plant-options required><option value="">Cargando empresas y plantas...</option></select></label><label>Email<input name="email" type="email" required placeholder="inversor@biogas.com" /></label><label>Contraseña<input name="password" type="password" required /></label><button type="submit">Iniciar sesión y conectar</button></form><p class="module-feedback"></p>' },
+			};
+
+			function setModule(moduleName) {
+				if (telemetryInterval) {
+					clearInterval(telemetryInterval);
+					telemetryInterval = null;
+				}
+				const isSummary = moduleName === 'summary';
+				document.querySelectorAll('.dashboard-only').forEach((section) => { section.hidden = !isSummary; });
+				moduleWorkspace.hidden = isSummary;
+				if (!isSummary) {
+					const view = moduleViews[moduleName];
+					moduleWorkspace.innerHTML = `<section class="module-hero"><div><p class="eyebrow">Centro de control / ${view.label}</p><h2>${view.title}</h2><p>${view.description}</p></div><span class="status">Conectado al backend</span></section><section class="module-grid">${view.cards.map(([title, value, detail]) => `<article class="module-card"><p class="eyebrow">${title}</p><div class="module-value">${value}</div><p>${detail}</p></article>`).join('')}</section>${view.extras || ''}`;
+					moduleWorkspace.querySelectorAll('input[name="api_base_url"]').forEach((input) => { input.value = apiBaseUrl; });
+					if (moduleName === 'settings' || moduleName === 'connection') loadPlantCatalog();
+					if (moduleName === 'settings') configureSessionView();
+					document.querySelector('.eyebrow').textContent = `Centro de control / ${view.label}`;
+					document.querySelector('h1').textContent = view.title;
+					if (moduleName === 'telemetry') {
+						loadLiveTelemetry();
+						telemetryInterval = setInterval(loadLiveTelemetry, 5000);
+					}
+					loadModuleData(moduleName);
+				}
+			}
+
+			function configureSessionView() {
+				const connectionButton = moduleWorkspace.querySelector('[data-submodule="connection"]');
+				const connectionForm = moduleWorkspace.querySelector('[data-form="connection"]');
+				if (!connectionButton || !connectionForm) return;
+				if (hasActiveSession) {
+					connectionButton.textContent = 'Sesión activa · Cerrar sesión';
+					connectionButton.dataset.submodule = 'logout';
+					connectionForm.hidden = true;
+				} else {
+					connectionButton.textContent = 'Conectar sesión';
+				}
+			}
+
+			window.showModule = function (moduleName) {
+				const activeButton = document.querySelector(`.nav button[data-module="${moduleName}"]`);
+				document.querySelectorAll('.nav button').forEach((button) => button.classList.toggle('active', button === activeButton));
+				setModule(moduleName);
+			};
+
+			async function loadModuleData(moduleName) {
+				try {
+					if (moduleName === 'operations') {
+						const tasks = await fetchJson(`/v1/operations/plants/${plantId}/tasks?status=pending`);
+						if (tasks) moduleWorkspace.querySelector('.module-card .module-value').textContent = tasks.length;
+					}
+					if (moduleName === 'tasks') {
+						const [pending, completed] = await Promise.all([
+							fetchJson(`/v1/operations/plants/${plantId}/tasks?status=pending`),
+							fetchJson(`/v1/operations/plants/${plantId}/tasks?status=completed`),
+						]);
+						const values = moduleWorkspace.querySelectorAll('.module-card .module-value');
+						if (pending) values[0].textContent = pending.length;
+						if (completed) values[2].textContent = completed.length;
+					}
+					if (moduleName === 'inventory') {
+						const stock = await fetchJson(`/v1/operations/inventory/plants/${plantId}/stock`);
+						if (stock) moduleWorkspace.querySelectorAll('.module-card .module-value')[1].textContent = `${stock.length} SKU`;
+					}
+					if (moduleName === 'finance') {
+						const balance = await fetchJson(`/v1/finance/plants/${plantId}/consolidated-balance`);
+						const latest = balance?.data?.[0];
+						if (latest) {
+							const values = moduleWorkspace.querySelectorAll('.module-card .module-value');
+							values[0].textContent = `$${latest.consolidated_revenue_usd.toFixed(0)}`;
+							values[1].textContent = `$${latest.opex_usd.toFixed(0)}`;
+							values[2].textContent = `${latest.ebitda_margin_percentage.toFixed(1)}%`;
+						}
+					}
+					if (moduleName === 'company') {
+						const company = await fetchJson(`/v1/clients/plants/${plantId}/fiscal-data`);
+						if (company) {
+							const values = moduleWorkspace.querySelectorAll('.module-card .module-value');
+							values[0].textContent = company.legal_name || 'Sin razón social';
+							values[1].textContent = company.tax_id || 'Sin CUIT/RUT';
+							values[2].textContent = company.fiscal_address || 'Sin domicilio fiscal';
+						}
+					}
+				} catch (error) {
+					console.warn(`No se pudieron cargar datos de ${moduleName}:`, error.message);
+				}
+			}
+
+			async function loadLiveTelemetry() {
+				try {
+					const readings = await fetchJson(`/v1/telemetry/plant/${plantId}/latest`);
+					if (!readings) return;
+					const values = Object.fromEntries(readings.map((reading) => [reading.metric_type, reading]));
+					const cards = document.querySelectorAll('.module-card');
+					const telemetryCards = [
+						['temperature', ' °C', 'Rango mesofílico'],
+						['ph', '', 'pH del proceso'],
+						['methane', ' %', 'Concentración de metano'],
+					];
+					telemetryCards.forEach(([metric, suffix, label], index) => {
+						const reading = values[metric];
+						if (!reading || !cards[index]) return;
+						cards[index].querySelector('.module-value').textContent = `${reading.value}${suffix}`;
+						cards[index].querySelector('.eyebrow').textContent = label;
+						cards[index].querySelector('p:last-child').textContent = `${reading.sensor_tag} · ${new Date(reading.timestamp).toLocaleTimeString('es-AR')}`;
+					});
+				} catch (error) {
+					console.warn('No se pudo cargar la telemetría en vivo:', error.message);
+				}
+			}
+
+			function dynamicForm(submodule) {
+				const forms = {
+					opex: '<form class="module-form" data-form="opex"><label>Categoría del gasto<select name="category_id" data-opex-categories required><option value="">Cargando categorías...</option></select></label><label>Período<input name="period" required placeholder="2026-08" /></label><label>Monto USD<input name="amount_usd" type="number" min="0" step="0.01" required /></label><label>Fecha del gasto<input name="expense_date" type="date" required /></label><label class="form-wide">Descripción<input name="description" required /></label><label class="form-wide">Proveedor<input name="supplier_name" /></label><button type="submit">Registrar costo</button></form>',
+					design: '<form class="module-form" data-form="design"><label>Nombre del diseño<input name="name" required /></label><label>Esquema<select name="reactor_scheme"><option>CSTR</option><option>CSTR_PARALLEL</option><option>CSTR_SERIES</option></select></label><label>ST objetivo (%)<input name="target_solids_percentage" type="number" min="8" max="12" step="0.1" required /></label><label>Alimento diario (t)<input name="daily_feedstock_tons" type="number" min="0" step="0.001" required /></label><label>Agua de dilución (m3/día)<input name="dilution_water_m3_per_day" type="number" min="0" step="0.001" required /></label><label>¿Post-digestor?<select name="has_post_digester"><option value="false">No</option><option value="true">Sí</option></select></label><button type="submit">Guardar diseño</button></form>',
+					alerts: '<form class="module-form" data-form="alerts"><label>Métrica<input name="metric_type" required placeholder="ph" /></label><label>Operador<select name="operator"><option>less_than</option><option>greater_than</option><option>equals</option></select></label><label>Umbral<input name="threshold" type="number" step="0.01" required /></label><label>Severidad<select name="severity"><option>warning</option><option>critical</option></select></label><button type="submit">Guardar regla</button></form>',
+					devices: '<form class="module-form" data-form="devices"><label>Nombre del dispositivo<input name="name" required placeholder="Gateway Node-RED" /></label><button type="submit">Crear dispositivo IoT</button></form>',
+					ppa: '<form class="module-form" data-form="ppa"><label>Código de contrato<input name="contract_code" required /></label><label>Comprador<input name="buyer_name" required /></label><label>Tarifa USD/kWh<input name="base_rate_usd_kwh" type="number" min="0.0001" step="0.0001" required /></label><label>Potencia contratada kW<input name="contracted_power_kw" type="number" min="0" /></label><label>Inicio<input name="valid_from" type="date" required /></label><label>Fin<input name="valid_to" type="date" required /></label><button type="submit">Crear contrato PPA</button></form>',
+					carbon: '<form class="module-form" data-form="carbon"><label>Período<input name="period" required placeholder="2026-08" /></label><label>CH4 capturado m3<input name="captured_methane_m3" type="number" min="0" step="0.001" required /></label><label>Energía inyectada kWh<input name="injected_energy_kwh" type="number" min="0" step="0.001" required /></label><label>Precio carbono USD<input name="carbon_price_usd" type="number" min="0" step="0.01" required /></label><button type="submit">Calcular créditos estimados</button></form>',
+					chp: '<form class="module-form" data-form="chp"><label>Equipo CHP ID<input name="equipment_id" required placeholder="UUID del equipo" /></label><label>Biogás consumido m3<input name="biogas_consumed_m3" type="number" min="0.001" step="0.001" required /></label><label>Metano promedio %<input name="methane_average_percentage" type="number" min="0.01" max="100" step="0.01" required /></label><label>Energía eléctrica kWh<input name="electric_energy_kwh" type="number" min="0" step="0.001" required /></label><label>Energía térmica kWh<input name="thermal_energy_kwh" type="number" min="0" step="0.001" value="0" /></label><button type="submit">Guardar balance CHP</button></form>',
+				};
+				return forms[submodule] || '';
+			}
+
+			document.querySelectorAll('.nav button').forEach((button) => {
+				button.addEventListener('click', () => {
+					document.querySelector('.nav button.active').classList.remove('active');
+					button.classList.add('active');
+					setModule(button.dataset.module);
+				});
+			});
+
+			moduleWorkspace.addEventListener('click', (event) => {
+				const button = event.target.closest('[data-submodule]');
+				if (!button) return;
+				if (button.dataset.submodule === 'logout') {
+					localStorage.removeItem('access_token');
+					localStorage.removeItem('jwt');
+					localStorage.removeItem('user_plant_id');
+					location.reload();
+					return;
+				}
+				moduleWorkspace.querySelectorAll('.submodule-panel').forEach((panel) => panel.remove());
+				moduleWorkspace.querySelectorAll('.module-form').forEach((form) => { form.hidden = true; });
+				const formName = button.dataset.submodule === 'adjust' ? 'inventory-adjust' : button.dataset.submodule;
+				let form = moduleWorkspace.querySelector(`[data-form="${formName}"]`);
+				if (!form) {
+					const markup = dynamicForm(formName);
+					if (markup) {
+						const wrapper = document.createElement('div');
+						wrapper.innerHTML = markup;
+						form = wrapper.firstElementChild;
+					}
+				}
+				if (form) form.hidden = false;
+				const feedback = moduleWorkspace.querySelector('.module-feedback');
+				const panel = document.createElement('section');
+				panel.className = 'submodule-panel';
+				panel.innerHTML = `<h3>${button.textContent.trim()}</h3><p class="submodule-description"></p><div class="submodule-content"></div>`;
+				moduleWorkspace.appendChild(panel);
+				const content = panel.querySelector('.submodule-content');
+				const description = panel.querySelector('.submodule-description');
+				const submodule = button.dataset.submodule;
+				const descriptions = {
+					tasks: 'Tareas pendientes de la planta, ordenadas por prioridad y vencimiento.',
+					biomass: 'Registrar el ingreso de materia orgánica recibido en planta.',
+					digestate: 'Consultar el inventario de digestato líquido y sólido.',
+					stock: 'Existencias actuales por SKU y ubicación de almacenamiento.',
+					adjust: 'Registrar producción, merma, devolución o ajuste del kardex.',
+					kardex: 'Historial de movimientos de inventario de la planta.',
+					'equipment-list': 'Equipos físicos registrados en la planta y su estado operativo.',
+					'equipment-create': 'Dar de alta una bomba, agitador, digestor, CHP o gateway.',
+					maintenance: 'Tareas de mantenimiento abiertas y completadas.',
+					'task-evidence': 'Evidencias fotográficas asociadas a tareas completadas.',
+					balance: 'Ingresos consolidados, OPEX, EBITDA y margen del período.',
+					opex: 'Registrar un costo operativo para calcular el EBITDA real.',
+					exports: 'Descargar el balance financiero en Excel o PDF.',
+					pfd: 'Unidades de proceso y equipos vinculados al diseño de planta.',
+					topology: 'Conexiones hidráulicas, gas, digestato y circuito térmico.',
+					recipes: 'Recetas de alimentación y simulación de co-sustratos.',
+					connection: 'Iniciar sesión contra el backend y habilitar la carga de datos.',
+					devices: 'Dispositivos IoT activos y sus claves de acceso.',
+					alerts: 'Reglas de alerta configuradas para la planta.',
+					whatsapp: 'Estado de la sesión local de WhatsApp y código QR.',
+					fleet: 'Alta y disponibilidad de vehículos cisterna y tolva.',
+					routes: 'Hojas de ruta, origen, destino, carga y estado del viaje.',
+					tracking: 'Última posición y recorrido histórico de cada camión.',
+					'fleet-maintenance': 'Service por kilometraje y órdenes mecánicas de la flota.',
+					'driver-rate': 'Configurar salario base y pago variable por kilómetro.',
+					payroll: 'Generar el cierre mensual de haberes por kilómetros auditados.',
+					'payroll-history': 'Consultar liquidaciones y estados de pago.',
+				};
+				description.textContent = descriptions[submodule] || 'Submódulo seleccionado.';
+				if (form) content.appendChild(form);
+				if (feedback) content.appendChild(feedback);
+				if (formName === 'opex' && form) loadOpexCategories(form);
+				if (!form) {
+					content.insertAdjacentHTML('beforeend', '<p class="module-loading">Cargando información...</p>');
+					loadSubmoduleData(submodule, content);
+				}
+			});
+
+			async function loadSubmoduleData(submodule, content) {
+				const loading = content.querySelector('.module-loading');
+				if (!accessToken || !plantId) {
+					loading.textContent = 'Conectá una sesión desde Configuración para consultar datos reales.';
+					return;
+				}
+				const paths = {
+					tasks: `/v1/operations/plants/${plantId}/tasks`,
+					digestate: `/v1/operations/plants/${plantId}/digestato-inventory`,
+					stock: `/v1/operations/inventory/plants/${plantId}/stock`,
+					kardex: `/v1/operations/inventory/plants/${plantId}/movements`,
+					'equipment-list': `/v1/plants/${plantId}/equipment`,
+					balance: `/v1/finance/plants/${plantId}/consolidated-balance`,
+					pfd: `/v1/plants/${plantId}/design/units`,
+					topology: `/v1/plants/${plantId}/design/topology/connections`,
+					recipes: `/v1/substrates/recipes/cosubstrates`,
+					alerts: `/v1/alerts/rules/plant/${plantId}`,
+					whatsapp: '/v1/notifications/whatsapp/status',
+					'company-data': `/v1/clients/plants/${plantId}/fiscal-data`,
+				};
+				if (!paths[submodule]) {
+					loading.textContent = 'Este submódulo tiene acciones propias disponibles en su pantalla.';
+					return;
+				}
+				try {
+					const data = await fetchJson(paths[submodule]);
+					loading.remove();
+					const rows = Array.isArray(data) ? data : (data?.data || [data]);
+					content.insertAdjacentHTML('beforeend', rows.length ? `<ul class="module-list">${rows.slice(0, 12).map((row) => `<li><strong>${row.title || row.name || row.skuCode || row.unitCode || row.period || row.status || 'Registro'}</strong><span>${row.priority || row.availableQuantity || row.amount || row.type || row.connectionType || row.value || row.status || ''}</span></li>`).join('')}</ul>` : '<p>No hay registros para mostrar.</p>');
+				} catch (error) {
+					loading.textContent = `No se pudo cargar: ${error.message}`;
+				}
+			}
+
+			async function loadOpexCategories(form) {
+				const select = form.querySelector('[data-opex-categories]');
+				if (!select) return;
+				try {
+					const categories = await fetchJson('/v1/finance/opex/categories');
+					if (!categories) {
+						select.innerHTML = '<option value="">Conectá una sesión para cargar categorías</option>';
+						return;
+					}
+					select.innerHTML = '<option value="">Seleccioná una categoría</option>';
+					categories.forEach((category) => {
+						const option = document.createElement('option');
+						option.value = category.id;
+						option.textContent = category.name;
+						select.appendChild(option);
+					});
+				} catch (error) {
+					select.innerHTML = `<option value="">No se pudieron cargar: ${error.message}</option>`;
+				}
+			}
+
+			async function registrarAuditoriaFiscalRemota(payload) {
+				const response = await fetch('https://solucioneseningenieria.com.ar/api/auditoria-fiscal', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						...payload,
+						licenseId: localStorage.getItem('pampaBiogasLicenseId') || '',
+						deviceId: localStorage.getItem('pampaBiogasDeviceId') || ''
+					}),
+				});
+				const body = await response.json().catch(() => ({}));
+				if (!response.ok || body.ok === false) throw new Error(body.message || 'No se pudo registrar la auditoría.');
+				return body;
+			}
+
+			moduleWorkspace.addEventListener('submit', async (event) => {
+				event.preventDefault();
+				const form = event.target.closest('form');
+				const feedback = moduleWorkspace.querySelector('.module-feedback');
+				if (!form) return;
+				const values = Object.fromEntries(new FormData(form).entries());
+				if (form.dataset.form === 'fiscal-biogas') {
+					const substrateTons = Number(values.substrate_tons);
+					const methaneM3 = Number(values.methane_m3);
+					const disposalRate = 12.5;
+					const co2Factor = 0.000717;
+					const carbonPrice = 25;
+					form.elements.disposal_rate.value = disposalRate;
+					form.elements.co2_factor.value = co2Factor;
+					form.elements.carbon_price.value = carbonPrice;
+					const disposal = substrateTons * disposalRate;
+					const tonnesMethane = methaneM3 * co2Factor;
+					const co2Avoided = tonnesMethane * 28;
+					const carbonCredit = co2Avoided * carbonPrice;
+					const net = disposal - carbonCredit;
+					const result = moduleWorkspace.querySelector('[data-fiscal-result]');
+					const auditPayload = { substrateTons, methaneM3, plantId, mode: hasActiveSession ? 'electron' : 'trial-web' };
+					registrarAuditoriaFiscalRemota(auditPayload).then((remote) => {
+						const status = result?.querySelector('[data-fiscal="status"]');
+						if (status && remote?.auditId) status.textContent = `Auditoría remota registrada: ${remote.auditId}. Validá tasas y factores antes de usarlo en una presentación oficial.`;
+					}).catch(() => {});
+					const money = (value) => `$${value.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+					result.hidden = false;
+					result.querySelector('[data-fiscal="disposal"]').textContent = money(disposal);
+					result.querySelector('[data-fiscal="co2"]').textContent = `${co2Avoided.toFixed(3)} tCO₂e (CH₄: ${tonnesMethane.toFixed(3)} t)`;
+					result.querySelector('[data-fiscal="credit"]').textContent = `+ ${money(carbonCredit)}`;
+					result.querySelector('[data-fiscal="net"]').textContent = `${money(Math.abs(net))} ${net >= 0 ? '(A pagar)' : '(Saldo a favor)'}`;
+					result.querySelector('[data-fiscal="status"]').textContent = 'Cálculo local auditable. Validá tasas y factores antes de usarlo en una presentación oficial.';
+					result.querySelector('[data-fiscal-export]').onclick = () => {
+						if (!hasActiveSession) {
+							result.querySelector('[data-fiscal="status"]').textContent = 'La exportación oficial requiere sesión autenticada y backend configurado.';
+							return;
+						}
+						const audit = { generatedAt: new Date().toISOString(), plantId, inputs: values, results: { disposal, co2Avoided, carbonCredit, net }, mode: 'local-calculation' };
+						const blob = new Blob([JSON.stringify(audit, null, 2)], { type: 'application/json' });
+						const link = document.createElement('a');
+						link.href = URL.createObjectURL(blob);
+						link.download = `pampa-biogas-fiscal-${new Date().toISOString().slice(0, 10)}.json`;
+						link.click();
+						URL.revokeObjectURL(link.href);
+					};
+					return;
+				}
+				if (form.dataset.form === 'connection') {
+					try {
+						const response = await fetch(`${values.api_base_url}/v1/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: values.email, password: values.password }) });
+						if (!response.ok) throw new Error(`Login rechazado (HTTP ${response.status})`);
+						const session = await response.json();
+						localStorage.setItem('api_base_url', values.api_base_url);
+						localStorage.setItem('access_token', session.access_token || session.token);
+						localStorage.setItem('user_plant_id', session.plantId || values.plant_id);
+						if (feedback) feedback.textContent = 'Sesión conectada. Recargando módulos...';
+						setTimeout(() => location.reload(), 400);
+					} catch (error) {
+						if (feedback) feedback.textContent = `No se pudo iniciar sesión: ${error.message}`;
+					}
+					return;
+				}
+				if (!accessToken || !plantId) {
+					if (feedback) feedback.textContent = 'Iniciá sesión y seleccioná una planta para cargar datos.';
+					return;
+				}
+				let path = '';
+				let body = values;
+				if (form.dataset.form === 'biomass') {
+					path = `/v1/operations/plants/${plantId}/biomass-ingress`;
+					body = { ...values, net_weight_tons: Number(values.net_weight_tons), moisture_percentage: values.moisture_percentage ? Number(values.moisture_percentage) : undefined, quality_check_passed: true };
+				}
+				if (form.dataset.form === 'inventory-adjust') {
+					path = `/v1/operations/inventory/plants/${plantId}/stock/${values.sku_id}/adjust`;
+					body = { movement_type: 'PRODUCTION', quantity: Number(values.quantity), reference: values.reference };
+				}
+				if (form.dataset.form === 'equipment-create') {
+					path = `/v1/plants/${plantId}/equipment`;
+					body = values;
+				}
+				if (form.dataset.form === 'opex') {
+					path = `/v1/finance/opex/plants/${plantId}/records`;
+					body = { ...values, amount_usd: Number(values.amount_usd) };
+				}
+				if (form.dataset.form === 'design') {
+					path = `/v1/plants/${plantId}/design`;
+					body = { ...values, target_solids_percentage: Number(values.target_solids_percentage), daily_feedstock_tons: Number(values.daily_feedstock_tons), dilution_water_m3_per_day: Number(values.dilution_water_m3_per_day), has_post_digester: values.has_post_digester === 'true' };
+				}
+				if (form.dataset.form === 'alerts') {
+					path = '/v1/alerts/rules';
+					body = { ...values, plant_id: plantId, threshold: Number(values.threshold), active: true };
+				}
+				if (form.dataset.form === 'devices') {
+					path = '/v1/iot-devices';
+					body = { ...values, plant_id: plantId };
+				}
+				if (form.dataset.form === 'ppa') {
+					path = `/v1/finance/plants/${plantId}/ppa/contracts`;
+					body = { ...values, base_rate_usd_kwh: Number(values.base_rate_usd_kwh), contracted_power_kw: values.contracted_power_kw ? Number(values.contracted_power_kw) : undefined };
+				}
+				if (form.dataset.form === 'carbon') {
+					path = `/v1/finance/carbon/plants/${plantId}/credits/calculate`;
+					body = { ...values, captured_methane_m3: Number(values.captured_methane_m3), injected_energy_kwh: Number(values.injected_energy_kwh), carbon_price_usd: Number(values.carbon_price_usd) };
+				}
+				if (form.dataset.form === 'chp') {
+					path = `/v1/finance/plants/${plantId}/chp-energy/balances`;
+					body = { ...values, biogas_consumed_m3: Number(values.biogas_consumed_m3), methane_average_percentage: Number(values.methane_average_percentage), electric_energy_kwh: Number(values.electric_energy_kwh), thermal_energy_kwh: Number(values.thermal_energy_kwh || 0) };
+				}
+				if (form.dataset.form === 'driver-rate') {
+					path = '/v1/finance/driver-payroll/rates';
+					body = { ...values, base_salary_usd: Number(values.base_salary_usd), pay_per_km_usd: Number(values.pay_per_km_usd) };
+				}
+				if (form.dataset.form === 'payroll') {
+					path = `/v1/finance/driver-payroll/drivers/${values.user_id}/settlements`;
+					body = { period: values.period, audited_km: Number(values.audited_km) };
+				}
+				try {
+					const response = await fetch(`${apiBaseUrl}${path}`, { method: 'POST', headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+					if (!response.ok) throw new Error(`API respondió HTTP ${response.status}`);
+					if (feedback) feedback.textContent = 'Datos guardados correctamente.';
+					form.reset();
+				} catch (error) {
+					if (feedback) feedback.textContent = `No se pudo guardar: ${error.message}`;
+				}
+			});
+
+			document.querySelectorAll('.task input').forEach((checkbox) => {
+				checkbox.addEventListener('change', () => checkbox.closest('.task').classList.toggle('done', checkbox.checked));
+			});
+		</script>
+	</body>
+</html>
+
