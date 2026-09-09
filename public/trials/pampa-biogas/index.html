@@ -115,6 +115,21 @@
 			.checklist-item span { display: grid; gap: 4px; }
 			.checklist-item strong { font-size: 13px; }
 			.checklist-item small { color: var(--muted); font-size: 11px; line-height: 1.45; }
+			.digestor-controls { display: grid; gap: 14px; margin-bottom: 2px; }
+			.digestor-controls h3 { margin: 0; font-family: var(--display); font-size: 21px; font-weight: 500; }
+			.digestor-controls > p { margin: 0; color: var(--muted); font-size: 12px; }
+			.digestor-chemistry { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+			.chemistry-card { display: grid; gap: 10px; border: 1px solid var(--line); border-radius: 6px; padding: 16px; background: var(--panel); }
+			.chemistry-card.critical { border-color: var(--red); background: #fff5f2; }
+			.chemistry-card h4 { margin: 0; font-family: var(--display); font-size: 18px; font-weight: 500; }
+			.chemistry-card label { display: grid; gap: 5px; color: var(--muted); font-size: 11px; }
+			.chemistry-card input { width: 100%; border: 1px solid var(--line); border-radius: 5px; padding: 10px; color: var(--ink); background: #fbfcf9; }
+			.chemistry-status { margin: 0; color: var(--green); font-size: 12px; line-height: 1.4; }
+			.chemistry-card.critical .chemistry-status { color: var(--red); font-weight: 700; }
+			.digestor-archive { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+			.digestor-archive button { border: 0; border-radius: 6px; padding: 11px 14px; color: #eff8db; background: var(--green); cursor: pointer; }
+			.digestor-archive button:hover { background: #15543c; }
+			.digestor-archive p { margin: 0; color: var(--muted); font-size: 12px; }
 			@keyframes rise { from { transform: scaleY(0); } to { transform: scaleY(1); } }
 			@media (max-width: 850px) { .app { grid-template-columns: 1fr; } .sidebar { padding: 18px 20px; } .brand { margin-bottom: 18px; } .nav { grid-template-columns: repeat(4, minmax(0, 1fr)); } .nav button { justify-content: center; padding: 9px 4px; font-size: 0; } .sidebar-note { display: none; } }
 			@media (max-width: 620px) { main { padding: 25px 16px 34px; } .topbar { margin-bottom: 25px; } .date { display: none; } .metrics, .content-grid, .lower-grid, .module-grid { grid-template-columns: 1fr; } .metric { min-height: 125px; } .chart { gap: 7px; } .module-hero { display: block; } }
@@ -304,6 +319,38 @@
 				{ id: 12, time: '23:00', shift: 'Noche', type: 'Seguridad', title: 'Revisión de alertas nocturnas', detail: 'Confirmar alarmas remotas de alta presión, baja temperatura y detección de gas ambiental.' },
 			];
 
+			function renderDigestorControls(container) {
+				const dateKey = new Date().toISOString().slice(0, 10);
+				const archiveKey = `pampaBiogasGuardia:${dateKey}`;
+				let readings = { ph: 7.2, fosTac: 0.35 };
+				try { readings = { ...readings, ...(JSON.parse(localStorage.getItem(archiveKey) || '{}').readings || {}) }; } catch {}
+				const panel = document.createElement('section');
+				panel.className = 'submodule-panel digestor-controls';
+				panel.innerHTML = `<h3>Control biológico del digestor</h3><p>Lecturas operativas para detectar acidificación antes de modificar la carga del reactor. Fecha: ${dateKey}</p><div class="digestor-chemistry"><article class="chemistry-card" data-chemical="ph"><h4>Control de acidez (pH)</h4><label>Medición actual · rango operativo 6,8 a 7,4<input type="number" name="ph" min="0" max="14" step="0.1" value="${readings.ph}"></label><p class="chemistry-status"></p></article><article class="chemistry-card" data-chemical="fosTac"><h4>Relación FOS / TAC</h4><label>Índice de volatilidad · revisar sobre 0,45<input type="number" name="fosTac" min="0" step="0.01" value="${readings.fosTac}"></label><p class="chemistry-status"></p></article></div><div class="digestor-archive"><button type="button" data-archive-guardia>Archivar registro de guardia</button><p data-archive-status>Sin registro archivado para hoy.</p></div>`;
+				container.append(panel);
+
+				const updateStatus = () => {
+					const ph = Number(panel.querySelector('[name="ph"]').value);
+					const fosTac = Number(panel.querySelector('[name="fosTac"]').value);
+					const phCritical = !Number.isFinite(ph) || ph < 6.8 || ph > 7.4;
+					const fosCritical = !Number.isFinite(fosTac) || fosTac > 0.45;
+					const phCard = panel.querySelector('[data-chemical="ph"]');
+					const fosCard = panel.querySelector('[data-chemical="fosTac"]');
+					phCard.classList.toggle('critical', phCritical);
+					fosCard.classList.toggle('critical', fosCritical);
+					phCard.querySelector('.chemistry-status').textContent = phCritical ? 'ALERTA: pH fuera de rango. Revisar laboratorio y reducir la carga hasta confirmar.' : 'Estado del lodo biológico: estable.';
+					fosCard.querySelector('.chemistry-status').textContent = fosCritical ? 'CRÍTICO: posible sobrealimentación. Detener o fraccionar la carga y repetir FOS/TAC.' : 'Relación de ácidos grasos equilibrada.';
+				};
+				panel.querySelectorAll('input').forEach(input => input.addEventListener('input', updateStatus));
+				panel.querySelector('[data-archive-guardia]').addEventListener('click', () => {
+					const checklist = [...container.querySelectorAll('input[data-check-id]')].reduce((result, input) => { result[input.dataset.checkId] = input.checked; return result; }, {});
+					const record = { archivedAt: new Date().toISOString(), readings: { ph: Number(panel.querySelector('[name="ph"]').value), fosTac: Number(panel.querySelector('[name="fosTac"]').value) }, checklist };
+					localStorage.setItem(archiveKey, JSON.stringify(record));
+					panel.querySelector('[data-archive-status]').textContent = `Registro local archivado a las ${new Date(record.archivedAt).toLocaleTimeString('es-AR')}.`;
+				});
+				updateStatus();
+			}
+
 			function renderDigestorChecklist(container) {
 				const dateKey = new Date().toISOString().slice(0, 10);
 				const storageKey = `pampaBiogasChecklist:${dateKey}`;
@@ -347,7 +394,10 @@
 				if (!isSummary) {
 					const view = moduleViews[moduleName];
 					moduleWorkspace.innerHTML = `<section class="module-hero"><div><p class="eyebrow">Centro de control / ${view.label}</p><h2>${view.title}</h2><p>${view.description}</p></div><span class="status">Conectado al backend</span></section><section class="module-grid">${view.cards.map(([title, value, detail]) => `<article class="module-card"><p class="eyebrow">${title}</p><div class="module-value">${value}</div><p>${detail}</p></article>`).join('')}</section>${view.extras || ''}`;
-					if (moduleName === 'tasks') renderDigestorChecklist(moduleWorkspace);
+					if (moduleName === 'tasks') {
+						renderDigestorControls(moduleWorkspace);
+						renderDigestorChecklist(moduleWorkspace);
+					}
 					if (moduleName === 'fiscal') {
 						const fiscalForm = moduleWorkspace.querySelector('[data-form="fiscal-biogas"]');
 						if (fiscalForm) {
@@ -750,4 +800,3 @@
 		</script>
 	</body>
 </html>
-
