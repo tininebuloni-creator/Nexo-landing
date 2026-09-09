@@ -1080,9 +1080,7 @@ body {
 <script src="js/pampa-offline-core.js"></script>
 <script src="js/pampa-report-voice.js"></script>
 <script src="js/pampa-search.js?v=2"></script>
-<script src="js/pampa-trial-links.js"></script>
 <script src="./pampa-privacy-popup.js"></script>
-<script src="../trial-gate.js"></script>
 <meta name="theme-color" content="#166534">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1154,6 +1152,16 @@ body {
       body { background: #fff !important; color: #000 !important; }
     }
   </style>
+<script id="pampa-desktop-commercial-guard">(function(){
+  window.PAMPA_DESKTOP_MODE=true;
+  try {
+    const url=new URL(window.location.href);
+    [...url.searchParams.keys()].filter(key=>/trial/i.test(key)).forEach(key=>url.searchParams.delete(key));
+    if(url.href!==window.location.href) window.history.replaceState({},document.title,url.pathname+url.search+url.hash);
+    Object.keys(localStorage).forEach(key=>{if(/license|licencia/i.test(key)){try{const value=JSON.parse(localStorage.getItem(key));if(value&&(value.type==='trial'||value.trial===true||value.payload?.trial===true))localStorage.removeItem(key)}catch(error){}}});
+  } catch(error) {}
+  document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('button,a,input,label,.field,.form-group').forEach(node=>{const text=[node.textContent,node.id,node.name,node.htmlFor,node.getAttribute('href')].join(' ');if(/trial|prueba gratis|iniciar prueba/i.test(text))node.remove()})},{once:true});
+})();</script>
 </head>
 <body>
 
@@ -1364,6 +1372,7 @@ body {
               <button class="dashboard-action-btn" onclick="gestionarRolesLicencia()">⚙️ Roles</button>
               <span id="roleTrialHintDashboard" style="display:none;font-size:11px;color:var(--blue);padding:6px 8px;border:1px dashed var(--blue);border-radius:6px;">Cambio de rol habilitado</span>
               <button class="dashboard-action-btn" onclick="mostrarModalSincronizacion()"><span class="dashboard-sync-inline">⚡ Conectividad</span></button>
+              <button class="dashboard-action-btn" type="button" onclick="window.open('https://agroenso.netlify.app/', '_blank', 'noopener,noreferrer')" title="Abrir AgroENSO">🌱 AgroENSO</button>
               <button class="dashboard-action-btn" onclick="document.getElementById('importJsonInput').click()">⬆️ Importar</button>
               <button class="dashboard-action-btn" onclick="exportarDatosJSON()">⬇️ Exportar</button>
               <button class="dashboard-action-btn" onclick="limpiarDatosPruebaSistema()">🧹 Limpieza + Respaldo</button>
@@ -14089,5 +14098,6 @@ function setEl(id, txt) {
 <script src="js/pampa-seat-control.js" data-product="pampa-agro"></script>
 </body>
 </html>
+
 
 
