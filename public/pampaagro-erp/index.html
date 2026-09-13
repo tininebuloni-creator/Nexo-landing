@@ -2,27 +2,44 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<title>PampaAgropecuario</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PampaAgropecuario - Gestión Agropecuaria Integral</title>
+ 
 
 <!-- PWA Meta Tags -->
 <meta name="theme-color" content="#f59e0b">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="PampaAgropecuario">
+
+
+
+
 <link rel="apple-touch-icon" href="logo2.png">
-
-<!-- Google Drive API -->
-<script src="https://apis.google.com/js/api.js"></script>
-<script src="https://accounts.google.com/gsi/client"></script>
-
+<link rel="stylesheet" href="pampa-brand.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <link rel="stylesheet" href="leaflet/leaflet.css" />
-<link rel="stylesheet" href="pampa-brand.css">
-    <script src="leaflet/leaflet.js"></script>
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css" />
+
+
+
+
+<script src="/vendor/chart.umd.min.js"></script>
+<script src="/vendor/jspdf.umd.min.js"></script>
+<script src="/vendor/leaflet/leaflet.js"></script>
+ <script src="/vendor/dexie.min.js"></script>
+<script src="/vendor/pampa-license-key.js"></script>
+  <script src="/vendor/pampa-license-verify.js"></script>
+  <script src="/vendor/pampa-licensing.js"></script>
+
+<script src="/vendor/pampa-search.js?v=2"></script>
+
+<script src="https://apis.google.com/js/api.js"></script>
+<script src="https://accounts.google.com/gsi/client"></script>
+<script src="pampa-core-sync.js"></script>
+
+
+
     <style>
 /* === CSS VARIABLES === */
 :root {
@@ -1077,7 +1094,8 @@ body {
 <script src="js/pampa-license-verify.js"></script>
 <script src="js/pampa-licensing.js"></script>
 <script src="js/pampa-sync-envelope.js?v=1"></script>
-<script src="js/pampa-offline-core.js"></script>
+<script src="js/dexie.min.js"></script>
+<script src="js/pampa-core-sync.js"></script>
 <script src="js/pampa-report-voice.js"></script>
 <script src="js/pampa-search.js?v=2"></script>
 <script src="./pampa-privacy-popup.js"></script>
@@ -1152,18 +1170,9 @@ body {
       body { background: #fff !important; color: #000 !important; }
     }
   </style>
-<script id="pampa-desktop-commercial-guard">(function(){
-  window.PAMPA_DESKTOP_MODE=true;
-  try {
-    const url=new URL(window.location.href);
-    [...url.searchParams.keys()].filter(key=>/trial/i.test(key)).forEach(key=>url.searchParams.delete(key));
-    if(url.href!==window.location.href) window.history.replaceState({},document.title,url.pathname+url.search+url.hash);
-    Object.keys(localStorage).forEach(key=>{if(/license|licencia/i.test(key)){try{const value=JSON.parse(localStorage.getItem(key));if(value&&(value.type==='trial'||value.trial===true||value.payload?.trial===true))localStorage.removeItem(key)}catch(error){}}});
-  } catch(error) {}
-  document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('button,a,input,label,.field,.form-group').forEach(node=>{const text=[node.textContent,node.id,node.name,node.htmlFor,node.getAttribute('href')].join(' ');if(/trial|prueba gratis|iniciar prueba/i.test(text))node.remove()})},{once:true});
-})();</script>
 </head>
 <body>
+  <div id="root"></div>
 
 <button class="mobile-menu-btn" id="mobileMenuBtn" type="button" onclick="toggleSidebarMobile()">☰ Menú</button>
 <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebarMobile()"></div>
@@ -1314,6 +1323,7 @@ body {
           <span class="sync-icon">⚡</span>
           <span class="sync-text">Offline</span>
         </div>
+        <span id="pampaSyncNavBadge" style="display:inline-flex;align-items:center;"></span>
         <select class="topbar-btn" id="roleSelector" onchange="cambiarRol(this.value)" style="background:var(--bg-tertiary);color:var(--text-primary);border:1px solid var(--border);padding:6px 12px;border-radius:6px;cursor:pointer;font-family:var(--font-main);font-size:12px;">
           <option value="propietario">👑 Propietario / Responsable</option>
           <option value="administracion">🧾 Administración</option>
@@ -3045,9 +3055,8 @@ body {
   </div>
 </div>
 
-<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="/vendor/xlsx.full.min.js"></script>
+<script src="/vendor/tesseract.min.js"></script>
 <script>
 /* === ESTADO GLOBAL === */
 const state = {
@@ -12394,14 +12403,17 @@ const DB_VERSION = 2;
 const STORE_NAME = 'data';
 const RAD_EVIDENCE_STORE = 'radEvidence';
 let db = null;
+let dbReadyPromise = null;
 
-// Inicializar IndexedDB
+// Inicializar IndexedDB (idempotente: si ya se está abriendo, reutiliza la misma promesa)
 function initIndexedDB() {
-  return new Promise((resolve, reject) => {
+  if (dbReadyPromise) return dbReadyPromise;
+  dbReadyPromise = new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
     
     request.onerror = () => {
       console.error('Error al abrir IndexedDB:', request.error);
+      dbReadyPromise = null;
       reject(request.error);
     };
     
@@ -12421,16 +12433,13 @@ function initIndexedDB() {
       }
     };
   });
+  return dbReadyPromise;
 }
 
-// Guardar datos en IndexedDB
-function saveToIndexedDB(key, data) {
+// Guardar datos en IndexedDB (espera a que la DB esté lista en vez de fallar si aún se está abriendo)
+async function saveToIndexedDB(key, data) {
+  if (!db) await initIndexedDB();
   return new Promise((resolve, reject) => {
-    if (!db) {
-      reject('IndexedDB no inicializado');
-      return;
-    }
-    
     const transaction = db.transaction([STORE_NAME], 'readwrite');
     const store = transaction.objectStore(STORE_NAME);
     const request = store.put({ id: key, data: data, timestamp: Date.now() });
@@ -12440,14 +12449,10 @@ function saveToIndexedDB(key, data) {
   });
 }
 
-// Cargar datos desde IndexedDB
-function loadFromIndexedDB(key) {
+// Cargar datos desde IndexedDB (espera a que la DB esté lista en vez de fallar si aún se está abriendo)
+async function loadFromIndexedDB(key) {
+  if (!db) await initIndexedDB();
   return new Promise((resolve, reject) => {
-    if (!db) {
-      reject('IndexedDB no inicializado');
-      return;
-    }
-    
     const transaction = db.transaction([STORE_NAME], 'readonly');
     const store = transaction.objectStore(STORE_NAME);
     const request = store.get(key);
@@ -13630,13 +13635,14 @@ function setEl(id, txt) {
       await this.ready;
       return new Promise((resolve,reject)=>{
         const tx=this.db.transaction(DB_STORE,'readwrite');
-        tx.objectStore(DB_STORE).add({
+        const req=tx.objectStore(DB_STORE).add({
           type,payload,
           status:'pending',
           createdAt:new Date().toISOString(),
           attempts:0
         });
         tx.oncomplete=async()=>{
+          await window.PampaCoreSync?.addPendingOperation('pampaagro','UPSERT',type,payload,String(req.result));
           await this.refreshPending();
           this.updateBadge();
           resolve(true);
@@ -13744,14 +13750,13 @@ function setEl(id, txt) {
 
 
 <script>
-/* === PAMPAAGRO V8: SINCRONIZADOR REAL CONTRA API CONFIGURABLE === */
+/* === PAMPAAGRO V8: SINCRONIZADOR REAL CONTRA API CONFIGURABLE ===
+   Local-First: sin servidor propio configurado, todo permanece en IndexedDB local.
+   El envío usa el cliente unificado packages/core-sync/browser.js (contrato /sync/push). */
 (function(){
+  const APP_ID='pampaagro';
   const KEY='pampaAgroSyncConfig';
   const DEVICE='pampaAgroDeviceId';
-  function uuid(){
-    if(window.crypto?.randomUUID) return crypto.randomUUID();
-    return 'dev-'+Date.now()+'-'+Math.random().toString(36).slice(2);
-  }
   function cfg(){
     try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return {}}
   }
@@ -13760,38 +13765,27 @@ function setEl(id, txt) {
     const el=document.getElementById('pampaSyncStatus');
     if(el)el.textContent=t;
   }
-  async function api(path,options={}){
-    const c=cfg();
-    if(!c.apiUrl) throw new Error('No hay API configurada');
-    const base=c.apiUrl.replace(/\/+$/,'');
-    const headers=Object.assign({'Content-Type':'application/json','X-Pampa-Device':localStorage.getItem(DEVICE)||''},options.headers||{});
-    const r=await fetch(base+path,Object.assign({},options,{headers}));
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    const ct=r.headers.get('content-type')||'';
-    return ct.includes('application/json')?r.json():r.text();
-  }
   window.pampaSyncSaveConfig=function(){
-    let id=localStorage.getItem(DEVICE);
-    if(!id){id=uuid();localStorage.setItem(DEVICE,id)}
-    save({apiUrl:(document.getElementById('pampaSyncApiUrl')?.value||'').trim(),deviceId:id});
-    status('✓ Configuración guardada. La nube del cliente queda definida para este dispositivo.');
+    const apiUrl=(document.getElementById('pampaSyncApiUrl')?.value||'').trim();
+    window.PampaCoreSync?.setServerUrl(APP_ID,apiUrl);
+    const id=window.PampaCoreSync?.getDeviceId(APP_ID)||localStorage.getItem(DEVICE)||'';
+    localStorage.setItem(DEVICE,id);
+    save({apiUrl,deviceId:id});
+    status(apiUrl ? '✓ Configuración guardada. La nube del cliente queda definida para este dispositivo.' : '✓ Sin servidor propio: los datos quedan estrictamente locales.');
   };
   window.pampaSyncNow=async function(){
-    const c=cfg();
-    if(!c.apiUrl){status('⚠️ Configurá primero la API de la nube del cliente.');return}
+    if(!window.PampaCoreSync?.isConfigured(APP_ID)){status('⚠️ Sin servidor propio configurado: los datos permanecen locales.');return}
     if(!navigator.onLine){status('⚡ Sin Internet. Las operaciones quedan locales y pendientes.');return}
     try{
       status('🔄 Preparando sincronización…');
       const pending=await window.pampaOffline.getPending();
       if(!pending.length){status('✓ No hay operaciones pendientes.');return}
-      const payload={
-        deviceId:c.deviceId,
-        operations:pending.map(x=>({id:x.id,type:x.type,payload:x.payload,createdAt:x.createdAt,attempts:x.attempts||0}))
-      };
-      const result=await api('/sync/push',{method:'POST',body:JSON.stringify(payload)});
-      const accepted=new Set((result.acceptedIds||[]).map(Number));
+      const operations=pending.map(x=>window.PampaCoreSync.buildOperation('UPSERT',x.type,x.payload,String(x.id)));
+      const result=await window.PampaCoreSync.pushOperations(APP_ID,operations);
+      if(!result.ok) throw new Error(result.error||result.message||'No se pudo sincronizar.');
+      const accepted=new Set((result.acceptedIds||[]).map(String));
       for(const row of pending){
-        if(accepted.has(Number(row.id))) await window.pampaOffline.mark(row.id,'synced');
+        if(accepted.has(String(row.id))) await window.pampaOffline.mark(row.id,'synced');
       }
       await window.pampaOffline.refreshPending();
       window.pampaOffline.updateBadge();
@@ -13811,20 +13805,35 @@ function setEl(id, txt) {
   }
 
   window.pampaSyncInit=function(){
-    let id=localStorage.getItem(DEVICE);
-    if(!id){id=uuid();localStorage.setItem(DEVICE,id)}
+    const id=window.PampaCoreSync?.getDeviceId(APP_ID)||localStorage.getItem(DEVICE)||'';
+    localStorage.setItem(DEVICE,id);
     const c=cfg();
     const input=document.getElementById('pampaSyncApiUrl');
     const did=document.getElementById('pampaSyncDeviceId');
-    if(input)input.value=c.apiUrl||'';
+    if(input)input.value=window.PampaCoreSync?.getServerUrl(APP_ID)||c.apiUrl||'';
     if(did)did.value=id;
   };
 
-  window.addEventListener('online',()=>setTimeout(()=>window.pampaSyncNow(),1200));
+  function activarCoreSyncAutomatico(){
+    if(!window.PampaCoreSync||!window.pampaOffline)return;
+    window.PampaCoreSync.activarSincronizacionAutomatica({
+      appId:APP_ID,
+      getPendingOperations:async()=>window.PampaCoreSync.getPendingOperations(APP_ID),
+      markAccepted:async(ids)=>{
+        await window.PampaCoreSync.markAcceptedOperations(APP_ID,ids);
+        const accepted=new Set((ids||[]).map(String));
+        const pending=await window.pampaOffline.getPending();
+        for(const row of pending){if(accepted.has(String(row.id)))await window.pampaOffline.mark(row.id,'synced')}
+        await window.pampaOffline.refreshPending();
+        window.pampaOffline.updateBadge();
+      }
+    });
+  }
   document.addEventListener('DOMContentLoaded',()=>{
     const p=document.getElementById('pampaSyncPanel');
     if(p)p.style.display='none';
     window.pampaSyncInit();
+    activarCoreSyncAutomatico();
   });
 })();
 </script>
@@ -13876,17 +13885,11 @@ function setEl(id, txt) {
     },
     async syncPush(operations){
       const c=read();
-      if(!c.syncUrl) throw new Error('API de sincronización no configurada');
-      const r=await fetch(c.syncUrl.replace(/\/+$/,'')+'/sync/push',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          deviceId:localStorage.getItem('pampaAgroDeviceId')||'',
-          operations
-        })
-      });
-      if(!r.ok) throw new Error('Sync HTTP '+r.status);
-      return r.json();
+      if(!c.syncUrl) throw new Error('Sin servidor propio configurado: los datos quedan locales.');
+      window.PampaCoreSync?.setServerUrl('pampaagro',c.syncUrl);
+      const result=await window.PampaCoreSync.pushOperations('pampaagro',operations);
+      if(!result.ok) throw new Error(result.error||result.message||'No se pudo sincronizar.');
+      return result.rawResponse||result;
     }
   };
   window.pampaV9SaveServices=function(){
@@ -14096,6 +14099,31 @@ function setEl(id, txt) {
 <script src="js/pampaia-source.js?v=pampaia-published-6"></script>
 <script src=""></script>
 <script src="js/pampa-seat-control.js" data-product="pampa-agro"></script>
+<script>
+    (function() {
+      // 🔍 1. Revisar automáticamente si la URL viene desde el catálogo web como Trial
+      const urlParams = new URLSearchParams(window.location.search);
+      const esModoTrial = urlParams.get('modo') === 'trial';
+      const diasConfigurados = parseInt(urlParams.get('dias')) || 30; // 30 por defecto
+
+      if (esModoTrial) {
+        console.log(`🚀 Modo Trial Automatizado Activado por ${diasConfigurados} días.`);
+
+        // 🛡️ 2. Forzar cartel de privacidad y el cartel azul en la interfaz
+        document.body.classList.add('modo-trial-activo');
+        
+        // 💾 3. Automatizar la limpieza: Si es la primera vez en la sesión, limpiar datos viejos
+        if (!sessionStorage.getItem('pampa_trial_init')) {
+          sessionStorage.setItem('pampa_trial_init', new Date().toISOString());
+        }
+
+        // Guardar los días para que tu cartel azul existente los muestre dinámicamente
+        window.PampaTrialDiasRestantes = diasConfigurados;
+      }
+    })();
+  </script>
+<!-- 🟢 TU SCRIPT MODULAR DE SEGUIMIENTO (Espera a que 'L' exista y arranca) --> 
+ <script src="/vendor/leaflet/leaflet-map.js"></script>
 </body>
 </html>
 

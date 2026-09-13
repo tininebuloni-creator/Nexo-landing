@@ -1,35 +1,19 @@
 {
-  "name": "PampaAgro ERP",
-  "short_name": "PampaAgro",
-  "description": "Gestion agropecuaria integral offline-first",
-  "id": "/",
+  "name": "PampaAgro Premium",
+  "short_name": "Agro Premium",
+  "description": "PampaAgro Premium - paquete móvil offline-first",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "orientation": "any",
   "background_color": "#0f1419",
-  "theme_color": "#0f1419",
+  "theme_color": "#f59e0b",
   "lang": "es-AR",
-  "dir": "ltr",
-  "categories": ["business", "productivity"],
   "icons": [
     {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-512.png",
+      "src": "logo2.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ]
 }
