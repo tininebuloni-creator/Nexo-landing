@@ -1,0 +1,7 @@
+// Cargar el JSON de mapas local de forma 100% offline
+fetch('/vendor/leaflet/datos.json')
+  .then(response => response.json())
+  .then(data => {
+    // Aquí Leaflet dibuja los lotes o parcelas en el mapa
+    L.geoJSON(data).addTo(map);
+  });

@@ -1,4 +1,4 @@
-const PUBLIC_KEY_B64 = 'MCowBQYDK2VwAyEAq7tUZMWSHD1Q36bRapLV6adFdCUzm9mwrV94npOEW3c=';
+const PUBLIC_KEY_B64 = 'MCowBQYDK2VwAyEAt9IqxmItE04AU3UgB1GjFSz+1qBhOfpMNkPb7C0XS30=';
 
 function decodeBase64Url(value) {
   const normalized = String(value).replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((String(value).length + 3) % 4);

@@ -1,0 +1,12 @@
+{
+  "appId": "com.pampa.porcinos.premium",
+  "productName": "PampaPorcinos Premium",
+  "asar": true,
+  "electronDist": "node_modules/electron/dist",
+  "npmRebuild": true,
+  "directories": { "output": "release-premium" },
+  "files": ["index.html", "*.js", "*.css", "*.png", "*.jfif", "*.xlsx", "manifest.webmanifest", "sw.js", "server.js", "electron/**/*", "services/**/*", "data/**/*", "leaflet/**/*", "package.json"],
+  "extraMetadata": { "main": "electron/main.js", "porcinosPack": "premium" },
+  "win": { "icon": "build/icon.ico", "target": ["nsis"], "executableName": "PampaPorcinos-Premium", "signAndEditExecutable": false },
+  "nsis": { "include": "build/installer.nsh", "oneClick": false, "allowToChangeInstallationDirectory": true, "allowElevation": true, "perMachine": false, "createDesktopShortcut": true, "createStartMenuShortcut": true, "shortcutName": "PampaPorcinos Premium", "uninstallDisplayName": "Desinstalar PampaPorcinos Premium" }
+}

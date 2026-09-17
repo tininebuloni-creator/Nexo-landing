@@ -1,7 +1,6 @@
 const fs = require('fs');
 
-const filePath = process.argv[2] || 'public/index.html';
-const file = fs.readFileSync(filePath, 'utf8');
+const file = fs.readFileSync('nexo-agro-erp.html', 'utf8');
 const scriptStart = file.indexOf('<script>');
 const scriptEnd = file.indexOf('</script>');
 

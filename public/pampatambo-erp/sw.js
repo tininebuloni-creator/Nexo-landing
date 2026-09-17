@@ -1,5 +1,5 @@
-const CACHE_NAME = 'pampatambo-pwa-v4-mobile-nav';
-const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './logo2.png', './pampaia-source.js'];
+const CACHE_NAME = 'pampatambo-pwa-v6-mobile-final';
+const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './logo.png', './pampaia-source.js', './pampa-report-voice.js', './pampa-sync-envelope.js'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));
@@ -19,8 +19,9 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(fetch(event.request).catch(() => new Response(JSON.stringify({ ok: false, offline: true, error: 'Sin conexión: operación pendiente.' }), { status: 503, headers: { 'Content-Type': 'application/json' } })));
     return;
   }
-  if (event.request.mode === 'navigate' || event.request.destination === 'document') {
-    event.respondWith(fetch(event.request, { cache: 'no-store' }).then((response) => {
+
+  if (event.request.mode === 'navigate') {
+    event.respondWith(fetch(event.request).then((response) => {
       caches.open(CACHE_NAME).then((cache) => cache.put('./index.html', response.clone()));
       return response;
     }).catch(() => caches.match('./index.html')));

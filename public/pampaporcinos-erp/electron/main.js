@@ -1,6 +1,7 @@
 const { app, BrowserWindow, dialog, ipcMain, shell } = require('electron');
 const net = require('net');
 const path = require('path');
+process.env.PAMPA_DESKTOP_MODE = '1';
 const packageJson = require('../package.json');
 const { startServer } = require('../server');
 

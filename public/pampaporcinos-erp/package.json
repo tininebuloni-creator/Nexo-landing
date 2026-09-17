@@ -1,11 +1,26 @@
 {
   "name": "pampaporcinos-erp",
-  "version": "1.1.1",
+  "version": "1.1.2-gdf8b689a",
   "private": true,
   "description": "ERP porcino offline-first",
   "author": "Pampa N S.I.A.",
   "scripts": {
     "start": "node server.js",
-    "start:static": "npx http-server . -p 3121"
+    "start:static": "npx http-server . -p 3121",
+    "prepare:desktop": "node ../../scripts/protect-static-desktop.js . desktop-public",
+    "build:basica": "node ../../scripts/bump-release-version.js && node ../../scripts/sync-desktop-ui-from-nexo-landing.js && npm run prepare:desktop && electron-builder --config electron-builder-basica.json",
+    "build:profesional": "node ../../scripts/bump-release-version.js && node ../../scripts/sync-desktop-ui-from-nexo-landing.js && npm run prepare:desktop && electron-builder --config electron-builder-profesional.json",
+    "build:premium": "node ../../scripts/bump-release-version.js && node ../../scripts/sync-desktop-ui-from-nexo-landing.js && npm run prepare:desktop && electron-builder --config electron-builder-premium.json"
+  },
+  "devDependencies": {
+    "electron": "31.7.7",
+    "electron-builder": "26.15.3"
+  },
+  "dependencies": {
+    "@pampa/core-ia": "*",
+    "@pampa/crypto": "*",
+    "@pampa/core-sync": "*",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
   }
 }

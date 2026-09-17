@@ -1,0 +1,53 @@
+{
+  "routes": [
+    {
+      "routePath": "/v1/client/activate",
+      "mountPath": "/v1/client",
+      "method": "OPTIONS",
+      "module": [
+        "v1/client/activate.js:onRequestOptions"
+      ]
+    },
+    {
+      "routePath": "/v1/client/activate",
+      "mountPath": "/v1/client",
+      "method": "POST",
+      "module": [
+        "v1/client/activate.js:onRequestPost"
+      ]
+    },
+    {
+      "routePath": "/v1/client/authorization",
+      "mountPath": "/v1/client",
+      "method": "GET",
+      "module": [
+        "v1/client/authorization.js:onRequestGet"
+      ]
+    },
+    {
+      "routePath": "/v1/client/authorization",
+      "mountPath": "/v1/client",
+      "method": "OPTIONS",
+      "module": [
+        "v1/client/authorization.js:onRequestOptions"
+      ]
+    },
+    {
+      "routePath": "/v1/client/release",
+      "mountPath": "/v1/client",
+      "method": "OPTIONS",
+      "module": [
+        "v1/client/release.js:onRequestOptions"
+      ]
+    },
+    {
+      "routePath": "/v1/client/release",
+      "mountPath": "/v1/client",
+      "method": "POST",
+      "module": [
+        "v1/client/release.js:onRequestPost"
+      ]
+    }
+  ],
+  "baseURL": "/"
+}

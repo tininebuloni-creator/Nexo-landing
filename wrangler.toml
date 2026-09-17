@@ -2,6 +2,10 @@ name = "nexo-landing"
 compatibility_date = "2026-08-05"
 pages_build_output_dir = "./public"
 
+[[kv_namespaces]]
+binding = "LICENSE_ACTIVATIONS"
+id = "fa014cf3b1464683ad27be93c292c23d"
+
 
 
 

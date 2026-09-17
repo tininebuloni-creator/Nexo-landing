@@ -3,7 +3,11 @@
     baseUrl: 'https://solucioneseningenieria.com.ar',
     apps: {
       pampaagro: '/pampaagro-erp/public/?trial=auto',
+      agropecuario: '/pampaagro-erp/public/?trial=auto',
+      ganaderia: '/pampaganaderia-erp/?trial=auto',
       pampaganaderia: '/pampaganaderia-erp/?trial=auto',
+      topografia: '/pampaprecision-erp/public/',
+      topografias: '/pampaprecision-erp/public/',
       pampaprecision: '/pampaprecision-erp/public/?trial=auto',
       pampatambo: '/pampatambo-erp/public/?trial=auto',
       pampaporcinos: '/pampaporcinos-erp/?trial=auto'
@@ -16,7 +20,8 @@
   function openTrialWhatsApp(app, label) {
     const link = getTrialLandingUrl(app);
     if (!link) return false;
-    const message = `Hola. Te comparto el acceso de prueba de ${label || app} (${10} días):\n${link}`;
+    const trialDays = 10;
+    const message = `Hola. Te comparto el acceso de prueba de ${label || app} (${trialDays} días):\n${link}`;
     global.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
     return true;
   }

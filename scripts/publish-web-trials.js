@@ -3,27 +3,61 @@ const path = require('path');
 
 const landingRoot = path.resolve(__dirname, '..');
 const projectsRoot = path.resolve(landingRoot, '..');
-const targetRoot = path.join(landingRoot, 'public', 'trials');
+const targetRoot = path.join(landingRoot, 'public');
 const sources = {
-  a7: path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'pampaagro', 'Pampa-Packs', 'premium', 'movil'),
-  g4: path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'pampaganaderia', 'public'),
-  t8: path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'pampatambo', 'public'),
-  p6: path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'pampaporcinos'),
-  r3: path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'pampaprecision', 'public'),
-  x9: path.join(projectsRoot, 'pampatopo-app')
+  // Antes apuntaba a "Pampa-Packs/premium/movil", una carpeta de un empaquetado viejo que ya
+  // ni existe en disco. La fuente real de la PWA (igual que Ganaderia/Tambo) es public/.
+  'pampaagro-erp': path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'pampaagro', 'public'),
+  'pampaganaderia-erp': path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'pampaganaderia', 'public'),
+  'pampatambo-erp': path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'pampatambo', 'public'),
+  'pampaporcinos-erp': path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'pampaporcinos'),
+  'pampaprecision-erp': path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'pampaprecision', 'public'),
+  // pampatopo-app es un repo HERMANO de "PAMPA N-ecosystem" (vive directo en Proyectos/), no
+  // esta anidado adentro de PAMPA N-ecosystem/apps/. Ese path viejo apuntaba a una copia vieja
+  // e incompleta que quedo suelta ahi (sin package.json, sin scripts, con index.html desactualizado).
+  PampaTopografia: path.join(projectsRoot, 'pampatopo-app')
 };
 
-const ignored = new Set(['node_modules', '.git', '.wrangler', 'data', 'services', 'server', 'controllers', 'models', 'routes', 'scripts', 'dist', 'public_protected']);
+// Por defecto solo se publican estas 4 (las que ya estan completas y en uso). Para publicar
+// tambien Porcinos y Precision, correr: node scripts/publish-web-trials.js all
+// Para elegir puntualmente cuales, pasar sus nombres de carpeta: node scripts/publish-web-trials.js pampaagro-erp pampatambo-erp
+const DEFAULT_APPS = ['pampaagro-erp', 'pampaganaderia-erp', 'pampatambo-erp', 'PampaTopografia'];
+const argApps = process.argv.slice(2);
+let selectedKeys;
+if (argApps.length === 0) {
+  selectedKeys = DEFAULT_APPS;
+} else if (argApps.length === 1 && argApps[0] === 'all') {
+  selectedKeys = Object.keys(sources);
+} else {
+  selectedKeys = argApps;
+}
+const invalidKeys = selectedKeys.filter((k) => !(k in sources));
+if (invalidKeys.length) {
+  throw new Error(`App(s) desconocida(s): ${invalidKeys.join(', ')}. Disponibles: ${Object.keys(sources).join(', ')}`);
+}
+console.log(`Publicando: ${selectedKeys.join(', ')}`);
+
+const ignored = new Set(['node_modules', '.git', '.wrangler', 'data', 'services', 'server', 'controllers', 'models', 'routes', 'scripts', 'dist', 'release', 'build', 'public_protected']);
 const ignoredPrefixes = ['dist-', 'release-'];
 const privacyPopup = path.join(projectsRoot, 'PAMPA N-ecosystem', 'packages', 'pampa-privacy-popup.js');
+const trialProgress = path.join(landingRoot, 'trial-progress.js');
+const indexOverrides = {
+  'pampatambo-erp': path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'pampatambo', 'index.html')
+};
 
-// El catálogo usa /trials/<código>/; eliminar el bundle histórico que incluía node_modules y excedía el límite de Cloudflare.
-fs.rmSync(path.join(landingRoot, 'public', 'pampaagro-erp'), { recursive: true, force: true });
+function webTrialGuard() {
+  return `<script id="pampa-web-trial-guard">(function(){try{const url=new URL(window.location.href);if(url.searchParams.get('trial')==='auto'){url.searchParams.delete('trial');window.history.replaceState({},document.title,url.pathname+url.search+url.hash);}}catch(error){}}());</script>`;
+}
 
-for (const [code, source] of Object.entries(sources)) {
-  if (!fs.existsSync(path.join(source, 'index.html'))) throw new Error(`No se encontró la aplicación web para ${code}: ${source}`);
-  const destination = path.join(targetRoot, code);
-  fs.rmSync(destination, { recursive: true, force: true });
+for (const [folderName, source] of Object.entries(sources)) {
+  if (!selectedKeys.includes(folderName)) continue;
+  if (!fs.existsSync(path.join(source, 'index.html'))) throw new Error(`No se encontró la aplicación web para ${folderName}: ${source}`);
+  const destination = path.join(targetRoot, folderName);
+  try {
+    fs.rmSync(destination, { recursive: true, force: true });
+  } catch (e) {
+    // Si algún archivo queda bloqueado momentáneamente en Windows
+  }
   fs.cpSync(source, destination, {
     recursive: true,
     filter: (entry) => {
@@ -36,13 +70,36 @@ for (const [code, source] of Object.entries(sources)) {
     }
   });
   fs.copyFileSync(privacyPopup, path.join(destination, 'pampa-privacy-popup.js'));
+  if (fs.existsSync(trialProgress)) fs.copyFileSync(trialProgress, path.join(destination, 'trial-progress.js'));
   const entryPoint = path.join(destination, 'index.html');
-  const html = fs.readFileSync(entryPoint, 'utf8');
-  const popupTag = '<script src="./pampa-privacy-popup.js"></script>';
-  if (!html.includes(popupTag)) {
-    fs.writeFileSync(entryPoint, html.replace('</body>', `  ${popupTag}\n</body>`));
+  if (indexOverrides[folderName] && fs.existsSync(indexOverrides[folderName])) {
+    fs.copyFileSync(indexOverrides[folderName], entryPoint);
   }
-  console.log(`Trial publicado: ${code}`);
+  let html = fs.readFileSync(entryPoint, 'utf8');
+  html = html.replace(/\bconst\s+TRIAL_DAYS\s*=\s*10\s*;/g, 'var TRIAL_DAYS = 10;');
+  html = html.replace(/\bawait\s+activateTrial\s*\(\s*\)\s*;/g, '');
+  html = html.replace(/\bmaybeAutoActivateTrialFromQuery\s*\(\s*\)\s*;/g, '');
+  html = html.replace(/\bactivateTrial\s*\(\s*\)\s*;/g, '');
+  const trialProgressTag = '<script src="./trial-progress.js"></script>';
+  const popupTag = '<script src="./pampa-privacy-popup.js"></script>';
+  const guardTag = webTrialGuard();
+  function injectBeforeFinalBody(sourceHtml, tag) {
+    if (sourceHtml.includes(tag)) return sourceHtml;
+    const index = sourceHtml.toLowerCase().lastIndexOf('</body>');
+    if (index < 0) return `${sourceHtml}\n${tag}\n`;
+    return `${sourceHtml.slice(0, index)}  ${tag}\n${sourceHtml.slice(index)}`;
+  }
+  if (!html.includes('id="pampa-web-trial-guard"')) {
+    html = html.replace(/<head>/i, `<head>\n${guardTag}`);
+  }
+  if (!html.includes(trialProgressTag)) {
+    html = injectBeforeFinalBody(html, trialProgressTag);
+  }
+  if (!html.includes(popupTag)) {
+    html = injectBeforeFinalBody(html, popupTag);
+  }
+  fs.writeFileSync(entryPoint, html, 'utf8');
+  console.log(`Aplicación publicada: ${folderName}`);
 }
 
 fs.copyFileSync(path.join(landingRoot, 'index.html'), path.join(landingRoot, 'public', 'index.html'));

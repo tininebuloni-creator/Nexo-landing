@@ -1,0 +1,48 @@
+{
+  "name": "pampa-topografia",
+  "version": "1.0.1-g28522bd8",
+  "private": true,
+  "description": "Pampa Topografia - aplicacion de ingenieria topografica offline",
+  "author": "Pampa N S.I.A.",
+  "main": "electron/main.js",
+  "scripts": {
+    "desktop": "electron .",
+    "prepare:desktop": "node \"../PAMPA N-ecosystem/scripts/protect-static-desktop.js\" . desktop-public",
+    "dist": "node \"../PAMPA N-ecosystem/scripts/sync-desktop-ui-from-nexo-landing.js\" && npm run prepare:desktop && electron-builder --win nsis --publish never",
+    "armar-pack": "node scripts/armar-pack-topografia.js"
+  },
+  "devDependencies": {
+    "electron": "31.7.7",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "com.pampa.topografia",
+    "productName": "Pampa Topografia",
+    "asar": true,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "desktop-public/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "icon": "build/icon.ico",
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        "nsis"
+      ],
+      "executableName": "Pampa-Topografia",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "artifactName": "Pampa-Topografia-Completa-Setup-${version}.${ext}",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}

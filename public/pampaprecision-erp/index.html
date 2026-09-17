@@ -1,19 +1,22 @@
 <!doctype html>
 <html lang="es">
 <head>
+<script id="pampa-web-trial-guard">(function(){try{const url=new URL(window.location.href);if(url.searchParams.get('trial')==='auto'){url.searchParams.delete('trial');window.history.replaceState({},document.title,url.pathname+url.search+url.hash);}}catch(error){}}());</script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pampa Precision ERP | Centro operativo</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <script src="./pampa-licensing.js"></script>
-  <script src="./pampa-offline-core.js"></script>
-  <script src="./pampa-search.js?v=2"></script>
-  <script src="./pampa-trial-links.js"></script>
+  <script src="vendor/pampa-licensing.js"></script>
+  <script src="vendor/pampa-license-key.js"></script>
+  <script src="vendor/pampa-license-verify.js"></script>
+  <script src="vendor/dexie.min.js"></script>
+  <script src="./pampa-core-sync.js"></script>
+  <script src="vendor/pampa-search.js?v=2"></script>
   <script src="/shared/pampa-privacy-popup.js"></script>
   <script src="/shared/pampa-onpremise-disclaimer.js"></script>
   <script src="/shared/core-fiscal-arca/normative-update.browser.js"></script>
   <script src="/shared/core-offline/report-voice.js"></script>
-  <link rel="stylesheet" href="./leaflet/leaflet.css">
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
   <link rel="stylesheet" href="/shared/share-styles/global.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -294,6 +297,18 @@
   </style>
 </head>
 <body>
+  <div id="precisionLicenseActivationOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(15,20,25,0.96); align-items:center; justify-content:center;">
+    <div class="panel" style="max-width:500px; width:90%; padding:28px; border-radius:14px; background:#161a27; border:1px solid #f59e0b; color:#f1f5f9; box-shadow:0 20px 50px rgba(0,0,0,0.8);">
+      <div style="font-size:20px; font-weight:700; margin-bottom:8px; color:#f59e0b;">🔐 Activar Licencia · PampaPrecisión ERP</div>
+      <p style="font-size:13px; color:#94a3b8; margin-bottom:18px; line-height:1.4;">Ingresá la clave de licencia firmada (PAMPAN1...) enviada por el proveedor para activar esta instalación de PampaPrecisión ERP en escritorio.</p>
+      <div style="margin-bottom:18px;">
+        <label style="display:block; font-size:12px; font-weight:600; margin-bottom:6px; color:#cbd5e1;">Clave de Licencia Comercial</label>
+        <textarea id="precisionLicenseTokenInput" rows="3" placeholder="PAMPAN1.eyJwbGFuIjoi..." style="width:100%; padding:10px 12px; border:1px solid #334155; border-radius:8px; background:#0f1419; color:#fff; font-family:monospace; font-size:11px; box-sizing:border-box; resize:vertical;"></textarea>
+        <div id="precisionLicenseTokenError" style="color:#ef4444; font-size:12px; margin-top:6px; display:none;"></div>
+      </div>
+      <button type="button" id="btnActivatePrecisionLicense" class="button primary" style="width:100%; padding:12px; font-weight:700; background:#f59e0b; color:#000; border:none; border-radius:8px; cursor:pointer; font-size:14px;">Activar Licencia Comercial</button>
+    </div>
+  </div>
   <button class="mobile-menu-button" id="mobileMenuButton" type="button" aria-label="Abrir menú" aria-expanded="false">☰</button>
   <div class="mobile-sidebar-backdrop" id="mobileSidebarBackdrop" aria-hidden="true"></div>
   <div class="shell">
@@ -302,6 +317,7 @@
         <div class="brand-container"><img class="brand-mark" src="./logo2.png" alt="Logo Pampa Precision ERP"><span class="brand-badge">℠</span></div>
         <div><strong>PampaPrecision</strong><small>TRIAL • 10 días</small><em class="mobile-version-label">Versión móvil</em></div>
       </div>
+      <span id="pampaSyncNavBadge" style="display:flex;justify-content:center;margin:4px 0 8px;"></span>
       <div class="sidebar-company"><div class="company-heading"><label for="sidebarCompanySelector">Empresa activa</label><button class="new-company" id="newCompany" type="button" aria-label="Cargar nueva empresa" title="Cargar nueva empresa">+</button></div><select id="sidebarCompanySelector" aria-label="Empresa activa en la barra lateral"><option>Pampa Agropecuaria S.A.</option><option>PampaPrecision Demo</option><option>Establecimiento La Esperanza</option></select></div>
         <div class="sidebar-context"><label for="campaignSelector">Campaña activa</label><select id="campaignSelector" aria-label="Campaña activa"><option>2025 / 2026</option><option>2024 / 2025</option><option>2023 / 2024</option></select></div>
         <button class="sidebar-fiscal-entry" data-view="ARCA"><b class="nav-icon">F</b><span>Fiscal agrario / ARCA</span></button>
@@ -411,11 +427,10 @@
   <div class="toast" id="toast" role="status"></div>
   <div id="modalRoot"></div>
   <div class="connection-status" id="connectionStatus" role="status"></div>
-  <script src="./leaflet/leaflet.js"></script>
+  <script src="vendor/leaflet/leaflet.js"></script>
   <script src="./offline-db.js?v=1"></script>
   <script src="./sync-manager.js?v=1"></script>
   <script src="./api-client.js?v=8"></script>
-  <script src="./pampa-trial-precision.js?v=1"></script>
     <script src="./sync-handlers.js?v=1"></script>
   <script>
     const toast = document.querySelector('#toast');
@@ -2928,10 +2943,76 @@
     }
     document.querySelector('#deepCleanupButton').addEventListener('click', runDeepCleanup);
     bindDashboardActions();
+
+    async function initPrecisionLicenseCheck() {
+      const isDesktop = window.PAMPA_DESKTOP_MODE || (typeof process !== 'undefined' && process.env?.PAMPA_DESKTOP_MODE === '1') || window.location.protocol === 'file:' || !window.location.hostname.includes('nexo-landing');
+      const stored = localStorage.getItem('PampaPrecisionLicense') || localStorage.getItem('pampa_precision_license');
+      let isSignedValid = false;
+
+      if (stored && window.PampaLicenseSigned) {
+        try {
+          const parsed = typeof stored === 'string' ? JSON.parse(stored) : stored;
+          const token = parsed.token || parsed.key || (typeof stored === 'string' ? stored : '');
+          if (token && token.startsWith('PAMPAN1.')) {
+            const res = await window.PampaLicenseSigned.verifyLicense(token, { product: 'pampaprecision' });
+            if (res.valid) isSignedValid = true;
+          }
+        } catch (e) {}
+      }
+
+      const overlay = document.getElementById('precisionLicenseActivationOverlay');
+      if (overlay) {
+        if (isDesktop && !isSignedValid) {
+          overlay.style.display = 'flex';
+        } else {
+          overlay.style.display = 'none';
+        }
+      }
+    }
+
+    document.getElementById('btnActivatePrecisionLicense')?.addEventListener('click', async () => {
+      const input = document.getElementById('precisionLicenseTokenInput')?.value?.trim();
+      const errorEl = document.getElementById('precisionLicenseTokenError');
+      if (!input) {
+        if (errorEl) { errorEl.textContent = 'Ingresá un token de licencia.'; errorEl.style.display = 'block'; }
+        return;
+      }
+      if (!window.PampaLicenseSigned) {
+        if (errorEl) { errorEl.textContent = 'No se pudo cargar el verificador de licencias.'; errorEl.style.display = 'block'; }
+        return;
+      }
+      const res = await window.PampaLicenseSigned.verifyLicense(input, { product: 'pampaprecision' });
+      if (!res.valid) {
+        if (errorEl) { errorEl.textContent = res.error || 'Licencia inválida o vencida.'; errorEl.style.display = 'block'; }
+        return;
+      }
+      localStorage.setItem('PampaPrecisionLicense', JSON.stringify({ token: input, ...res }));
+      if (typeof showToast === 'function') showToast(`✅ Licencia activada correctamente: Plan ${res.plan || 'Comercial'}`);
+      const overlay = document.getElementById('precisionLicenseActivationOverlay');
+      if (overlay) overlay.style.display = 'none';
+    });
+
+    initPrecisionLicenseCheck();
+
+    // Vigilante de red + badge de estado en la barra lateral, vía el paquete compartido @pampa/core-sync.
+    window.PampaCoreSync?.activarSincronizacionAutomatica({
+      appId: 'pampaprecision',
+      mountSelector: '#pampaSyncNavBadge',
+      getPendingOperations: async () => window.PampaCoreSync.getPendingOperations('pampaprecision'),
+      markAccepted: async (acceptedIds) => {
+        await window.PampaCoreSync.markAcceptedOperations('pampaprecision', acceptedIds);
+        const accepted = new Set((acceptedIds || []).map(String));
+        const rows = await offlineDB.getPendingSync();
+        for (const row of rows) {
+          if (accepted.has(String(row.id))) await offlineDB.markSynced(row.id);
+        }
+      }
+    });
   </script>
 <script src="pampaia-source.js?v=pampaia-published-6"></script>
   <script src="./pampa-privacy-popup.js"></script>
-<script src="pampa-seat-control.js" data-product="pampa-precision"></script>
+<script src="vendor/pampa-seat-control.js" data-product="pampa-precision"></script>
+  <script src="./trial-progress.js"></script>
 </body>
 </html>
 

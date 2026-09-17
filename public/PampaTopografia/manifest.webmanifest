@@ -1,0 +1,19 @@
+{
+  "name": "PampaTopografía ERP",
+  "short_name": "Topografía",
+  "description": "PampaTopografía ERP - Gestión e Ingeniería Topográfica Offline-First",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0a0e14",
+  "theme_color": "#00d4ff",
+  "lang": "es-AR",
+  "icons": [
+    {
+      "src": "logo2.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

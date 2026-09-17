@@ -1,5 +1,5 @@
 {
-  "name": "pampa-agro-erp",
+  "name": "nexo-agro-erp",
   "version": "1.0.0",
   "description": "PampaAgro ERP - Gestion integral agropecuaria en escritorio",
   "main": "electron/main.js",
@@ -313,9 +313,9 @@
     "asar": true,
     "files": [
       "electron/**/*",
-      "pampa-agro-erp.html",
+      "nexo-agro-erp.html",
       "logo2.png",
-      "pampa-agro-paquete/**/*",
+      "nexo-agro-paquete/**/*",
       "settings.example.json",
       "!**/*.map",
       "!release{,/**/*}",
@@ -362,7 +362,7 @@
       {
         "provider": "github",
         "owner": "tininebuloni-creator",
-        "repo": "PAMPA-AGRO-ERP"
+        "repo": "NEXO-AGRO-ERP"
       }
     ]
   },

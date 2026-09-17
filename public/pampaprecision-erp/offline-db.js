@@ -109,6 +109,7 @@ class OfflineDatabase {
       request.onerror = () => reject(request.error);
       request.onsuccess = () => {
         console.log('💾 Cambio pendiente guardado:', action, data);
+        window.PampaCoreSync?.addPendingOperation('pampaprecision', 'UPSERT', action, data, String(request.result));
         resolve(request.result);
       };
     });

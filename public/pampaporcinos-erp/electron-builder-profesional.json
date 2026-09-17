@@ -1,0 +1,12 @@
+{
+  "appId": "com.pampa.porcinos.profesional",
+  "productName": "PampaPorcinos Profesional",
+  "asar": true,
+  "electronDist": "node_modules/electron/dist",
+  "npmRebuild": true,
+  "directories": { "output": "release-profesional" },
+  "files": ["index.html", "*.js", "*.css", "*.png", "*.jfif", "*.xlsx", "manifest.webmanifest", "sw.js", "server.js", "electron/**/*", "services/**/*", "data/**/*", "leaflet/**/*", "package.json"],
+  "extraMetadata": { "main": "electron/main.js", "porcinosPack": "profesional" },
+  "win": { "icon": "build/icon.ico", "target": ["nsis"], "executableName": "PampaPorcinos-Profesional", "signAndEditExecutable": false },
+  "nsis": { "include": "build/installer.nsh", "oneClick": false, "allowToChangeInstallationDirectory": true, "allowElevation": true, "perMachine": false, "createDesktopShortcut": true, "createStartMenuShortcut": true, "shortcutName": "PampaPorcinos Profesional", "uninstallDisplayName": "Desinstalar PampaPorcinos Profesional" }
+}

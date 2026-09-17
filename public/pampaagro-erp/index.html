@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script id="pampa-web-trial-guard">(function(){try{const url=new URL(window.location.href);if(url.searchParams.get('trial')==='auto'){url.searchParams.delete('trial');window.history.replaceState({},document.title,url.pathname+url.search+url.hash);}}catch(error){}}());</script>
 <meta charset="UTF-8">
 <title>PampaAgropecuario</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,19 +25,18 @@
 
 
 
-<script src="/vendor/chart.umd.min.js"></script>
-<script src="/vendor/jspdf.umd.min.js"></script>
-<script src="/vendor/leaflet/leaflet.js"></script>
- <script src="/vendor/dexie.min.js"></script>
-<script src="/vendor/pampa-license-key.js"></script>
-  <script src="/vendor/pampa-license-verify.js"></script>
-  <script src="/vendor/pampa-licensing.js"></script>
+<script src="vendor/chart.umd.min.js"></script>
+<script src="vendor/jspdf.umd.min.js"></script>
+<script src="vendor/leaflet/leaflet.js"></script>
+ <script src="vendor/dexie.min.js"></script>
+<script src="vendor/pampa-license-key.js"></script>
+  <script src="vendor/pampa-license-verify.js"></script>
+  <script src="vendor/pampa-licensing.js"></script>
 
-<script src="/vendor/pampa-search.js?v=2"></script>
+<script src="vendor/pampa-search.js?v=2"></script>
 
 <script src="https://apis.google.com/js/api.js"></script>
 <script src="https://accounts.google.com/gsi/client"></script>
-<script src="pampa-core-sync.js"></script>
 
 
 
@@ -1044,6 +1044,33 @@ body {
 .fiscal-tab-btn.active { background: var(--green); color: #fff; }
 .fiscal-tab-content { display: block; }
 
+/* === Etiquetas de plan por módulo + aviso de prueba completa === */
+.trial-plan-banner {
+  margin: 10px 16px 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: var(--text-dim);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.trial-plan-banner strong { color: #f59e0b; }
+.tier-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  vertical-align: middle;
+}
+.tier-badge.tier-basica { color: #16a34a; background: rgba(22, 163, 74, 0.15); border: 1px solid rgba(22, 163, 74, 0.35); }
+.tier-badge.tier-profesional { color: #3b82f6; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.35); }
+.tier-badge.tier-premium { color: #f59e0b; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); }
+.is-hidden { display: none !important; }
+
 /* === PAMPAIA / CAPA DE INTELIGENCIA === */
 .pampaia-panel{margin:0 0 18px;background:linear-gradient(135deg,#102a1d 0%,#123b27 55%,#0f5132 100%);border:1px solid rgba(245,158,11,.28);border-radius:14px;padding:18px;box-shadow:0 10px 28px rgba(0,0,0,.18);position:relative;overflow:hidden}.pampaia-panel:after{content:'✦';position:absolute;right:28px;top:-18px;font-size:150px;color:rgba(245,158,11,.06);pointer-events:none}.pampaia-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;position:relative;z-index:1}.pampaia-brand{display:flex;gap:12px;align-items:center}.pampaia-icon{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.35);font-size:22px}.pampaia-title{font-size:18px;font-weight:800;color:#fff}.pampaia-sub{font-size:11px;color:#b8d1c2;margin-top:3px}.pampaia-role{font-size:10px;color:#fbbf24;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.28);padding:5px 8px;border-radius:999px;font-family:var(--font-mono);text-transform:uppercase}.pampaia-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:14px;margin-top:14px;position:relative;z-index:1}.pampaia-summary,.pampaia-chat{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px}.pampaia-label{font-size:10px;color:#9fc0ad;text-transform:uppercase;letter-spacing:.9px;font-family:var(--font-mono);margin-bottom:9px}.pampaia-insights{display:grid;gap:8px}.pampaia-insight{display:flex;gap:9px;align-items:flex-start;padding:9px;background:rgba(0,0,0,.12);border-radius:8px;font-size:12px;color:#e7f3ec}.pampaia-dot{width:7px;height:7px;border-radius:50%;margin-top:4px;flex:0 0 7px;background:#22c55e}.pampaia-dot.warn{background:#f59e0b}.pampaia-dot.risk{background:#ef4444}.pampaia-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}.pampaia-btn{border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.07);color:#fff;border-radius:7px;padding:8px 10px;font-size:11px;font-weight:700;cursor:pointer}.pampaia-btn:hover{border-color:#f59e0b;color:#fbbf24}.pampaia-question{display:flex;gap:7px;margin-top:8px}.pampaia-question input{flex:1;min-width:0;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:7px;padding:9px 10px;font-size:11px;outline:none}.pampaia-question button{border:0;background:#f59e0b;color:#102a1d;border-radius:7px;padding:0 12px;font-weight:800;cursor:pointer}.pampaia-answer{margin-top:9px;padding:9px 10px;border-left:3px solid #f59e0b;background:rgba(245,158,11,.08);border-radius:0 7px 7px 0;color:#eaf5ee;font-size:11px;line-height:1.45;min-height:34px}.pampaia-foot{margin-top:9px;font-size:9px;color:#7fa38e}.pampaia-report-btn{float:right;margin-top:-3px;border:1px solid rgba(245,158,11,.3);background:transparent;color:#fbbf24;border-radius:6px;padding:5px 8px;font-size:10px;cursor:pointer}@media(max-width:900px){.pampaia-grid{grid-template-columns:1fr}.pampaia-head{flex-direction:column}}
 </style>
@@ -1170,6 +1197,26 @@ body {
       body { background: #fff !important; color: #000 !important; }
     }
   </style>
+<script id="pampa-desktop-commercial-guard">(function(){
+  window.PAMPA_DESKTOP_MODE=true;
+  try {
+    const url=new URL(window.location.href);
+    [...url.searchParams.keys()].filter(key=>/trial/i.test(key)).forEach(key=>url.searchParams.delete(key));
+    if(url.href!==window.location.href) window.history.replaceState({},document.title,url.pathname+url.search+url.hash);
+    Object.keys(localStorage).forEach(key=>{if(/license|licencia/i.test(key)){try{const value=JSON.parse(localStorage.getItem(key));if(value&&(value.type==='trial'||value.trial===true||value.payload?.trial===true))localStorage.removeItem(key)}catch(error){}}});
+  } catch(error) {}
+  document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('button,a,input,label,.field,.form-group').forEach(node=>{const text=[node.textContent,node.id,node.name,node.htmlFor,node.getAttribute('href')].join(' ');if(/trial|prueba gratis|iniciar prueba/i.test(text))node.remove()})},{once:true});
+})();</script>
+<script id="pampa-desktop-commercial-guard">(function(){
+  window.PAMPA_DESKTOP_MODE=true;
+  try {
+    const url=new URL(window.location.href);
+    [...url.searchParams.keys()].filter(key=>/trial/i.test(key)).forEach(key=>url.searchParams.delete(key));
+    if(url.href!==window.location.href) window.history.replaceState({},document.title,url.pathname+url.search+url.hash);
+    Object.keys(localStorage).forEach(key=>{if(/license|licencia/i.test(key)){try{const value=JSON.parse(localStorage.getItem(key));if(value&&(value.type==='trial'||value.trial===true||value.payload?.trial===true))localStorage.removeItem(key)}catch(error){}}});
+  } catch(error) {}
+  document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('button,a,input,label,.field,.form-group').forEach(node=>{const text=[node.textContent,node.id,node.name,node.htmlFor,node.getAttribute('href')].join(' ');if(/trial|prueba gratis|iniciar prueba/i.test(text))node.remove()})},{once:true});
+})();</script>
 </head>
 <body>
   <div id="root"></div>
@@ -1186,6 +1233,7 @@ body {
         <div class="logo-text">PampaAgropecuario</div>
         <div class="logo-sub">v1.0.1</div>
       </div>
+      <div class="trial-plan-banner is-hidden" id="trialPlanBanner">🎁 Prueba gratuita: estás probando el plan <strong>Premium</strong> completo. Cada módulo muestra el plan mínimo que lo incluye.</div>
     </div>
     <nav class="sidebar-nav">
       <div class="nav-section">
@@ -1634,9 +1682,18 @@ body {
         <div class="card">
           <div class="card-header">
             <div class="card-title">🗺️ Mapa de Lotes</div>
-            <button class="topbar-btn" onclick="mostrarTodosLosLotes()">Ver todos</button>
+            <div style="display:flex;gap:8px;">
+              <button class="topbar-btn" onclick="mostrarTodosLosLotes()">Ver todos</button>
+              <button class="topbar-btn" id="btnDescargarMapasOffline" onclick="precargarMapasOffline()">📥 Descargar mapas para uso offline</button>
+            </div>
           </div>
           <div id="mapaLotes" style="height: 500px; width: 100%; border-radius: 8px;"></div>
+          <div id="dibujoPoligonoControles" style="display:none; margin-top:10px; padding:10px; background:var(--bg-2,#1a1a1a); border-radius:8px; align-items:center; gap:10px; flex-wrap:wrap;">
+            <span style="font-size:13px;">📍 Modo dibujo: hacé click en el mapa para marcar cada esquina del lote (mínimo 3 puntos). <span id="dibujoPoligonoContador">0</span> puntos marcados.</span>
+            <button class="topbar-btn primary" type="button" onclick="finalizarDibujoPoligonoLote()">✅ Guardar polígono</button>
+            <button class="topbar-btn" type="button" onclick="deshacerUltimoPuntoPoligono()">↩️ Deshacer último punto</button>
+            <button class="topbar-btn" type="button" onclick="cancelarDibujoPoligonoLote()">✖️ Cancelar</button>
+          </div>
         </div>
       </div>
       <!-- MODULE: CAMPAÑAS -->
@@ -3022,6 +3079,7 @@ body {
     <div class="modal-body" id="modalBody"></div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn" onclick="imprimirRegistroModal()">🖨️ Imprimir</button>
       <button class="btn btn-primary" id="modalSaveBtn" onclick="saveModal()">Guardar</button>
     </div>
   </div>
@@ -3055,8 +3113,8 @@ body {
   </div>
 </div>
 
-<script src="/vendor/xlsx.full.min.js"></script>
-<script src="/vendor/tesseract.min.js"></script>
+<script src="vendor/xlsx.full.min.js"></script>
+<script src="vendor/tesseract.min.js"></script>
 <script>
 /* === ESTADO GLOBAL === */
 const state = {
@@ -3902,6 +3960,7 @@ function actualizarPermisos() {
   }
 
   actualizarRoleSelectorUI();
+  renderTrialModuleTags();
 }
 
 function cargarRol() {
@@ -3927,6 +3986,8 @@ function cargarRol() {
 // Declarar antes para evitar TDZ error si switchModule('lotes') se llama en carga inicial
 var mapaLotes = null;
 var marcadoresLotes = [];
+var poligonosLotes = []; // Capas de polígono de cada lote, dibujadas sobre mapaLotes
+var dibujandoPoligono = null; // { index, puntos: [[lat,lng],...], tempLayer, tempMarkers } mientras se está dibujando
 
 function actualizarLayoutDashboard(moduloId) {
   const main = document.querySelector('.main');
@@ -4320,6 +4381,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('arcaOperacionForm')?.addEventListener('submit', event => {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(event.currentTarget).entries());
+    if (!Array.isArray(state.arcaOperaciones)) state.arcaOperaciones = []; // Bug: no estaba inicializado para instalaciones nuevas y rompía al guardar la primera operación
     state.arcaOperaciones.unshift({ ...data, importe: Number(data.importe) || 0, estado: 'Pendiente de enviar' });
     saveState();
     renderOperacionesARCA();
@@ -5512,6 +5574,27 @@ function getCampaignOptions() {
   });
   const saved = (state.campañas || []).map(item => item.campana).filter(Boolean);
   return [...new Set([...saved, ...recent])];
+}
+
+// Imprime el formulario actualmente abierto en el modal genérico (aplica a cualquier módulo:
+// Campos, Lotes, Siembra, Cosecha, etc.) usando las etiquetas definidas en formConfigs.
+function imprimirRegistroModal() {
+  const config = formConfigs[currentModal?.module];
+  const formulario = document.getElementById('modalForm');
+  if (!config || !formulario) { showToast('No hay un formulario abierto para imprimir.', 'error'); return; }
+  const ventana = window.open('', '_blank', 'width=420,height=650');
+  if (!ventana) { showToast('El navegador bloqueó la ventana de impresión.', 'error'); return; }
+  const datosForm = new FormData(formulario);
+  const filas = config.fields.map(field => {
+    let valor;
+    const el = formulario.querySelector(`[name="${field.name}"]`);
+    if (el && el.type === 'checkbox') valor = el.checked ? 'Sí' : 'No';
+    else valor = datosForm.get(field.name);
+    return [field.label || field.name, (valor ?? '').toString()];
+  });
+  const titulo = document.getElementById('modalTitle')?.textContent || config.title || 'Registro';
+  ventana.document.write(`<html><head><title>${titulo}</title><style>body{font-family:Arial,sans-serif;text-align:center;padding:18px}table{width:100%;text-align:left;border-collapse:collapse}td{padding:6px;border-bottom:1px solid #ddd}</style></head><body><h2>${titulo}</h2><table>${filas.map(row => `<tr><td><b>${row[0]}</b></td><td>${row[1] || ''}</td></tr>`).join('')}</table>${String.fromCharCode(60, 115, 99, 114, 105, 112, 116, 62)}window.onload=()=>window.print();${String.fromCharCode(60, 47, 115, 99, 114, 105, 112, 116, 62)}${String.fromCharCode(60, 47, 98, 111, 100, 121, 62, 60, 47, 104, 116, 109, 108, 62)}`);
+  ventana.document.close();
 }
 
 function openModal(module, editIndex = null) {
@@ -7635,7 +7718,10 @@ function renderTables() {
           <td>${l.tipoSuelo||''}</td>
           <td>${l.ambiente||''}</td>
           <td><span class="tag ${campanaColors[l.campana] || 'blue'}">${l.campana||''}</span></td>
-          <td>${l.latitud && l.longitud ? `<button onclick="event.stopPropagation(); verLoteEnMapa(${i})" class="topbar-btn" style="padding:4px 8px;font-size:11px;">🗺️ Ver</button>` : '-'}</td>
+          <td>${l.latitud && l.longitud ? `<button onclick="event.stopPropagation(); verLoteEnMapa(${i})" class="topbar-btn" style="padding:4px 8px;font-size:11px;">🗺️ Ver</button>` : '-'}
+            <button onclick="event.stopPropagation(); iniciarDibujoPoligonoLote(${i})" class="topbar-btn" style="padding:4px 8px;font-size:11px;">✏️ ${l.poligono && l.poligono.length >= 3 ? 'Redibujar' : 'Dibujar'} polígono</button>
+            ${l.poligono && l.poligono.length >= 3 ? `<button onclick="event.stopPropagation(); borrarPoligonoLote(${i})" class="topbar-btn" style="padding:4px 8px;font-size:11px;">🗑️</button>` : ''}
+          </td>
         </tr>
       `).join('');
     }
@@ -8806,19 +8892,71 @@ async function actualizarFiscalAgricola() {
   await renderAgricolaContratistas();
 }
 
+// Guarda localmente una CPE que no se pudo autorizar en el momento (offline o error de red),
+// para que "Sincronizar pendientes" la reintente más tarde. Patrón igual al de fiscalDutQueue.
+function encolarCpeAgricolaOffline(payload) {
+  if (!Array.isArray(state.agricolaCpeQueue)) state.agricolaCpeQueue = [];
+  state.agricolaCpeQueue.push({
+    id: (window.crypto?.randomUUID?.() || `cpe-local-${Date.now()}-${Math.random().toString(16).slice(2)}`),
+    estado: 'Pendiente',
+    payload,
+    creadoEn: new Date().toISOString(),
+    detalle: ''
+  });
+  saveState();
+}
+
+// Reintenta contra el servidor todas las CPE que quedaron guardadas localmente por falta de conexión.
+async function sincronizarColaAgricola() {
+  if (!navigator.onLine) {
+    showToast('Sin conexión: las Cartas de Porte quedan guardadas localmente.', 'info');
+    return;
+  }
+  const pendientes = (state.agricolaCpeQueue || []).filter(item => item.estado === 'Pendiente');
+  if (!pendientes.length) {
+    showToast('No hay Cartas de Porte pendientes de sincronizar.', 'info');
+    await renderAgricolaCpe();
+    return;
+  }
+  const boton = document.getElementById('agricolaSincronizarCola');
+  if (boton) { boton.disabled = true; boton.textContent = 'Sincronizando...'; }
+  for (const item of pendientes) {
+    try {
+      const respJson = await fiscalJson('/api/fiscal/cpe/autorizar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item.payload) });
+      item.estado = 'Sincronizado';
+      item.ctg = respJson.ctg;
+      item.detalle = '';
+    } catch (error) {
+      item.detalle = error.message;
+    }
+  }
+  state.agricolaCpeQueue = (state.agricolaCpeQueue || []).filter(item => item.estado !== 'Sincronizado');
+  saveState();
+  if (boton) { boton.disabled = false; }
+  await renderAgricolaCpe();
+  showToast('Sincronización de Cartas de Porte finalizada.', 'success');
+}
+
 async function renderAgricolaCpe() {
   const body = document.getElementById('agricolaCpeBody');
   if (!body) return;
+  const pendientesLocal = (state.agricolaCpeQueue || []).filter(item => item.estado === 'Pendiente');
+  const filasPendientes = pendientesLocal.slice().reverse().map(item => `
+    <tr><td>-</td><td><span class="tag orange">Pendiente (sin sincronizar)</span></td><td>${item.payload?.kilosTotales ?? '-'}</td><td><span class="text-muted">Sin confirmar</span></td><td>${item.detalle ? `<span class="text-muted">${item.detalle}</span>` : '<span class="text-muted">Esperando conexión</span>'}</td></tr>
+  `).join('');
+  const boton = document.getElementById('agricolaSincronizarCola');
+  if (boton) boton.textContent = pendientesLocal.length ? `Sincronizar pendientes (${pendientesLocal.length})` : 'Sincronizar pendientes';
   try {
     const base = await fiscalApiBase();
     const datos = await (await fetch(`${base}/api/fiscal/cartas-porte-cpe`)).json();
     const cpes = datos.cartasPorteCPE || [];
     setEl('agricolaCpeEmitidas', cpes.length);
-    body.innerHTML = cpes.length ? cpes.slice().reverse().map(c => `
+    const filasServidor = cpes.length ? cpes.slice().reverse().map(c => `
       <tr><td>${c.ctg || '-'}</td><td><span class="tag ${c.estadoFiscal === 'APROBADO' ? 'green' : (c.estadoFiscal === 'OBSERVADO' ? 'orange' : '')}">${c.estado || c.estadoFiscal || ''}</span></td><td>${c.kilosOrigen ?? c.kilos ?? '-'}</td><td>${c.kilosDestino ?? '<span class="text-muted">Sin confirmar</span>'}</td><td>${c.kilosDestino == null ? `<button class="topbar-btn" type="button" onclick="confirmarArriboCpe('${c.ctg}')">Confirmar arribo</button>` : ''} <button class="topbar-btn" type="button" onclick="registrarVentaDesdeCpe('${c.ctg}')">Registrar venta</button></td></tr>
-    `).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:16px;">No hay Cartas de Porte de granos emitidas</td></tr>';
+    `).join('') : '';
+    body.innerHTML = (filasPendientes + filasServidor) || '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:16px;">No hay Cartas de Porte de granos emitidas</td></tr>';
   } catch (error) {
-    body.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:16px;">${error.message}</td></tr>`;
+    body.innerHTML = filasPendientes || `<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:16px;">${error.message}</td></tr>`;
   }
 }
 
@@ -8875,11 +9013,20 @@ document.getElementById('agricolaFormCpe')?.addEventListener('submit', async (ev
   const datos = Object.fromEntries(new FormData(formulario).entries());
   const campo = state.campos.find(c => c.codigo === datos.campoCodigo);
   if (!campo) { resultado.textContent = 'Seleccioná un campo válido.'; resultado.className = 'tag'; return; }
+  const payload = { campo, kilosTotales: Number(datos.kilosTotales), patente: datos.patente, tipoCPE: datos.tipoCPE, sucursal: datos.sucursal, cuitCliente: datos.cuitCliente };
+  if (!navigator.onLine) {
+    encolarCpeAgricolaOffline(payload);
+    resultado.textContent = 'Sin conexión: la CPE quedó guardada para sincronizar cuando vuelva la señal.';
+    resultado.className = 'tag orange';
+    formulario.reset();
+    await renderAgricolaCpe();
+    return;
+  }
   try {
     const base = await fiscalApiBase();
     const respuesta = await fetch(`${base}/api/fiscal/cpe/autorizar`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ campo, kilosTotales: Number(datos.kilosTotales), patente: datos.patente, tipoCPE: datos.tipoCPE, sucursal: datos.sucursal, cuitCliente: datos.cuitCliente })
+      body: JSON.stringify(payload)
     });
     const respJson = await respuesta.json();
     if (!respuesta.ok || !respJson.success) throw new Error(respJson.message || 'No se pudo autorizar la CPE.');
@@ -8892,8 +9039,11 @@ document.getElementById('agricolaFormCpe')?.addEventListener('submit', async (ev
       await autoCompletarVentaDesdeCpe(respJson);
     }
   } catch (error) {
-    resultado.textContent = error.message;
-    resultado.className = 'tag';
+    encolarCpeAgricolaOffline(payload);
+    resultado.textContent = `${error.message} La CPE quedó guardada para reintentar más tarde.`;
+    resultado.className = 'tag orange';
+    formulario.reset();
+    await renderAgricolaCpe();
   }
 });
 
@@ -10144,6 +10294,11 @@ function exportarTrazabilidadCSV() {
 }
 
 /* === GRÁFICOS === */
+// Blindaje: si por algún motivo Chart.js no cargó (vendor faltante, red, etc.),
+// no queremos que TODO el script se frene acá abajo (licencias, IndexedDB, etc. quedarían rotos).
+if (typeof Chart === 'undefined') {
+  console.error('[gráficos] Chart.js no está disponible — se omiten los gráficos del dashboard, el resto de la app sigue funcionando.');
+} else {
 // Flujo proyectado
 new Chart(document.getElementById('chartFlujo'), {
   type: 'line',
@@ -10217,6 +10372,7 @@ new Chart(document.getElementById('chartCostos'), {
     }
   }
 });
+} // fin del if (typeof Chart === 'undefined')
 
 // Gráficos adicionales
 let chartFlujoFondos = null;
@@ -10551,6 +10707,7 @@ observer.observe(document.getElementById('content'), { subtree: true, attributes
 
 /* === INICIALIZACIÓN === */
 var appInitialized = false;
+var TRIAL_DAYS = 10; // Declarada acá porque initLicenseSystem() se ejecuta de inmediato abajo y la necesita ya.
 // Verificar licencia antes de inicializar la app.
 (async () => {
   await initLicenseSystem();
@@ -11705,10 +11862,17 @@ function inicializarMapaLotes() {
   mapaLotes = L.map('mapaLotes').setView([-32.0, -64.0], 6);
   
   // Agregar capa de OpenStreetMap
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  // Nota: usamos un subdominio fijo ('a') en vez de {s} para que la URL sea siempre
+  // la misma que la que precarga precargarMapasOffline() — así el caché offline pega siempre.
+  L.tileLayer('https://a.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors',
     maxZoom: 19
   }).addTo(mapaLotes);
+  
+  // Click en el mapa: si hay un dibujo de polígono en curso, agrega el punto ahí.
+  mapaLotes.on('click', (e) => {
+    if (dibujandoPoligono) _agregarPuntoDibujoPoligono(e.latlng);
+  });
   
   // Esperar un momento para que el contenedor sea visible
   setTimeout(() => {
@@ -11760,37 +11924,195 @@ function mostrarTodosLosLotes() {
   // Si el mapa no existe, no hacer nada (será llamado desde inicializarMapaLotes)
   if (!mapaLotes) return;
   
-  // Limpiar marcadores anteriores
+  // Limpiar marcadores y polígonos anteriores
   marcadoresLotes.forEach(m => mapaLotes.removeLayer(m));
   marcadoresLotes = [];
+  poligonosLotes.forEach(p => mapaLotes.removeLayer(p));
+  poligonosLotes = [];
   
-  // Agregar marcadores para cada lote
+  // Agregar marcadores y polígonos para cada lote
   const bounds = [];
   state.lotes.forEach((lote, i) => {
-    if (lote.latitud && lote.longitud) {
-      const marker = L.marker([lote.latitud, lote.longitud]).addTo(mapaLotes);
-      marker.bindPopup(`
+    const popupHtml = `
         <strong>${lote.codigo} - ${lote.nombre}</strong><br>
         <b>Campo:</b> ${lote.campo}<br>
         <b>Superficie:</b> ${lote.superficie} ha<br>
         <b>Suelo:</b> ${lote.tipoSuelo}<br>
         <b>Ambiente:</b> ${lote.ambiente}<br>
         <b>Campaña:</b> ${lote.campana}
-      `);
+      `;
+    if (Array.isArray(lote.poligono) && lote.poligono.length >= 3) {
+      const poligono = L.polygon(lote.poligono, { color: '#22c55e', weight: 2, fillOpacity: 0.25 }).addTo(mapaLotes);
+      poligono.bindPopup(popupHtml);
+      poligonosLotes.push(poligono);
+      lote.poligono.forEach(p => bounds.push(p));
+    } else if (lote.latitud && lote.longitud) {
+      const marker = L.marker([lote.latitud, lote.longitud]).addTo(mapaLotes);
+      marker.bindPopup(popupHtml);
       marcadoresLotes.push(marker);
       bounds.push([lote.latitud, lote.longitud]);
     }
   });
   
-  // Ajustar vista para mostrar todos los marcadores
+  // Ajustar vista para mostrar todos los marcadores/polígonos
   if (bounds.length > 0) {
     mapaLotes.fitBounds(bounds, { padding: [50, 50] });
   }
 }
 
+// ===== Dibujo de polígonos de lotes =====
+
+function iniciarDibujoPoligonoLote(index) {
+  const lote = state.lotes[index];
+  if (!lote) return;
+  if (!mapaLotes) inicializarMapaLotes();
+  if (dibujandoPoligono) cancelarDibujoPoligonoLote();
+
+  dibujandoPoligono = { index, puntos: [], tempLayer: null, tempMarkers: [] };
+  document.getElementById('dibujoPoligonoControles').style.display = 'flex';
+  document.getElementById('dibujoPoligonoContador').textContent = '0';
+  showToast(`Marcá las esquinas de "${lote.nombre || lote.codigo}" en el mapa`, 'info');
+  document.getElementById('mapaLotes').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function _agregarPuntoDibujoPoligono(latlng) {
+  if (!dibujandoPoligono) return;
+  dibujandoPoligono.puntos.push([latlng.lat, latlng.lng]);
+  const punto = L.circleMarker(latlng, { radius: 5, color: '#22c55e', fillColor: '#22c55e', fillOpacity: 1 }).addTo(mapaLotes);
+  dibujandoPoligono.tempMarkers.push(punto);
+  if (dibujandoPoligono.tempLayer) mapaLotes.removeLayer(dibujandoPoligono.tempLayer);
+  if (dibujandoPoligono.puntos.length >= 2) {
+    dibujandoPoligono.tempLayer = L.polygon(dibujandoPoligono.puntos, { color: '#22c55e', weight: 2, dashArray: '6 6', fillOpacity: 0.15 }).addTo(mapaLotes);
+  }
+  document.getElementById('dibujoPoligonoContador').textContent = String(dibujandoPoligono.puntos.length);
+}
+
+function deshacerUltimoPuntoPoligono() {
+  if (!dibujandoPoligono || !dibujandoPoligono.puntos.length) return;
+  dibujandoPoligono.puntos.pop();
+  const ultimoMarker = dibujandoPoligono.tempMarkers.pop();
+  if (ultimoMarker) mapaLotes.removeLayer(ultimoMarker);
+  if (dibujandoPoligono.tempLayer) { mapaLotes.removeLayer(dibujandoPoligono.tempLayer); dibujandoPoligono.tempLayer = null; }
+  if (dibujandoPoligono.puntos.length >= 2) {
+    dibujandoPoligono.tempLayer = L.polygon(dibujandoPoligono.puntos, { color: '#22c55e', weight: 2, dashArray: '6 6', fillOpacity: 0.15 }).addTo(mapaLotes);
+  }
+  document.getElementById('dibujoPoligonoContador').textContent = String(dibujandoPoligono.puntos.length);
+}
+
+function _limpiarCapasDibujoPoligono() {
+  if (!dibujandoPoligono) return;
+  dibujandoPoligono.tempMarkers.forEach(m => mapaLotes.removeLayer(m));
+  if (dibujandoPoligono.tempLayer) mapaLotes.removeLayer(dibujandoPoligono.tempLayer);
+}
+
+function cancelarDibujoPoligonoLote() {
+  _limpiarCapasDibujoPoligono();
+  dibujandoPoligono = null;
+  const controles = document.getElementById('dibujoPoligonoControles');
+  if (controles) controles.style.display = 'none';
+}
+
+function finalizarDibujoPoligonoLote() {
+  if (!dibujandoPoligono) return;
+  if (dibujandoPoligono.puntos.length < 3) {
+    showToast('Necesitás marcar al menos 3 puntos para formar un polígono.', 'error');
+    return;
+  }
+  const lote = state.lotes[dibujandoPoligono.index];
+  lote.poligono = dibujandoPoligono.puntos;
+  saveState();
+  _limpiarCapasDibujoPoligono();
+  dibujandoPoligono = null;
+  document.getElementById('dibujoPoligonoControles').style.display = 'none';
+  showToast('Polígono del lote guardado.', 'success');
+  mostrarTodosLosLotes();
+  renderTables();
+}
+
+function borrarPoligonoLote(index) {
+  const lote = state.lotes[index];
+  if (!lote) return;
+  if (!confirm(`¿Borrar el polígono de "${lote.nombre || lote.codigo}"?`)) return;
+  delete lote.poligono;
+  saveState();
+  mostrarTodosLosLotes();
+  renderTables();
+}
+
+// ===== Precarga de mapas para uso offline =====
+// Descarga (y deja en caché del Service Worker) las imágenes de mapa de la zona
+// de cada lote, para que el mapa funcione sin señal la próxima vez que se abra.
+
+function _lonATileX(lon, zoom) {
+  return Math.floor((lon + 180) / 360 * Math.pow(2, zoom));
+}
+function _latATileY(lat, zoom) {
+  const rad = lat * Math.PI / 180;
+  return Math.floor((1 - Math.log(Math.tan(rad) + 1 / Math.cos(rad)) / Math.PI) / 2 * Math.pow(2, zoom));
+}
+
+async function precargarMapasOffline() {
+  if (!navigator.onLine) {
+    showToast('Necesitás conexión para descargar los mapas (hacé esto antes de salir a campo).', 'error');
+    return;
+  }
+  // Juntar todos los puntos conocidos: polígonos y ubicaciones sueltas de lotes
+  const puntos = [];
+  (state.lotes || []).forEach(lote => {
+    if (Array.isArray(lote.poligono) && lote.poligono.length) {
+      lote.poligono.forEach(p => puntos.push(p));
+    } else if (lote.latitud && lote.longitud) {
+      puntos.push([Number(lote.latitud), Number(lote.longitud)]);
+    }
+  });
+  if (!puntos.length) {
+    showToast('No hay lotes con ubicación o polígono cargado todavía.', 'info');
+    return;
+  }
+
+  const lats = puntos.map(p => p[0]);
+  const lngs = puntos.map(p => p[1]);
+  // Un margen chico alrededor de los puntos (~2km) para tener contexto del entorno del lote
+  const margen = 0.02;
+  const minLat = Math.min(...lats) - margen, maxLat = Math.max(...lats) + margen;
+  const minLng = Math.min(...lngs) - margen, maxLng = Math.max(...lngs) + margen;
+
+  const zooms = [13, 14, 15, 16];
+  const tiles = new Set();
+  zooms.forEach(z => {
+    const xMin = _lonATileX(minLng, z) - 1, xMax = _lonATileX(maxLng, z) + 1;
+    const yMin = _latATileY(maxLat, z) - 1, yMax = _latATileY(minLat, z) + 1;
+    for (let x = xMin; x <= xMax; x++) {
+      for (let y = yMin; y <= yMax; y++) {
+        tiles.add(`${z}/${x}/${y}`);
+      }
+    }
+  });
+
+  const listaTiles = Array.from(tiles);
+  const MAX_TILES = 600; // límite de seguridad para no descargar de más
+  const aDescargar = listaTiles.slice(0, MAX_TILES);
+
+  const boton = document.getElementById('btnDescargarMapasOffline');
+  if (boton) boton.disabled = true;
+  let ok = 0, fail = 0;
+  const CONCURRENCIA = 6;
+  for (let i = 0; i < aDescargar.length; i += CONCURRENCIA) {
+    const lote_ = aDescargar.slice(i, i + CONCURRENCIA);
+    await Promise.all(lote_.map(async (t) => {
+      try {
+        const resp = await fetch(`https://a.tile.openstreetmap.org/${t}.png`);
+        if (resp.ok || resp.type === 'opaque') ok++; else fail++;
+      } catch (e) { fail++; }
+    }));
+    if (boton) boton.textContent = `📥 Descargando... ${Math.min(i + CONCURRENCIA, aDescargar.length)}/${aDescargar.length}`;
+  }
+  if (boton) { boton.disabled = false; boton.textContent = '📥 Descargar mapas para uso offline'; }
+  showToast(`Mapas guardados para uso offline: ${ok} imágenes (${fail} fallaron).`, fail === 0 ? 'success' : 'info');
+}
+
 // === SISTEMA DE LICENCIAMIENTO ===
 
-const TRIAL_DAYS = 10;
 appInitialized = false;
 
 function getLicenseData() {
@@ -11839,6 +12161,41 @@ function planTieneModulo(modulo) {
   const permitidos = getAllowedModulesForPlan(plan);
   if (permitidos === null) return true;
   return permitidos.includes(modulo);
+}
+
+// Etiquetas "plan mínimo requerido" por módulo + aviso de prueba completa (solo durante el trial)
+const TIER_LABELS_PLAN = { basica: 'Básica', profesional: 'Profesional', premium: 'Premium' };
+
+function getMinimumPlanForModule(moduleKey) {
+  if (!moduleKey) return null;
+  if (PLAN_MODULES.basica.includes(moduleKey)) return 'basica';
+  if (PLAN_MODULES.profesional.includes(moduleKey)) return 'profesional';
+  return 'premium';
+}
+
+function renderTrialModuleTags() {
+  const license = getLicenseData();
+  const isTrial = Boolean(license && license.type === 'trial');
+  const banner = document.getElementById('trialPlanBanner');
+  if (banner) banner.classList.toggle('is-hidden', !isTrial);
+  document.querySelectorAll('.nav-item[data-module]').forEach((item) => {
+    let badge = item.querySelector('.tier-badge');
+    if (!isTrial) {
+      if (badge) badge.remove();
+      return;
+    }
+    const tier = getMinimumPlanForModule(item.getAttribute('data-module'));
+    if (!tier) {
+      if (badge) badge.remove();
+      return;
+    }
+    if (!badge) {
+      badge = document.createElement('span');
+      item.appendChild(badge);
+    }
+    badge.className = `tier-badge tier-${tier}`;
+    badge.textContent = TIER_LABELS_PLAN[tier];
+  });
 }
 
 function getTrialRemainingDays(license) {
@@ -12125,7 +12482,7 @@ function maybeAutoActivateTrialFromQuery() {
     return;
   }
 
-  activateTrial();
+  
   const cleanUrl = `${window.location.pathname}${window.location.hash}`;
   window.history.replaceState({}, document.title, cleanUrl);
 }
@@ -12376,15 +12733,17 @@ function initializeAppAfterLicense() {
 
 // Inicializar sistema de licencia al cargar la página
 async function initLicenseSystem() {
-  maybeAutoActivateTrialFromQuery();
+  
   updateTrialBlueBanner();
 
   await refreshSubscriptionAuthorization();
 
   if (!await checkLicense()) {
     const existingLicense = getLicenseData();
-    if (!existingLicense) {
-      activateTrial();
+    // En el build de escritorio (Electron/pura) NUNCA autoactivar un trial sin preguntar:
+    // siempre pedir la clave real. El auto-trial solo tiene sentido en la versión web.
+    if (!existingLicense && !window.PAMPA_DESKTOP_MODE) {
+      
     } else {
       showActivationScreen();
     }
@@ -14097,7 +14456,6 @@ function setEl(id, txt) {
 </script>
 
 <script src="js/pampaia-source.js?v=pampaia-published-6"></script>
-<script src=""></script>
 <script src="js/pampa-seat-control.js" data-product="pampa-agro"></script>
 <script>
     (function() {
@@ -14112,9 +14470,10 @@ function setEl(id, txt) {
         // 🛡️ 2. Forzar cartel de privacidad y el cartel azul en la interfaz
         document.body.classList.add('modo-trial-activo');
         
-        // 💾 3. Automatizar la limpieza: Si es la primera vez en la sesión, limpiar datos viejos
-        if (!sessionStorage.getItem('pampa_trial_init')) {
-          sessionStorage.setItem('pampa_trial_init', new Date().toISOString());
+        // 💾 3. Automatizar la limpieza: Si es la primera vez, guardar el inicio en localStorage
+        //    (no sessionStorage: así no se reinicia la cuenta de días al cerrar el navegador)
+        if (!localStorage.getItem('pampa_trial_init')) {
+          localStorage.setItem('pampa_trial_init', sessionStorage.getItem('pampa_trial_init') || new Date().toISOString());
         }
 
         // Guardar los días para que tu cartel azul existente los muestre dinámicamente
@@ -14123,7 +14482,10 @@ function setEl(id, txt) {
     })();
   </script>
 <!-- 🟢 TU SCRIPT MODULAR DE SEGUIMIENTO (Espera a que 'L' exista y arranca) --> 
- <script src="/vendor/leaflet/leaflet-map.js"></script>
+ <script src="vendor/leaflet/leaflet-map.js"></script>
+<!-- 🟦 Panel de trial: guardar/continuar progreso local dentro de los 10 días -->
+</div>
+  <script src="./trial-progress.js"></script>
 </body>
 </html>
 

@@ -4,8 +4,8 @@
     apps: {
       pampaagro: '/pampaagro-erp/?trial=auto',
       pampaganaderia: '/pampaganaderia-erp/?trial=auto',
-      pampaprecision: '/pampaprecision-erp/public/?trial=auto',
-      pampatambo: '/pampatambo-erp/public/?trial=auto',
+      pampaprecision: '/pampaprecision-erp/?trial=auto',
+      pampatambo: '/pampatambo-erp/?trial=auto',
       pampaporcinos: '/pampaporcinos-erp/?trial=auto'
     }
   };

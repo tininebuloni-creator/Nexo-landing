@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tratamientos Sanitarios · PampaTambo</title>
     <link rel="stylesheet" href="pampa-brand.css">
+    <script src="./vendor/dexie.min.js"></script>
+    <script src="./pampa-core-sync.js"></script>
     <style>
         :root {
             --primary: #2c3e50;
@@ -22,7 +24,7 @@
             margin: 0;
             padding: 15px;
         }
-        .container { max-width: 500px; margin: 0 auto; }
+        .container { max-width: 500px; margin: 0 auto; width: 100%; box-sizing: border-box; }
         h2 { text-align: center; font-size: 1.3rem; margin-bottom: 5px; }
         .subtitle { text-align: center; font-size: 0.85rem; color: #7f8c8d; margin-bottom: 12px; }
         .status-bar {
@@ -47,8 +49,14 @@
             font-size: 0.95rem; box-sizing: border-box; font-family: inherit;
         }
         input:focus, select:focus, textarea:focus { border-color: var(--accent); outline: none; }
-        .row { display: flex; gap: 10px; }
-        .row .form-group { flex: 1; }
+        .row { display: flex; gap: 10px; flex-wrap: wrap; }
+        .row .form-group { flex: 1; min-width: 140px; }
+        @media (max-width: 480px) {
+            body { padding: 10px; }
+            .form-card { padding: 14px; }
+            .row .form-group { min-width: 100%; }
+            .btn-submit { padding: 14px; font-size: 0.95rem; }
+        }
         .hint { font-size: 0.75rem; color: #7f8c8d; margin-top: 4px; }
         .retirement-alert {
             display: none;
@@ -112,6 +120,14 @@
                     <label for="fecha_trata">Fecha Aplicación</label>
                     <input type="date" id="fecha_trata" required>
                 </div>
+            </div>
+
+            <div class="form-group" id="lectorCaravanaControles" style="margin-top:-8px;">
+                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                    <button type="button" id="btnLectorBluetooth" style="width:auto; padding:8px 12px; background:var(--accent); color:#fff; border:none; border-radius:4px; font-size:0.8rem; cursor:pointer;">🔷 Lector Bluetooth</button>
+                    <button type="button" id="btnLectorHid" style="width:auto; padding:8px 12px; background:#fff; color:var(--accent); border:1px solid var(--accent); border-radius:4px; font-size:0.8rem; cursor:pointer;">⌨️ Modo HID</button>
+                </div>
+                <div class="hint" id="lectorCaravanaEstado">Modo HID: emparejá el lector como teclado desde el Bluetooth del celular y escaneá con este campo enfocado.</div>
             </div>
 
             <div class="form-group">
@@ -226,9 +242,17 @@
       throw lastError || new Error('Sin conexión');
     }
 
-    function renderConnStatus() {
+    // El estado se determina por una conexion real al servidor de PampaTambo (igual que monitor-ordene.html),
+    // no solo por navigator.onLine: el navegador puede reportar "online" (hay wifi/datos) aunque el
+    // servidor local de la app no sea alcanzable, lo que antes mostraba un estado distinto al de monitor-ordene.html.
+    let conectadoReal = null;
+    function renderConnStatus(offline) {
+      if (typeof offline === 'boolean') conectadoReal = !offline;
       const pill = byId('connStatus');
-      if (navigator.onLine) {
+      if (conectadoReal === null) {
+        pill.textContent = '…';
+        pill.className = 'pill';
+      } else if (conectadoReal) {
         pill.textContent = '🟢 Online';
         pill.className = 'pill online';
       } else {
@@ -259,6 +283,7 @@
         const data = await res.json();
         insumosDisponibles = Array.isArray(data) ? data.filter((x) => Number(x.stock || 0) > 0) : [];
         usandoReferenciaOffline = false;
+        renderConnStatus(false);
         if (!insumosDisponibles.length) {
           select.innerHTML = '<option value="">-- Sin stock cargado en Inventario --</option><option value="__manual__">Otro (ingresar manualmente)</option>';
         } else {
@@ -269,6 +294,7 @@
         byId('medicamentoHint').textContent = 'Inventario real de PampaTambo. El stock se descuenta al guardar.';
       } catch (err) {
         usandoReferenciaOffline = true;
+        renderConnStatus(true);
         select.innerHTML = '<option value="">-- Sin conexión: valores de referencia --</option>'
           + CARENCIA_REFERENCIA_OFFLINE.map((m, idx) => `<option value="ref-${idx}" data-retiro="${m.dias_retiro}" data-producto="${escapeHtml(m.producto)}">${escapeHtml(m.producto)} (Retiro: ${m.dias_retiro} días)</option>`).join('')
           + '<option value="__manual__">Otro (ingresar manualmente)</option>';
@@ -334,7 +360,7 @@
     }
 
     async function flushQueue() {
-      if (!navigator.onLine) return;
+      if (conectadoReal === false) return;
       const items = getQueue();
       if (!items.length) return;
       const restantes = [];
@@ -346,6 +372,7 @@
             body: JSON.stringify(item.payload),
           });
           if (!res.ok) throw new Error('Error al sincronizar');
+          if (item.id) await window.PampaCoreSync?.markAcceptedOperations('pampatambo', [String(item.id)]);
           if (item.insumoId && item.decrementarA !== undefined) {
             await apiFetch(`/insumosSanidad/${item.insumoId}`, {
               method: 'PUT',
@@ -369,6 +396,34 @@
     });
     byId('medManualRetiro').addEventListener('input', evaluarRetiroLeche);
     byId('fecha_trata').addEventListener('change', evaluarRetiroLeche);
+
+    // Soporte para lector de caravanas por Bluetooth del celular. La mayoria de los lectores
+    // BLE/RFID economicos se emparejan como teclado (HID): alcanza con que el campo RP tenga foco.
+    // Web Bluetooth (navigator.bluetooth) permite además conectar por BLE nativo en Chrome/Android;
+    // como todavia no está definido el modelo exacto del lector, esto conecta y muestra el nombre
+    // del dispositivo, pero la lectura automática de la caravana por GATT queda pendiente de ese dato.
+    async function conectarLectorBluetoothMovil() {
+      const estado = byId('lectorCaravanaEstado');
+      if (!navigator.bluetooth?.requestDevice) {
+        if (estado) estado.textContent = 'Este navegador no soporta Bluetooth BLE (Web Bluetooth). Usá el modo HID: emparejá el lector desde la configuración Bluetooth del celular y escaneá con el campo enfocado.';
+        return;
+      }
+      try {
+        if (estado) estado.textContent = 'Buscando lectores Bluetooth cercanos...';
+        const dispositivo = await navigator.bluetooth.requestDevice({ acceptAllDevices: true });
+        if (estado) estado.textContent = `Conectado a "${dispositivo.name || 'lector sin nombre'}". Falta configurar el protocolo de este modelo para completar la caravana automático: por ahora usá el modo HID o completá manualmente.`;
+        localStorage.setItem('pampaTamboBluetoothReaderTratamientos', JSON.stringify({ nombre: dispositivo.name || 'Lector Bluetooth', conectadoEn: new Date().toISOString() }));
+      } catch (error) {
+        if (estado) estado.textContent = error?.name === 'NotFoundError' ? 'Conexión Bluetooth cancelada. Podés usar el modo HID.' : `No se pudo conectar el lector: ${error?.message || 'error desconocido'}`;
+      }
+    }
+    byId('btnLectorBluetooth')?.addEventListener('click', conectarLectorBluetoothMovil);
+    byId('btnLectorHid')?.addEventListener('click', () => {
+      byId('RP').focus();
+      const estado = byId('lectorCaravanaEstado');
+      if (estado) estado.textContent = 'Campo listo: escaneá con el lector Bluetooth emparejado como teclado (modo HID).';
+    });
+    byId('RP').focus();
 
     byId('tamboSanidadForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -444,8 +499,10 @@
         byId('manualMedRow').style.display = 'none';
       } catch (err) {
         const queue = getQueue();
-        queue.push({ payload, insumoId: insumoActual ? insumoActual.id : null, decrementarA: insumoActual ? Math.max(0, Number(insumoActual.stock || 0) - 1) : undefined, createdAt: new Date().toISOString() });
+        const item = { id: window.crypto?.randomUUID?.() || `${Date.now()}-${Math.floor(Math.random() * 100000)}`, payload, insumoId: insumoActual ? insumoActual.id : null, decrementarA: insumoActual ? Math.max(0, Number(insumoActual.stock || 0) - 1) : undefined, createdAt: new Date().toISOString() };
+        queue.push(item);
         setQueue(queue);
+        await window.PampaCoreSync?.addPendingOperation('pampatambo', 'INSERT', 'tambo_tratamientos', payload, String(item.id));
         mostrarFeedback('queued', `⏳ Sin conexión con el servidor: el tratamiento de ${rp} quedó guardado localmente y se enviará solo cuando vuelva la señal. No se descontó stock todavía.`);
         e.target.reset();
         byId('fecha_trata').valueAsDate = new Date();
@@ -458,8 +515,8 @@
       }
     });
 
-    window.addEventListener('online', () => { renderConnStatus(); flushQueue(); });
-    window.addEventListener('offline', renderConnStatus);
+    window.addEventListener('online', () => { cargarInsumos(); flushQueue(); });
+    window.addEventListener('offline', () => renderConnStatus(true));
 
     renderConnStatus();
     cargarInsumos();

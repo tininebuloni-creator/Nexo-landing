@@ -1,0 +1,4 @@
+Pampaporcinos basica
+
+Abrir movil/index.html mediante un servidor local HTTPS/HTTP para instalar como PWA.
+No contiene servidor, datos de clientes ni credenciales.

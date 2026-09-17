@@ -1,23 +1,26 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script id="pampa-web-trial-guard">(function(){try{const url=new URL(window.location.href);if(url.searchParams.get('trial')==='auto'){url.searchParams.delete('trial');window.history.replaceState({},document.title,url.pathname+url.search+url.hash);}}catch(error){}}());</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pampa Tambo</title>
+  <title>PampaTambo ERP - Gestión Agropecuaria Integral</title>
   <link rel="manifest" href="./manifest.webmanifest" />
-  <script src="./pampa-licensing.js"></script>
+  <script src="./vendor/pampa-seat-control.js" data-product="pampa-tambo"></script>
+  <script src="./pampa-license-expiry-ui.js"></script>
   <script src="./pampa-sync-envelope.js?v=1"></script>
-  <script src="./pampa-offline-core.js"></script>
+  <script src="./vendor/dexie.min.js"></script>
+  <script src="./pampa-core-sync.js"></script>
   <script src="./pampa-report-voice.js"></script>
-  <script src="./pampa-search.js?v=5"></script>
-  <script src="./pampa-trial-links.js"></script>
+  <script src="./vendor/pampa-search.js?v=5"></script>
+  <script src="./vendor/pampa-fiscal-normativa.js"></script>
   <meta name="theme-color" content="#f59e0b" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <link rel="stylesheet" href="leaflet/leaflet.css" />
+  <script src="./vendor/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css" />
 <link rel="stylesheet" href="pampa-brand.css">
-  <script src="leaflet/leaflet.js"></script>
+  <script src="vendor/leaflet/leaflet.js"></script>
   <style>
     :root {
       --bg-primary: #0f1419;
@@ -105,6 +108,19 @@
       font-weight: 600;
       cursor: pointer;
     }
+    .trial-plan-banner {
+      width: 100%;
+      margin-top: 4px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      background: var(--amber-glow);
+      color: var(--amber);
+      font-size: 11px;
+      line-height: 1.4;
+      text-align: center;
+    }
+    .trial-plan-banner strong { color: var(--amber-dim); }
 
     .empresa-hero {
       margin-bottom: 18px;
@@ -285,6 +301,19 @@
       background: var(--bg-tertiary);
       color: var(--text-primary);
     }
+    .tier-badge {
+      margin-left: auto;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      flex-shrink: 0;
+    }
+    .tier-badge.tier-B { color: var(--green); background: rgba(22, 163, 74, 0.15); border: 1px solid rgba(22, 163, 74, 0.35); }
+    .tier-badge.tier-P { color: var(--blue); background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.35); }
+    .tier-badge.tier-M { color: var(--amber); background: var(--amber-glow); border: 1px solid rgba(245, 158, 11, 0.35); }
     .is-hidden {
       display: none !important;
     }
@@ -883,45 +912,89 @@
       .sidebar-header .brand-container { display: none; }
       .logo-text { font-size: 20px; text-align: left; }
       .logo-sub { display: none; }
-      .main, .content { width: 100%; min-width: 0; }
+      .main, .content { width: 100%; min-width: 0; padding-top: 46px; }
       .content { padding: 14px; overflow: visible; }
       .dashboard-top, .dashboard-finance-layout, .grid-2, .grid-3, .production-summary { grid-template-columns: 1fr; display: grid; width: 100%; }
       .empresa-hero, .dashboard-actions { width: 100%; min-width: 0; max-width: none; }
-      .empresa-hero { min-height: 0; padding: 16px; }
+      .empresa-hero, .dashboard-shortcuts {
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+        transform-origin: top center;
+      }
+      .empresa-hero { min-height: 0; padding: 14px; }
+      .dashboard-shortcuts { margin-top: 10px; }
+      .dashboard-shortcuts .card-header { padding: 12px 14px; }
+      .dashboard-shortcuts-grid { padding: 0 14px 14px; gap: 8px; }
+      .shortcut-link { padding: 10px 12px; font-size: 12px; }
       .empresa-hero-meta, .dashboard-top-actions-grid, .role-seats-actions { width: 100%; }
+      .sidebar-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.6);
+        z-index: 1999;
+      }
+      .sidebar-backdrop.active {
+        display: block;
+      }
       .mobile-menu-btn {
-        display: inline-flex;
-        width: 42px;
-        height: 42px;
-        margin: 0;
-        padding: 0;
-        align-items: center;
-        justify-content: center;
-        font-size: 0;
-        flex: 0 0 42px;
+        display: inline-flex !important;
+        position: fixed !important;
+        top: 10px !important;
+        left: 10px !important;
+        z-index: 2100 !important;
+        width: auto !important;
+        height: 38px !important;
+        padding: 0 14px !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        border: 1px solid var(--border, #334155) !important;
+        background: var(--bg-secondary, #1e293b) !important;
+        color: var(--text-primary, #ffffff) !important;
+        border-radius: 8px !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+        cursor: pointer !important;
       }
       .mobile-menu-btn::before {
-        content: '☰';
-        font-size: 24px;
-        line-height: 1;
+        content: '' !important;
+      }
+      .sidebar {
+        position: fixed !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        left: -280px !important;
+        width: 280px !important;
+        max-height: none !important;
+        height: 100vh !important;
+        z-index: 2000 !important;
+        transition: left 0.3s ease !important;
+        overflow-y: auto !important;
+        box-shadow: 4px 0 20px rgba(0,0,0,0.4) !important;
+      }
+      .sidebar:not(.is-collapsed),
+      .sidebar.open {
+        left: 0 !important;
       }
       .sidebar.is-collapsed {
-        max-height: 64px;
-        overflow: hidden;
+        left: -280px !important;
+        max-height: none !important;
+        overflow: auto !important;
       }
       .sidebar.is-collapsed .nav-section,
       .sidebar.is-collapsed .sidebar-danger {
-        display: none;
+        display: block !important;
       }
-      .sidebar.is-collapsed .mobile-menu-btn::before { content: '☰'; }
-      .sidebar:not(.is-collapsed) .mobile-menu-btn::before { content: '✕'; }
       .form-grid { grid-template-columns: 1fr; }
       .toolbar { display: flex; flex-direction: column; align-items: stretch; gap: 8px; }
       .toolbar .btn, .toolbar select, .topbar-right-row .btn, .topbar-right-row select { width: 100%; white-space: normal; }
       .empresa-hero { width: 100%; min-height: 0; }
       .empresa-hero-main { grid-template-columns: 1fr; }
-      .empresa-hero-logo { width: 98px; height: 98px; }
-      .empresa-hero-title { font-size: 22px; }
+      .empresa-hero-logo { width: 76px; height: 76px; }
+      .empresa-hero-title { font-size: 20px; }
+      .empresa-hero-sub, .empresa-chip { font-size: 12px; }
       .dashboard-shortcuts-grid {
         grid-template-columns: 1fr;
       }
@@ -973,13 +1046,16 @@
   </style>
 </head>
 <body>
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="setMobileMenuState(false)"></div>
   <div class="app">
     <aside class="sidebar">
       <div class="sidebar-header">
         <div class="brand-container"><div class="logo-icon" aria-label="Logo PampaTambo"></div><span class="brand-badge">℠</span></div>
         <div class="logo-text">PampaTambo</div>
         <div class="logo-sub">Soluciones agropecuarias</div>
+        <span id="pampaSyncNavBadge" style="display:inline-flex;justify-content:center;margin:6px 0;"></span>
         <button class="mobile-menu-btn" id="btnMobileMenu" type="button" aria-label="Abrir menú de navegación" aria-expanded="false" onclick="toggleMobileMenu()">☰ Menú</button>
+        <div class="trial-plan-banner is-hidden" id="trialPlanBanner">🎁 Prueba gratuita: estás probando el plan <strong>Premium</strong> completo. Cada módulo muestra el plan mínimo que lo incluye.</div>
       </div>
       <div class="nav-section">
         <div class="nav-title">Módulos</div>
@@ -992,8 +1068,10 @@
           <div class="nav-subitem" data-submodule="arca-compras" onclick="openArcaSection('arca-compras')">• Compras de insumos</div>
           <div class="nav-subitem" data-submodule="arca-gastos" onclick="openArcaSection('arca-gastos')">• Gastos</div>
           <div class="nav-subitem" data-submodule="arca-comprobantes" onclick="openArcaSection('arca-comprobantes')">• Comprobantes</div>
+          <div class="nav-subitem" data-submodule="arca-credito-fiscal" onclick="openArcaSection('arca-credito-fiscal')">• Crédito fiscal</div>
+          <div class="nav-subitem" data-submodule="arca-debito-fiscal" onclick="openArcaSection('arca-debito-fiscal')">• Débito fiscal</div>
           <div class="nav-subitem" data-submodule="arca-cobros-pagos" onclick="openArcaSection('arca-cobros-pagos')">• Cobros y pagos</div>
-          <div class="nav-subitem" data-submodule="arca-senasa" onclick="openArcaSection('arca-senasa')">• 🛡️ SENASA - Sanitario</div>
+          <div class="nav-subitem" data-submodule="arca-senasa" onclick="openSenasaControlObligatorio()">• 🛡️ SENASA - Control obligatorio</div>
         </div>
         <div class="nav-item" data-module="campos">🗺️ Campos</div>
         <div class="nav-item nav-group-title" data-module="hacienda">🏡 Hacienda</div>
@@ -1128,6 +1206,8 @@
               <div class="muted">Clima, dólar, insumos y mercado lechero</div>
             </div>
             <div class="dashboard-shortcuts-grid">
+              <a class="shortcut-link" href="monitor-ordene.html" target="_blank" rel="noopener noreferrer">📋 Monitor de ordeñe</a>
+              <a class="shortcut-link" href="tratamientos.html" target="_blank" rel="noopener noreferrer">💉 Tratamientos sanitarios</a>
               <a class="shortcut-link" href="https://www.agrositio.com.ar/clima/" target="_blank" rel="noopener noreferrer">🌦️ Clima AgroSitio</a>
               <a class="shortcut-link" href="https://dolarhoy.com/" target="_blank" rel="noopener noreferrer">💵 Dólar Hoy</a>
               <a class="shortcut-link" href="https://www.acamarket.com.ar/" target="_blank" rel="noopener noreferrer">🧪 Insumos ACAMarket</a>
@@ -1156,6 +1236,7 @@
             <div class="kpi blue"><div class="label">Litros Hoy</div><div class="value" id="kpiLitrosHoy">0</div><div class="sub">Total ordeñe diario</div></div>
             <div class="kpi"><div class="label">Eventos Reprod.</div><div class="value" id="kpiRepro">0</div><div class="sub">Servicios/diagnósticos</div></div>
             <div class="kpi red"><div class="label">Trat. Sanitarios</div><div class="value" id="kpiSanidad">0</div><div class="sub">Registros vigentes</div></div>
+            <div class="kpi" id="kpiMiPymeCard"><div class="label">Categoría MiPyME</div><div class="value" id="kpiMiPyme">-</div><div class="sub" id="kpiMiPymeSub">Solo dato · configurar en ARCA</div></div>
           </div>
           <div class="card">
             <div class="card-header">
@@ -1165,6 +1246,9 @@
             <div class="kpi-grid" style="padding: 0 16px 16px;">
               <div class="kpi" id="doesTuberculosisCard"><div class="label">Tuberculosis (PPD)</div><div class="value" id="doesTuberculosisValor">-</div><div class="sub" id="doesTuberculosisSub">Sin registros</div></div>
               <div class="kpi" id="doesBrucelosisCard"><div class="label">Brucelosis (DOES)</div><div class="value" id="doesBrucelosisValor">-</div><div class="sub" id="doesBrucelosisSub">Sin registros</div></div>
+              <div class="kpi" id="aftosaGeneralCard"><div class="label">Aftosa · Rodeo general</div><div class="value" id="aftosaGeneralValor">-</div><div class="sub" id="aftosaGeneralSub">Sin configurar</div></div>
+              <div class="kpi" id="aftosaTernerosCard"><div class="label">Aftosa · Terneros/as</div><div class="value" id="aftosaTernerosValor">-</div><div class="sub" id="aftosaTernerosSub">Sin configurar</div></div>
+              <div class="kpi" id="brucelosisB19Card"><div class="label">Brucelosis B19 pendientes</div><div class="value" id="brucelosisB19Valor">0</div><div class="sub" id="brucelosisB19Sub">3 a 8 meses sin primovacunar</div></div>
             </div>
           </div>
 
@@ -2223,6 +2307,83 @@
             <div class="muted" id="arcaFiscalAviso">El estado se consulta al backend local; una simulación no equivale a emisión oficial.</div>
           </div>
 
+          <div class="card" id="arcaSenasaConfigCard">
+            <div class="card-header">
+              <div>
+                <div class="card-title">⚙️ Configuración ARCA y SENASA</div>
+                <div class="muted">Parámetros locales para escritorio o servidor propio. En trial web se guardan sólo en este navegador.</div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn primary" id="btnGuardarArcaSenasaConfig" type="button">Guardar configuración</button>
+                <button class="btn" id="btnLimpiarArcaSenasaConfig" type="button">Limpiar</button>
+              </div>
+            </div>
+            <details style="margin:0 16px 16px;">
+              <summary class="muted" style="cursor:pointer;">📖 Marco normativo aplicable (ARCA / SENASA)</summary>
+              <ul style="margin:8px 0 0;padding-left:18px;font-size:13px;line-height:1.6;">
+                <li><strong>LUME (ARCA):</strong> liquidación única mensual electrónica que emite la usina compradora para respaldar la compra de leche cruda a cada tambo (una por tambo, por mes). PampaTambo la reconcilia contra sus propios registros; la emisión oficial es responsabilidad de la usina, no del tambo.</li>
+                <li><strong>Interconexión ARCA-SENASA:</strong> ARCA cruza datos con SENASA; un bloqueo sanitario reflejado en el sistema de SENASA puede suspender automáticamente la emisión de documentos de tránsito (DTV-e).</li>
+                <li><strong>Contrato Asociativo de Explotación Tambera (Ley 25.169):</strong> ARCA exige la correcta registración del tipo de contrato entre el empresario-titular y el tambero-asociado.</li>
+                <li><strong>RENSPA (SENASA):</strong> inscripción obligatoria y actualizada en el Registro Nacional Sanitario de Productores Agropecuarios.</li>
+                <li><strong>Estatus libre de Brucelosis y Tuberculosis (SENASA):</strong> relevamientos periódicos del veterinario local para categorizar sanitariamente al establecimiento.</li>
+                <li><strong>Identificación electrónica obligatoria (SENASA):</strong> colocación y declaración de caravanas electrónicas en el rodeo bovino (progresiva, comenzando por terneros).</li>
+                <li><strong>Resolución 200/2026 (SENASA) — exportación UE / Reino Unido:</strong> para tambos que proveen a plantas exportadoras a Europa: veterinario privado corresponsable, agua segura garantizada (fría y caliente), pisos y paredes impermeables en la sala de ordeñe, y auditoría oficial cada 2 años.</li>
+              </ul>
+            </details>
+            <div class="grid-2" style="padding: 0 16px 16px; align-items:start;">
+              <div class="form-grid">
+                <div class="field"><label for="arcaConfigCuit">CUIT productor</label><input id="arcaConfigCuit" inputmode="numeric" placeholder="30-00000000-0"></div>
+                <div class="field"><label for="arcaConfigAmbiente">Ambiente ARCA</label><select id="arcaConfigAmbiente"><option value="HOMOLOGACION">Homologación</option><option value="PRODUCCION">Producción</option></select></div>
+                <div class="field"><label for="arcaConfigPuntoVenta">Punto de venta WS</label><input id="arcaConfigPuntoVenta" inputmode="numeric" placeholder="Ej: 3"></div>
+                <div class="field"><label for="arcaConfigTipoComprobante">Tipo comprobante LUME</label><input id="arcaConfigTipoComprobante" placeholder="Ej: 30 / LPL"></div>
+                <div class="field field-full"><label for="arcaConfigWsdl">WSDL / URL servicio propio</label><input id="arcaConfigWsdl" placeholder="https://.../wsfev1/service.asmx?WSDL"></div>
+                <div class="field"><label for="arcaConfigCert">Ruta certificado X.509</label><input id="arcaConfigCert" placeholder="certificados/cliente.crt"></div>
+                <div class="field"><label for="arcaConfigKey">Ruta clave privada</label><input id="arcaConfigKey" placeholder="certificados/cliente.key"></div>
+                <div class="field"><label for="arcaConfigContratoTipo">Contrato asociativo (Ley 25.169)</label><select id="arcaConfigContratoTipo"><option value="SIN_CONTRATO">Sin contrato asociativo</option><option value="EMPRESARIO_TITULAR">Empresario-titular</option><option value="TAMBERO_ASOCIADO">Tambero-asociado</option><option value="MEDIERIA">Mediería</option></select></div>
+                <div class="field"><label for="arcaConfigContratoRegistrado" style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="arcaConfigContratoRegistrado" style="width:auto;">Contrato registrado ante ARCA</label></div>
+                <div class="field"><label for="arcaConfigFormaJuridica">Forma jurídica del productor</label><select id="arcaConfigFormaJuridica"><option value="PERSONA_HUMANA">Persona Humana</option><option value="SOCIEDAD">Sociedad (S.R.L. / S.A.)</option></select></div>
+                <div class="field"><label for="arcaConfigFacturacionAnualPromedio">Facturación anual promedio (3 ejercicios, neta de IVA)</label><input id="arcaConfigFacturacionAnualPromedio" type="number" min="0" step="1000" placeholder="Vacío = estimar automáticamente"></div>
+              </div>
+              <div class="form-grid">
+                <div class="field"><label for="senasaConfigRenspa">RENSPA establecimiento</label><input id="senasaConfigRenspa" placeholder="00.000.0.00000/00"></div>
+                <div class="field"><label for="senasaConfigCodigoTambo">Código de tambo</label><input id="senasaConfigCodigoTambo" placeholder="Código SENASA / usina"></div>
+                <div class="field"><label for="senasaConfigDoes">DOES / Tambo libre</label><select id="senasaConfigDoes"><option value="PENDIENTE">Pendiente</option><option value="VIGENTE">Vigente</option><option value="VENCIDO">Vencido</option></select></div>
+                <div class="field"><label for="senasaConfigVeterinario">Veterinario responsable</label><input id="senasaConfigVeterinario" placeholder="Nombre y matrícula"></div>
+                <div class="field"><label for="senasaConfigIdentificacionElectronica">Identificación electrónica (caravanas)</label><select id="senasaConfigIdentificacionElectronica"><option value="SIN_INICIAR">Sin iniciar</option><option value="EN_PROGRESO">En progreso</option><option value="COMPLETA">Completa</option></select></div>
+                <div class="field"><label for="senasaConfigAftosaCampanaInicio">Inicio campaña vacunación Aftosa vigente</label><input id="senasaConfigAftosaCampanaInicio" type="date"></div>
+                <div class="field field-full"><label for="senasaConfigObs">Observaciones sanitarias</label><textarea id="senasaConfigObs" rows="3" placeholder="Plan sanitario, laboratorio, próxima auditoría..."></textarea></div>
+                <div class="card" style="margin:0;padding:12px;">
+                  <div class="card-title" style="font-size:14px;">🇪🇺 Exportación UE / Reino Unido · Resolución 200/2026</div>
+                  <div class="muted" style="margin-bottom:8px;font-size:12px;">Completar solo si este tambo provee leche a una planta que exporta a la Unión Europea o Reino Unido.</div>
+                  <div class="field"><label for="senasaConfigAplicaExportacionUE" style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="senasaConfigAplicaExportacionUE" style="width:auto;">Provee a planta exportadora UE/Reino Unido</label></div>
+                  <div class="field"><label for="senasaConfigVeterinarioCorresponsable">Veterinario privado corresponsable</label><input id="senasaConfigVeterinarioCorresponsable" placeholder="Nombre y matrícula"></div>
+                  <div class="field"><label for="senasaConfigAguaSegura" style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="senasaConfigAguaSegura" style="width:auto;">Agua segura garantizada (fría y caliente)</label></div>
+                  <div class="field"><label for="senasaConfigPisosImpermeables" style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="senasaConfigPisosImpermeables" style="width:auto;">Pisos y paredes impermeables en sala de ordeñe</label></div>
+                  <div class="field"><label for="senasaConfigFechaAuditoria">Última auditoría oficial (bienal)</label><input id="senasaConfigFechaAuditoria" type="date"></div>
+                </div>
+                <div class="card" style="margin:0;padding:12px;">
+                  <div class="card-title" style="font-size:14px;">Resumen de configuración</div>
+                  <div class="muted" id="arcaSenasaConfigResumen">Sin configuración guardada.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card arca-section" id="arca-situacion-fiscal">
+            <div class="card-header">
+              <div>
+                <div class="card-title">📊 Situación fiscal del productor (MiPyME / forma jurídica)</div>
+                <div class="muted">Dato informativo según Resolución 1/2026 (MiPyME) · no reemplaza el cálculo del contador</div>
+              </div>
+            </div>
+            <div class="kpi-grid" style="padding: 0 16px 16px;">
+              <div class="kpi" id="situacionMiPymeCard"><div class="label">Categoría MiPyME</div><div class="value" id="situacionMiPymeValor">-</div><div class="sub" id="situacionMiPymeSub">Cargar facturación o esperar estimación automática</div></div>
+              <div class="kpi" id="situacionFormaJuridicaCard"><div class="label">Forma jurídica</div><div class="value" id="situacionFormaJuridicaValor">-</div><div class="sub" id="situacionFormaJuridicaSub">Configurar en el formulario de arriba</div></div>
+              <div class="kpi" id="situacionLitrosDiaCard"><div class="label">Litros/día promedio (30 d)</div><div class="value" id="situacionLitrosDiaValor">0 L</div><div class="sub" id="situacionLitrosDiaSub">Según entregas a usina</div></div>
+            </div>
+            <p class="muted" style="padding:0 16px 16px;font-size:12px;" id="situacionGananciasTexto">Completá la forma jurídica en Configuración ARCA/SENASA para ver qué escala de Ganancias corresponde.</p>
+          </div>
+
           <div class="card arca-section" id="arca-lume">
             <div class="card-header">
               <div class="card-title">🥛 Liquidación de leche / LUME</div>
@@ -2371,6 +2532,50 @@
             </div>
           </div>
 
+          <div class="card arca-section" id="arca-posicion-iva">
+            <div class="card-header">
+              <div>
+                <div class="card-title">⚖️ Posición fiscal IVA (Débito vs. Crédito)</div>
+                <div class="muted">Cálculo exacto sobre comprobantes cargados + LUME con fiscal calculado</div>
+              </div>
+            </div>
+            <div class="kpi-grid" style="padding: 0 16px 16px;">
+              <div class="kpi red"><div class="label">IVA Débito Fiscal (mes)</div><div class="value" id="kpiIvaDebitoMes">$0</div><div class="sub" id="kpiIvaDebitoMesSub">Ventas + LUME facturado</div></div>
+              <div class="kpi green"><div class="label">IVA Crédito Fiscal (mes)</div><div class="value" id="kpiIvaCreditoMes">$0</div><div class="sub" id="kpiIvaCreditoMesSub">Compras e insumos con comprobante</div></div>
+              <div class="kpi" id="kpiIvaSaldoMesCard"><div class="label">Saldo IVA del mes</div><div class="value" id="kpiIvaSaldoMes">$0</div><div class="sub" id="kpiIvaSaldoMesSub">Débito - Crédito</div></div>
+              <div class="kpi" id="kpiIvaSaldoAcumCard"><div class="label">Saldo técnico acumulado</div><div class="value" id="kpiIvaSaldoAcum">$0</div><div class="sub" id="kpiIvaSaldoAcumSub">Histórico: a favor se arrastra al próximo período</div></div>
+            </div>
+            <p class="muted" style="padding:0 16px 16px;font-size:12px;">Débito fiscal: IVA de comprobantes cargados como "Débito fiscal" + IVA débito de liquidaciones de leche (LUME) con "Calcular fiscal" ya ejecutado. Crédito fiscal: IVA de comprobantes de compra cargados como "Crédito fiscal". Verificá con tu contador antes de presentar la declaración jurada de IVA.</p>
+          </div>
+
+          <div class="card arca-section" id="arca-credito-fiscal">
+            <div class="card-header">
+              <div class="card-title">📥 Crédito fiscal IVA</div>
+              <button class="btn primary" onclick="openModal('comprobantesArca')">+ Cargar comprobante de compra</button>
+            </div>
+            <div class="muted" style="padding: 0 16px 8px;">IVA computable de compras, gastos e insumos del tambo.</div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Fecha</th><th>Comprobante</th><th>Proveedor</th><th>Concepto</th><th>Neto</th><th>IVA crédito</th><th>Total</th><th>Estado</th></tr></thead>
+                <tbody id="tbodyCreditoFiscal"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card arca-section" id="arca-debito-fiscal">
+            <div class="card-header">
+              <div class="card-title">📤 Débito fiscal IVA</div>
+              <button class="btn primary" onclick="openModal('comprobantesArca')">+ Cargar comprobante de venta</button>
+            </div>
+            <div class="muted" style="padding: 0 16px 8px;">IVA generado por ventas, liquidaciones y operaciones facturadas.</div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Fecha</th><th>Comprobante</th><th>Cliente</th><th>Concepto</th><th>Neto</th><th>IVA débito</th><th>Total</th><th>Estado</th></tr></thead>
+                <tbody id="tbodyDebitoFiscal"></tbody>
+              </table>
+            </div>
+          </div>
+
           <div class="card arca-section" id="arca-cobros-pagos">
             <div class="card-header">
               <div class="card-title">🏦 Cobros y pagos</div>
@@ -2419,6 +2624,50 @@
                 <tbody id="tbodySenasa"></tbody>
               </table>
             </div>
+          </div>
+
+          <div class="card arca-section" id="arca-senasa-alertas">
+            <div class="card-header">
+              <div class="card-title">⚠️ Alertas y cronograma SENASA</div>
+              <div class="muted">Aftosa, Brucelosis B19 y obligaciones de notificación</div>
+            </div>
+            <div class="kpi-grid" style="padding: 0 16px 16px;">
+              <div class="kpi" id="aftosaGeneralCard2"><div class="label">Aftosa · Rodeo general</div><div class="value" id="aftosaGeneralValor2">-</div><div class="sub" id="aftosaGeneralSub2">Configurar inicio de campaña</div></div>
+              <div class="kpi" id="aftosaTernerosCard2"><div class="label">Aftosa · Terneros/as</div><div class="value" id="aftosaTernerosValor2">-</div><div class="sub" id="aftosaTernerosSub2">Configurar inicio de campaña</div></div>
+              <div class="kpi" id="brucelosisB19Card2"><div class="label">Brucelosis B19 · Terneras pendientes</div><div class="value" id="brucelosisB19Valor2">0</div><div class="sub" id="brucelosisB19Sub2">3 a 8 meses sin primovacunar</div></div>
+            </div>
+            <div class="muted" style="padding: 0 16px 4px;">Terneras pendientes de primovacunación Brucelosis (Cepa 19):</div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Caravana</th><th>Nombre</th><th>Edad (meses)</th><th>Estado</th></tr></thead>
+                <tbody id="tbodyBrucelosisB19"></tbody>
+              </table>
+            </div>
+            <div class="card-header" style="margin-top:10px;">
+              <div class="card-title">📞 Notificación obligatoria (24 hs)</div>
+            </div>
+            <p class="muted" style="padding:0 16px;">Ante sospecha de enfermedad vesicular (Aftosa) u otro evento de notificación obligatoria, se debe avisar a SENASA dentro de las 24 horas, por cualquiera de estos canales:</p>
+            <div style="padding:0 16px 16px;display:flex;gap:10px;flex-wrap:wrap;">
+              <a class="btn primary" href="https://wa.me/5491157005704" target="_blank" rel="noopener">💬 WhatsApp SENASA (11 5700-5704)</a>
+              <a class="btn" href="mailto:notificaciones@senasa.gob.ar">✉️ notificaciones@senasa.gob.ar</a>
+              <span class="pill">📱 App oficial "Notificaciones SENASA"</span>
+            </div>
+            <details style="margin:0 16px 16px;">
+              <summary class="muted" style="cursor:pointer;">📋 Tabla de consecuencias por incumplimiento sanitario</summary>
+              <div class="table-wrap" style="margin-top:8px;">
+                <table>
+                  <thead><tr><th>Evento</th><th>Consecuencia automática</th></tr></thead>
+                  <tbody>
+                    <tr><td>Aftosa: campaña vencida sin registrar vacunación</td><td>Bloqueo automático de RENSPA / SIGSA y de la emisión de DTV-e (documento de tránsito)</td></tr>
+                    <tr><td>Residuos de antibióticos en leche</td><td>Rechazo de la partida de leche por la usina + posible penalización fiscal en la liquidación (ARCA)</td></tr>
+                    <tr><td>Pérdida del estatus libre de Brucelosis (B19 sin cobertura / reactor)</td><td>Categorización como "Establecimiento Caso": restricción de movimiento (solo a faena) y caída de la habilitación de exportación UE/Reino Unido</td></tr>
+                    <tr><td>Tuberculosis: prueba reactiva</td><td>Ingreso obligatorio a "Plan de Saneamiento" y prohibición de vender reproductores hasta resolución</td></tr>
+                    <tr><td>DOES (Tuberculosis/Brucelosis) vencida</td><td>Riesgo de pérdida de la certificación de Tambo Libre</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </details>
+            <p class="muted" style="padding:0 16px 16px;font-size:12px;">Guardá la documentación de estos 4 módulos por al menos 2 años: Sanitario · Medicamentos/Alimentos · Movimientos/Trazabilidad · Personal/Auditorías.</p>
           </div>
         </div>
 
@@ -2616,6 +2865,7 @@
         </div>
         <div class="modal-foot">
           <button type="button" class="btn" id="btnCancel">Cancelar</button>
+          <button type="button" class="btn" id="btnImprimirRegistro" onclick="imprimirRegistroModal()">🖨️ Imprimir</button>
           <button type="submit" class="btn primary">Guardar</button>
         </div>
       </form>
@@ -2626,6 +2876,7 @@
     <div class="modal-card">
       <div class="modal-head">
         <strong>Gestión de licencia</strong>
+        <span id="licenseExpiryNotice" class="muted" style="font-size:12px;margin-left:10px;"></span>
         <button class="btn" id="btnCerrarLicencia">Cerrar</button>
       </div>
       <div class="modal-body">
@@ -2841,6 +3092,7 @@
     const GUACHERA_STORAGE_KEY = 'tambo_guachera_records';
     const RECRIA_STORAGE_KEY = 'tambo_recria_records';
     const ARCA_STORAGE_KEY = 'tambo_arca_records';
+    const ARCA_SENASA_CONFIG_KEY = 'pampatambo_arca_senasa_config';
     const OFFLINE_STATE_KEY = 'tambo_offline_state';
     const OFFLINE_QUEUE_KEY = 'tambo_sync_queue';
     const SYNC_TARGET_KEY = 'tambo_sync_target';
@@ -2911,8 +3163,8 @@
 
     const LICENSE_VERSION_POLICIES = {
       B: {
-        roles: ['propietario', 'veterinario', 'operador'],
-        roleCaps: { propietario: 1, veterinario: 1, operador: 1 },
+        roles: ['propietario', 'administracion', 'veterinario', 'operador'],
+        roleCaps: { propietario: 1, administracion: 1, veterinario: 1, operador: 1 },
         modules: [
           'campos',
           'hacienda',
@@ -2924,7 +3176,7 @@
       },
       P: {
         roles: ['propietario', 'ingeniero', 'veterinario', 'operador', 'administracion'],
-        roleCaps: { propietario: 1, ingeniero: 1, veterinario: 1, operador: 3, administracion: 1 },
+        roleCaps: { propietario: 1, ingeniero: 1, veterinario: 1, operador: 5, administracion: 2 },
         modules: [
           'campos',
           'hacienda',
@@ -2939,8 +3191,7 @@
       },
       M: {
         roles: ['propietario', 'ingeniero', 'veterinario', 'operador', 'administracion'],
-        unlimitedRoles: true,
-        roleCaps: { propietario: 2, ingeniero: 1, veterinario: 1, operador: 4, administracion: 2 },
+        roleCaps: { propietario: 4, ingeniero: 2, veterinario: 2, operador: 8, administracion: 4 },
         modules: [
           'empresa', 'dashboard', 'reportes',
           'campos',
@@ -3026,6 +3277,7 @@
       comprasInsumos: {
         tipo: ['Alimento', 'Medicamentos', 'Semen', 'Fertilizantes', 'Combustible', 'Repuestos', 'Otros'],
         unidad: ['kg', 'litros', 'dosis', 'unidad', 'bolsa', 'ton'],
+        medio_pago: ['Transferencia', 'Efectivo', 'Cheque', 'Tarjeta'],
         pagado: ['SI', 'NO', 'PARCIAL'],
       },
       gastosArca: {
@@ -3351,6 +3603,7 @@
         { key: 'total', label: 'Total', type: 'number', required: true },
         { key: 'factura', label: 'Factura', type: 'text' },
         { key: 'vencimiento', label: 'Vencimiento', type: 'date' },
+        { key: 'medio_pago', label: 'Medio de pago', type: 'select', options: ['Transferencia', 'Efectivo', 'Cheque', 'Tarjeta'] },
         { key: 'pagado', label: 'Pagado', type: 'select', options: ['SI', 'NO', 'PARCIAL'] },
         { key: 'observaciones', label: 'Observaciones', type: 'textarea', full: true }
       ],
@@ -3369,6 +3622,7 @@
       comprobantesArca: [
         { key: 'fecha', label: 'Fecha', type: 'date', required: true },
         { key: 'tipo_comprobante', label: 'Tipo de comprobante', type: 'text', required: true },
+        { key: 'tipo_fiscal', label: 'Tipo fiscal IVA', type: 'select', options: ['CREDITO_FISCAL', 'DEBITO_FISCAL', 'NO_COMPUTABLE'], required: true },
         { key: 'punto_venta', label: 'Punto de venta Web Services', type: 'text', required: true },
         { key: 'numero_comprobante', label: 'N.º comprobante', type: 'text', required: true },
         { key: 'razon_social', label: 'Proveedor/Cliente', type: 'text', required: true },
@@ -3906,6 +4160,8 @@
         total: 'total',
         factura: 'factura',
         vencimiento: 'vencimiento',
+        mediopago: 'medio_pago',
+        medio_pago: 'medio_pago',
         pagado: 'pagado',
         observaciones: 'observaciones',
       },
@@ -4222,18 +4478,21 @@
     function setMobileMenuState(expanded) {
       const sidebar = document.querySelector('.sidebar');
       const btn = byId('btnMobileMenu');
+      const backdrop = byId('sidebarBackdrop');
       if (!sidebar || !btn) return;
       const collapsed = !expanded;
       sidebar.classList.toggle('is-collapsed', collapsed);
+      sidebar.classList.toggle('open', expanded);
       btn.textContent = collapsed ? '☰ Menú' : '✕ Cerrar';
       btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      if (backdrop) backdrop.classList.toggle('active', expanded);
     }
 
     function toggleMobileMenu() {
       if (!isMobileViewport()) return;
       const sidebar = document.querySelector('.sidebar');
       if (!sidebar) return;
-      const isCollapsed = sidebar.classList.contains('is-collapsed');
+      const isCollapsed = sidebar.classList.contains('is-collapsed') || !sidebar.classList.contains('open');
       setMobileMenuState(isCollapsed);
     }
 
@@ -4242,14 +4501,27 @@
         setMobileMenuState(false);
       } else {
         const sidebar = document.querySelector('.sidebar');
-        if (sidebar) sidebar.classList.remove('is-collapsed');
+        if (sidebar) {
+          sidebar.classList.remove('is-collapsed');
+          sidebar.classList.remove('open');
+        }
         const btn = byId('btnMobileMenu');
         if (btn) {
           btn.textContent = '☰ Menú';
           btn.setAttribute('aria-expanded', 'false');
         }
+        const backdrop = byId('sidebarBackdrop');
+        if (backdrop) backdrop.classList.remove('active');
       }
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelector('.sidebar')?.addEventListener('click', (e) => {
+        if (e.target.closest('.nav-item, .nav-subitem')) {
+          if (isMobileViewport()) setMobileMenuState(false);
+        }
+      });
+    });
 
     function normalizeCatalogValue(value) {
       return `${value || ''}`.trim();
@@ -4713,6 +4985,41 @@
       return new Set(policy.modules);
     }
 
+    const TIER_LABELS = { B: 'Básica', P: 'Profesional', M: 'Premium' };
+
+    function getMinimumTierForModule(moduleKey) {
+      if (!moduleKey) return null;
+      if (LICENSE_VERSION_POLICIES.B.modules.includes(moduleKey)) return 'B';
+      if (LICENSE_VERSION_POLICIES.P.modules.includes(moduleKey)) return 'P';
+      if (LICENSE_VERSION_POLICIES.M.modules.includes(moduleKey)) return 'M';
+      return null;
+    }
+
+    function renderTrialModuleTags() {
+      const payload = getActiveLicensePayload();
+      const isTrial = Boolean(payload?.trial);
+      const banner = byId('trialPlanBanner');
+      if (banner) banner.classList.toggle('is-hidden', !isTrial);
+      document.querySelectorAll('.nav-item[data-module]').forEach((item) => {
+        let badge = item.querySelector('.tier-badge');
+        if (!isTrial) {
+          if (badge) badge.remove();
+          return;
+        }
+        const tier = getMinimumTierForModule(item.getAttribute('data-module'));
+        if (!tier) {
+          if (badge) badge.remove();
+          return;
+        }
+        if (!badge) {
+          badge = document.createElement('span');
+          item.appendChild(badge);
+        }
+        badge.className = `tier-badge tier-${tier}`;
+        badge.textContent = TIER_LABELS[tier];
+      });
+    }
+
     function getRoleCapsForLicense() {
       const policy = getLicensePolicy();
       return policy?.roleCaps || null;
@@ -4847,22 +5154,6 @@
       };
     }
 
-    async function signLicensePayloadViaApi(payload) {
-      try {
-        const response = await request('/license/sign', {
-          method: 'POST',
-          body: JSON.stringify({ payload }),
-        });
-        return response;
-      } catch (error) {
-        const msg = `${error?.message || ''}`;
-        if (msg.includes('405') || msg.includes('404')) {
-          throw new Error('Licencias seguras requieren backend activo. Iniciá con node server.js o usá la app .exe.');
-        }
-        throw error;
-      }
-    }
-
     async function verifyLicenseKeyViaApi(key) {
       try {
         const response = await request('/license/verify', {
@@ -4991,9 +5282,16 @@
       }
       const expired = isLicenseExpired(info.payload.exp);
       const versionLabel = info.payload.trial ? ' (Trial)' : (info.payload.version ? ` (${info.payload.version})` : '');
+      const daysLeft = Math.ceil((new Date(`${info.payload.exp}T23:59:59`).getTime() - Date.now()) / 86400000);
+      const warning = !expired && daysLeft <= 15 ? ` · ⚠️ renovar en ${Math.max(daysLeft, 0)} día(s)` : '';
       holder.textContent = expired
         ? `Licencia vencida (${info.payload.exp})`
-        : `Licencia activa${versionLabel} [${info.payload.versionCode || '-'}] · vence ${info.payload.exp}`;
+        : `Licencia activa${versionLabel} [${info.payload.versionCode || '-'}] · vence ${info.payload.exp}${warning}`;
+      const notice = byId('licenseExpiryNotice');
+      if (notice) {
+        notice.textContent = expired ? 'Licencia vencida' : (daysLeft <= 15 ? `⚠️ Renovar en ${Math.max(daysLeft, 0)} día(s)` : `Vence ${info.payload.exp}`);
+        notice.style.color = expired || daysLeft <= 15 ? '#f59e0b' : '';
+      }
     }
 
     function openLicenseModal() {
@@ -5031,7 +5329,7 @@
     const TRIAL_PUBLIC_BASE_URL_KEY = 'tambo_trial_public_base_url';
     const DEFAULT_TRIAL_PUBLIC_BASE_URL = 'https://pampatambo-erp.tininebuloni.workers.dev';
 
-    const TRIAL_DAYS = 10;
+    var TRIAL_DAYS = 10;
 
     function buildTrialPath() {
       return '/?trial=auto';
@@ -5084,21 +5382,16 @@
         return;
       }
       const payload = buildTrialLicensePayload();
-      try {
-        const signed = await signLicensePayloadViaApi(payload);
-        const info = {
-          key: signed?.key || 'TRIAL-10DIAS',
-          payload: signed?.payload || payload,
-          activatedAt: new Date().toISOString(),
-        };
-        localStorage.setItem(LICENSE_STORAGE_KEY, JSON.stringify(info));
-        renderLicenseStatus();
-        setRole(currentRole);
-        byId('licenseActivationMsg').textContent = `Prueba activada por ${TRIAL_DAYS} días.`;
-        recordAudit('EDICION', 'trial activado');
-      } catch (error) {
-        byId('licenseActivationMsg').textContent = error.message || 'No se pudo activar la prueba desde el servidor.';
-      }
+      const info = {
+        key: 'TRIAL-10DIAS',
+        payload,
+        activatedAt: new Date().toISOString(),
+      };
+      localStorage.setItem(LICENSE_STORAGE_KEY, JSON.stringify(info));
+      renderLicenseStatus();
+      setRole(currentRole);
+      byId('licenseActivationMsg').textContent = `Prueba activada por ${TRIAL_DAYS} días.`;
+      recordAudit('EDICION', 'trial activado');
     }
 
     async function sendTrialLinkByWhatsApp() {
@@ -5164,7 +5457,7 @@
         if (params.get('trial') !== 'auto') return;
         const current = loadLicenseData();
         if (current?.payload && !isLicenseExpired(current.payload.exp)) return;
-        await activateTrial();
+        
       } catch {
         // Ignorar errores de query en modo standalone.
       }
@@ -5174,7 +5467,7 @@
       const params = new URLSearchParams(window.location.search || '');
       if (params.get('trial') === 'auto' || params.get('trial_token')) return;
       if (loadLicenseData()) return;
-      await activateTrial();
+      
     }
 
     async function activateLicenseFromInput() {
@@ -5303,6 +5596,101 @@
       localStorage.setItem(ARCA_STORAGE_KEY, JSON.stringify(payload));
     }
 
+    function loadArcaSenasaConfig() {
+      try { return JSON.parse(localStorage.getItem(ARCA_SENASA_CONFIG_KEY) || '{}') || {}; }
+      catch { return {}; }
+    }
+
+    function readArcaSenasaConfigForm() {
+      return {
+        arca: {
+          cuit: (byId('arcaConfigCuit')?.value || '').trim(),
+          ambiente: byId('arcaConfigAmbiente')?.value || 'HOMOLOGACION',
+          puntoVenta: (byId('arcaConfigPuntoVenta')?.value || '').trim(),
+          tipoComprobante: (byId('arcaConfigTipoComprobante')?.value || '').trim(),
+          wsdl: (byId('arcaConfigWsdl')?.value || '').trim(),
+          certificado: (byId('arcaConfigCert')?.value || '').trim(),
+          clavePrivada: (byId('arcaConfigKey')?.value || '').trim(),
+          contratoTipo: byId('arcaConfigContratoTipo')?.value || 'SIN_CONTRATO',
+          contratoRegistrado: Boolean(byId('arcaConfigContratoRegistrado')?.checked),
+          formaJuridica: byId('arcaConfigFormaJuridica')?.value || 'PERSONA_HUMANA',
+          facturacionAnualPromedio: Number(byId('arcaConfigFacturacionAnualPromedio')?.value || 0) || null,
+        },
+        senasa: {
+          renspa: (byId('senasaConfigRenspa')?.value || '').trim(),
+          codigoTambo: (byId('senasaConfigCodigoTambo')?.value || '').trim(),
+          does: byId('senasaConfigDoes')?.value || 'PENDIENTE',
+          veterinario: (byId('senasaConfigVeterinario')?.value || '').trim(),
+          observaciones: (byId('senasaConfigObs')?.value || '').trim(),
+          identificacionElectronica: byId('senasaConfigIdentificacionElectronica')?.value || 'SIN_INICIAR',
+          aftosaCampanaInicio: byId('senasaConfigAftosaCampanaInicio')?.value || '',
+          resolucion200: {
+            aplica: Boolean(byId('senasaConfigAplicaExportacionUE')?.checked),
+            veterinarioCorresponsable: (byId('senasaConfigVeterinarioCorresponsable')?.value || '').trim(),
+            aguaSegura: Boolean(byId('senasaConfigAguaSegura')?.checked),
+            pisosImpermeables: Boolean(byId('senasaConfigPisosImpermeables')?.checked),
+            fechaUltimaAuditoria: byId('senasaConfigFechaAuditoria')?.value || '',
+          },
+        },
+        updatedAt: new Date().toISOString(),
+      };
+    }
+
+    function renderArcaSenasaConfig() {
+      const cfg = loadArcaSenasaConfig();
+      const arca = cfg.arca || {};
+      const senasa = cfg.senasa || {};
+      const res200 = senasa.resolucion200 || {};
+      if (byId('arcaConfigCuit')) byId('arcaConfigCuit').value = arca.cuit || state.empresa?.cuit || '';
+      if (byId('arcaConfigAmbiente')) byId('arcaConfigAmbiente').value = arca.ambiente || 'HOMOLOGACION';
+      if (byId('arcaConfigPuntoVenta')) byId('arcaConfigPuntoVenta').value = arca.puntoVenta || '';
+      if (byId('arcaConfigTipoComprobante')) byId('arcaConfigTipoComprobante').value = arca.tipoComprobante || '';
+      if (byId('arcaConfigWsdl')) byId('arcaConfigWsdl').value = arca.wsdl || '';
+      if (byId('arcaConfigCert')) byId('arcaConfigCert').value = arca.certificado || '';
+      if (byId('arcaConfigKey')) byId('arcaConfigKey').value = arca.clavePrivada || '';
+      if (byId('arcaConfigContratoTipo')) byId('arcaConfigContratoTipo').value = arca.contratoTipo || 'SIN_CONTRATO';
+      if (byId('arcaConfigContratoRegistrado')) byId('arcaConfigContratoRegistrado').checked = Boolean(arca.contratoRegistrado);
+      if (byId('arcaConfigFormaJuridica')) byId('arcaConfigFormaJuridica').value = arca.formaJuridica || 'PERSONA_HUMANA';
+      if (byId('arcaConfigFacturacionAnualPromedio')) byId('arcaConfigFacturacionAnualPromedio').value = arca.facturacionAnualPromedio || '';
+      if (byId('senasaConfigRenspa')) byId('senasaConfigRenspa').value = senasa.renspa || '';
+      if (byId('senasaConfigCodigoTambo')) byId('senasaConfigCodigoTambo').value = senasa.codigoTambo || state.empresa?.codigo_tambo || '';
+      if (byId('senasaConfigDoes')) byId('senasaConfigDoes').value = senasa.does || 'PENDIENTE';
+      if (byId('senasaConfigVeterinario')) byId('senasaConfigVeterinario').value = senasa.veterinario || '';
+      if (byId('senasaConfigObs')) byId('senasaConfigObs').value = senasa.observaciones || '';
+      if (byId('senasaConfigIdentificacionElectronica')) byId('senasaConfigIdentificacionElectronica').value = senasa.identificacionElectronica || 'SIN_INICIAR';
+      if (byId('senasaConfigAftosaCampanaInicio')) byId('senasaConfigAftosaCampanaInicio').value = senasa.aftosaCampanaInicio || '';
+      if (byId('senasaConfigAplicaExportacionUE')) byId('senasaConfigAplicaExportacionUE').checked = Boolean(res200.aplica);
+      if (byId('senasaConfigVeterinarioCorresponsable')) byId('senasaConfigVeterinarioCorresponsable').value = res200.veterinarioCorresponsable || '';
+      if (byId('senasaConfigAguaSegura')) byId('senasaConfigAguaSegura').checked = Boolean(res200.aguaSegura);
+      if (byId('senasaConfigPisosImpermeables')) byId('senasaConfigPisosImpermeables').checked = Boolean(res200.pisosImpermeables);
+      if (byId('senasaConfigFechaAuditoria')) byId('senasaConfigFechaAuditoria').value = res200.fechaUltimaAuditoria || '';
+      const arcaReady = Boolean(arca.cuit && arca.puntoVenta && arca.wsdl && arca.certificado && arca.clavePrivada);
+      const senasaReady = Boolean(senasa.renspa && senasa.codigoTambo && senasa.veterinario);
+      const res200Ready = !res200.aplica || Boolean(res200.veterinarioCorresponsable && res200.aguaSegura && res200.pisosImpermeables && res200.fechaUltimaAuditoria);
+      const resumen = byId('arcaSenasaConfigResumen');
+      if (resumen) resumen.innerHTML = `ARCA: ${arcaReady ? '<span class="pill ok">configurada</span>' : '<span class="pill warn">incompleta</span>'}<br>SENASA: ${senasaReady ? '<span class="pill ok">configurada</span>' : '<span class="pill warn">incompleta</span>'}<br>Res. 200/2026 (export. UE/RU): ${!res200.aplica ? '<span class="pill">no aplica</span>' : (res200Ready ? '<span class="pill ok">configurada</span>' : '<span class="pill warn">incompleta</span>')}<br><small>Última actualización: ${cfg.updatedAt ? new Date(cfg.updatedAt).toLocaleString('es-AR') : 'sin guardar'}</small>`;
+    }
+
+    function saveArcaSenasaConfig() {
+      const cfg = readArcaSenasaConfigForm();
+      localStorage.setItem(ARCA_SENASA_CONFIG_KEY, JSON.stringify(cfg));
+      if (cfg.arca.cuit) state.empresa.cuit = cfg.arca.cuit;
+      if (cfg.senasa.codigoTambo) state.empresa.codigo_tambo = cfg.senasa.codigoTambo;
+      saveEmpresaData();
+      renderArcaSenasaConfig();
+      renderSenasaAlertasCard();
+      renderMiPymePanel();
+      renderDashboardSanidadAlertas();
+      showToast('Configuración ARCA/SENASA guardada localmente', 'success');
+    }
+
+    function clearArcaSenasaConfig() {
+      if (!confirm('¿Limpiar la configuración local de ARCA/SENASA?')) return;
+      localStorage.removeItem(ARCA_SENASA_CONFIG_KEY);
+      renderArcaSenasaConfig();
+      showToast('Configuración ARCA/SENASA limpiada', 'info');
+    }
+
     function canAccessModule(module) {
       return getRoleConfig().modules.includes(module);
     }
@@ -5399,6 +5787,8 @@
         const module = item.getAttribute('data-module');
         item.style.display = cfg.modules.includes(module) ? '' : 'none';
       });
+
+      renderTrialModuleTags();
 
       const setVisible = (id, visible) => {
         const el = byId(id);
@@ -5706,12 +6096,14 @@
 
     function enqueueSyncOperation(op) {
       const queue = loadSyncQueue();
-      queue.push({
+      const item = {
         id: window.crypto?.randomUUID?.() || `${Date.now()}-${Math.floor(Math.random() * 100000)}`,
         at: new Date().toISOString(),
         ...op,
-      });
+      };
+      queue.push(item);
       saveSyncQueue(queue);
+      window.PampaCoreSync?.addPendingOperation('pampatambo', item.method || 'UPSERT', item.type || item.endpoint || 'tambo_operaciones', item.payload || item, String(item.id));
       renderConnectivityStatus();
     }
 
@@ -6276,6 +6668,10 @@
       setActiveSubmodule('hacienda-sanidad');
     }
 
+    function openSenasaControlObligatorio() {
+      openArcaSection('arca-senasa');
+    }
+
     function setInventarioView(mode = 'summary') {
       const showSummary = mode === 'summary';
       const showMaquinaria = mode === 'maquinaria';
@@ -6376,11 +6772,13 @@
     function openArcaResumen() {
       openModule('arca');
       setArcaSections(null);
+      renderArcaSenasaConfig();
     }
 
     function openArcaSection(sectionId) {
       openModule('arca');
       setArcaSections(sectionId);
+      renderArcaSenasaConfig();
       setTimeout(() => {
         document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 80);
@@ -6619,6 +7017,256 @@
         tuberculosis: computeDoesEstado(/TUBERCUL/),
         brucelosis: computeDoesEstado(/BRUCELOSIS.?DOES|^BRUCELOSIS$|BRUCELOSIS(?!.*CEPA)/),
       };
+    }
+
+    // --- Aftosa: campaña de vacunación con plazos de reempadronamiento
+    // (60 dias rodeo general, 30 dias terneros/as) segun cronograma SENASA vigente. ---
+    const AFTOSA_PLAZO_GENERAL_DIAS = 60;
+    const AFTOSA_PLAZO_TERNEROS_DIAS = 30;
+    const AFTOSA_CATEGORIAS_TERNEROS = ['TERNERO', 'TERNERA', 'TERNERO_TERNERA', 'RECRIA_TERNERO'];
+
+    function getEdadMeses(fechaNacimiento, referencia = todayStart()) {
+      const nacimiento = parseFlexibleDate(fechaNacimiento);
+      if (!nacimiento) return null;
+      const msPerDay = 1000 * 60 * 60 * 24;
+      const dias = Math.floor((referencia - nacimiento) / msPerDay);
+      if (dias < 0) return null;
+      return dias / 30.4375;
+    }
+
+    function computeAftosaCampana() {
+      const cfg = loadArcaSenasaConfig();
+      const inicio = parseFlexibleDate(cfg?.senasa?.aftosaCampanaInicio);
+      if (!inicio) return { configurada: false };
+
+      const msPerDay = 1000 * 60 * 60 * 24;
+      const hoy = todayStart();
+      const calcularPlazo = (dias) => {
+        const vencimiento = new Date(inicio);
+        vencimiento.setDate(vencimiento.getDate() + dias);
+        const diasRestantes = Math.ceil((vencimiento - hoy) / msPerDay);
+        const estado = diasRestantes < 0 ? 'VENCIDO' : (diasRestantes <= 10 ? 'POR_VENCER' : 'VIGENTE');
+        return { vencimiento, diasRestantes, estado };
+      };
+
+      const animales = (state.animales || []).filter((a) => !['BAJA', 'VENDIDO'].includes(normalizeSignal(a?.estado)));
+      const esTernero = (a) => {
+        if (AFTOSA_CATEGORIAS_TERNEROS.includes(normalizeSignal(a?.categoria))) return true;
+        const meses = getEdadMeses(a?.fecha_nacimiento);
+        return meses != null && meses <= 8;
+      };
+
+      const vacunadosDesde = new Set(
+        (state.sanidad || [])
+          .filter((r) => normalizeSignal(r?.tipo) === 'AFTOSA')
+          .filter((r) => { const f = parseFlexibleDate(r?.fecha); return f && f >= inicio; })
+          .map((r) => normalizeCatalogValue(r?.vaca || '').toUpperCase())
+          .filter(Boolean)
+      );
+
+      const totalGeneral = animales.length;
+      const totalTerneros = animales.filter(esTernero).length;
+      const cubiertosGeneral = animales.filter((a) => vacunadosDesde.has(normalizeCatalogValue(a?.caravana || '').toUpperCase())).length;
+      const cubiertosTerneros = animales.filter((a) => esTernero(a) && vacunadosDesde.has(normalizeCatalogValue(a?.caravana || '').toUpperCase())).length;
+
+      return {
+        configurada: true,
+        inicio,
+        general: { ...calcularPlazo(AFTOSA_PLAZO_GENERAL_DIAS), total: totalGeneral, cubiertos: cubiertosGeneral, pendientes: totalGeneral - cubiertosGeneral },
+        terneros: { ...calcularPlazo(AFTOSA_PLAZO_TERNEROS_DIAS), total: totalTerneros, cubiertos: cubiertosTerneros, pendientes: totalTerneros - cubiertosTerneros },
+      };
+    }
+
+    // --- Brucelosis B19: primovacunacion obligatoria en terneras de 3 a 8 meses.
+    // Fuera de esa ventana sin cobertura => riesgo de categorizacion "Establecimiento Caso". ---
+    const BRUCELOSIS_B19_EDAD_MIN_MESES = 3;
+    const BRUCELOSIS_B19_EDAD_MAX_MESES = 8;
+
+    function computeBrucelosisB19Pendientes() {
+      const terneras = (state.animales || []).filter((a) => {
+        if (normalizeSexoNacimiento(a?.sexo) !== 'H') return false;
+        if (['BAJA', 'VENDIDO'].includes(normalizeSignal(a?.estado))) return false;
+        const meses = getEdadMeses(a?.fecha_nacimiento);
+        return meses != null && meses <= (BRUCELOSIS_B19_EDAD_MAX_MESES + 2);
+      });
+
+      const vacunadas = new Set(
+        (state.sanidad || [])
+          .filter((r) => ['BRUCELOSIS_CEPA19', 'BRUCELOSIS CEPA19', 'BRUCELOSIS_CEPA_19'].includes(normalizeSignal(r?.tipo)))
+          .map((r) => normalizeCatalogValue(r?.vaca || '').toUpperCase())
+          .filter(Boolean)
+      );
+
+      const pendientes = [];
+      const vencidas = [];
+      terneras.forEach((a) => {
+        const caravana = normalizeCatalogValue(a?.caravana || '').toUpperCase();
+        if (!caravana || vacunadas.has(caravana)) return;
+        const meses = getEdadMeses(a?.fecha_nacimiento);
+        const item = { caravana: a?.caravana || '', nombre: a?.nombre || '', meses: meses != null ? Math.floor(meses) : null };
+        if (meses != null && meses > BRUCELOSIS_B19_EDAD_MAX_MESES) vencidas.push(item);
+        else if (meses != null && meses >= BRUCELOSIS_B19_EDAD_MIN_MESES) pendientes.push(item);
+      });
+
+      return { pendientes, vencidas };
+    }
+
+    function renderSenasaAlertasCard() {
+      const aftosa = computeAftosaCampana();
+      const pintarAftosa = (data, valorId, subId) => {
+        const valorNode = byId(valorId);
+        const subNode = byId(subId);
+        if (!valorNode || !subNode) return;
+        if (!aftosa.configurada || !data) {
+          valorNode.textContent = 'Sin configurar';
+          valorNode.style.color = 'var(--text-muted, #64748b)';
+          subNode.textContent = 'Cargar fecha de inicio de campaña en Configuración ARCA/SENASA';
+          return;
+        }
+        const { diasRestantes, estado, cubiertos, total, pendientes } = data;
+        if (estado === 'VENCIDO') {
+          valorNode.textContent = `Vencido hace ${Math.abs(diasRestantes)} día(s)`;
+          valorNode.style.color = 'var(--red, #dc2626)';
+          subNode.textContent = `${pendientes} de ${total} sin registrar · riesgo de bloqueo RENSPA/DTV-e`;
+        } else {
+          valorNode.textContent = `${diasRestantes} día(s)`;
+          valorNode.style.color = estado === 'POR_VENCER' ? 'var(--orange, #d97706)' : 'var(--green, #16a34a)';
+          subNode.textContent = `${cubiertos} de ${total} vacunados en esta campaña`;
+        }
+      };
+      ['', '2'].forEach((suffix) => {
+        pintarAftosa(aftosa.configurada ? aftosa.general : null, `aftosaGeneralValor${suffix}`, `aftosaGeneralSub${suffix}`);
+        pintarAftosa(aftosa.configurada ? aftosa.terneros : null, `aftosaTernerosValor${suffix}`, `aftosaTernerosSub${suffix}`);
+      });
+
+      const b19 = computeBrucelosisB19Pendientes();
+      const totalPend = b19.pendientes.length + b19.vencidas.length;
+      ['', '2'].forEach((suffix) => {
+        const b19Valor = byId(`brucelosisB19Valor${suffix}`);
+        const b19Sub = byId(`brucelosisB19Sub${suffix}`);
+        if (!b19Valor || !b19Sub) return;
+        b19Valor.textContent = `${totalPend}`;
+        b19Valor.style.color = b19.vencidas.length ? 'var(--red, #dc2626)' : (b19.pendientes.length ? 'var(--orange, #d97706)' : 'var(--green, #16a34a)');
+        b19Sub.textContent = b19.vencidas.length ? `${b19.vencidas.length} pasaron los 8 meses sin vacunar · riesgo "Establecimiento Caso"` : '3 a 8 meses sin primovacunar';
+      });
+
+      const tbodyB19 = byId('tbodyBrucelosisB19');
+      if (tbodyB19) {
+        const rows = [...b19.vencidas.map((r) => ({ ...r, vencida: true })), ...b19.pendientes.map((r) => ({ ...r, vencida: false }))];
+        tbodyB19.innerHTML = rows.length ? rows.map((r) => `
+          <tr>
+            <td><strong>${r.caravana || ''}</strong></td>
+            <td>${r.nombre || ''}</td>
+            <td>${r.meses ?? '-'}</td>
+            <td>${r.vencida ? '<span class="pill bad">Venció ventana (&gt;8 meses)</span>' : '<span class="pill warn">Pendiente</span>'}</td>
+          </tr>
+        `).join('') : '<tr><td colspan="4" class="muted">Sin terneras pendientes de primovacunación Brucelosis.</td></tr>';
+      }
+    }
+
+    // --- MiPyME (Resolucion 1/2026, sector agropecuario) y forma juridica: dato informativo,
+    // no reemplaza el calculo real del contador. Categoriza por facturacion anual neta de IVA
+    // (promedio de 3 ejercicios); si no se cargo un valor manual, se estima con los ultimos 12
+    // meses de LUME + venta de hacienda, extrapolando si hay menos de 12 meses de datos. ---
+    const MIPYME_UMBRALES_AGRO = [
+      { categoria: 'Micro', hasta: 743730000 },
+      { categoria: 'Pequeña', hasta: 4412940000 },
+      { categoria: 'Mediana Tramo 1', hasta: 24621200000 },
+      { categoria: 'Mediana Tramo 2', hasta: 36927730000 },
+    ];
+
+    function clasificarMiPyme(facturacionAnual) {
+      const monto = Number(facturacionAnual || 0);
+      const encontrado = MIPYME_UMBRALES_AGRO.find((u) => monto <= u.hasta);
+      return encontrado ? encontrado.categoria : 'Grande (fuera de MiPyME)';
+    }
+
+    function estimarFacturacionAnual() {
+      const hoy = todayStart();
+      const hace12Meses = new Date(hoy);
+      hace12Meses.setMonth(hace12Meses.getMonth() - 12);
+
+      const enVentana = (fechaStr) => {
+        const f = parseFlexibleDate(fechaStr);
+        return f && f >= hace12Meses && f <= hoy;
+      };
+
+      const facturasLume = (state.liquidacionesLeche || []).filter((row) => enVentana(row?.fecha));
+      const facturasHacienda = (state.ventasHacienda || []).filter((row) => enVentana(row?.fecha));
+      const totalLume = facturasLume.reduce((acc, row) => acc + Number(row?.neto || 0), 0);
+      const totalHacienda = facturasHacienda.reduce((acc, row) => acc + Number(row?.importe || 0), 0);
+
+      const fechasValidas = [...facturasLume, ...facturasHacienda]
+        .map((row) => parseFlexibleDate(row?.fecha))
+        .filter(Boolean);
+      if (!fechasValidas.length) return { estimado: 0, mesesCubiertos: 0, esEstimacion: true };
+
+      const minFecha = fechasValidas.reduce((min, f) => (f < min ? f : min), fechasValidas[0]);
+      const mesesCubiertos = Math.max(1, Math.min(12, Math.round((hoy - minFecha) / (1000 * 60 * 60 * 24 * 30.4375))));
+      const totalPeriodo = totalLume + totalHacienda;
+      const anualizado = mesesCubiertos < 12 ? Math.round((totalPeriodo / mesesCubiertos) * 12) : Math.round(totalPeriodo);
+      return { estimado: anualizado, mesesCubiertos, esEstimacion: true };
+    }
+
+    function computeLitrosDiaPromedio() {
+      const hoy = todayStart();
+      const hace30Dias = new Date(hoy);
+      hace30Dias.setDate(hace30Dias.getDate() - 30);
+      const litros = (state.entregasUsina || [])
+        .filter((row) => { const f = parseFlexibleDate(row?.fecha); return f && f >= hace30Dias && f <= hoy; })
+        .reduce((acc, row) => acc + Number(row?.litros || 0), 0);
+      return Math.round((litros / 30) * 10) / 10;
+    }
+
+    function guiaFormaJuridicaPorLitros(litrosDia) {
+      if (litrosDia <= 3000) return 'Con este volumen, Persona Humana suele ser más conveniente en costo administrativo.';
+      if (litrosDia <= 4000) return 'Zona de transición (3.000 a 4.000 L/día): conviene evaluar el paso a S.R.L. con el contador.';
+      return 'Con este volumen, se recomienda evaluar el paso a S.R.L. (protección patrimonial y escala societaria).';
+    }
+
+    function renderMiPymePanel() {
+      const cfg = loadArcaSenasaConfig();
+      const arca = cfg?.arca || {};
+      const facturacionManual = Number(arca.facturacionAnualPromedio || 0);
+      const estimacion = facturacionManual > 0 ? null : estimarFacturacionAnual();
+      const facturacionUsada = facturacionManual > 0 ? facturacionManual : (estimacion?.estimado || 0);
+      const categoria = facturacionUsada > 0 ? clasificarMiPyme(facturacionUsada) : null;
+
+      const subTexto = facturacionManual > 0
+        ? `Sobre ${formatMoney(facturacionManual)}/año declarado`
+        : (estimacion && estimacion.estimado > 0
+          ? `Estimado sobre ${estimacion.mesesCubiertos} mes(es) de LUME + hacienda · ${formatMoney(estimacion.estimado)}/año`
+          : 'Sin datos suficientes para estimar · cargar facturación manual en ARCA');
+
+      if (byId('kpiMiPyme')) {
+        byId('kpiMiPyme').textContent = categoria || '-';
+        byId('kpiMiPymeSub').textContent = subTexto;
+      }
+      if (byId('situacionMiPymeValor')) {
+        byId('situacionMiPymeValor').textContent = categoria || 'Sin datos';
+        byId('situacionMiPymeSub').textContent = subTexto;
+      }
+
+      const formaJuridica = arca.formaJuridica || 'PERSONA_HUMANA';
+      const formaJuridicaLabel = formaJuridica === 'SOCIEDAD' ? 'Sociedad (S.R.L. / S.A.)' : 'Persona Humana';
+      if (byId('situacionFormaJuridicaValor')) {
+        byId('situacionFormaJuridicaValor').textContent = formaJuridicaLabel;
+        byId('situacionFormaJuridicaSub').textContent = 'Configurado en ARCA/SENASA';
+      }
+
+      const litrosDia = computeLitrosDiaPromedio();
+      if (byId('situacionLitrosDiaValor')) {
+        byId('situacionLitrosDiaValor').textContent = `${litrosDia.toFixed(1)} L`;
+      }
+
+      const gananciasTexto = byId('situacionGananciasTexto');
+      if (gananciasTexto) {
+        const guiaLitros = guiaFormaJuridicaPorLitros(litrosDia);
+        const escalaTexto = formaJuridica === 'SOCIEDAD'
+          ? 'Como Sociedad, la liquidación anual de Ganancias usa los tramos societarios (alicuotas progresivas por tramo) sobre el resultado impositivo de la empresa, más el adicional sobre dividendos retirados.'
+          : 'Como Persona Humana, la liquidación anual de Ganancias usa la escala progresiva del Art. 94 sobre el resultado neto de toda tu actividad personal.';
+        gananciasTexto.textContent = `${escalaTexto} ${guiaLitros} Este dato es orientativo: confirmá los tramos y alícuotas vigentes con tu contador antes de decidir.`;
+      }
     }
 
     function estadoPill(value) {
@@ -7909,6 +8557,22 @@
         </tr>
       `).join(''));
 
+      const creditoFiscal = comprobantes.filter((row) => row.tipo_fiscal === 'CREDITO_FISCAL');
+      const debitoFiscal = comprobantes.filter((row) => row.tipo_fiscal === 'DEBITO_FISCAL');
+      const fiscalRow = (row, ivaLabel) => `
+        <tr>
+          <td>${row.fecha || ''}</td>
+          <td><strong>${row.tipo_comprobante || ''} ${row.numero_comprobante || ''}</strong></td>
+          <td>${row.razon_social || row.receptor_nombre || ''}</td>
+          <td>${row.concepto || ''}</td>
+          <td>${formatMoney(row.neto)}</td>
+          <td>${formatMoney(row.iva)} ${ivaLabel}</td>
+          <td><strong>${formatMoney(row.total)}</strong></td>
+          <td>${estadoPill(row.estado || 'Registrado')}</td>
+        </tr>`;
+      byId('tbodyCreditoFiscal') && (byId('tbodyCreditoFiscal').innerHTML = creditoFiscal.map((row) => fiscalRow(row, 'crédito')).join('') || '<tr><td colspan="8" class="muted">Sin comprobantes clasificados como crédito fiscal.</td></tr>');
+      byId('tbodyDebitoFiscal') && (byId('tbodyDebitoFiscal').innerHTML = debitoFiscal.map((row) => fiscalRow(row, 'débito')).join('') || '<tr><td colspan="8" class="muted">Sin comprobantes clasificados como débito fiscal.</td></tr>');
+
       byId('tbodyCobrosPagos') && (byId('tbodyCobrosPagos').innerHTML = cobrosPagos.map((row) => `
         <tr>
           <td>${row.fecha || ''}</td>
@@ -7956,6 +8620,44 @@
       byId('kpiArcaCobradoMes').textContent = formatMoney(netoCobradoMes);
       byId('kpiArcaPagosPend').textContent = pagosPendCompras + pagosPendGastos;
       byId('kpiArcaCobrosPend').textContent = cobrosPend;
+
+      // --- Posicion fiscal IVA (Debito vs. Credito): calculo exacto para el productor. ---
+      // Debito: IVA de comprobantes cargados como DEBITO_FISCAL + iva_debito de cada LUME
+      // (liquidacion de leche) que ya tuvo "Calcular fiscal" ejecutado (services/fiscalRules.service.js).
+      // Credito: IVA de comprobantes cargados como CREDITO_FISCAL (compras/insumos con factura real).
+      // No se duplica con /fiscal/retenciones ni con comprobantesArca: calculateLume() posta el iva_debito
+      // de cada LUME solo en el modelo de retenciones fiscales (lumeFiscalPosting.service.js), nunca en comprobantesArca.
+      const ivaDebitoLumeMes = liquidaciones.filter(inCurrentMonth).reduce((acc, row) => acc + Number(row?.resumen_fiscal?.iva_debito || 0), 0);
+      const ivaDebitoLumeAcum = liquidaciones.reduce((acc, row) => acc + Number(row?.resumen_fiscal?.iva_debito || 0), 0);
+      const ivaDebitoComprobantesMes = debitoFiscal.filter(inCurrentMonth).reduce((acc, row) => acc + Number(row?.iva || 0), 0);
+      const ivaDebitoComprobantesAcum = debitoFiscal.reduce((acc, row) => acc + Number(row?.iva || 0), 0);
+      const ivaCreditoComprobantesMes = creditoFiscal.filter(inCurrentMonth).reduce((acc, row) => acc + Number(row?.iva || 0), 0);
+      const ivaCreditoComprobantesAcum = creditoFiscal.reduce((acc, row) => acc + Number(row?.iva || 0), 0);
+
+      const ivaDebitoMesTotal = ivaDebitoLumeMes + ivaDebitoComprobantesMes;
+      const ivaDebitoAcumTotal = ivaDebitoLumeAcum + ivaDebitoComprobantesAcum;
+      const ivaCreditoMesTotal = ivaCreditoComprobantesMes;
+      const ivaCreditoAcumTotal = ivaCreditoComprobantesAcum;
+      const saldoIvaMes = Math.round((ivaDebitoMesTotal - ivaCreditoMesTotal) * 100) / 100;
+      const saldoIvaAcum = Math.round((ivaDebitoAcumTotal - ivaCreditoAcumTotal) * 100) / 100;
+
+      if (byId('kpiIvaDebitoMes')) {
+        byId('kpiIvaDebitoMes').textContent = formatMoney(ivaDebitoMesTotal);
+        byId('kpiIvaDebitoMesSub').textContent = `Comprobantes: ${formatMoney(ivaDebitoComprobantesMes)} · LUME: ${formatMoney(ivaDebitoLumeMes)}`;
+      }
+      if (byId('kpiIvaCreditoMes')) {
+        byId('kpiIvaCreditoMes').textContent = formatMoney(ivaCreditoMesTotal);
+      }
+      if (byId('kpiIvaSaldoMes')) {
+        byId('kpiIvaSaldoMes').textContent = formatMoney(Math.abs(saldoIvaMes));
+        byId('kpiIvaSaldoMes').style.color = saldoIvaMes > 0 ? 'var(--red, #dc2626)' : (saldoIvaMes < 0 ? 'var(--green, #16a34a)' : '');
+        byId('kpiIvaSaldoMesSub').textContent = saldoIvaMes > 0 ? 'A pagar (débito > crédito)' : (saldoIvaMes < 0 ? 'A favor (crédito > débito)' : 'Sin saldo');
+      }
+      if (byId('kpiIvaSaldoAcum')) {
+        byId('kpiIvaSaldoAcum').textContent = formatMoney(Math.abs(saldoIvaAcum));
+        byId('kpiIvaSaldoAcum').style.color = saldoIvaAcum > 0 ? 'var(--red, #dc2626)' : (saldoIvaAcum < 0 ? 'var(--green, #16a34a)' : '');
+        byId('kpiIvaSaldoAcumSub').textContent = saldoIvaAcum > 0 ? 'Posición deudora acumulada' : (saldoIvaAcum < 0 ? 'Crédito acumulado a favor' : 'Sin saldo');
+      }
 
       const flow = byId('arcaResumenFlow');
       if (flow) {
@@ -8919,6 +9621,44 @@
         }
       });
 
+      const aftosaCampana = computeAftosaCampana();
+      if (aftosaCampana.configurada) {
+        [
+          { data: aftosaCampana.general, label: 'Aftosa · rodeo general' },
+          { data: aftosaCampana.terneros, label: 'Aftosa · terneros/as' },
+        ].forEach(({ data, label }) => {
+          if (data.estado === 'VENCIDO') {
+            alerts.push({
+              level: 'bad',
+              title: 'Campaña Aftosa vencida',
+              detail: `${label} · venció hace ${Math.abs(data.diasRestantes)} día(s) · ${data.pendientes} sin registrar · riesgo de bloqueo RENSPA/DTV-e`,
+            });
+          } else if (data.estado === 'POR_VENCER') {
+            alerts.push({
+              level: 'warn',
+              title: 'Campaña Aftosa por vencer',
+              detail: `${label} · faltan ${data.diasRestantes} día(s) · ${data.pendientes} sin registrar`,
+            });
+          }
+        });
+      }
+
+      const b19Alertas = computeBrucelosisB19Pendientes();
+      if (b19Alertas.vencidas.length) {
+        alerts.push({
+          level: 'bad',
+          title: 'Brucelosis B19 fuera de ventana',
+          detail: `${b19Alertas.vencidas.length} ternera(s) pasaron los 8 meses sin primovacunar · riesgo de categorización "Establecimiento Caso"`,
+        });
+      }
+      if (b19Alertas.pendientes.length) {
+        alerts.push({
+          level: 'warn',
+          title: 'Brucelosis B19 pendiente',
+          detail: `${b19Alertas.pendientes.length} ternera(s) de 3 a 8 meses sin primovacunar`,
+        });
+      }
+
       const partosPendientesMap = new Map();
       (state.reproduccion || []).forEach((row) => {
         const vacaRef = resolveVacaRef(row);
@@ -9303,6 +10043,8 @@
       renderAuditoria();
       renderDashboardSanidadAlertas();
       renderDoesPanel();
+      renderSenasaAlertasCard();
+      renderMiPymePanel();
       renderKpis();
       renderHaciendaResumen();
       renderCamposMap();
@@ -9524,6 +10266,34 @@
       byId('modalEditor').classList.add('active');
     }
 
+    // Imprime el formulario actualmente abierto en el modal generico (aplica a cualquier
+    // modulo: Animales, Sanidad, ARCA, Compras de insumos, etc.), igual que en PampaAgro.
+    function imprimirRegistroModal() {
+      const type = state.editor?.type;
+      const fields = forms[type];
+      const formulario = byId('editorForm');
+      if (!type || !fields || !formulario) {
+        alert('No hay un formulario abierto para imprimir.');
+        return;
+      }
+      const ventana = window.open('', '_blank', 'width=420,height=650');
+      if (!ventana) {
+        alert('El navegador bloqueó la ventana de impresión.');
+        return;
+      }
+      const datosForm = new FormData(formulario);
+      const filas = fields.map((field) => {
+        let valor;
+        const el = formulario.querySelector(`[name="${field.key}"]`);
+        if (el && el.type === 'checkbox') valor = el.checked ? 'Sí' : 'No';
+        else valor = datosForm.get(field.key);
+        return [field.label || field.key, (valor ?? '').toString()];
+      });
+      const titulo = byId('modalTitle')?.textContent || 'Registro';
+      ventana.document.write(`<html><head><title>${titulo}</title><style>body{font-family:Arial,sans-serif;text-align:center;padding:18px}table{width:100%;text-align:left;border-collapse:collapse}td{padding:6px;border-bottom:1px solid #ddd}</style></head><body><h2>${titulo}</h2><table>${filas.map((row) => `<tr><td><b>${row[0]}</b></td><td>${row[1] || ''}</td></tr>`).join('')}</table><script>window.onload=()=>window.print();<\/script></body></html>`);
+      ventana.document.close();
+    }
+
     function closeModal() {
       clearCoordPickerMap();
       byId('modalEditor')?.removeAttribute('data-editor-type');
@@ -9593,7 +10363,80 @@
         };
         state.costos = upsertById(state.costos, costoPayload);
         currentRow.auto_costo_id = costoId;
-        removeLinked(prevFinId, prevCajaId, '');
+
+        // Inventario: una compra de tipo Medicamentos suma stock en Veterinaria (insumosSanidad),
+        // buscando por nombre de producto y creando el insumo si todavia no existe.
+        if (normalizeSignal(currentRow.tipo) === 'MEDICAMENTOS') {
+          const nombreProducto = `${currentRow.producto || ''}`.trim();
+          const cantidadComprada = Number(currentRow.cantidad || 0);
+          if (nombreProducto && cantidadComprada > 0) {
+            const existente = (state.insumosSanidad || []).find((row) => `${row?.producto || ''}`.trim().toLowerCase() === nombreProducto.toLowerCase());
+            if (existente) {
+              existente.stock = Number(existente.stock || 0) + cantidadComprada;
+              if (currentRow.unidad && !existente.unidad) existente.unidad = currentRow.unidad;
+              if (currentRow.vencimiento) existente.vencimiento = currentRow.vencimiento;
+              state.insumosSanidad = upsertById(state.insumosSanidad, existente);
+            } else {
+              state.insumosSanidad = upsertById(state.insumosSanidad, {
+                id: makeAutoId(),
+                producto: nombreProducto,
+                categoria: 'Medicamentos',
+                stock: cantidadComprada,
+                unidad: currentRow.unidad || 'unidad',
+                dias_retiro: 0,
+                vencimiento: currentRow.vencimiento || '',
+                lote: '',
+              });
+            }
+          }
+        }
+
+        // Caja/Finanzas segun el medio y el estado de pago (mismo criterio que Cobros y Pagos):
+        // pago en Efectivo -> Caja; otro medio -> Finanzas; sin pago (NO) -> sin movimiento todavia.
+        const medioNorm = normalizeSignal(currentRow.medio_pago);
+        const useCaja = medioNorm === 'EFECTIVO';
+        const hayPago = estadoPago === 'SI' || estadoPago === 'PARCIAL';
+
+        if (hayPago && monto > 0) {
+          if (useCaja) {
+            const cajaAutoId = currentRow.auto_caja_id || prevCajaId || makeAutoId();
+            const cajaPayload = {
+              id: cajaAutoId,
+              fecha: currentRow.fecha || todayIso,
+              tipo: 'EGRESO',
+              concepto: currentRow.producto || 'Compra de insumos',
+              monto,
+              medio: currentRow.medio_pago || 'Efectivo',
+              estado: estadoPago === 'SI' ? 'PAGADO' : 'PARCIAL',
+              comprobante: currentRow.factura || '',
+              observaciones: currentRow.observaciones || '',
+            };
+            state.caja = upsertById(state.caja, cajaPayload);
+            currentRow.auto_caja_id = cajaAutoId;
+            if (prevFinId) { state.finanzas = removeById(state.finanzas, prevFinId); delete currentRow.auto_finanza_id; }
+          } else {
+            const finanzaId = currentRow.auto_finanza_id || prevFinId || makeAutoId();
+            const finanzaPayload = {
+              id: finanzaId,
+              fecha: currentRow.fecha || todayIso,
+              tipo: 'EGRESO',
+              categoria: 'Compra de insumos',
+              concepto: currentRow.producto || 'Compra de insumos',
+              monto,
+              medio_pago: currentRow.medio_pago || 'Transferencia',
+              estado: estadoPago === 'SI' ? 'PAGADO' : 'PARCIAL',
+              referencia: currentRow.factura || `ARCA-COMPRA-${currentRow.id || ''}`,
+              observaciones: currentRow.observaciones || '',
+            };
+            state.finanzas = upsertById(state.finanzas, finanzaPayload);
+            currentRow.auto_finanza_id = finanzaId;
+            if (prevCajaId) { state.caja = removeById(state.caja, prevCajaId); delete currentRow.auto_caja_id; }
+          }
+        } else {
+          removeLinked(prevFinId, prevCajaId, '');
+          delete currentRow.auto_finanza_id;
+          delete currentRow.auto_caja_id;
+        }
         return;
       }
 
@@ -10365,6 +11208,8 @@
     byId('btnNuevoGasto').addEventListener('click', () => openModal('gastosArca'));
     byId('btnNuevoComprobanteArca').addEventListener('click', () => openModal('comprobantesArca'));
     byId('btnNuevoCobroPago').addEventListener('click', () => openModal('cobrosPagos'));
+    byId('btnGuardarArcaSenasaConfig')?.addEventListener('click', saveArcaSenasaConfig);
+    byId('btnLimpiarArcaSenasaConfig')?.addEventListener('click', clearArcaSenasaConfig);
     byId('btnNuevoEmpleado').addEventListener('click', () => openModal('empleados'));
     byId('btnNuevaAsistencia').addEventListener('click', () => openModal('asistencias'));
     byId('btnNuevaReproduccion').addEventListener('click', () => openModal('reproduccion'));
@@ -10564,13 +11409,14 @@
     if (byId('trialPublicBaseUrl')) {
       byId('trialPublicBaseUrl').value = localStorage.getItem(TRIAL_PUBLIC_BASE_URL_KEY) || DEFAULT_TRIAL_PUBLIC_BASE_URL;
     }
-    maybeAutoActivateTrialFromQuery();
+    
     maybeStartTrialOnEntry().catch(() => {});
     state.auditoria = loadAuditLogs();
     currentRole = normalizeRole(localStorage.getItem(ROLE_STORAGE_KEY) || 'propietario');
     byId('roleSelector').addEventListener('change', (event) => setRole(event.target.value));
     setRole(currentRole);
     renderLicenseStatus();
+    renderArcaSenasaConfig();
     renderAuditoria();
     getLinkedSyncHandle().then(() => renderConnectivityStatus());
     renderConnectivityStatus();
@@ -10755,6 +11601,10 @@
     window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
   }
 </script>
+<script>
+window.PampaCoreSync?.activarSincronizacionAutomatica({ appId: 'pampatambo', mountSelector: '#pampaSyncNavBadge' });
+</script>
 <script src="./pampa-privacy-popup.js"></script>
+  <script src="./trial-progress.js"></script>
 </body>
 </html>

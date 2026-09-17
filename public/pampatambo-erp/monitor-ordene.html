@@ -25,7 +25,12 @@
             margin: 0;
             padding: 12px;
         }
-        .container { max-width: 500px; margin: 0 auto; }
+        .container { max-width: 500px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+        @media (max-width: 480px) {
+            body { padding: 8px; }
+            .vaca-card { padding: 12px; flex-direction: column; align-items: flex-start; }
+            .status-badge { align-self: stretch; text-align: center; }
+        }
         .top-link { display: block; text-align: center; font-size: 0.8rem; margin-bottom: 8px; }
         .top-link a { color: var(--accent); text-decoration: none; }
         h2 { text-align: center; font-size: 1.25rem; margin-bottom: 3px; }
@@ -115,6 +120,12 @@
     <div class="search-box">
         <input type="text" id="buscadorRP" placeholder="🔍 DIGITE Nº DE CARAVANA (RP)..." inputmode="numeric">
         <button type="button" class="btn-refresh" id="btnRefrescar" title="Actualizar">⟳</button>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+        <button type="button" class="btn-refresh" id="btnLectorBluetooth" style="width:auto; font-size:0.75rem;">🔷 Bluetooth</button>
+        <button type="button" class="btn-refresh" id="btnLectorHid" style="width:auto; font-size:0.75rem;">⌨️ HID</button>
+        <span style="font-size:0.72rem; color:#7f8c8d;" id="lectorCaravanaEstado">Modo HID: escaneá con el campo de búsqueda enfocado.</span>
     </div>
 
     <div class="resumen">
@@ -288,6 +299,31 @@
 
     byId('buscadorRP').addEventListener('input', filtrarVacas);
     byId('btnRefrescar').addEventListener('click', actualizarRodeo);
+
+    // Soporte para lector de caravanas por Bluetooth del celular (ver misma lógica en tratamientos.html).
+    // Modo HID (teclado) funciona con la mayoría de los lectores económicos sin código adicional;
+    // Web Bluetooth queda preparado para conectar por BLE nativo una vez definido el modelo del lector.
+    async function conectarLectorBluetoothMovil() {
+      const estado = byId('lectorCaravanaEstado');
+      if (!navigator.bluetooth?.requestDevice) {
+        if (estado) estado.textContent = 'Este navegador no soporta Bluetooth BLE (Web Bluetooth). Usá el modo HID: emparejá el lector desde la configuración Bluetooth del celular y escaneá con el campo enfocado.';
+        return;
+      }
+      try {
+        if (estado) estado.textContent = 'Buscando lectores Bluetooth cercanos...';
+        const dispositivo = await navigator.bluetooth.requestDevice({ acceptAllDevices: true });
+        if (estado) estado.textContent = `Conectado a "${dispositivo.name || 'lector sin nombre'}". Falta configurar el protocolo de este modelo para completar la búsqueda automático: por ahora usá el modo HID o escribí la caravana manualmente.`;
+        localStorage.setItem('pampaTamboBluetoothReaderMonitor', JSON.stringify({ nombre: dispositivo.name || 'Lector Bluetooth', conectadoEn: new Date().toISOString() }));
+      } catch (error) {
+        if (estado) estado.textContent = error?.name === 'NotFoundError' ? 'Conexión Bluetooth cancelada. Podés usar el modo HID.' : `No se pudo conectar el lector: ${error?.message || 'error desconocido'}`;
+      }
+    }
+    byId('btnLectorBluetooth').addEventListener('click', conectarLectorBluetoothMovil);
+    byId('btnLectorHid').addEventListener('click', () => {
+      byId('buscadorRP').focus();
+      const estado = byId('lectorCaravanaEstado');
+      if (estado) estado.textContent = 'Campo listo: escaneá con el lector Bluetooth emparejado como teclado (modo HID).';
+    });
     window.addEventListener('online', actualizarRodeo);
     window.addEventListener('offline', () => renderConnStatus(true));
 

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script id="pampa-web-trial-guard">(function(){try{const url=new URL(window.location.href);if(url.searchParams.get('trial')==='auto'){url.searchParams.delete('trial');window.history.replaceState({},document.title,url.pathname+url.search+url.hash);}}catch(error){}}());</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PampaGanaderia ERP - Gestión Agropecuaria Integral</title>
@@ -12,12 +13,14 @@
 <meta name="apple-mobile-web-app-title" content="PampaGanaderia">
 <link rel="apple-touch-icon" href="logo2.png">
 <link rel="manifest" href="manifest.webmanifest">
-<script src="pampa-license-key.js"></script>
-<script src="pampa-license-verify.js"></script>
-<script src="pampa-licensing.js"></script>
-<script src="pampa-offline-core.js"></script>
-<script src="pampa-search.js?v=2"></script>
-<script src="pampa-trial-links.js"></script>
+<script src="vendor/pampa-license-key.js"></script>
+<script src="vendor/pampa-license-verify.js"></script>
+<script src="pampa-license-expiry-ui.js"></script>
+<script src="vendor/pampa-licensing.js"></script>
+<script src="vendor/dexie.min.js"></script>
+<script src="pampa-core-sync.js"></script>
+<script src="vendor/pampa-search.js?v=2"></script>
+<script src="vendor/pampa-seat-control.js" data-product="pampa-ganaderia"></script>
 
 <!-- Google Drive API -->
 <script src="https://apis.google.com/js/api.js"></script>
@@ -25,11 +28,11 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="node_modules/jspdf/dist/jspdf.umd.min.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="vendor/chart.umd.min.js"></script>
+    <script src="vendor/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="vendor/leaflet/leaflet.css" />
 <link rel="stylesheet" href="pampa-brand.css">
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="vendor/leaflet/leaflet.js"></script>
     <style>
 /* === CSS VARIABLES === */
 :root {
@@ -569,6 +572,11 @@ body {
 .tag.orange { background: rgba(245,158,11,0.15); color: var(--orange); }
 .tag.red { background: rgba(239,68,68,0.15); color: var(--red); }
 
+/* Clases usadas en varias partes de la app pero que nunca se habían definido */
+.text-muted { color: var(--text-dim); font-size: 13px; }
+.btn-delete { background: transparent; border: 1px solid var(--red); color: var(--red); border-radius: 6px; padding: 4px 8px; cursor: pointer; font-size: 13px; }
+.btn-delete:hover { background: rgba(239,68,68,0.1); }
+
 /* === CHARTS === */
 .chart-container { position: relative; height: 300px; }
 
@@ -1095,15 +1103,6 @@ body {
     padding-bottom: 24px;
   }
   .sidebar.open { left: 0; }
-  .sidebar-nav {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    touch-action: pan-y;
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 24px;
-  }
   .main {
     width: 100%;
     min-height: 100vh;
@@ -1156,6 +1155,26 @@ body {
     document.getElementById('modalOverlay')?.classList.remove('active');
   };
 </script>
+<script id="pampa-desktop-commercial-guard">(function(){
+  window.PAMPA_DESKTOP_MODE=true;
+  try {
+    const url=new URL(window.location.href);
+    [...url.searchParams.keys()].filter(key=>/trial/i.test(key)).forEach(key=>url.searchParams.delete(key));
+    if(url.href!==window.location.href) window.history.replaceState({},document.title,url.pathname+url.search+url.hash);
+    Object.keys(localStorage).forEach(key=>{if(/license|licencia/i.test(key)){try{const value=JSON.parse(localStorage.getItem(key));if(value&&(value.type==='trial'||value.trial===true||value.payload?.trial===true))localStorage.removeItem(key)}catch(error){}}});
+  } catch(error) {}
+  document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('button,a,input,label,.field,.form-group').forEach(node=>{const text=[node.textContent,node.id,node.name,node.htmlFor,node.getAttribute('href')].join(' ');if(/trial|prueba gratis|iniciar prueba/i.test(text))node.remove()})},{once:true});
+})();</script>
+<script id="pampa-desktop-commercial-guard">(function(){
+  window.PAMPA_DESKTOP_MODE=true;
+  try {
+    const url=new URL(window.location.href);
+    [...url.searchParams.keys()].filter(key=>/trial/i.test(key)).forEach(key=>url.searchParams.delete(key));
+    if(url.href!==window.location.href) window.history.replaceState({},document.title,url.pathname+url.search+url.hash);
+    Object.keys(localStorage).forEach(key=>{if(/license|licencia/i.test(key)){try{const value=JSON.parse(localStorage.getItem(key));if(value&&(value.type==='trial'||value.trial===true||value.payload?.trial===true))localStorage.removeItem(key)}catch(error){}}});
+  } catch(error) {}
+  document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('button,a,input,label,.field,.form-group').forEach(node=>{const text=[node.textContent,node.id,node.name,node.htmlFor,node.getAttribute('href')].join(' ');if(/trial|prueba gratis|iniciar prueba/i.test(text))node.remove()})},{once:true});
+})();</script>
 </head>
 <body>
 
@@ -1255,6 +1274,7 @@ body {
         <div class="nav-item" data-module="reportes"><span class="nav-icon">📋</span> Reportes</div>
         <div class="nav-item" onclick="showLicenseModal()" style="margin-top: 10px; padding: 8px 12px; font-size: 11px; color: var(--text-dim); cursor: pointer;">
           <span class="nav-icon">🔐</span> Gestión de Licencia
+          <span id="licenseExpiryNotice" style="display:block;margin:4px 0 0 28px;font-size:10px;line-height:1.35;"></span>
         </div>
       </div>
       <div class="nav-section">
@@ -1280,6 +1300,8 @@ body {
           <span class="sync-icon">⚡</span>
           <span class="sync-text">Offline</span>
         </div>
+        <span id="pampaSyncNavBadge" style="display:inline-flex;align-items:center;"></span>
+        <span id="topbarAlertasCount" class="tag orange" style="display:none;cursor:pointer;" onclick="switchModule('dashboard')" title="Alertas activas"></span>
         <select class="topbar-btn" id="roleSelector" onchange="cambiarRol(this.value)" style="background:var(--bg-tertiary);color:var(--text-primary);border:1px solid var(--border);padding:6px 12px;border-radius:6px;cursor:pointer;font-family:var(--font-main);font-size:12px;">
           <option value="propietario">👑 Administrador/Propietario</option>
           <option value="administracion">🩺 Ingeniero/Veterinario</option>
@@ -2369,14 +2391,14 @@ body {
         <input type="text" class="activation-input" id="activationKey" placeholder="Pegue aquí su token de licencia">
         <div class="activation-error" id="activationError">Clave de activación inválida</div>
         <button class="activation-btn" onclick="activateLicense()">Activar Licencia</button>
-        <button class="activation-btn-secondary" onclick="activateTrial()">Iniciar Prueba Gratis (10 días)</button>
+        <button class="activation-btn-secondary" onclick="activateTrial()">Iniciar Prueba Gratis (7 días)</button>
         <button class="activation-btn-secondary" onclick="sendTrialLinkByWhatsApp()">Enviar Link Trial por WhatsApp</button>
         <button class="activation-btn-secondary" onclick="copyTrialLink()">Copiar Link Trial</button>
       </div>
       <div class="activation-info">
         Ingrese la clave de activación proporcionada al comprar el software.<br>
         Guarde este token en un lugar seguro: será necesario si cambia de equipo o reinstala Windows.<br>
-        O inicie una prueba gratis por 10 días para evaluar el sistema.<br>
+        O inicie una prueba gratis por 7 días para evaluar el sistema.<br>
         También puede compartir un enlace de trial por WhatsApp para activación automática.
       </div>
     </div>
@@ -2471,6 +2493,7 @@ body {
     <div class="modal-body" id="modalBody"></div>
     <div class="modal-footer">
       <button class="btn" onclick="cerrarModalGanadero(); return false;">Cancelar</button>
+      <button class="btn" onclick="imprimirRegistroModal()">🖨️ Imprimir</button>
       <button class="btn btn-primary" id="modalSaveBtn" onclick="saveModal()">Guardar</button>
     </div>
   </div>
@@ -2540,7 +2563,6 @@ body {
   
 </script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script src="node_modules/qrcode-generator/dist/qrcode.js"></script>
 <script>
 /* === ESTADO GLOBAL === */
 const state = {
@@ -2717,6 +2739,19 @@ function loadState() {
 // Guardar en localStorage
 function saveState() {
   localStorage.setItem('nexoAgroERP', JSON.stringify(state));
+}
+
+// Elimina un registro de cualquier array de state por índice y re-renderiza.
+// No existía (los botones 🗑️ de Cargas de Combustible y Costos Operativos llamaban
+// a esta función sin que estuviera definida en ningún lado).
+function deleteRecord(modulo, index) {
+  if (!Array.isArray(state[modulo])) return;
+  if (index < 0 || index >= state[modulo].length) return;
+  if (!confirm('¿Eliminar este registro?')) return;
+  state[modulo].splice(index, 1);
+  saveState();
+  renderTables();
+  showToast('Registro eliminado', 'success');
 }
 
 let autoSyncExportTimer = null;
@@ -2949,12 +2984,12 @@ const rolePermissions = {
   administracion: {
     nombre: 'Ingeniero/Veterinario',
     icono: '🩺',
-    modulos: ['dashboard','campos','lotes','hacienda','alimentacion','fiscal','reportes']
+    modulos: ['dashboard','campos','lotes','hacienda','alimentacion','inventario','movimientoStock','equipos','maquinarias','cargacombustible','costosOperativos','mantenimiento','reportes']
   },
   ingeniero: {
     nombre: 'Operarios de Campo',
     icono: '👷',
-    modulos: ['dashboard','campos','lotes','hacienda','alimentacion','fiscal','equipos','cargacombustible','costosOperativos','mantenimiento','reportes']
+    modulos: ['dashboard','campos','lotes','hacienda','alimentacion','equipos','cargacombustible','costosOperativos','mantenimiento','reportes']
   },
   oficina: {
     nombre: 'Operadores de Oficina',
@@ -2970,7 +3005,7 @@ let currentRoleInstanceId = null;
 const PLAN_ROLE_LIMITS = {
   basica: 4,
   profesional: 10,
-  premium: Number.POSITIVE_INFINITY,
+  premium: 20,
   trial: Number.POSITIVE_INFINITY
 };
 
@@ -3605,7 +3640,7 @@ function abrirReferenciaMercado(tipo) {
   const urls = {
     dolar: 'https://www.ambito.com/contenidos/dolar.html',
     hacienda: 'https://www.decampoacampo.com/__dcac/outside/canuelas/precios',
-    insumos: 'https://www.agrofy.com.ar/insumos-agricolas'
+    insumos: 'https://www.acamarket.com.ar/'
   };
 
   const url = urls[tipo];
@@ -3759,6 +3794,29 @@ function parseImporteNumero(value) {
   const num = parseFloat(cleaned);
   return Number.isFinite(num) ? num : 0;
 }
+
+// Chequeo simple de formato CUIT: 11 dígitos (no valida dígito verificador, solo evita errores de tipeo groseros)
+function esCuitValido(valor) {
+  const soloDigitos = String(valor || '').replace(/\D/g, '');
+  return soloDigitos.length === 11;
+}
+
+// Chequeo global: intercepta CUALQUIER envío de formulario de la app y valida los campos de CUIT
+// (nombre contiene "cuit"), sin tener que tocar cada formulario individualmente.
+document.addEventListener('submit', (evento) => {
+  const formulario = evento.target;
+  if (!(formulario instanceof HTMLFormElement)) return;
+  const camposCuit = formulario.querySelectorAll('[name*="cuit" i]');
+  for (const campo of camposCuit) {
+    if (campo.value && !esCuitValido(campo.value)) {
+      evento.preventDefault();
+      evento.stopImmediatePropagation();
+      if (typeof showToast === 'function') showToast(`El CUIT "${campo.value}" debe tener 11 dígitos.`, 'error');
+      campo.focus();
+      return;
+    }
+  }
+}, true);
 
 function formatMoney(value) {
   const num = Number(value) || 0;
@@ -4792,6 +4850,10 @@ function saveModal() {
       showToast(`El campo ${field.label} es requerido`, 'error');
       return;
     }
+    if (data[field.name] && /cuit/i.test(field.name) && !esCuitValido(data[field.name])) {
+      showToast(`${field.label} debe tener 11 dígitos (formato CUIT).`, 'error');
+      return;
+    }
   }
 
   if (moduloActual === 'animalesTrazabilidad') {
@@ -5023,6 +5085,41 @@ function cerrarGestionConceptos() {
   }
 }
 
+// Agrega una fila a la tabla de productos de una Aplicación (RAD), con las mismas
+// clases que ya espera saveModal() al leer la tabla (.producto-select, .deposito-select,
+// .dosis-input, .cantidad-input) — antes este botón no hacía nada porque la función no existía.
+function agregarProductoAplicacion() {
+  const tbody = document.querySelector('#tabla-aplicaciones-productos tbody');
+  if (!tbody) return;
+  const opcionesProductos = (state.inventario || [])
+    .map(p => `<option value="${p.codigo}">${p.producto} (stock: ${p.stock ?? 0} ${p.unidad || ''})</option>`)
+    .join('');
+  const fila = document.createElement('tr');
+  fila.innerHTML = `
+    <td><select class="form-select producto-select" onchange="actualizarStockProductoAplicacion(this)">
+      <option value="">Seleccionar...</option>${opcionesProductos}
+    </select></td>
+    <td><input type="text" class="form-input deposito-select" placeholder="Depósito"></td>
+    <td><input type="number" step="0.01" class="form-input dosis-input" placeholder="Dosis"></td>
+    <td class="unidad-celda">-</td>
+    <td><input type="number" step="0.01" class="form-input cantidad-input" placeholder="Cantidad"></td>
+    <td class="stock-celda">-</td>
+    <td><button type="button" class="btn-delete" onclick="this.closest('tr').remove()">🗑️</button></td>
+  `;
+  tbody.appendChild(fila);
+}
+
+// Muestra la unidad y el stock disponible del producto elegido, solo a modo informativo
+// (no se usa para validar stock al guardar, sigue el mismo alcance que tenía el resto del módulo).
+function actualizarStockProductoAplicacion(select) {
+  const fila = select.closest('tr');
+  const producto = (state.inventario || []).find(p => p.codigo === select.value);
+  const celdaUnidad = fila.querySelector('.unidad-celda');
+  const celdaStock = fila.querySelector('.stock-celda');
+  if (celdaUnidad) celdaUnidad.textContent = producto?.unidad || '-';
+  if (celdaStock) celdaStock.textContent = producto ? String(producto.stock ?? 0) : '-';
+}
+
 function agregarConcepto(source) {
   const input = document.getElementById('nuevoConcepto');
   const nuevoConcepto = input.value.trim();
@@ -5060,6 +5157,27 @@ function eliminarConcepto(source, index) {
   // Recargar la lista
   cerrarGestionConceptos();
   gestionarConceptos(source);
+}
+
+// Imprime el formulario actualmente abierto en el modal generico (aplica a cualquier módulo:
+// Animales, Sanidad, Aplicaciones, etc.), igual que en PampaAgro.
+function imprimirRegistroModal() {
+  const config = formConfigs[currentModal?.module];
+  const formulario = document.getElementById('modalForm');
+  if (!config || !formulario) { showToast('No hay un formulario abierto para imprimir.', 'error'); return; }
+  const ventana = window.open('', '_blank', 'width=420,height=650');
+  if (!ventana) { showToast('El navegador bloqueó la ventana de impresión.', 'error'); return; }
+  const datosForm = new FormData(formulario);
+  const filas = config.fields.map(field => {
+    let valor;
+    const el = formulario.querySelector(`[name="${field.name}"]`);
+    if (el && el.type === 'checkbox') valor = el.checked ? 'Sí' : 'No';
+    else valor = datosForm.get(field.name);
+    return [field.label || field.name, (valor ?? '').toString()];
+  });
+  const titulo = document.getElementById('modalTitle')?.textContent || config.title || 'Registro';
+  ventana.document.write(`<html><head><title>${titulo}</title><style>body{font-family:Arial,sans-serif;text-align:center;padding:18px}table{width:100%;text-align:left;border-collapse:collapse}td{padding:6px;border-bottom:1px solid #ddd}</style></head><body><h2>${titulo}</h2><table>${filas.map(row => `<tr><td><b>${row[0]}</b></td><td>${row[1] || ''}</td></tr>`).join('')}</table><script>window.onload=()=>window.print();<\/script></body></html>`);
+  ventana.document.close();
 }
 
 function closeModal() {
@@ -5752,7 +5870,8 @@ function renderDashboardAlertas() {
   
   // Actualizar contador en topbar
   if (topbarAlertasCount) {
-    topbarAlertasCount.textContent = alertas.length;
+    topbarAlertasCount.textContent = alertas.length + ' alerta(s)';
+    topbarAlertasCount.style.display = alertas.length ? 'inline-flex' : 'none';
   }
   
   // Limitar a 5 alertas
@@ -7487,6 +7606,7 @@ observer.observe(document.getElementById('content'), { subtree: true, attributes
 
 /* === INICIALIZACIÓN === */
 var appInitialized = false;
+var TRIAL_DAYS = 10; // Declarada acá porque initLicenseSystem() se ejecuta de inmediato abajo y la necesita ya.
 // Verificar licencia antes de inicializar la app
 initLicenseSystem().then(async () => {
   if (await checkLicense()) {
@@ -7537,9 +7657,13 @@ function generarReporte(tipo) {
       y += 6;
       doc.text(`Bancos: $${state.bancos.reduce((sum, m) => sum + (m.tipo === 'Ingreso' ? parseInt(m.importe.replace(/[^0-9]/g, '')) : -parseInt(m.importe.replace(/[^0-9]/g, ''))), 0).toLocaleString()}`, 25, y);
       y += 6;
-      doc.text(`Maquinarias: 17 equipos`, 25, y);
+      doc.text(`Maquinarias: ${(state.maquinarias || []).length} equipos`, 25, y);
       y += 6;
-      doc.text(`Hacienda: ${state.hacienda.reduce((sum, m) => sum + (m.tipo === 'Compra' || m.tipo === 'Nacimiento' ? parseInt(m.cantidad) : -parseInt(m.cantidad)), 1785).toLocaleString()} cabezas`, 25, y);
+      doc.text(`Hacienda: ${state.hacienda.reduce((sum, m) => {
+        if (m.tipo === 'Compra' || m.tipo === 'Nacimiento') return sum + (parseInt(m.cantidad) || 0);
+        if (m.tipo === 'Venta' || m.tipo === 'Muerte') return sum - (parseInt(m.cantidad) || 0);
+        return sum; // Traslado, Vacunación y Cambio Categoría no modifican el total de cabezas
+      }, 0).toLocaleString()} cabezas`, 25, y);
       y += 15;
       
       // PASIVO
@@ -7547,7 +7671,18 @@ function generarReporte(tipo) {
       doc.text('PASIVO', 20, y);
       y += 8;
       doc.setFont(undefined, 'normal');
-      doc.text(`Cuentas por Pagar: $5.300.000`, 25, y);
+      const cuentasPorPagarCheques = (state.chequesCubrir || [])
+        .filter(c => c.estado === 'Emitido' || c.estado === 'Entregado')
+        .reduce((sum, c) => sum + (parseInt(String(c.importe || '0').replace(/[^0-9]/g, '')) || 0), 0);
+      const saldoCreditos = (state.creditos || [])
+        .reduce((sum, cr) => sum + (Array.isArray(cr.cuotas) ? cr.cuotas.filter(q => q.estado !== 'Pagada').reduce((s, q) => s + (Number(q.cuota) || 0), 0) : 0), 0);
+      doc.text(`Cheques por cubrir: $${cuentasPorPagarCheques.toLocaleString()}`, 25, y);
+      y += 6;
+      doc.text(`Créditos/préstamos pendientes: $${saldoCreditos.toLocaleString()}`, 25, y);
+      y += 6;
+      doc.setFont(undefined, 'bold');
+      doc.text(`Total Pasivo: $${(cuentasPorPagarCheques + saldoCreditos).toLocaleString()}`, 25, y);
+      doc.setFont(undefined, 'normal');
       y += 15;
       
       // PATRIMONIO
@@ -7555,15 +7690,15 @@ function generarReporte(tipo) {
       doc.text('PATRIMONIO NETO', 20, y);
       y += 8;
       doc.setFont(undefined, 'normal');
-      doc.text(`Capital Social: $15.000.000`, 25, y);
+      doc.text(`Capital Social: no disponible (este sistema no lleva contabilidad de doble entrada)`, 25, y);
       y += 6;
-      doc.text(`Resultados Acumulados: $2.450.000`, 25, y);
+      doc.text(`Resultados Acumulados: no disponible (este sistema no lleva contabilidad de doble entrada)`, 25, y);
       break;
       
     case 'resultados':
       doc.text('ESTADO DE RESULTADOS', 105, y, { align: 'center' });
       y += 10;
-      doc.text(`Período: Enero 2026`, 20, y);
+      doc.text(`Período: ${new Date().toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}`, 20, y);
       y += 15;
       
       doc.setFont(undefined, 'bold');
@@ -8128,7 +8263,6 @@ function mostrarTodosLosLotes() {
 
 // === SISTEMA DE LICENCIAMIENTO ===
 
-const TRIAL_DAYS = 10;
 appInitialized = false;
 
 function buildTrialPath() {
@@ -8303,13 +8437,12 @@ const PLAN_MODULE_CONFIG_KEY = 'nexoAgroPlanModulesConfig';
 const ALWAYS_PLAN_MODULES = ['dashboard', 'empresa', 'reportes'];
 const PLAN_MODULE_GROUPS = {
   campos: ['campos', 'lotes'],
-  hacienda: ['hacienda'],
+  hacienda: ['hacienda', 'eventosSanitarios'],
   alimentacion: ['alimentacion'],
   inventario: ['inventario', 'movimientoStock'],
   finanzas: ['caja', 'bancos', 'cuentasBancarias', 'cheques', 'chequesCobrar', 'chequesCubrir', 'creditos', 'flujo', 'costos'],
   rentabilidad: ['rentabilidad'],
-  sanidad: ['fiscal', 'eventosSanitarios'],
-  fiscal: ['fiscal', 'eventosSanitarios'],
+  fiscal: ['fiscal'],
   equipos: ['equipos', 'maquinarias', 'cargacombustible', 'costosOperativos', 'mantenimiento'],
   empleados: ['empleados'],
   documentos: ['documentos']
@@ -8326,9 +8459,7 @@ const PLAN_MODULE_CATALOG = [
   { id: 'fiscal', label: 'Fiscal Ganadero' },
   { id: 'empleados', label: 'Empleador' },
   { id: 'rentabilidad', label: 'Rentabilidad' },
-  { id: 'documentos', label: 'Documentos' },
-  { id: 'mantenimiento', label: 'Mantenimiento' },
-  { id: 'administracion', label: 'Administración y Reportes' }
+  { id: 'documentos', label: 'Documentos' }
 ];
 
 function getPlanModuleLimit(plan) {
@@ -8601,6 +8732,37 @@ function validateLicenseKey(key) {
   return true;
 }
 
+const SUBSCRIPTION_OFFLINE_GRACE_MS = 72 * 60 * 60 * 1000;
+
+function subscriptionApiUrl() {
+  return 'https://solucioneseningenieria.com.ar';
+}
+
+async function registerSubscriptionActivation(license) {
+  const response = await fetch(`${subscriptionApiUrl()}/v1/client/activate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: license.key, product: 'pampa-ganaderia', deviceId: license.deviceId }) });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok || body.ok === false) throw new Error(body.message || 'No quedan cupos disponibles para esta licencia.');
+  return body;
+}
+
+async function authorizeSubscription(license) {
+  try {
+    const url = new URL(`${subscriptionApiUrl()}/v1/client/authorization`);
+    url.searchParams.set('licenseId', license.licenseId);
+    url.searchParams.set('deviceId', license.deviceId);
+    const response = await fetch(url, { cache: 'no-store' });
+    if (!response.ok) throw new Error('No se pudo verificar el cupo.');
+    const body = await response.json();
+    const refreshed = await window.PampaLicenseSigned.verifyLicense(body.token, { product: 'pampa-ganaderia' });
+    if (!refreshed.valid) throw new Error('Licencia no autorizada para este producto.');
+    return { ...license, maxUsers: refreshed.maxUsers, lastSubscriptionSyncAt: new Date().toISOString() };
+  } catch (error) {
+    const last = new Date(license.lastSubscriptionSyncAt || 0).getTime();
+    if (Number.isFinite(last) && Date.now() - last <= SUBSCRIPTION_OFFLINE_GRACE_MS) return license;
+    throw error;
+  }
+}
+
 // Activar licencia: solo tokens firmados, en Electron y en la PWA.
 async function activateLicense() {
   const keyInput = document.getElementById('activationKey');
@@ -8649,6 +8811,15 @@ async function activateLicense() {
   const license = signedLicense;
   license.deviceId = license.deviceId || generateDeviceId();
   license.plan = planDetected;
+  try {
+    const activation = await registerSubscriptionActivation(license);
+    license.subscriptionSeats = activation;
+    license.lastSubscriptionSyncAt = new Date().toISOString();
+  } catch (error) {
+    errorMsg.style.display = 'block';
+    errorMsg.textContent = error.message;
+    return;
+  }
   localStorage.setItem('nexoAgroLicense', JSON.stringify(license));
   
   // Ocultar pantalla de activación
@@ -8676,7 +8847,7 @@ function activateTrial() {
 
   const trialLicense = {
     type: 'trial',
-    key: 'TRIAL-10DIAS',
+    key: 'TRIAL-7DIAS',
     activatedAt: now.toISOString(),
     expiresAt: end.toISOString(),
     deviceId: generateDeviceId()
@@ -8692,12 +8863,13 @@ function activateTrial() {
 function maybeAutoActivateTrialFromQuery() {
   const params = new URLSearchParams(window.location.search);
   if (params.get('trial') !== 'auto') return;
+  if (window.PAMPA_DESKTOP_MODE) return; // En escritorio nunca se auto-activa un trial por query param.
 
   const license = getLicenseData();
   const hasValidTrial = license && license.type === 'trial' && getTrialRemainingDays(license) > 0;
 
   if (!hasValidTrial) {
-    activateTrial();
+    
   }
 }
 
@@ -8706,7 +8878,14 @@ function deactivateLicense() {
   if (!confirm('¿Está seguro de desactivar la licencia? Esta acción requerirá una nueva clave de activación.')) {
     return;
   }
-  
+  const license = getLicenseData();
+  if (license?.type === 'signed' && license.deviceId) {
+    fetch(`${subscriptionApiUrl()}/v1/client/release`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: license.key, product: 'pampa-ganaderia', deviceId: license.deviceId })
+    }).catch(() => {});
+  }
   localStorage.removeItem('nexoAgroLicense');
   closeLicenseModal();
   
@@ -8721,7 +8900,7 @@ async function checkLicense() {
   const license = getLicenseData();
 
   if (!license) {
-    activateTrial();
+    
     return true;
   }
 
@@ -8787,7 +8966,8 @@ function showLicenseModal() {
     } else {
       const planLabels = { basica: 'Básica', profesional: 'Profesional', premium: 'Premium' };
       const planLabel = planLabels[getLicensePlan()] || 'Full';
-      document.getElementById('licenseStatus').innerHTML = `<span>✓</span><span>Licencia Activa — Plan ${planLabel}</span>`;
+      const expiryText = license.expiresAt ? ` · vence ${formatLicenseDate(license.expiresAt)}` : '';
+      document.getElementById('licenseStatus').innerHTML = `<span>✓</span><span>Licencia Activa — Plan ${planLabel}${expiryText}</span>`;
     }
   } else {
     document.getElementById('licenseStatus').innerHTML = '<span>✗</span><span>Sin Licencia</span>';
@@ -8803,9 +8983,37 @@ function closeLicenseModal() {
   document.getElementById('licenseModal').classList.remove('active');
 }
 
+function formatLicenseDate(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? 'fecha no disponible' : date.toLocaleDateString('es-AR');
+}
+
+function updateLicenseExpiryNotice(license) {
+  const notice = document.getElementById('licenseExpiryNotice');
+  if (!notice) return;
+  if (!license || license.type === 'trial') {
+    notice.textContent = license?.type === 'trial' ? `Trial: ${getTrialRemainingDays(license)} día(s)` : '';
+    notice.style.color = 'var(--blue)';
+    return;
+  }
+  if (!license.expiresAt) {
+    notice.textContent = 'Licencia sin vencimiento';
+    notice.style.color = 'var(--text-dim)';
+    return;
+  }
+  const daysLeft = Number.isFinite(license.daysLeft)
+    ? license.daysLeft
+    : Math.ceil((new Date(license.expiresAt).getTime() - Date.now()) / 86400000);
+  notice.textContent = daysLeft <= 15
+    ? `⚠️ Renovar en ${Math.max(daysLeft, 0)} día(s) · vence ${formatLicenseDate(license.expiresAt)}`
+    : `Vence ${formatLicenseDate(license.expiresAt)}`;
+  notice.style.color = daysLeft <= 15 ? '#f59e0b' : 'var(--text-dim)';
+}
+
 // Actualizar badge de licencia en el header
 function updateLicenseBadge() {
   const license = getLicenseData();
+  updateLicenseExpiryNotice(license);
   const badgeContainer = document.getElementById('licenseBadgeContainer');
   
   if (!badgeContainer) return;
@@ -8879,7 +9087,7 @@ function initializeAppAfterLicense() {
 
 // Inicializar sistema de licencia al cargar la página
 async function initLicenseSystem() {
-  maybeAutoActivateTrialFromQuery();
+  
 
   if (!(await checkLicense())) {
     showActivationScreen();
@@ -8896,14 +9104,17 @@ const DB_NAME = 'NexoAgroERP';
 const DB_VERSION = 1;
 const STORE_NAME = 'data';
 let db = null;
+let dbReadyPromise = null;
 
-// Inicializar IndexedDB
+// Inicializar IndexedDB (idempotente: si ya se está abriendo, reutiliza la misma promesa)
 function initIndexedDB() {
-  return new Promise((resolve, reject) => {
+  if (dbReadyPromise) return dbReadyPromise;
+  dbReadyPromise = new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
     
     request.onerror = () => {
       console.error('Error al abrir IndexedDB:', request.error);
+      dbReadyPromise = null;
       reject(request.error);
     };
     
@@ -8920,16 +9131,13 @@ function initIndexedDB() {
       }
     };
   });
+  return dbReadyPromise;
 }
 
-// Guardar datos en IndexedDB
-function saveToIndexedDB(key, data) {
+// Guardar datos en IndexedDB (espera a que la DB esté lista en vez de fallar si aún se está abriendo)
+async function saveToIndexedDB(key, data) {
+  if (!db) await initIndexedDB();
   return new Promise((resolve, reject) => {
-    if (!db) {
-      reject('IndexedDB no inicializado');
-      return;
-    }
-    
     const transaction = db.transaction([STORE_NAME], 'readwrite');
     const store = transaction.objectStore(STORE_NAME);
     const request = store.put({ id: key, data: data, timestamp: Date.now() });
@@ -8939,14 +9147,10 @@ function saveToIndexedDB(key, data) {
   });
 }
 
-// Cargar datos desde IndexedDB
-function loadFromIndexedDB(key) {
+// Cargar datos desde IndexedDB (espera a que la DB esté lista en vez de fallar si aún se está abriendo)
+async function loadFromIndexedDB(key) {
+  if (!db) await initIndexedDB();
   return new Promise((resolve, reject) => {
-    if (!db) {
-      reject('IndexedDB no inicializado');
-      return;
-    }
-    
     const transaction = db.transaction([STORE_NAME], 'readonly');
     const store = transaction.objectStore(STORE_NAME);
     const request = store.get(key);
@@ -10055,19 +10259,19 @@ setInterval(actualizarFiscalGanadero, 5000);
     
 </script>
 
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
-  });
-}
-</script>
-
 <script src="pampaia-source.js?v=pampaia-published-6"></script>
+
+<script>
+window.PampaCoreSync?.activarSincronizacionAutomatica({ appId: 'pampaganaderia', mountSelector: '#pampaSyncNavBadge' });
+</script>
 
 <script src="ia-agro.js"></script>
 
-<script src="pampa-seat-control.js" data-product="pampa-ganaderia"></script>
+<script src="ia-module.js"></script>
+
+</div>
+  <script src="./pampa-privacy-popup.js"></script>
+  <script src="./trial-progress.js"></script>
 </body>
 
 </html>
