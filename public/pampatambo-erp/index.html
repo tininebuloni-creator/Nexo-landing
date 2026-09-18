@@ -2020,6 +2020,11 @@
                 <input type="text" id="monitorBuscadorRP" placeholder="🔍 DIGITE Nº DE CARAVANA (RP)..." inputmode="numeric">
                 <button type="button" class="tambo-btn-mini" id="btnMonitorRefrescar" title="Actualizar">⟳</button>
               </div>
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+                <button type="button" class="tambo-btn-mini" id="btnMonitorLectorBluetooth" style="width:auto; font-size:0.75rem;">🔷 Bluetooth</button>
+                <button type="button" class="tambo-btn-mini" id="btnMonitorLectorHid" style="width:auto; font-size:0.75rem;">⌨️ HID</button>
+                <span style="font-size:0.72rem; color:#7f8c8d;" id="monitorLectorCaravanaEstado">Modo HID: escaneá con el campo de búsqueda enfocado.</span>
+              </div>
               <div class="tambo-mo-resumen">
                 <div class="chip aptas" id="monitorChipAptas">0 aptas</div>
                 <div class="chip bloqueadas" id="monitorChipBloqueadas">0 bloqueadas</div>
@@ -11245,6 +11250,75 @@
           return;
         }
 
+        // LUME (liquidacionesLeche): antes esta guardaba solo local (como el resto de "arca" mas abajo),
+        // pero "Calcular fiscal" / "Simular ARCA" / "Encolar ARCA" buscan la liquidación en el modelo del
+        // SERVIDOR (data/liquidaciones-leche.json) — que nunca la recibía. Resultado: la liquidación
+        // quedaba cargada pero el cálculo fiscal (IVA débito, neto, alta automática en Finanzas) siempre
+        // fallaba con "No encontrado", sin ningún aviso claro de por qué. Ahora la guardamos también en
+        // el servidor (misma ruta que ya existía en endpointMap, nunca usada para este tipo) y usamos el
+        // id que asigna el servidor, para que el resto del flujo fiscal la encuentre.
+        if (type === 'liquidacionesLeche') {
+          const endpoint = endpointMap[type] || '/liquidaciones-leche';
+          const previousRow = id ? (state[type] || []).find((item) => `${item.id}` === `${id}`) || null : null;
+          try {
+            let serverRow;
+            if (id) {
+              try {
+                serverRow = await request(`${endpoint}/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+              } catch (error) {
+                if (`${error?.message || ''}` === 'No encontrado') {
+                  // Se había guardado local en una versión anterior de la app y nunca llegó al servidor:
+                  // la creamos ahora en vez de fallar.
+                  serverRow = await request(endpoint, { method: 'POST', body: JSON.stringify(payload) });
+                } else {
+                  throw error;
+                }
+              }
+            } else {
+              serverRow = await request(endpoint, { method: 'POST', body: JSON.stringify(payload) });
+            }
+
+            const next = { ...payload, id: serverRow.id };
+            if (previousRow && `${previousRow.id}` !== `${next.id}`) {
+              state[type] = (state[type] || []).filter((item) => `${item.id}` !== `${previousRow.id}`);
+            }
+            const index = (state[type] || []).findIndex((item) => `${item.id}` === `${next.id}`);
+            if (index >= 0) state[type][index] = { ...(state[type][index] || {}), ...next };
+            else state[type] = [next, ...(state[type] || [])];
+            recordAudit(id ? 'EDICION' : 'ALTA', `${type}${id ? ` #${id}` : ''}`);
+            saveArcaLocalState();
+            saveOfflineSnapshot();
+            if (getDropdownFieldKeys(type).length) {
+              syncDropdownCatalogFromPayload(type, payload);
+            }
+            renderAll();
+            closeModal();
+          } catch (error) {
+            if (isConnectivityError(error)) {
+              const localId = id || (window.crypto?.randomUUID?.() || `${Date.now()}-${Math.floor(Math.random() * 100000)}`);
+              const rowWithId = { ...payload, id: localId };
+              if (id) {
+                state[type] = (state[type] || []).map((row) => (`${row.id}` === `${id}` ? rowWithId : row));
+                enqueueSyncOperation({ type, op: 'update', rowId: id, payload: rowWithId });
+                recordAudit('EDICION', `${type} #${id} (offline)`);
+              } else {
+                state[type] = [rowWithId, ...(state[type] || [])];
+                enqueueSyncOperation({ type, op: 'create', rowId: localId, payload: rowWithId });
+                recordAudit('ALTA', `${type} (offline)`);
+              }
+              saveArcaLocalState();
+              saveOfflineSnapshot();
+              renderAll();
+              renderConnectivityStatus('Cambios guardados offline');
+              closeModal();
+              showToast('Sin conexión: la liquidación quedó guardada localmente y se sincroniza cuando vuelva la señal.', 'info');
+            } else {
+              showToast(error.message || 'No se pudo guardar la liquidación de leche.', 'error');
+            }
+          }
+          return;
+        }
+
         if (collectionToModule(type) === 'arca') {
           let previousRow = null;
           const next = { ...payload };
@@ -11505,6 +11579,32 @@
     // Monitor de ordeñe / Tratamiento rápido (secciones nativas de Ordeñes)
     byId('monitorBuscadorRP')?.addEventListener('input', (e) => renderMonitorOrdene(e.target.value));
     byId('btnMonitorRefrescar')?.addEventListener('click', () => renderMonitorOrdene(byId('monitorBuscadorRP')?.value || ''));
+
+    // Lector de caravanas del Monitor de ordeñe (ex monitor-ordene.html, no se había portado al
+    // integrar la sección nativa). Modo HID (teclado) funciona con la mayoría de los lectores
+    // económicos sin código adicional; Web Bluetooth queda preparado para conectar por BLE nativo
+    // una vez definido el modelo del lector.
+    async function conectarLectorBluetoothMonitorOrdene() {
+      const estado = byId('monitorLectorCaravanaEstado');
+      if (!navigator.bluetooth?.requestDevice) {
+        if (estado) estado.textContent = 'Este navegador no soporta Bluetooth BLE (Web Bluetooth). Usá el modo HID: emparejá el lector desde la configuración Bluetooth del celular y escaneá con el campo enfocado.';
+        return;
+      }
+      try {
+        if (estado) estado.textContent = 'Buscando lectores Bluetooth cercanos...';
+        const dispositivo = await navigator.bluetooth.requestDevice({ acceptAllDevices: true });
+        if (estado) estado.textContent = `Conectado a "${dispositivo.name || 'lector sin nombre'}". Falta configurar el protocolo de este modelo para completar la búsqueda automático: por ahora usá el modo HID o escribí la caravana manualmente.`;
+        localStorage.setItem('pampaTamboBluetoothReaderMonitor', JSON.stringify({ nombre: dispositivo.name || 'Lector Bluetooth', conectadoEn: new Date().toISOString() }));
+      } catch (error) {
+        if (estado) estado.textContent = error?.name === 'NotFoundError' ? 'Conexión Bluetooth cancelada. Podés usar el modo HID.' : `No se pudo conectar el lector: ${error?.message || 'error desconocido'}`;
+      }
+    }
+    byId('btnMonitorLectorBluetooth')?.addEventListener('click', conectarLectorBluetoothMonitorOrdene);
+    byId('btnMonitorLectorHid')?.addEventListener('click', () => {
+      byId('monitorBuscadorRP')?.focus();
+      const estado = byId('monitorLectorCaravanaEstado');
+      if (estado) estado.textContent = 'Campo listo: escaneá con el lector Bluetooth emparejado como teclado (modo HID).';
+    });
     byId('ordTratMedicamento')?.addEventListener('change', () => {
       const isManual = byId('ordTratMedicamento').value === '__manual__';
       byId('ordTratManualNombreRow').classList.toggle('is-hidden', !isManual);
