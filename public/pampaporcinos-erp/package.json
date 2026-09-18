@@ -8,9 +8,9 @@
     "start": "node server.js",
     "start:static": "npx http-server . -p 3121",
     "prepare:desktop": "node ../../scripts/protect-static-desktop.js . desktop-public",
-    "build:basica": "node ../../scripts/bump-release-version.js && node ../../scripts/sync-desktop-ui-from-nexo-landing.js && npm run prepare:desktop && electron-builder --config electron-builder-basica.json",
-    "build:profesional": "node ../../scripts/bump-release-version.js && node ../../scripts/sync-desktop-ui-from-nexo-landing.js && npm run prepare:desktop && electron-builder --config electron-builder-profesional.json",
-    "build:premium": "node ../../scripts/bump-release-version.js && node ../../scripts/sync-desktop-ui-from-nexo-landing.js && npm run prepare:desktop && electron-builder --config electron-builder-premium.json"
+    "build:basica": "node ../../scripts/bump-release-version.js && node ../../scripts/sync-desktop-ui-from-nexo-landing.js && npm run prepare:desktop && electron-builder --config electron-builder-basica.json && node ../../scripts/restore-web-trial-ui-after-build.js pampaporcinos-erp",
+    "build:profesional": "node ../../scripts/bump-release-version.js && node ../../scripts/sync-desktop-ui-from-nexo-landing.js && npm run prepare:desktop && electron-builder --config electron-builder-profesional.json && node ../../scripts/restore-web-trial-ui-after-build.js pampaporcinos-erp",
+    "build:premium": "node ../../scripts/bump-release-version.js && node ../../scripts/sync-desktop-ui-from-nexo-landing.js && npm run prepare:desktop && electron-builder --config electron-builder-premium.json && node ../../scripts/restore-web-trial-ui-after-build.js pampaporcinos-erp"
   },
   "devDependencies": {
     "electron": "31.7.7",

@@ -8,7 +8,7 @@
   "scripts": {
     "desktop": "electron .",
     "prepare:desktop": "node \"../PAMPA N-ecosystem/scripts/protect-static-desktop.js\" . desktop-public",
-    "dist": "node \"../PAMPA N-ecosystem/scripts/sync-desktop-ui-from-nexo-landing.js\" && npm run prepare:desktop && electron-builder --win nsis --publish never",
+    "dist": "node \"../PAMPA N-ecosystem/scripts/sync-desktop-ui-from-nexo-landing.js\" && npm run prepare:desktop && electron-builder --win nsis --publish never && node \"../PAMPA N-ecosystem/scripts/restore-web-trial-ui-after-build.js\" PampaTopografia",
     "armar-pack": "node scripts/armar-pack-topografia.js"
   },
   "devDependencies": {
