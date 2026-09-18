@@ -571,6 +571,10 @@ body {
 .tag.blue { background: rgba(59,130,246,0.15); color: var(--blue); }
 .tag.orange { background: rgba(245,158,11,0.15); color: var(--orange); }
 .tag.red { background: rgba(239,68,68,0.15); color: var(--red); }
+.tag.purple { background: rgba(139,92,246,0.15); color: var(--purple); }
+.nav-badge.plan-basica { background: rgba(59,130,246,0.15); color: var(--blue); }
+.nav-badge.plan-profesional { background: rgba(245,158,11,0.15); color: var(--orange); }
+.nav-badge.plan-premium { background: rgba(139,92,246,0.15); color: var(--purple); }
 
 /* Clases usadas en varias partes de la app pero que nunca se habían definido */
 .text-muted { color: var(--text-dim); font-size: 13px; }
@@ -1215,6 +1219,9 @@ body {
         <div class="logo-text">PampaGanaderia ERP</div>
         <div class="logo-sub">v1.0.1</div>
       </div>
+    </div>
+    <div id="trialFullVersionNotice" style="display:none; margin:10px 12px 0; padding:9px 10px; font-size:11px; line-height:1.4; border-radius:6px; background:rgba(59,130,246,0.12); border:1px solid var(--blue); color:var(--blue);">
+      🔓 <strong>Estás probando la versión completa.</strong> Con tu licencia definitiva, el acceso queda limitado a los módulos de tu plan (mirá las etiquetas Básica/Profesional/Premium del menú).
     </div>
     <nav class="sidebar-nav">
       <div class="nav-section">
@@ -3471,7 +3478,9 @@ function cambiarRol(rol) {
 function actualizarPermisos() {
   const permisos = rolePermissions[currentRole];
   const bypassPlan = false;
-  
+  const esTrial = getEffectiveLicensePlan() === 'trial';
+  const tierLabels = { basica: 'Básica', profesional: 'Profesional', premium: 'Premium' };
+
   // Ocultar/mostrar módulos en el menú lateral (rol + plan)
   document.querySelectorAll('.nav-item').forEach(item => {
     const modulo = item.dataset.module;
@@ -3486,8 +3495,26 @@ function actualizarPermisos() {
     } else {
       item.style.display = 'none';
     }
+
+    // Durante el trial planTieneModulo siempre da true (se ve todo), así que mostramos de qué
+    // plan es cada módulo para que quede claro qué queda afuera si no se elige Premium.
+    let etiquetaPlan = item.querySelector('.nav-plan-tag');
+    const tier = esTrial ? getModuloPlanTier(modulo) : null;
+    if (tier) {
+      if (!etiquetaPlan) {
+        etiquetaPlan = document.createElement('span');
+        item.appendChild(etiquetaPlan);
+      }
+      etiquetaPlan.className = `nav-plan-tag nav-badge plan-${tier}`;
+      etiquetaPlan.textContent = tierLabels[tier];
+    } else if (etiquetaPlan) {
+      etiquetaPlan.remove();
+    }
   });
-  
+
+  const trialNotice = document.getElementById('trialFullVersionNotice');
+  if (trialNotice) trialNotice.style.display = esTrial ? 'block' : 'none';
+
   // Si el módulo actual no está permitido, ir al dashboard
   const modActivo = document.querySelector('.module.active');
   if (modActivo) {
@@ -9072,6 +9099,19 @@ function planTieneModulo(modulo) {
   if (permitidos === null) return true;
   const comercial = getCommercialModuleForScreen(modulo);
   return ALWAYS_PLAN_MODULES.includes(modulo) || (comercial && permitidos.includes(comercial));
+}
+
+// Plan mínimo que ya incluye este módulo (basica ⊂ profesional ⊂ premium), para mostrar la
+// etiqueta correspondiente en el menú durante el trial (ahí se ve todo, así que esto es lo que
+// le indica al usuario qué plan necesitaría en la versión paga).
+function getModuloPlanTier(modulo) {
+  if (ALWAYS_PLAN_MODULES.includes(modulo)) return null;
+  const comercial = getCommercialModuleForScreen(modulo);
+  if (!comercial) return null;
+  if (PLAN_MODULES.basica.includes(comercial)) return 'basica';
+  if (PLAN_MODULES.profesional.includes(comercial)) return 'profesional';
+  if (PLAN_MODULES.premium.includes(comercial)) return 'premium';
+  return null;
 }
 
 function abrirConfiguracionModulosPlan() {
