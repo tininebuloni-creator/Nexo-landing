@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script id="pampa-web-trial-guard">(function(){try{const url=new URL(window.location.href);if(url.searchParams.get('trial')==='auto'){url.searchParams.delete('trial');window.history.replaceState({},document.title,url.pathname+url.search+url.hash);}}catch(error){}}());</script>
+<script id="pampa-web-trial-guard">(function(){try{const url=new URL(window.location.href);if(url.searchParams.get('trial')==='auto'){window.__pampaTrialAutoRequested=true;url.searchParams.delete('trial');window.history.replaceState({},document.title,url.pathname+url.search+url.hash);}}catch(error){}}());</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PampaTambo ERP - Gestión Agropecuaria Integral</title>
@@ -317,6 +317,32 @@
     .is-hidden {
       display: none !important;
     }
+    /* === Monitor de ordeñe / Tratamiento rápido (módulo nativo, ex monitor-ordene.html y tratamientos.html) === */
+    .tambo-mo-searchbox { background:#fff; padding:12px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,.05); margin-bottom:12px; display:flex; gap:8px; }
+    .tambo-mo-searchbox input { flex:1; padding:12px; font-size:1.1rem; border:2px solid #ced4da; border-radius:6px; box-sizing:border-box; text-align:center; font-weight:bold; font-family:inherit; }
+    .tambo-mo-searchbox input:focus { border-color:#2980b9; outline:none; }
+    .tambo-btn-mini { border:2px solid #2980b9; background:#fff; color:#2980b9; border-radius:6px; padding:8px 14px; font-size:.85rem; cursor:pointer; }
+    .tambo-mo-resumen { display:flex; gap:8px; margin-bottom:12px; font-size:.78rem; }
+    .tambo-mo-resumen .chip { flex:1; text-align:center; padding:8px; border-radius:6px; font-weight:bold; }
+    .tambo-mo-resumen .chip.aptas { background:#e1f7ec; color:#1e7e34; }
+    .tambo-mo-resumen .chip.bloqueadas { background:#fce8e6; color:#c53030; }
+    .tambo-vaca-card { background:#fff; border-radius:8px; padding:15px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; gap:10px; box-shadow:0 2px 4px rgba(0,0,0,.02); border-left:6px solid #ccc; }
+    .tambo-vaca-card .vaca-rp { font-size:1.2rem; font-weight:bold; color:#2c3e50; }
+    .tambo-vaca-card .vaca-detalles { font-size:.85rem; color:#57606f; }
+    .tambo-vaca-card .status-badge { padding:8px 12px; font-weight:bold; font-size:.8rem; border-radius:5px; text-align:center; text-transform:uppercase; white-space:nowrap; }
+    .tambo-vaca-card.apta { border-left-color:#1e7e34; }
+    .tambo-vaca-card.apta .status-badge { background-color:#e1f7ec; color:#1e7e34; }
+    .tambo-vaca-card.bloqueada { border-left-color:#c53030; }
+    .tambo-vaca-card.bloqueada .status-badge { background-color:#fce8e6; color:#c53030; animation:tamboPulse 2s infinite; }
+    @keyframes tamboPulse { 0%{opacity:1;} 50%{opacity:.7;} 100%{opacity:1;} }
+    .tambo-tr-alerta { display:none; background-color:#fff5f5; border:2px dashed #e74c3c; padding:15px; border-radius:6px; margin-top:15px; color:#c53030; font-size:.9rem; line-height:1.4; text-align:center; }
+    .tambo-tr-alerta strong { font-size:1.1rem; display:block; margin-bottom:5px; }
+    .tambo-tr-sinretiro { display:none; background-color:#e6f7ee; border:2px dashed #27ae60; padding:10px; border-radius:6px; margin-top:15px; color:#1e7a4a; font-size:.85rem; text-align:center; }
+    .tambo-tr-feedback { display:none; margin-top:12px; padding:12px; border-radius:6px; font-size:.85rem; line-height:1.4; }
+    .tambo-tr-feedback.ok { display:block; background:#e6f7ee; color:#1e7a4a; }
+    .tambo-tr-feedback.error { display:block; background:#fdecea; color:#c0392b; }
+    .tambo-tr-feedback.queued { display:block; background:#fff7e6; color:#8a5a00; }
+    .tambo-tr-manual-row { display:none; }
     .production-summary {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1096,7 +1122,9 @@
         </div>
         <div class="nav-item nav-group-title" data-module="entregas" onclick="openProduccionResumen()">🥛 Producción y Entrega de Leche</div>
         <div class="nav-submenu" aria-label="Submódulos de Producción y Entrega de Leche">
-          <div class="nav-subitem" onclick="openModule('ordenes')">• Ordeñes</div>
+          <div class="nav-subitem" onclick="openOrdenesTabla()">• Ordeñes</div>
+          <div class="nav-subitem" data-submodule="ordenes-monitor" onclick="openOrdenesMonitor()">• 📋 Monitor de ordeñe (fosa)</div>
+          <div class="nav-subitem" data-submodule="ordenes-tratamiento" onclick="openOrdenesTratamiento()">• 🩺 Tratamiento rápido</div>
           <div class="nav-subitem" data-submodule="entrega-usina" onclick="openProduccionEntrega()">• Entrega a Usina</div>
         </div>
         <div class="nav-item nav-group-title" data-module="costos" onclick="openCostosSummary()">💵 Costos</div>
@@ -1206,8 +1234,8 @@
               <div class="muted">Clima, dólar, insumos y mercado lechero</div>
             </div>
             <div class="dashboard-shortcuts-grid">
-              <a class="shortcut-link" href="monitor-ordene.html" target="_blank" rel="noopener noreferrer">📋 Monitor de ordeñe</a>
-              <a class="shortcut-link" href="tratamientos.html" target="_blank" rel="noopener noreferrer">💉 Tratamientos sanitarios</a>
+              <a class="shortcut-link" href="#" onclick="openOrdenesMonitor();return false;">📋 Monitor de ordeñe</a>
+              <a class="shortcut-link" href="#" onclick="openOrdenesTratamiento();return false;">💉 Tratamientos sanitarios</a>
               <a class="shortcut-link" href="https://www.agrositio.com.ar/clima/" target="_blank" rel="noopener noreferrer">🌦️ Clima AgroSitio</a>
               <a class="shortcut-link" href="https://dolarhoy.com/" target="_blank" rel="noopener noreferrer">💵 Dólar Hoy</a>
               <a class="shortcut-link" href="https://www.acamarket.com.ar/" target="_blank" rel="noopener noreferrer">🧪 Insumos ACAMarket</a>
@@ -1958,7 +1986,7 @@
         </div>
 
         <div class="module" id="mod-ordenes">
-          <div class="card">
+          <div class="card" id="ordenesTablaCard">
             <div class="card-header">
               <div class="card-title">🥛 Registro de ordeñes</div>
               <button class="btn primary" id="btnNuevaOrdene">+ Nueva ordeñe</button>
@@ -1978,6 +2006,75 @@
                 <tbody id="tbodyOrdenes"></tbody>
               </table>
             </div>
+          </div>
+
+          <div class="card is-hidden" id="ordenesMonitorCard">
+            <div class="card-header">
+              <div>
+                <div class="card-title">📋 Monitor en Fosa de Ordeñe</div>
+                <div class="muted">Validación sanitaria de entrega a Tanque Comercial · datos del ERP en vivo</div>
+              </div>
+            </div>
+            <div style="padding:0 16px 16px;">
+              <div class="tambo-mo-searchbox">
+                <input type="text" id="monitorBuscadorRP" placeholder="🔍 DIGITE Nº DE CARAVANA (RP)..." inputmode="numeric">
+                <button type="button" class="tambo-btn-mini" id="btnMonitorRefrescar" title="Actualizar">⟳</button>
+              </div>
+              <div class="tambo-mo-resumen">
+                <div class="chip aptas" id="monitorChipAptas">0 aptas</div>
+                <div class="chip bloqueadas" id="monitorChipBloqueadas">0 bloqueadas</div>
+              </div>
+              <div id="monitorOrdeneLista"></div>
+            </div>
+          </div>
+
+          <div class="card is-hidden" id="ordenesTratamientoCard">
+            <div class="card-header">
+              <div>
+                <div class="card-title">🍼 Tratamiento Sanitario Rápido</div>
+                <div class="muted">Registro de tratamientos y control de período de retiro · pozo de ordeñe · guarda en Sanidad</div>
+              </div>
+            </div>
+            <form id="tratamientoRapidoForm" style="padding:0 16px 16px;">
+              <div class="form-grid">
+                <div class="field"><label for="ordTratRP">Nro. de Caravana / RP</label><input type="text" id="ordTratRP" placeholder="Ej: V-4052" required autocomplete="off"></div>
+                <div class="field"><label for="ordTratFecha">Fecha Aplicación</label><input type="date" id="ordTratFecha" required></div>
+                <div class="field"><label for="ordTratDiagnostico">Patología / Diagnóstico</label>
+                  <select id="ordTratDiagnostico" required>
+                    <option value="">-- Seleccionar --</option>
+                    <option value="mastitis_cl">Mastitis Clínica</option>
+                    <option value="mastitis_sub">Mastitis Subclínica</option>
+                    <option value="pietin">Pietín (Afección podal)</option>
+                    <option value="metritis">Metritis (Infección uterina)</option>
+                    <option value="otro">Otro</option>
+                  </select>
+                </div>
+                <div class="field"><label for="ordTratMedicamento">Medicamento Aplicado</label>
+                  <select id="ordTratMedicamento" required><option value="">-- Seleccionar --</option></select>
+                  <div class="hint" id="ordTratMedicamentoHint" style="font-size:.75rem;color:var(--text-dim);margin-top:4px;"></div>
+                </div>
+                <div class="field tambo-tr-manual-row" id="ordTratManualNombreRow"><label for="ordTratManualNombre">Nombre del producto</label><input type="text" id="ordTratManualNombre" placeholder="Ej: Oxitetraciclina"></div>
+                <div class="field tambo-tr-manual-row" id="ordTratManualRetiroRow"><label for="ordTratManualRetiro">Días de retiro (según prospecto)</label><input type="number" id="ordTratManualRetiro" min="0" placeholder="Ej: 5"></div>
+                <div class="field"><label for="ordTratDosis">Dosis Aplicada</label><input type="text" id="ordTratDosis" placeholder="Ej: 1 jeringa / 20 ml" required></div>
+                <div class="field"><label for="ordTratCuarto">Cuarto Mamario (Si aplica)</label>
+                  <select id="ordTratCuarto">
+                    <option value="na">No aplica</option>
+                    <option value="AD">Anterior Derecho</option>
+                    <option value="AI">Anterior Izquierdo</option>
+                    <option value="PD">Posterior Derecho</option>
+                    <option value="PI">Posterior Izquierdo</option>
+                  </select>
+                </div>
+                <div class="field"><label for="ordTratResponsable">Responsable</label><input type="text" id="ordTratResponsable" placeholder="Ej: Operario pozo de ordeñe" value="Operario pozo de ordeñe"></div>
+              </div>
+              <div id="ordTratAlertaRetiro" class="tambo-tr-alerta">
+                <strong>🚨 ¡ATENCIÓN: LECHE DESCARTADA!</strong>
+                Esta vaca queda bloqueada para el tanque. Enviar producción a fosa/terneros hasta el día: <span id="ordTratFechaLiberacion" style="font-weight:bold;text-decoration:underline;"></span>.
+              </div>
+              <div id="ordTratAlertaSinRetiro" class="tambo-tr-sinretiro">✓ Este producto no tiene período de retiro de leche registrado.</div>
+              <button type="submit" class="btn primary" id="btnOrdTratGuardar" style="margin-top:15px;width:100%;">Guardar Registro Clínico</button>
+              <div class="tambo-tr-feedback" id="ordTratFeedback"></div>
+            </form>
           </div>
         </div>
 
@@ -2826,8 +2923,8 @@
           <div class="card">
             <div class="card-header">
               <div class="card-title">💉 Hacienda: Sanidad</div>
-              <a class="btn" href="monitor-ordene.html" target="_blank" rel="noopener">📋 Monitor de ordeñe</a>
-              <a class="btn" href="tratamientos.html" target="_blank" rel="noopener">📱 Pantalla pozo de ordeñe</a>
+              <a class="btn" href="#" onclick="openOrdenesMonitor();return false;">📋 Monitor de ordeñe</a>
+              <a class="btn" href="#" onclick="openOrdenesTratamiento();return false;">📱 Pantalla pozo de ordeñe</a>
               <button class="btn primary" id="btnNuevaSanidad">+ Nuevo registro</button>
             </div>
             <div class="table-wrap">
@@ -6717,6 +6814,188 @@
       setProduccionView('entrega');
       setActiveSubmodule('entrega-usina');
       document.querySelector('.nav-item[data-module="entregas"]')?.classList.remove('active');
+    }
+
+    // === Monitor de ordeñe / Tratamiento rápido (ex monitor-ordene.html y tratamientos.html) ===
+    // Viven ahora como secciones nativas de "Ordeñes": usan state.animales/state.sanidad/state.insumosSanidad
+    // (los mismos datos que el resto del ERP, en memoria) y guardan a través de la misma vía que el resto de
+    // la app (request('/sanidad', ...) + enqueueSyncOperation si no hay conexión), en vez de llamar aparte a
+    // /tambo/* con su propia cola de sincronización. Así el trial y la versión completa quedan siempre iguales.
+    function setOrdenesView(mode = 'tabla') {
+      const showTabla = mode === 'tabla';
+      const showMonitor = mode === 'monitor';
+      const showTratamiento = mode === 'tratamiento';
+      byId('ordenesTablaCard')?.classList.toggle('is-hidden', !showTabla);
+      byId('ordenesMonitorCard')?.classList.toggle('is-hidden', !showMonitor);
+      byId('ordenesTratamientoCard')?.classList.toggle('is-hidden', !showTratamiento);
+    }
+
+    function openOrdenesTabla() {
+      openModule('ordenes');
+      setOrdenesView('tabla');
+      setActiveSubmodule(null);
+    }
+
+    function openOrdenesMonitor() {
+      openModule('ordenes');
+      setOrdenesView('monitor');
+      setActiveSubmodule('ordenes-monitor');
+      renderMonitorOrdene();
+    }
+
+    function openOrdenesTratamiento() {
+      openModule('ordenes');
+      setOrdenesView('tratamiento');
+      setActiveSubmodule('ordenes-tratamiento');
+      prepararTratamientoRapido();
+    }
+
+    function renderMonitorOrdene(filtroTexto = '') {
+      const cont = byId('monitorOrdeneLista');
+      if (!cont) return;
+      const hoy = todayStart();
+      const query = `${filtroTexto || ''}`.trim().toUpperCase();
+      const animales = (state.animales || [])
+        .filter((a) => `${a?.estado || ''}`.toUpperCase() !== 'BAJA')
+        .map((a) => {
+          const retiro = getRetiroActivo(a.caravana, hoy);
+          return {
+            rp: a.caravana || '(sin caravana)',
+            categoria: a.categoria || a.estado_lactancia || '-',
+            estado: retiro ? 'bloqueada' : 'apta',
+            detalles: retiro
+              ? `${retiro.producto} · RETIRO HASTA: ${retiro.finRetiro.toLocaleDateString('es-AR')} (${retiro.diasRestantes} día(s))`
+              : 'Sin tratamientos activos. Ordeñe normal.',
+          };
+        })
+        .filter((v) => !query || `${v.rp}`.toUpperCase().includes(query))
+        .sort((a, b) => (a.estado === b.estado ? `${a.rp}`.localeCompare(`${b.rp}`) : (a.estado === 'bloqueada' ? -1 : 1)));
+
+      byId('monitorChipAptas').textContent = `${animales.filter((v) => v.estado === 'apta').length} aptas`;
+      byId('monitorChipBloqueadas').textContent = `${animales.filter((v) => v.estado === 'bloqueada').length} bloqueadas`;
+
+      if (!animales.length) {
+        cont.innerHTML = '<div class="muted" style="text-align:center;padding:20px;">Vaca no encontrada o sin animales cargados en el ERP.</div>';
+        return;
+      }
+
+      cont.innerHTML = animales.map((vaca) => {
+        const labelBadge = vaca.estado === 'apta' ? '👍 TANQUE' : '❌ RECHAZO';
+        return `
+          <div class="tambo-vaca-card ${vaca.estado}">
+            <div class="vaca-info">
+              <div class="vaca-rp">RP: ${escapeHtml(vaca.rp)}</div>
+              <div class="vaca-detalles">
+                <strong>Categoría:</strong> ${escapeHtml(vaca.categoria)}<br>
+                <span style="color:${vaca.estado === 'bloqueada' ? '#c53030' : 'inherit'}">${escapeHtml(vaca.detalles)}</span>
+              </div>
+            </div>
+            <div class="status-badge">${labelBadge}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Guarda un registro de Sanidad por la misma vía que usa el formulario general (endpoint /sanidad +
+    // cola de sincronización offline enqueueSyncOperation), para que Tratamiento rápido no duplique lógica.
+    async function guardarSanidadRapido(payload, insumoActual) {
+      try {
+        await request(endpointMap.sanidad || '/sanidad', { method: 'POST', body: JSON.stringify(payload) });
+        recordAudit('ALTA', 'sanidad (tratamiento rápido)');
+        if (insumoActual) {
+          const nuevoStock = Math.max(0, Number(insumoActual.stock || 0) - 1);
+          try {
+            await request(`${endpointMap.insumosSanidad || '/insumosSanidad'}/${insumoActual.id}`, { method: 'PUT', body: JSON.stringify({ stock: nuevoStock }) });
+            insumoActual.stock = nuevoStock;
+          } catch { /* el stock se puede ajustar manualmente en Inventario si esto falla */ }
+        }
+        await loadData();
+        return { ok: true, offline: false };
+      } catch (error) {
+        if (isConnectivityError(error)) {
+          const localId = (window.crypto?.randomUUID?.() || `${Date.now()}-${Math.floor(Math.random() * 100000)}`);
+          const rowWithId = { ...payload, id: localId };
+          state.sanidad = [rowWithId, ...(state.sanidad || [])];
+          enqueueSyncOperation({ type: 'sanidad', op: 'create', rowId: localId, payload: rowWithId });
+          saveOfflineSnapshot();
+          renderAll();
+          renderConnectivityStatus('Cambios guardados offline');
+          return { ok: true, offline: true };
+        }
+        return { ok: false, error };
+      }
+    }
+
+    function mapearTipoSanidadRapido(diagnostico) {
+      if (diagnostico === 'mastitis_cl' || diagnostico === 'mastitis_sub') return 'MASTITIS_TRATAMIENTO';
+      return 'TRATAMIENTO';
+    }
+
+    function diasRetiroSeleccionadoRapido() {
+      const select = byId('ordTratMedicamento');
+      if (select.value === '__manual__') {
+        const n = Number(byId('ordTratManualRetiro').value);
+        return Number.isFinite(n) && n >= 0 ? n : null;
+      }
+      const opt = select.selectedOptions[0];
+      if (!opt || opt.dataset.retiro === undefined) return null;
+      return Number(opt.dataset.retiro);
+    }
+
+    function nombreProductoSeleccionadoRapido() {
+      const select = byId('ordTratMedicamento');
+      if (select.value === '__manual__') return byId('ordTratManualNombre').value.trim();
+      const opt = select.selectedOptions[0];
+      return opt ? (opt.dataset.producto || opt.textContent) : '';
+    }
+
+    function evaluarRetiroTratamientoRapido() {
+      const dias = diasRetiroSeleccionadoRapido();
+      const inputFecha = byId('ordTratFecha').value;
+      const panelAlerta = byId('ordTratAlertaRetiro');
+      const panelSinRetiro = byId('ordTratAlertaSinRetiro');
+      if (dias === null || !inputFecha) {
+        panelAlerta.style.display = 'none';
+        panelSinRetiro.style.display = 'none';
+        return;
+      }
+      if (dias === 0) {
+        panelAlerta.style.display = 'none';
+        panelSinRetiro.style.display = 'block';
+        return;
+      }
+      panelSinRetiro.style.display = 'none';
+      const fechaTratamiento = new Date(`${inputFecha}T00:00:00`);
+      fechaTratamiento.setDate(fechaTratamiento.getDate() + dias);
+      byId('ordTratFechaLiberacion').innerText = fechaTratamiento.toLocaleDateString('es-AR');
+      panelAlerta.style.display = 'block';
+    }
+
+    function poblarMedicamentosTratamientoRapido() {
+      const select = byId('ordTratMedicamento');
+      const disponibles = (state.insumosSanidad || []).filter((x) => Number(x.stock || 0) > 0);
+      if (!disponibles.length) {
+        select.innerHTML = '<option value="">-- Sin stock cargado en Inventario --</option><option value="__manual__">Otro (ingresar manualmente)</option>';
+      } else {
+        select.innerHTML = '<option value="">-- Seleccionar de Veterinaria --</option>'
+          + disponibles.map((i) => `<option value="${i.id}" data-retiro="${Number(i.dias_retiro || 0)}" data-producto="${escapeHtml(i.producto || '')}">${escapeHtml(i.producto || 'Sin nombre')} (Retiro: ${Number(i.dias_retiro || 0)}d) · Stock: ${i.stock} ${i.unidad || ''}</option>`).join('')
+          + '<option value="__manual__">Otro (ingresar manualmente)</option>';
+      }
+      byId('ordTratMedicamentoHint').textContent = 'Inventario real de PampaTambo (Insumos > Sanidad). El stock se descuenta al guardar.';
+    }
+
+    function prepararTratamientoRapido() {
+      byId('tratamientoRapidoForm')?.reset();
+      byId('ordTratFecha').valueAsDate = new Date();
+      byId('ordTratResponsable').value = 'Operario pozo de ordeñe';
+      byId('ordTratAlertaRetiro').style.display = 'none';
+      byId('ordTratAlertaSinRetiro').style.display = 'none';
+      byId('ordTratManualNombreRow').classList.add('is-hidden');
+      byId('ordTratManualRetiroRow').classList.add('is-hidden');
+      byId('ordTratFeedback').className = 'tambo-tr-feedback';
+      byId('ordTratFeedback').textContent = '';
+      poblarMedicamentosTratamientoRapido();
+      byId('ordTratRP').focus();
     }
 
     function setCostosView(mode = 'summary') {
@@ -11222,6 +11501,78 @@
     });
     byId('btnNuevaSanidad').addEventListener('click', () => openModal('sanidad'));
     byId('btnNuevoRegistroSenasa')?.addEventListener('click', () => openModal('sanidad'));
+
+    // Monitor de ordeñe / Tratamiento rápido (secciones nativas de Ordeñes)
+    byId('monitorBuscadorRP')?.addEventListener('input', (e) => renderMonitorOrdene(e.target.value));
+    byId('btnMonitorRefrescar')?.addEventListener('click', () => renderMonitorOrdene(byId('monitorBuscadorRP')?.value || ''));
+    byId('ordTratMedicamento')?.addEventListener('change', () => {
+      const isManual = byId('ordTratMedicamento').value === '__manual__';
+      byId('ordTratManualNombreRow').classList.toggle('is-hidden', !isManual);
+      byId('ordTratManualRetiroRow').classList.toggle('is-hidden', !isManual);
+      evaluarRetiroTratamientoRapido();
+    });
+    byId('ordTratManualRetiro')?.addEventListener('input', evaluarRetiroTratamientoRapido);
+    byId('ordTratFecha')?.addEventListener('change', evaluarRetiroTratamientoRapido);
+    byId('tratamientoRapidoForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = byId('btnOrdTratGuardar');
+      const rp = byId('ordTratRP').value.trim().toUpperCase();
+      const diagnostico = byId('ordTratDiagnostico').value;
+      const dosis = byId('ordTratDosis').value.trim();
+      const cuarto = byId('ordTratCuarto').value;
+      const responsable = byId('ordTratResponsable').value.trim() || 'Operario pozo de ordeñe';
+      const fecha = byId('ordTratFecha').value;
+      const producto = nombreProductoSeleccionadoRapido();
+      const diasRetiro = diasRetiroSeleccionadoRapido();
+      const feedback = byId('ordTratFeedback');
+
+      if (!producto) { feedback.className = 'tambo-tr-feedback error'; feedback.textContent = 'Elegí un medicamento o completá el nombre manual.'; return; }
+      if (diasRetiro === null) { feedback.className = 'tambo-tr-feedback error'; feedback.textContent = 'Indicá los días de retiro del producto manual.'; return; }
+
+      const select = byId('ordTratMedicamento');
+      const esInsumoReal = select.value && select.value !== '__manual__';
+      const insumoActual = esInsumoReal ? (state.insumosSanidad || []).find((i) => `${i.id}` === `${select.value}`) : null;
+
+      const payload = {
+        fecha,
+        vaca: rp,
+        tipo: mapearTipoSanidadRapido(diagnostico),
+        producto,
+        dias_retiro: diasRetiro,
+        responsable,
+        observaciones: `Diagnóstico: ${byId('ordTratDiagnostico').selectedOptions[0]?.textContent || diagnostico} · Dosis: ${dosis} · Cuarto: ${cuarto} · Cargado desde Tratamiento rápido (pozo de ordeñe)`,
+      };
+
+      btn.disabled = true;
+      btn.textContent = 'Guardando...';
+      const resultado = await guardarSanidadRapido(payload, insumoActual);
+      btn.disabled = false;
+      btn.textContent = 'Guardar Registro Clínico';
+
+      if (!resultado.ok) {
+        feedback.className = 'tambo-tr-feedback error';
+        feedback.textContent = resultado.error?.message || 'No se pudo guardar el tratamiento.';
+        return;
+      }
+
+      const mensajeRetiro = diasRetiro > 0
+        ? ` Leche descartada hasta ${(() => { const d = new Date(`${fecha}T00:00:00`); d.setDate(d.getDate() + diasRetiro); return d.toLocaleDateString('es-AR'); })()}.`
+        : ' Sin período de retiro.';
+      byId('tratamientoRapidoForm')?.reset();
+      byId('ordTratFecha').valueAsDate = new Date();
+      byId('ordTratResponsable').value = 'Operario pozo de ordeñe';
+      byId('ordTratAlertaRetiro').style.display = 'none';
+      byId('ordTratAlertaSinRetiro').style.display = 'none';
+      byId('ordTratManualNombreRow').classList.add('is-hidden');
+      byId('ordTratManualRetiroRow').classList.add('is-hidden');
+      poblarMedicamentosTratamientoRapido();
+      byId('ordTratRP').focus();
+
+      feedback.className = `tambo-tr-feedback ${resultado.offline ? 'queued' : 'ok'}`;
+      feedback.textContent = resultado.offline
+        ? `⏳ Sin conexión: el tratamiento de ${rp} quedó guardado localmente y se sincroniza solo cuando vuelva la señal.${mensajeRetiro}`
+        : `✓ Tratamiento de ${rp} guardado en Sanidad.${mensajeRetiro}`;
+    });
     byId('empresaNombreInput')?.addEventListener('input', syncEmpresaFromForm);
     byId('empresaCuitInput')?.addEventListener('input', syncEmpresaFromForm);
     byId('empresaDireccionInput')?.addEventListener('input', syncEmpresaFromForm);
