@@ -1,0 +1,99 @@
+=== Publicando trial actualizado de PampaGanaderia === 
+Publicando: pampaganaderia-erp
+Aplicación publicada: pampaganaderia-erp
+Catálogo publicado en public/index.html
+warning: in the working copy of 'public/pampaganaderia-erp/index.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'public/pampaganaderia-erp/trial-progress.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'public/pampaganaderia-erp/vendor/chart.umd.min.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'public/pampaganaderia-erp/vendor/dexie.min.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'public/pampaganaderia-erp/vendor/jspdf.umd.min.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'public/pampaganaderia-erp/vendor/leaflet/leaflet-map.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'public/pampaganaderia-erp/vendor/leaflet/leaflet.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'public/pampaganaderia-erp/vendor/tesseract.min.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'public/pampaganaderia-erp/vendor/xlsx.full.min.js', LF will be replaced by CRLF the next time Git touches it
+U	index.html
+U	public/PampaTopografia/desktop-public/pampa-privacy-popup.js
+U	public/PampaTopografia/desktop-public/topo.jfif
+U	public/PampaTopografia/vendor/pampa-licensing.js
+U	public/PampaTopografia/vendor/pampa-search.js
+U	public/pampa-hidroponia/index.html
+U	public/pampa-hidroponia/logo2.png
+U	public/pampaagro-erp/vendor/monorepo-pampa-privacy-popup-corregido.js
+U	public/pampabiogas/index.html
+U	public/pampaporcinos-erp/Pampa-Packs/basica/movil/foto-portada-porcinos.png
+U	public/pampaporcinos-erp/Pampa-Packs/basica/movil/index.html
+U	public/pampaporcinos-erp/Pampa-Packs/basica/movil/leaflet/images/marker-icon-2x.png
+U	public/pampaporcinos-erp/Pampa-Packs/basica/movil/leaflet/images/marker-icon.png
+U	public/pampaporcinos-erp/Pampa-Packs/basica/movil/leaflet/images/marker-shadow.png
+U	public/pampaporcinos-erp/Pampa-Packs/basica/movil/leaflet/leaflet.css
+U	public/pampaporcinos-erp/Pampa-Packs/basica/movil/leaflet/leaflet.js
+U	public/pampaporcinos-erp/Pampa-Packs/basica/movil/logo2.png
+U	public/pampaporcinos-erp/Pampa-Packs/basica/movil/manifest.webmanifest
+U	public/pampaporcinos-erp/Pampa-Packs/basica/movil/pampa-brand.css
+U	public/pampaporcinos-erp/Pampa-Packs/basica/movil/pampa-license-key.js
+U	public/pampaporcinos-erp/Pampa-Packs/basica/movil/pampa-license-verify.js
+U	public/pampaporcinos-erp/Pampa-Packs/basica/movil/pampa-licensing.js
+U	public/pampaporcinos-erp/Pampa-Packs/basica/movil/pampa-offline-core.js
+U	public/pampaporcinos-erp/Pampa-Packs/basica/movil/pampa-privacy-popup.js
+U	public/pampaporcinos-erp/Pampa-Packs/basica/movil/pampa-report-voice.js
+U	public/pampaporcinos-erp/Pampa-Packs/basica/movil/pampa-search.js
+U	public/pampaporcinos-erp/Pampa-Packs/basica/movil/pampa-sync-envelope.js
+U	public/pampaporcinos-erp/Pampa-Packs/basica/movil/pampaia-source.js
+U	public/pampaporcinos-erp/Pampa-Packs/basica/movil/plantilla_animales.xlsx
+U	public/pampaporcinos-erp/Pampa-Packs/basica/movil/plantilla_campos_georreferenciados.xlsx
+U	public/pampaporcinos-erp/Pampa-Packs/basica/movil/porcinos.jfif
+U	public/pampaporcinos-erp/Pampa-Packs/basica/movil/sw.js
+U	public/pampaporcinos-erp/Pampa-Packs/premium/movil/logo2.png
+U	public/pampaporcinos-erp/Pampa-Packs/premium/movil/pampa-brand.css
+U	public/pampaporcinos-erp/Pampa-Packs/premium/movil/pampa-license-key.js
+U	public/pampaporcinos-erp/Pampa-Packs/premium/movil/pampa-license-verify.js
+U	public/pampaporcinos-erp/Pampa-Packs/premium/movil/pampa-offline-core.js
+U	public/pampaporcinos-erp/Pampa-Packs/premium/movil/pampa-privacy-popup.js
+U	public/pampaporcinos-erp/Pampa-Packs/premium/movil/pampa-report-voice.js
+U	public/pampaporcinos-erp/Pampa-Packs/premium/movil/pampa-sync-envelope.js
+U	public/pampaporcinos-erp/Pampa-Packs/premium/movil/pampaia-source.js
+U	public/pampaporcinos-erp/Pampa-Packs/profesional/movil/logo2.png
+U	public/pampaporcinos-erp/Pampa-Packs/profesional/movil/pampa-brand.css
+U	public/pampaporcinos-erp/Pampa-Packs/profesional/movil/pampa-offline-core.js
+U	public/pampaporcinos-erp/Pampa-Packs/profesional/movil/pampa-privacy-popup.js
+U	public/pampaporcinos-erp/Pampa-Packs/profesional/movil/pampa-report-voice.js
+U	public/pampaporcinos-erp/Pampa-Packs/profesional/movil/pampa-sync-envelope.js
+U	public/pampaporcinos-erp/Pampa-Packs/profesional/movil/pampaia-source.js
+U	public/pampaporcinos-erp/desktop-public/LIBRO-IVA-PORCINOS.xlsx
+U	public/pampaporcinos-erp/desktop-public/MATRIZ-RETENCIONES-PORCINOS.xlsx
+U	public/pampaporcinos-erp/desktop-public/logo2.png
+U	public/pampaporcinos-erp/desktop-public/manifest.webmanifest
+U	public/pampaporcinos-erp/desktop-public/modulos-y-roles-por-version.html
+U	public/pampaporcinos-erp/desktop-public/modulos-y-roles-por-version.pdf
+U	public/pampaporcinos-erp/desktop-public/pampa-brand.css
+U	public/pampaporcinos-erp/desktop-public/🐖 PAMPA PORCINOS ERP - versiones.txt
+U	public/pampaprecision-erp/vendor/leaflet/images/marker-icon-2x.png
+U	public/pampaprecision-erp/vendor/leaflet/images/marker-icon.png
+U	public/pampaprecision-erp/vendor/leaflet/images/marker-shadow.png
+U	public/pampaprecision-erp/vendor/leaflet/leaflet.css
+U	public/pamperror: Committing is not possible because you have unmerged files.
+hint: Fix them up in the work tree, and then use 'git add/rm <file>'
+hint: as appropriate to mark resolution and make a commit.
+fatal: Exiting because of an unresolved conflict.
+aprecision-erp/vendor/leaflet/leaflet.js
+U	public/pampaprecision-erp/vendor/pampa-license-key.js
+U	public/pampaprecision-erp/vendor/pampa-license-verify.js
+U	public/pampaprecision-erp/vendor/pampa-licensing.js
+U	public/pampaprecision-erp/vendor/pampa-search.js
+U	public/pampatambo-erp/vendor/leaflet/images/marker-icon-2x.png
+U	public/pampatambo-erp/vendor/leaflet/images/marker-icon.png
+U	public/pampatambo-erp/vendor/leaflet/images/marker-shadow.png
+U	public/pampatambo-erp/vendor/leaflet/leaflet.css
+U	public/pampatambo-erp/vendor/leaflet/leaflet.js
+U	public/pampatambo-erp/vendor/pampa-license-key.js
+U	public/pampatambo-erp/vendor/pampa-license-verify.js
+U	public/pampatambo-erp/vendor/pampa-licensing.js
+U	public/pampatambo-erp/vendor/pampa-search.js
+To https://github.com/tininebuloni-creator/Nexo-landing.git
+ ! [rejected]          main -> main (non-fast-forward)
+error: failed to push some refs to 'https://github.com/tininebuloni-creator/Nexo-landing.git'
+hint: Updates were rejected because the tip of your current branch is behind
+hint: its remote counterpart. If you want to integrate the remote changes,
+hint: use 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+TERMINADO_OK 

@@ -1133,18 +1133,38 @@ body {
 }
 </style>
 <script>
-  window.abrirMovimientoGanadero = function () {
+  window.abrirMovimientoGanadero = function (editIndex) {
     const overlay = document.getElementById('modalOverlay');
     const titulo = document.getElementById('modalTitle');
     const cuerpo = document.getElementById('modalBody');
     if (!overlay || !titulo || !cuerpo) return;
-    titulo.textContent = 'Nuevo Movimiento Ganadero';
-    cuerpo.innerHTML = '<div class="form-group"><label class="form-label">Fecha</label><input class="form-input" name="fecha" type="date" value="' + new Date().toISOString().slice(0, 10) + '"></div><div class="form-group"><label class="form-label">Tipo de movimiento</label><select class="form-select" name="tipo"><option>Nacimiento</option><option>Compra</option><option>Venta</option><option>Muerte</option><option>Vacunación</option><option>Traslado</option><option>Cambio Categoría</option></select></div><div class="form-group"><label class="form-label">Categoría</label><select class="form-select" name="categoria"><option>Terneros</option><option>Novillos</option><option>Vaquillonas</option><option>Toros</option><option>Vacas</option></select></div><div class="form-group"><label class="form-label">Cantidad</label><input class="form-input" name="cantidad" type="number" min="1" required></div><div class="form-group"><label class="form-label">Precio / Valor ($)</label><input class="form-input" name="valor" type="number" min="0" step="0.01" placeholder="Precio total del movimiento"></div><div class="form-group"><label class="form-label">Detalle</label><input class="form-input" name="detalle" placeholder="Detalle del movimiento"></div><div class="form-group"><label class="form-label">Destino / Origen</label><input class="form-input" name="destino" placeholder="Campo, lote o establecimiento"></div>';
+    const esEdicion = Number.isInteger(editIndex);
+    const previo = esEdicion ? (state.hacienda[editIndex] || {}) : {};
+    titulo.textContent = esEdicion ? 'Editar Movimiento Ganadero' : 'Nuevo Movimiento Ganadero';
+    cuerpo.innerHTML = '<div class="form-group"><label class="form-label">Fecha</label><input class="form-input" name="fecha" type="date" value="' + (previo.fecha || new Date().toISOString().slice(0, 10)) + '"></div><div class="form-group"><label class="form-label">Tipo de movimiento</label><select class="form-select" name="tipo" id="haciendaTipoSelect"><option>Nacimiento</option><option>Compra</option><option>Venta</option><option>Muerte</option><option>Vacunación</option><option>Traslado</option><option>Cambio Categoría</option></select></div><div class="form-group"><label class="form-label">Categoría</label><select class="form-select" name="categoria"><option>Terneros</option><option>Novillos</option><option>Vaquillonas</option><option>Toros</option><option>Vacas</option></select></div><div class="form-group"><label class="form-label">Cantidad</label><input class="form-input" name="cantidad" type="number" min="1" value="' + (previo.cantidad || '') + '" required></div><div class="form-group"><label class="form-label">Precio / Valor ($)</label><input class="form-input" name="valor" type="number" min="0" step="0.01" value="' + (previo.valor || '') + '" placeholder="Precio total del movimiento"></div><div class="form-group"><label class="form-label">Detalle</label><input class="form-input" name="detalle" value="' + (previo.detalle || '') + '" placeholder="Detalle del movimiento"></div><div class="form-group"><label class="form-label">Destino / Origen</label><input class="form-input" name="destino" value="' + (previo.destino || '') + '" placeholder="Campo, lote o establecimiento"></div><div class="form-group" id="haciendaCartaPorteGroup" style="display:none;"><label class="form-label">Nº Carta de Porte Electrónica (DT-e / DUT)</label><input class="form-input" name="nroCartaPorte" value="' + (previo.nroCartaPorte || '') + '" placeholder="Se emite en Fiscal ganadero &gt; DUT"><div style="font-size:11px;color:var(--text-dim);margin-top:4px;">⚠️ Toda venta de hacienda con traslado requiere Carta de Porte Electrónica (DT-e/DUT) de SENASA antes del despacho. <a href="#" onclick="event.preventDefault(); window.cerrarModalGanadero(); switchModule(\'fiscal\'); setTimeout(() => document.getElementById(\'fiscalFormDut\')?.scrollIntoView({behavior:\'smooth\'}), 150);">Emitir DUT ahora →</a></div></div>';
+    if (esEdicion) {
+      cuerpo.querySelector('[name="tipo"]').value = previo.tipo || 'Nacimiento';
+      cuerpo.querySelector('[name="categoria"]').value = previo.categoria || 'Terneros';
+    }
+    const tipoSelect = document.getElementById('haciendaTipoSelect');
+    const cartaPorteGroup = document.getElementById('haciendaCartaPorteGroup');
+    const actualizarCartaPorte = () => {
+      if (cartaPorteGroup) cartaPorteGroup.style.display = tipoSelect.value === 'Venta' ? '' : 'none';
+    };
+    tipoSelect?.addEventListener('change', actualizarCartaPorte);
+    actualizarCartaPorte();
     document.getElementById('modalSaveBtn').onclick = function () {
       const datos = {};
       cuerpo.querySelectorAll('[name]').forEach(control => { datos[control.name] = control.value; });
       if (!datos.cantidad || Number(datos.cantidad) <= 0) return;
-      state.hacienda.push(datos);
+      if (esEdicion) {
+        state.hacienda[editIndex] = datos;
+      } else {
+        state.hacienda.push(datos);
+      }
+      if (datos.tipo === 'Venta' && !datos.nroCartaPorte) {
+        showToast('Venta guardada. Recordá emitir la Carta de Porte Electrónica (DUT) en Fiscal ganadero antes de despachar la hacienda.', 'warning');
+      }
       try { saveState(); } finally {
         try { renderTables(); } finally { window.cerrarModalGanadero(); }
       }
@@ -1155,26 +1175,6 @@ body {
     document.getElementById('modalOverlay')?.classList.remove('active');
   };
 </script>
-<script id="pampa-desktop-commercial-guard">(function(){
-  window.PAMPA_DESKTOP_MODE=true;
-  try {
-    const url=new URL(window.location.href);
-    [...url.searchParams.keys()].filter(key=>/trial/i.test(key)).forEach(key=>url.searchParams.delete(key));
-    if(url.href!==window.location.href) window.history.replaceState({},document.title,url.pathname+url.search+url.hash);
-    Object.keys(localStorage).forEach(key=>{if(/license|licencia/i.test(key)){try{const value=JSON.parse(localStorage.getItem(key));if(value&&(value.type==='trial'||value.trial===true||value.payload?.trial===true))localStorage.removeItem(key)}catch(error){}}});
-  } catch(error) {}
-  document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('button,a,input,label,.field,.form-group').forEach(node=>{const text=[node.textContent,node.id,node.name,node.htmlFor,node.getAttribute('href')].join(' ');if(/trial|prueba gratis|iniciar prueba/i.test(text))node.remove()})},{once:true});
-})();</script>
-<script id="pampa-desktop-commercial-guard">(function(){
-  window.PAMPA_DESKTOP_MODE=true;
-  try {
-    const url=new URL(window.location.href);
-    [...url.searchParams.keys()].filter(key=>/trial/i.test(key)).forEach(key=>url.searchParams.delete(key));
-    if(url.href!==window.location.href) window.history.replaceState({},document.title,url.pathname+url.search+url.hash);
-    Object.keys(localStorage).forEach(key=>{if(/license|licencia/i.test(key)){try{const value=JSON.parse(localStorage.getItem(key));if(value&&(value.type==='trial'||value.trial===true||value.payload?.trial===true))localStorage.removeItem(key)}catch(error){}}});
-  } catch(error) {}
-  document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('button,a,input,label,.field,.form-group').forEach(node=>{const text=[node.textContent,node.id,node.name,node.htmlFor,node.getAttribute('href')].join(' ');if(/trial|prueba gratis|iniciar prueba/i.test(text))node.remove()})},{once:true});
-})();</script>
 </head>
 <body>
 
@@ -1473,7 +1473,7 @@ body {
             </div>
             <div style="max-height:400px;overflow-y:auto;">
               <table class="data-table">
-                <thead><tr><th>Fecha</th><th>Tipo</th><th>Categoría</th><th>Cantidad</th><th>Detalle</th><th></th></tr></thead>
+                <thead><tr><th>Fecha</th><th>Tipo</th><th>Categoría</th><th>Cantidad</th><th>Detalle</th><th>Carta de Porte</th><th></th></tr></thead>
                 <tbody id="haciendaBody"></tbody>
               </table>
             </div>
@@ -1647,6 +1647,8 @@ body {
                 <th>Producto</th>
                 <th>Tipo</th>
                 <th>Cantidad</th>
+                <th>Precio Unit.</th>
+                <th>Valor Total</th>
                 <th>Motivo</th>
                 <th>Observaciones</th>
               </tr>
@@ -1830,6 +1832,50 @@ body {
             <table class="data-table">
               <thead><tr><th>Fecha</th><th>Operación</th><th>Identificador</th><th>Estado</th><th>Detalle</th></tr></thead>
               <tbody id="fiscalDutBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <div class="card-header">
+            <div>
+              <div class="card-title">⚖️ Posición fiscal IVA (Débito vs. Crédito)</div>
+              <div class="text-muted" style="font-size:12px;">Cálculo sobre comprobantes cargados de compra y venta</div>
+            </div>
+          </div>
+          <div class="kpi-grid">
+            <div class="kpi red"><div class="kpi-label">IVA Débito Fiscal (mes)</div><div class="kpi-value" id="kpiIvaDebitoMes">$0</div><div class="kpi-sub">Ventas / comprobantes facturados</div></div>
+            <div class="kpi green"><div class="kpi-label">IVA Crédito Fiscal (mes)</div><div class="kpi-value" id="kpiIvaCreditoMes">$0</div><div class="kpi-sub">Compras e insumos con comprobante</div></div>
+            <div class="kpi" id="kpiIvaSaldoMesCard"><div class="kpi-label">Saldo IVA del mes</div><div class="kpi-value" id="kpiIvaSaldoMes">$0</div><div class="kpi-sub">Débito - Crédito</div></div>
+            <div class="kpi" id="kpiIvaSaldoAcumCard"><div class="kpi-label">Saldo técnico acumulado</div><div class="kpi-value" id="kpiIvaSaldoAcum">$0</div><div class="kpi-sub">A favor se arrastra al próximo período</div></div>
+          </div>
+          <p class="text-muted" style="padding:0 16px 16px;font-size:12px;">Verificá siempre con tu contador antes de presentar la declaración jurada de IVA.</p>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <div class="card-header">
+            <div class="card-title">📥 Crédito fiscal IVA</div>
+            <button class="topbar-btn primary" type="button" onclick="abrirComprobanteArca('CREDITO_FISCAL')">+ Cargar comprobante de compra</button>
+          </div>
+          <p class="text-muted" style="padding:0 16px 8px;">IVA computable de compras, gastos e insumos.</p>
+          <div style="overflow-x:auto;">
+            <table class="data-table">
+              <thead><tr><th>Fecha</th><th>Comprobante</th><th>Proveedor</th><th>Concepto</th><th>Neto</th><th>IVA crédito</th><th>Total</th></tr></thead>
+              <tbody id="tbodyCreditoFiscal"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <div class="card-header">
+            <div class="card-title">📤 Débito fiscal IVA</div>
+            <button class="topbar-btn primary" type="button" onclick="abrirComprobanteArca('DEBITO_FISCAL')">+ Cargar comprobante de venta</button>
+          </div>
+          <p class="text-muted" style="padding:0 16px 8px;">IVA generado por ventas y operaciones facturadas.</p>
+          <div style="overflow-x:auto;">
+            <table class="data-table">
+              <thead><tr><th>Fecha</th><th>Comprobante</th><th>Cliente</th><th>Concepto</th><th>Neto</th><th>IVA débito</th><th>Total</th></tr></thead>
+              <tbody id="tbodyDebitoFiscal"></tbody>
             </table>
           </div>
         </div>
@@ -2237,10 +2283,10 @@ body {
       <!-- MODULE: COSTOS -->
       <div class="module" id="mod-costos">
         <div class="kpi-grid">
-          <div class="kpi green"><div class="kpi-label">Costo/Cabeza Novillo</div><div class="kpi-value">$0</div><div class="kpi-sub">Sin datos cargados</div></div>
-          <div class="kpi blue"><div class="kpi-label">Costo/Cabeza Vaquillona</div><div class="kpi-value">$0</div><div class="kpi-sub">Sin datos cargados</div></div>
+          <div class="kpi green"><div class="kpi-label">Costo/Cabeza Novillo</div><div class="kpi-value" id="costoKpiCabezaNovillo">$0</div><div class="kpi-sub" id="costoKpiCabezaNovilloSub">Sin datos cargados</div></div>
+          <div class="kpi blue"><div class="kpi-label">Costo/Cabeza Vaquillona</div><div class="kpi-value" id="costoKpiCabezaVaquillona">$0</div><div class="kpi-sub" id="costoKpiCabezaVaquillonaSub">Sin datos cargados</div></div>
           <div class="kpi purple"><div class="kpi-label">Costo/Kg Carne</div><div class="kpi-value">$0</div><div class="kpi-sub">Sin datos cargados</div></div>
-          <div class="kpi orange"><div class="kpi-label">Costo Operativo Mes</div><div class="kpi-value">$0</div><div class="kpi-sub">Sin datos cargados</div></div>
+          <div class="kpi orange"><div class="kpi-label">Costo Operativo Mes</div><div class="kpi-value" id="costoKpiOperativoMes">$0</div><div class="kpi-sub" id="costoKpiOperativoMesSub">Sin datos cargados</div></div>
         </div>
         <div class="grid-2">
           <div class="card">
@@ -2250,6 +2296,21 @@ body {
           <div class="card">
             <div class="card-header"><div class="card-title">📊 Desglose de Costo por Animal</div></div>
             <div class="chart-container" style="height:250px;"><canvas id="chartDesglose"></canvas></div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:16px;">
+          <div class="card-header">
+            <div>
+              <div class="card-title">💵 Costos</div>
+              <div class="text-muted" style="font-size:12px;">Las compras/gastos con comprobante de Crédito Fiscal (ARCA) se cargan solas acá. También podés agregar costos manuales.</div>
+            </div>
+            <button class="topbar-btn primary" type="button" onclick="openModal('costos')">+ Nuevo Costo Manual</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="data-table">
+              <thead><tr><th>Fecha</th><th>Categoría</th><th>Concepto</th><th>Importe</th><th>Destino</th><th>Origen</th></tr></thead>
+              <tbody id="costosBody"></tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -2748,7 +2809,12 @@ function deleteRecord(modulo, index) {
   if (!Array.isArray(state[modulo])) return;
   if (index < 0 || index >= state[modulo].length) return;
   if (!confirm('¿Eliminar este registro?')) return;
+  const registroEliminado = state[modulo][index];
   state[modulo].splice(index, 1);
+  // Si es un comprobante de ARCA, sacar también el costo que había generado solo.
+  if (modulo === 'comprobantesArca' && registroEliminado?._id && Array.isArray(state.costos)) {
+    state.costos = state.costos.filter(c => c.origenComprobanteId !== registroEliminado._id);
+  }
   saveState();
   renderTables();
   showToast('Registro eliminado', 'success');
@@ -4277,8 +4343,31 @@ const formConfigs = {
       { name: 'producto', label: 'Producto', type: 'select', required: true, dynamicOptions: 'inventario' },
       { name: 'tipo', label: 'Tipo de Movimiento', type: 'select', options: ['Entrada', 'Salida'], required: true },
       { name: 'cantidad', label: 'Cantidad', type: 'number', required: true },
+      { name: 'precioUnitario', label: 'Precio Unitario ($)', type: 'number' },
       { name: 'motivo', label: 'Motivo', type: 'select', options: ['Compra', 'Venta', 'Consumo', 'Ajuste', 'Devolución', 'Merma'], required: true },
       { name: 'observaciones', label: 'Observaciones', type: 'text' }
+    ]
+  },
+  comprobantesArca: {
+    title: 'Comprobante fiscal (ARCA)',
+    fields: [
+      { name: 'fecha', label: 'Fecha', type: 'date', required: true },
+      { name: 'tipo_fiscal', label: 'Tipo', type: 'select', options: ['CREDITO_FISCAL', 'DEBITO_FISCAL'], required: true },
+      { name: 'comprobante', label: 'Comprobante (Nº factura/recibo)', type: 'text', required: true },
+      { name: 'contraparte', label: 'Proveedor / Cliente', type: 'text', required: true },
+      { name: 'concepto', label: 'Concepto', type: 'text', required: true },
+      { name: 'neto', label: 'Neto ($)', type: 'number', required: true },
+      { name: 'iva', label: 'IVA ($)', type: 'number', required: true }
+    ]
+  },
+  costos: {
+    title: 'Nuevo Costo Manual',
+    fields: [
+      { name: 'fecha', label: 'Fecha', type: 'date', required: true },
+      { name: 'categoria', label: 'Categoría', type: 'select', options: ['Compras / Gastos', 'Alimentación', 'Sanidad', 'Mano de obra', 'Servicios', 'Impuestos', 'Otro'], required: true },
+      { name: 'concepto', label: 'Concepto', type: 'text', required: true },
+      { name: 'importe', label: 'Importe ($)', type: 'number', required: true },
+      { name: 'destino', label: 'Destino / Proveedor', type: 'text' }
     ]
   },
   equipos: {
@@ -4806,6 +4895,43 @@ function openModal(module, editIndex = null) {
       actualizarDescripcionPorTipo();
     }
   }
+
+  // Movimiento de Stock: sugerir precio unitario desde el costo actual del producto
+  // y avisar cuándo ese precio va a actualizar el costo del producto (promedio ponderado).
+  if (module === 'movimientoStock') {
+    const productoSelect = document.querySelector('select[name="producto"]');
+    const precioInput = document.querySelector('input[name="precioUnitario"]');
+    const tipoSelect = document.querySelector('select[name="tipo"]');
+    const motivoSelect = document.querySelector('select[name="motivo"]');
+
+    if (precioInput) {
+      let hint = document.getElementById('movStockPrecioHint');
+      if (!hint) {
+        hint = document.createElement('div');
+        hint.id = 'movStockPrecioHint';
+        hint.style.cssText = 'font-size:11px;color:var(--text-dim);margin-top:4px;';
+        precioInput.parentElement.appendChild(hint);
+      }
+      const actualizarHint = () => {
+        const esEntradaConValor = tipoSelect?.value === 'Entrada' && motivoSelect?.value === 'Compra';
+        hint.textContent = esEntradaConValor
+          ? '💲 Este precio va a actualizar el costo del producto (promedio ponderado).'
+          : (precioInput.value ? '' : 'Si lo dejás vacío, se usa el costo actual del producto.');
+      };
+      if (editIndex === null && productoSelect) {
+        const sugerirPrecio = () => {
+          const producto = state.inventario.find(p => p.codigo === productoSelect.value);
+          if (producto && !precioInput.value) precioInput.value = producto.costoUnit || '';
+          actualizarHint();
+        };
+        productoSelect.addEventListener('change', sugerirPrecio);
+      }
+      tipoSelect?.addEventListener('change', actualizarHint);
+      motivoSelect?.addEventListener('change', actualizarHint);
+      precioInput.addEventListener('input', actualizarHint);
+      actualizarHint();
+    }
+  }
 }
 
 function saveModal() {
@@ -5219,6 +5345,28 @@ function procesarEfectosPostSave(module, data, editIndex) {
     state.saldosIniciales[data.nombre] = saldoNum;
   }
 
+  // Compras/gastos con comprobante de Crédito Fiscal (ARCA) generan el costo solos.
+  // "salen de Fiscal": no se cargan dos veces a mano en Costos.
+  if (module === 'comprobantesArca') {
+    if (!data._id) data._id = 'CA-' + Date.now() + '-' + Math.floor(Math.random() * 100000);
+    if (!Array.isArray(state.costos)) state.costos = [];
+    // Sacar el costo vinculado anterior (por si se editó el tipo o los montos)
+    state.costos = state.costos.filter(c => c.origenComprobanteId !== data._id);
+    if (data.tipo_fiscal === 'CREDITO_FISCAL') {
+      const neto = parseFloat(data.neto) || 0;
+      const iva = parseFloat(data.iva) || 0;
+      state.costos.push({
+        fecha: data.fecha,
+        categoria: 'Compras / Gastos',
+        concepto: [data.comprobante, data.contraparte, data.concepto].filter(Boolean).join(' · '),
+        importe: neto + iva,
+        destino: data.contraparte || '',
+        origen: 'Fiscal · Crédito fiscal IVA',
+        origenComprobanteId: data._id
+      });
+    }
+  }
+
   // Generar tabla de amortización si es un crédito
   if (module === 'creditos') {
     const idx = editIndex !== null ? editIndex : state.creditos.length - 1;
@@ -5243,8 +5391,31 @@ function procesarEfectosPostSave(module, data, editIndex) {
     const producto = state.inventario.find(p => p.codigo === data.producto);
     if (producto) {
       const cantidad = parseFloat(data.cantidad);
-      if (data.tipo === 'Salida') producto.stock = Math.max(0, producto.stock - cantidad);
-      else if (data.tipo === 'Entrada') producto.stock += cantidad;
+
+      // Todo movimiento queda con un precio real: si no lo cargaron, se usa
+      // el costo actual del producto (nunca queda en $0, que es lo que mentía en Costos).
+      let precioUnitario = parseFloat(data.precioUnitario);
+      if (!Number.isFinite(precioUnitario) || precioUnitario <= 0) {
+        precioUnitario = parseFloat(producto.costoUnit) || 0;
+      }
+      data.precioUnitario = precioUnitario;
+      data.valorTotal = Math.round(cantidad * precioUnitario * 100) / 100;
+
+      if (data.tipo === 'Salida') {
+        producto.stock = Math.max(0, producto.stock - cantidad);
+      } else if (data.tipo === 'Entrada') {
+        // Compra (o cualquier ingreso con precio real) actualiza el costo del
+        // producto por promedio ponderado, en vez de dejar el costoUnit viejo/mudo.
+        const stockAnterior = Math.max(0, producto.stock || 0);
+        const costoAnterior = parseFloat(producto.costoUnit) || 0;
+        if (precioUnitario > 0) {
+          const stockTotal = stockAnterior + cantidad;
+          producto.costoUnit = stockTotal > 0
+            ? Math.round(((stockAnterior * costoAnterior) + (cantidad * precioUnitario)) / stockTotal * 100) / 100
+            : precioUnitario;
+        }
+        producto.stock += cantidad;
+      }
     }
   }
 
@@ -5262,9 +5433,12 @@ function procesarEfectosPostSave(module, data, editIndex) {
     const producto = state.inventario.find(p => p.codigo === data.producto);
     if (producto) {
       producto.stock = Math.max(0, producto.stock - cantidadTotal);
+      const precioUnitario = parseFloat(producto.costoUnit) || 0;
       state.movimientoStock.unshift({
         fecha: data.fecha, producto: data.producto, tipo: 'Salida',
-        cantidad: cantidadTotal, motivo: 'Alimentación',
+        cantidad: cantidadTotal, precioUnitario,
+        valorTotal: Math.round(cantidadTotal * precioUnitario * 100) / 100,
+        motivo: 'Alimentación',
         observaciones: `Alimentación ${data.categoria} - ${data.cabezas} cabezas × ${data.racion} kg × ${data.dias} días`
       });
     }
@@ -5646,7 +5820,7 @@ function confirmImport() {
     alimentacion: { fecha: ['fecha', 'date'], categoria: ['categoria', 'category'], alimento: ['alimento', 'product'], racion: ['racion', 'racioncab'], cabezas: ['cabezas', 'qty', 'cantidad'], dias: ['dias', 'days'], cantidadTotal: ['cantidadtotal', 'cantidad'], observaciones: ['observaciones', 'detalle'] },
     mantenimiento: { numero: ['numero', 'n°', 'orden', 'ot'], equipo: ['equipo', 'maquinaria', 'tractor'], tipo: ['tipo', 'type'], descripcion: ['descripcion', 'description', 'trabajo'], fecha: ['fecha', 'date'], costo: ['costo', 'cost', 'precio'], estado: ['estado', 'status'] },
     inventario: { codigo: ['codigo', 'cod'], producto: ['producto', 'name'], categoria: ['categoria', 'category'], stock: ['stock', 'cantidad'], unidad: ['unidad', 'unit'], costoUnit: ['costounit', 'costo'], stockMin: ['stockmin', 'minimo'] },
-    movimientoStock: { fecha: ['fecha', 'date'], producto: ['producto', 'name'], tipo: ['tipo', 'type'], cantidad: ['cantidad', 'qty'], motivo: ['motivo', 'reason'], observaciones: ['observaciones', 'detalle'] },
+    movimientoStock: { fecha: ['fecha', 'date'], producto: ['producto', 'name'], tipo: ['tipo', 'type'], cantidad: ['cantidad', 'qty'], precioUnitario: ['preciounitario', 'preciounit', 'precio', 'costounitario'], motivo: ['motivo', 'reason'], observaciones: ['observaciones', 'detalle'] },
     caja: { fecha: ['fecha', 'date'], concepto: ['concepto', 'descripcion', 'detalle'], tipo: ['tipo', 'movement'], importe: ['importe', 'monto', 'valor'], categoria: ['categoria', 'category'], referencia: ['referencia', 'numero', 'comprobante'] },
     bancos: { fecha: ['fecha', 'date'], banco: ['banco', 'bank'], concepto: ['concepto', 'descripcion', 'detalle'], tipo: ['tipo', 'movement'], importe: ['importe', 'monto', 'valor'], referencia: ['referencia', 'numero', 'comprobante'] },
     cuentasBancarias: { banco: ['banco', 'bank'], tipoCuenta: ['tipocuenta', 'type'], numeroCuenta: ['numerocuenta', 'cuenta'], cbu: ['cbu', 'cvu'], saldoInicial: ['saldoinicial', 'saldo'] },
@@ -6085,7 +6259,7 @@ function safeRender(label, fn) {
 
 function renderTables() {
   // Asegurar arrays base para evitar undefined.map en localStorage viejos
-  ['campos','campañas','lotes','siembra','cosecha','aplicaciones','inventario','maquinarias','cargacombustible','costosOperativos','hacienda','animalesTrazabilidad','historialMovimientos','eventosSanitarios','trazabilidadSyncQueue','alimentacion','mantenimiento','caja','bancos','cuentasBancarias','chequesCobrar','chequesCubrir','creditos','flujo','costos','empleados','documentos','fiscalDutHistorial','fiscalNotificaciones','fiscalDutQueue'].forEach(k => {
+  ['campos','campañas','lotes','siembra','cosecha','aplicaciones','inventario','maquinarias','cargacombustible','costosOperativos','hacienda','animalesTrazabilidad','historialMovimientos','eventosSanitarios','trazabilidadSyncQueue','alimentacion','mantenimiento','caja','bancos','cuentasBancarias','chequesCobrar','chequesCubrir','creditos','flujo','costos','empleados','documentos','fiscalDutHistorial','fiscalNotificaciones','fiscalDutQueue','comprobantesArca'].forEach(k => {
     if (!Array.isArray(state[k])) state[k] = [];
   });
 
@@ -6093,6 +6267,7 @@ function renderTables() {
   safeRender('empresa-form', renderFormularioEmpresa);
   safeRender('alertas', renderDashboardAlertas);
   safeRender('documentacion-vencida', renderDocumentacionVencida);
+  safeRender('comprobantesArca', renderComprobantesArca);
 
   safeRender('campos', () => {
     const camposBody = document.querySelector('#mod-campos .data-table tbody');
@@ -6164,12 +6339,13 @@ function renderTables() {
       'Faena': 'red', 'Traslado': 'blue', 'Vacunación': 'orange', 'Cambio Categoría': 'purple'
     };
     haciendaBody.innerHTML = state.hacienda.map((h, i) => `
-      <tr onclick="openModal('hacienda', ${i})" style="cursor:pointer;">
+      <tr onclick="abrirMovimientoGanadero(${i})" style="cursor:pointer;">
         <td>${h.fecha}</td>
         <td><span class="tag ${tipoColors[h.tipo] || 'blue'}">${h.tipo}</span></td>
         <td>${h.categoria}</td>
         <td>${h.cantidad}</td>
         <td>${h.detalle || ''} ${h.destino ? '→ ' + h.destino : ''}</td>
+        <td>${h.tipo === 'Venta' ? (h.nroCartaPorte ? '<span class="tag green">' + h.nroCartaPorte + '</span>' : '<span class="tag red">Sin DUT</span>') : '-'}</td>
         <td>${h.valor || ''}</td>
       </tr>
     `).join('');
@@ -6385,16 +6561,9 @@ function renderTables() {
     `).join('');
   }
   
-  // Costos
-  const costosBody = document.querySelector('#mod-costos .data-table tbody');
-  if (costosBody) {
-    costosBody.innerHTML = state.costos.map((c, i) => `
-      <tr onclick="openModal('costos', ${i})" style="cursor:pointer;">
-        <td>${c.fecha}</td><td>${c.categoria}</td><td>${c.concepto}</td><td>${c.importe}</td><td>${c.destino}</td>
-      </tr>
-    `).join('');
-  }
-  
+  // Costos (KPIs + tabla): función dedicada, ver renderCostos()
+  safeRender('costos', renderCostos);
+
   // Empleados
   const empleadosBody = document.querySelector('#mod-empleados .data-table tbody');
   if (empleadosBody) {
@@ -6540,12 +6709,16 @@ function renderMovimientoStock() {
       ? '<span class="tag green">Entrada</span>' 
       : '<span class="tag red">Salida</span>';
     
+    const precioUnit = parseFloat(m.precioUnitario) || 0;
+    const valorTotal = parseFloat(m.valorTotal) || (precioUnit * (parseFloat(m.cantidad) || 0));
     return `
       <tr>
         <td>${m.fecha}</td>
         <td>${nombreProducto}</td>
         <td>${tipoTag}</td>
         <td><strong>${m.tipo === 'Salida' ? '-' : '+'}${m.cantidad.toLocaleString()}</strong></td>
+        <td>${precioUnit > 0 ? '$' + precioUnit.toLocaleString('es-AR') : '-'}</td>
+        <td>${valorTotal > 0 ? '$' + valorTotal.toLocaleString('es-AR') : '-'}</td>
         <td>${m.motivo}</td>
         <td>${m.observaciones || '-'}</td>
       </tr>
@@ -6562,6 +6735,130 @@ function openMovimientoStock(codigo) {
       select.value = codigo;
     }
   }, 100);
+}
+
+/* === ARCA: comprobantes fiscales (débito/crédito IVA) === */
+function abrirComprobanteArca(tipoFiscal, editIndex = null) {
+  // Guardamos el _id ANTES de abrir: al guardar, el formulario reemplaza el registro
+  // completo y perdería el vínculo con el costo que ya generó en Costos.
+  const idPrevio = Number.isInteger(editIndex) ? state.comprobantesArca?.[editIndex]?._id : null;
+  openModal('comprobantesArca', editIndex);
+  setTimeout(() => {
+    const select = document.querySelector('select[name="tipo_fiscal"]');
+    if (select && editIndex === null) select.value = tipoFiscal;
+    const form = document.getElementById('modalForm');
+    if (form && idPrevio && !form.querySelector('[name="_id"]')) {
+      const hidden = document.createElement('input');
+      hidden.type = 'hidden';
+      hidden.name = '_id';
+      hidden.value = idPrevio;
+      form.appendChild(hidden);
+    }
+  }, 50);
+}
+
+function renderComprobantesArca() {
+  const registros = state.comprobantesArca || [];
+  const fmt = (v) => '$' + Math.round(v || 0).toLocaleString('es-AR');
+  const parseFechaLocal = (f) => {
+    if (!f) return null;
+    const partes = String(f).includes('/') ? String(f).split('/').reverse() : String(f).split('-');
+    return partes.length === 3 ? new Date(partes[0], partes[1] - 1, partes[2]) : null;
+  };
+
+  const hoy = new Date();
+  const esDelMes = (r) => {
+    const d = parseFechaLocal(r.fecha);
+    return d && d.getFullYear() === hoy.getFullYear() && d.getMonth() === hoy.getMonth();
+  };
+
+  const credito = registros.filter((r) => r.tipo_fiscal === 'CREDITO_FISCAL');
+  const debito = registros.filter((r) => r.tipo_fiscal === 'DEBITO_FISCAL');
+
+  const totalIva = (lista) => lista.reduce((acc, r) => acc + (parseFloat(r.iva) || 0), 0);
+  const creditoMes = totalIva(credito.filter(esDelMes));
+  const debitoMes = totalIva(debito.filter(esDelMes));
+  const creditoAcum = totalIva(credito);
+  const debitoAcum = totalIva(debito);
+
+  setEl('kpiIvaDebitoMes', fmt(debitoMes));
+  setEl('kpiIvaCreditoMes', fmt(creditoMes));
+  const saldoMes = debitoMes - creditoMes;
+  setEl('kpiIvaSaldoMes', fmt(Math.abs(saldoMes)) + (saldoMes >= 0 ? ' (a pagar)' : ' (a favor)'));
+  const saldoAcum = debitoAcum - creditoAcum;
+  setEl('kpiIvaSaldoAcum', fmt(Math.abs(saldoAcum)) + (saldoAcum >= 0 ? ' (a pagar)' : ' (a favor)'));
+
+  const tbodyCredito = document.getElementById('tbodyCreditoFiscal');
+  if (tbodyCredito) {
+    tbodyCredito.innerHTML = credito.length
+      ? credito.map((r) => {
+          const idx = registros.indexOf(r);
+          const total = (parseFloat(r.neto) || 0) + (parseFloat(r.iva) || 0);
+          return `<tr onclick="abrirComprobanteArca('CREDITO_FISCAL', ${idx})" style="cursor:pointer;"><td>${r.fecha || ''}</td><td>${r.comprobante || ''}</td><td>${r.contraparte || ''}</td><td>${r.concepto || ''}</td><td>${fmt(r.neto)}</td><td>${fmt(r.iva)}</td><td>${fmt(total)}</td></tr>`;
+        }).join('')
+      : '<tr><td colspan="7" style="text-align:center;color:var(--text-dim);">Sin comprobantes de compra cargados</td></tr>';
+  }
+
+  const tbodyDebito = document.getElementById('tbodyDebitoFiscal');
+  if (tbodyDebito) {
+    tbodyDebito.innerHTML = debito.length
+      ? debito.map((r) => {
+          const idx = registros.indexOf(r);
+          const total = (parseFloat(r.neto) || 0) + (parseFloat(r.iva) || 0);
+          return `<tr onclick="abrirComprobanteArca('DEBITO_FISCAL', ${idx})" style="cursor:pointer;"><td>${r.fecha || ''}</td><td>${r.comprobante || ''}</td><td>${r.contraparte || ''}</td><td>${r.concepto || ''}</td><td>${fmt(r.neto)}</td><td>${fmt(r.iva)}</td><td>${fmt(total)}</td></tr>`;
+        }).join('')
+      : '<tr><td colspan="7" style="text-align:center;color:var(--text-dim);">Sin comprobantes de venta cargados</td></tr>';
+  }
+}
+
+/* === Costos: KPIs + tabla (alimentado por Fiscal > Crédito fiscal + carga manual) === */
+function renderCostos() {
+  const registros = state.costos || [];
+  const fmt = (v) => '$' + Math.round(v || 0).toLocaleString('es-AR');
+  const parseFechaLocal = (f) => {
+    if (!f) return null;
+    const partes = String(f).includes('/') ? String(f).split('/').reverse() : String(f).split('-');
+    return partes.length === 3 ? new Date(partes[0], partes[1] - 1, partes[2]) : null;
+  };
+
+  const tbody = document.getElementById('costosBody');
+  if (tbody) {
+    tbody.innerHTML = registros.length
+      ? registros.map((c, i) => {
+          const importeNum = typeof c.importe === 'number' ? c.importe : (parseMonto(c.importe) || 0);
+          const idxComprobante = c.origenComprobanteId ? (state.comprobantesArca || []).findIndex(r => r._id === c.origenComprobanteId) : -1;
+          const accionClick = idxComprobante >= 0
+            ? `abrirComprobanteArca('CREDITO_FISCAL', ${idxComprobante})`
+            : (c.origenComprobanteId ? '' : `openModal('costos', ${i})`);
+          return `<tr onclick="${accionClick}" style="cursor:${accionClick ? 'pointer' : 'default'};"><td>${c.fecha || ''}</td><td>${c.categoria || ''}</td><td>${c.concepto || ''}</td><td>${fmt(importeNum)}</td><td>${c.destino || ''}</td><td>${c.origen || (c.origenComprobanteId ? 'Fiscal · Crédito fiscal IVA' : 'Manual')}</td></tr>`;
+        }).join('')
+      : '<tr><td colspan="6" style="text-align:center;color:var(--text-dim);">Sin costos cargados. Se completan solos con los comprobantes de Crédito fiscal en Fiscal ganadero.</td></tr>';
+  }
+
+  const hoy = new Date();
+  const esDelMes = (c) => {
+    const d = parseFechaLocal(c.fecha);
+    return d && d.getFullYear() === hoy.getFullYear() && d.getMonth() === hoy.getMonth();
+  };
+  const importeDe = (c) => (typeof c.importe === 'number' ? c.importe : (parseMonto(c.importe) || 0));
+  const registrosMes = registros.filter(esDelMes);
+  const totalMes = registrosMes.reduce((acc, c) => acc + importeDe(c), 0);
+
+  setEl('costoKpiOperativoMes', fmt(totalMes));
+  setEl('costoKpiOperativoMesSub', registrosMes.length ? `${registrosMes.length} costo(s) este mes` : 'Sin datos cargados');
+
+  // Costo/cabeza por categoría: costos del mes ÷ cabezas vendidas en Hacienda ese mes (mismo criterio que Rentabilidad).
+  const ventasDelMes = (state.hacienda || []).filter((h) => h.tipo === 'Venta' && esDelMes(h));
+  const cabezasPorCategoria = (cat) => ventasDelMes
+    .filter((h) => (h.categoria || '').toLowerCase().includes(cat))
+    .reduce((acc, h) => acc + (parseFloat(h.cantidad) || 0), 0);
+
+  const cabezasNovillo = cabezasPorCategoria('novillo');
+  const cabezasVaquillona = cabezasPorCategoria('vaquillona');
+  setEl('costoKpiCabezaNovillo', cabezasNovillo > 0 ? fmt(totalMes / cabezasNovillo) : '$0');
+  setEl('costoKpiCabezaNovilloSub', cabezasNovillo > 0 ? `${cabezasNovillo} cabeza(s) vendidas este mes` : 'Sin ventas de Novillos este mes');
+  setEl('costoKpiCabezaVaquillona', cabezasVaquillona > 0 ? fmt(totalMes / cabezasVaquillona) : '$0');
+  setEl('costoKpiCabezaVaquillonaSub', cabezasVaquillona > 0 ? `${cabezasVaquillona} cabeza(s) vendidas este mes` : 'Sin ventas de Vaquillonas este mes');
 }
 
 function renderCheques() {
