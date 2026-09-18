@@ -8651,7 +8651,10 @@ function renderMapaCampos() {
   if (!contenedor || typeof L === 'undefined') return;
   if (!Array.isArray(marcadoresCampos)) marcadoresCampos = [];
   if (!mapaCampos) {
-    mapaCampos = L.map('mapaCampos').setView([-32, -64], 6);
+    // Centrado en la región núcleo agrícola-ganadera (sur de Santa Fe / centro-norte de Buenos
+    // Aires / este de Córdoba, zona Pergamino-Venado Tuerto-Junín) en vez del centro geográfico
+    // de Argentina, para que la mayoría de los campos cargados ya aparezcan sin navegar a mano.
+    mapaCampos = L.map('mapaCampos').setView([-33.6, -61.8], 7);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors', maxZoom: 19
     }).addTo(mapaCampos);
@@ -8685,7 +8688,7 @@ function renderLotesGeorreferenciadosEnCampos() {
   if (!contenedor || typeof L === 'undefined') return;
   if (!Array.isArray(marcadoresLotesCampos)) marcadoresLotesCampos = [];
   if (!mapaLotesCampos) {
-    mapaLotesCampos = L.map('mapaLotesCampos').setView([-32, -64], 6);
+    mapaLotesCampos = L.map('mapaLotesCampos').setView([-33.6, -61.8], 7);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors', maxZoom: 19
     }).addTo(mapaLotesCampos);
@@ -8718,7 +8721,7 @@ function inicializarMapaLotes() {
   }
   
   // Crear mapa centrado en Argentina
-  mapaLotes = L.map('mapaLotes').setView([-32.0, -64.0], 6);
+  mapaLotes = L.map('mapaLotes').setView([-33.6, -61.8], 7);
   
   // Agregar capa de OpenStreetMap
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -9456,6 +9459,12 @@ async function checkLicense() {
   const license = getLicenseData();
 
   if (!license) {
+    // Sin esto, un visitante que entra directo a la URL del trial (sin el link con
+    // ?trial=auto) nunca pasaba por activateTrial(): getEffectiveLicensePlan() caía en
+    // su fallback 'premium' (ver más abajo) y quedaba con acceso completo e ilimitado,
+    // sin cartel de trial, sin límite de días y sin las etiquetas de plan/aviso de
+    // versión completa (esTrial nunca se volvía true). Activar el trial acá replica
+    // el comportamiento del botón "Iniciar Prueba Gratis" para cualquier entrada directa.
     
     return true;
   }
