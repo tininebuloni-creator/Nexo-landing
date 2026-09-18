@@ -46,7 +46,14 @@ const indexOverrides = {
 };
 
 function webTrialGuard() {
-  return `<script id="pampa-web-trial-guard">(function(){try{const url=new URL(window.location.href);if(url.searchParams.get('trial')==='auto'){url.searchParams.delete('trial');window.history.replaceState({},document.title,url.pathname+url.search+url.hash);}}catch(error){}}());</script>`;
+  // OJO: este guard corre como el PRIMER script de <head>, antes que cualquier otro codigo de
+  // la app. Si solo borrara "?trial=auto" de la URL, cualquier chequeo posterior (initLicense,
+  // maybeAutoActivateTrialFromQuery, etc., que corren mas abajo en la pagina o en DOMContentLoaded)
+  // ya nunca veria ese parametro y el trial automatico por link jamas se activaria (aunque el
+  // visitante haya entrado por el link correcto "Ver aplicación" de la landing). Por eso, antes
+  // de borrar el parametro, dejamos la intencion guardada en window.__pampaTrialAutoRequested para
+  // que el resto del codigo de la app la pueda consultar igual.
+  return `<script id="pampa-web-trial-guard">(function(){try{const url=new URL(window.location.href);if(url.searchParams.get('trial')==='auto'){window.__pampaTrialAutoRequested=true;url.searchParams.delete('trial');window.history.replaceState({},document.title,url.pathname+url.search+url.hash);}}catch(error){}}());</script>`;
 }
 
 for (const [folderName, source] of Object.entries(sources)) {
@@ -89,6 +96,10 @@ for (const [folderName, source] of Object.entries(sources)) {
     if (index < 0) return `${sourceHtml}\n${tag}\n`;
     return `${sourceHtml.slice(0, index)}  ${tag}\n${sourceHtml.slice(index)}`;
   }
+  // Si la fuente ya trae un guard viejo (por ejemplo, sincronizado de vuelta desde un build de
+  // escritorio anterior), lo sacamos y ponemos siempre el guard actual — sino, un guard viejo
+  // sin el flag de arriba se coló y esta actualización nunca llega a lo publicado.
+  html = html.replace(/<script id="pampa-web-trial-guard">[\s\S]*?<\/script>\s*\n?/i, '');
   if (!html.includes('id="pampa-web-trial-guard"')) {
     html = html.replace(/<head>/i, `<head>\n${guardTag}`);
   }

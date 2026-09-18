@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script id="pampa-web-trial-guard">(function(){try{const url=new URL(window.location.href);if(url.searchParams.get('trial')==='auto'){url.searchParams.delete('trial');window.history.replaceState({},document.title,url.pathname+url.search+url.hash);}}catch(error){}}());</script>
+<script id="pampa-web-trial-guard">(function(){try{const url=new URL(window.location.href);if(url.searchParams.get('trial')==='auto'){window.__pampaTrialAutoRequested=true;url.searchParams.delete('trial');window.history.replaceState({},document.title,url.pathname+url.search+url.hash);}}catch(error){}}());</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PampaPorcinos ERP - Gestión Agropecuaria Integral</title>
@@ -2693,7 +2693,13 @@ async function revalidateStoredLicense(){
 function initLicense(){
  const overlay=$('licenseActivationOverlay');
  const params=new URLSearchParams(window.location.search);
- if(!isDesktopApp() && params.get('trial')==='auto' && !storedLicense()){
+ // El guard de trial web (pampa-web-trial-guard, inyectado al publicar) corre primero y borra
+ // "?trial=auto" de la URL antes de que este codigo se ejecute, asi que params.get('trial') ya
+ // nunca lo ve. El guard deja la intencion guardada en window.__pampaTrialAutoRequested para que
+ // se pueda detectar igual (si no existe ese flag, por ejemplo en local sin el guard, se sigue
+ // aceptando el query param directamente como respaldo).
+ const trialAutoRequested = window.__pampaTrialAutoRequested || params.get('trial')==='auto';
+ if(!isDesktopApp() && trialAutoRequested && !storedLicense()){
   const now=new Date();
   const expiresAt=new Date(now.getTime()+10*24*60*60*1000).toISOString();
   localStorage.setItem(LICENSE_KEY,JSON.stringify({key:'NEXO-MTRI-AL10-0001',code:'M',version:'premium',type:'trial',expiresAt,activatedAt:now.toISOString()}));
