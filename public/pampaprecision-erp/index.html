@@ -2945,7 +2945,12 @@
     bindDashboardActions();
 
     async function initPrecisionLicenseCheck() {
-      const isDesktop = window.PAMPA_DESKTOP_MODE || (typeof process !== 'undefined' && process.env?.PAMPA_DESKTOP_MODE === '1') || window.location.protocol === 'file:' || !window.location.hostname.includes('nexo-landing');
+      // OJO: antes esto tambien miraba "!window.location.hostname.includes('nexo-landing')" para
+      // detectar el trial web por descarte. Eso rompia el trial en el dominio propio
+      // (solucioneseningenieria.com.ar), que nunca contiene "nexo-landing" en el hostname:
+      // SIEMPRE se detectaba como escritorio ahi, y la pantalla de activacion nunca se iba.
+      // El escritorio real ya se identifica solo con PAMPA_DESKTOP_MODE (el guard) o protocolo file:.
+      const isDesktop = window.PAMPA_DESKTOP_MODE || (typeof process !== 'undefined' && process.env?.PAMPA_DESKTOP_MODE === '1') || window.location.protocol === 'file:';
       const stored = localStorage.getItem('PampaPrecisionLicense') || localStorage.getItem('pampa_precision_license');
       let isSignedValid = false;
 

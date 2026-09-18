@@ -2626,7 +2626,14 @@ const MODULE_MIN_VERSION={
 };
 
 function isDesktopApp() {
- return Boolean(window.PAMPA_DESKTOP_MODE || (typeof process !== 'undefined' && process.env?.PAMPA_DESKTOP_MODE === '1') || window.location.protocol === 'file:' || !window.location.hostname.includes('nexo-landing'));
+ // OJO: antes esto tambien miraba "!window.location.hostname.includes('nexo-landing')" para
+ // detectar el trial web por descarte (si el hostname no es el de Nexo-landing, asume escritorio).
+ // Eso rompia el trial en el dominio propio (solucioneseningenieria.com.ar), que nunca contiene
+ // "nexo-landing" en el hostname: SIEMPRE se detectaba como escritorio ahi, asi que cualquier
+ // licencia de trial se borraba sola (ver storedLicense mas abajo) y la pantalla de activacion
+ // no se iba nunca. El escritorio real ya se identifica solo con PAMPA_DESKTOP_MODE (el guard) o
+ // protocolo file:, sin necesidad de adivinar por dominio.
+ return Boolean(window.PAMPA_DESKTOP_MODE || (typeof process !== 'undefined' && process.env?.PAMPA_DESKTOP_MODE === '1') || window.location.protocol === 'file:');
 }
 
 function storedLicense(){
@@ -4939,7 +4946,8 @@ window.PampaCoreSync?.activarSincronizacionAutomatica({
 </script>
 <script>
   (function () {
-    const isDesktop = Boolean(window.PAMPA_DESKTOP_MODE || (typeof process !== 'undefined' && process.env?.PAMPA_DESKTOP_MODE === '1') || window.location.protocol === 'file:' || !window.location.hostname.includes('nexo-landing'));
+    // Mismo arreglo que en isDesktopApp() mas arriba: no adivinar "escritorio" por dominio.
+    const isDesktop = Boolean(window.PAMPA_DESKTOP_MODE || (typeof process !== 'undefined' && process.env?.PAMPA_DESKTOP_MODE === '1') || window.location.protocol === 'file:');
     if (!isDesktop) {
       const params = new URLSearchParams(window.location.search);
       if (params.get('trial') === 'auto') {
