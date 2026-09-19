@@ -9430,16 +9430,39 @@ function activateTrial() {
 }
 
 function maybeAutoActivateTrialFromQuery() {
+  // pampa-web-trial-guard (arriba en <head>) ya borro "?trial=auto" de la URL antes de que
+  // cualquier otro script corriera, asi que aca params.get('trial') va a estar vacio: por eso
+  // tambien miramos window.__pampaTrialAutoRequested, que es donde ese guard deja guardada la
+  // intencion del link. Devuelve true si activo (o ya habia) un trial valido.
   const params = new URLSearchParams(window.location.search);
-  if (params.get('trial') !== 'auto') return;
-  if (window.PAMPA_DESKTOP_MODE) return; // En escritorio nunca se auto-activa un trial por query param.
+  const autoRequested = params.get('trial') === 'auto' || window.__pampaTrialAutoRequested === true;
+  if (!autoRequested) return false;
+  if (window.PAMPA_DESKTOP_MODE) return false; // En escritorio nunca se auto-activa un trial por query param.
 
   const license = getLicenseData();
   const hasValidTrial = license && license.type === 'trial' && getTrialRemainingDays(license) > 0;
+  const cleanUrl = `${window.location.pathname}${window.location.hash}`;
 
   if (!hasValidTrial) {
-    
+    const now = new Date();
+    const end = new Date(now.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
+    const trialLicense = {
+      type: 'trial',
+      key: 'TRIAL-7DIAS',
+      activatedAt: now.toISOString(),
+      expiresAt: end.toISOString(),
+      deviceId: generateDeviceId()
+    };
+    localStorage.setItem('nexoAgroLicense', JSON.stringify(trialLicense));
+    const overlay = document.getElementById('activationOverlay');
+    if (overlay) overlay.style.display = 'none';
+    showToast(`Prueba activada por ${TRIAL_DAYS} dias`, 'success');
+    updateLicenseBadge();
+    initializeAppAfterLicense();
   }
+
+  window.history.replaceState({}, document.title, cleanUrl);
+  return true;
 }
 
 // Desactivar licencia
@@ -9662,10 +9685,12 @@ function initializeAppAfterLicense() {
 
 // Inicializar sistema de licencia al cargar la página
 async function initLicenseSystem() {
-  
+
 
   if (!(await checkLicense())) {
-    showActivationScreen();
+    if (!maybeAutoActivateTrialFromQuery()) {
+      showActivationScreen();
+    }
   } else {
     updateLicenseBadge();
   }

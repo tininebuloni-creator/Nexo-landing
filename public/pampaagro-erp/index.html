@@ -1207,6 +1207,16 @@ body {
   } catch(error) {}
   document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('button,a,input,label,.field,.form-group').forEach(node=>{const text=[node.textContent,node.id,node.name,node.htmlFor,node.getAttribute('href')].join(' ');if(/trial|prueba gratis|iniciar prueba/i.test(text))node.remove()})},{once:true});
 })();</script>
+<script id="pampa-desktop-commercial-guard">(function(){
+  window.PAMPA_DESKTOP_MODE=true;
+  try {
+    const url=new URL(window.location.href);
+    [...url.searchParams.keys()].filter(key=>/trial/i.test(key)).forEach(key=>url.searchParams.delete(key));
+    if(url.href!==window.location.href) window.history.replaceState({},document.title,url.pathname+url.search+url.hash);
+    Object.keys(localStorage).forEach(key=>{if(/license|licencia/i.test(key)){try{const value=JSON.parse(localStorage.getItem(key));if(value&&(value.type==='trial'||value.trial===true||value.payload?.trial===true))localStorage.removeItem(key)}catch(error){}}});
+  } catch(error) {}
+  document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('button,a,input,label,.field,.form-group').forEach(node=>{const text=[node.textContent,node.id,node.name,node.htmlFor,node.getAttribute('href')].join(' ');if(/trial|prueba gratis|iniciar prueba/i.test(text))node.remove()})},{once:true});
+})();</script>
 </head>
 <body>
   <div id="root"></div>
@@ -12463,18 +12473,41 @@ function enviarTrialPorWhatsApp() {
 }
 
 function maybeAutoActivateTrialFromQuery() {
+  // pampa-web-trial-guard (arriba en <head>) ya borro "?trial=auto" de la URL antes de que
+  // cualquier otro script corriera, asi que aca params.get('trial') va a estar vacio: por eso
+  // tambien miramos window.__pampaTrialAutoRequested, que es donde ese guard deja guardada la
+  // intencion del link. Devuelve true si activo (o ya habia) un trial valido, para que quien
+  // llama sepa si hace falta mostrar la pantalla de activacion o no.
   const params = new URLSearchParams(window.location.search);
-  const shouldAutoActivate = params.get('trial') === 'auto';
-  if (!shouldAutoActivate) return;
+  const autoRequested = params.get('trial') === 'auto' || window.__pampaTrialAutoRequested === true;
+  if (!autoRequested) return false;
 
   const currentLicense = getLicenseData();
+  const cleanUrl = `${window.location.pathname}${window.location.hash}`;
   if (currentLicense && currentLicense.type === 'trial' && getTrialRemainingDays(currentLicense) > 0) {
-    return;
+    window.history.replaceState({}, document.title, cleanUrl);
+    return true;
   }
 
-  
-  const cleanUrl = `${window.location.pathname}${window.location.hash}`;
+  const now = new Date();
+  const end = new Date(now.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
+  const trialLicense = {
+    type: 'trial',
+    key: 'TRIAL-10DIAS',
+    activatedAt: now.toISOString(),
+    expiresAt: end.toISOString(),
+    deviceId: generateDeviceId()
+  };
+  localStorage.setItem('nexoAgroLicense', JSON.stringify(trialLicense));
+  const overlay = document.getElementById('activationOverlay');
+  if (overlay) overlay.style.display = 'none';
+  showToast(`Prueba activada por ${TRIAL_DAYS} dias`, 'success');
+  updateLicenseBadge();
+  updateTrialBlueBanner();
+  initializeAppAfterLicense();
+
   window.history.replaceState({}, document.title, cleanUrl);
+  return true;
 }
 
 function renderTrialBlueBanner(remainingDays) {
@@ -12733,7 +12766,9 @@ async function initLicenseSystem() {
     // En el build de escritorio (Electron/pura) NUNCA autoactivar un trial sin preguntar:
     // siempre pedir la clave real. El auto-trial solo tiene sentido en la versión web.
     if (!existingLicense && !window.PAMPA_DESKTOP_MODE) {
-      
+      if (!maybeAutoActivateTrialFromQuery()) {
+        showActivationScreen();
+      }
     } else {
       showActivationScreen();
     }
