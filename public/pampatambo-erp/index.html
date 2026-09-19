@@ -5270,11 +5270,17 @@
     function renderTrialModuleTags() {
       const payload = getActiveLicensePayload();
       const isTrial = Boolean(payload?.trial);
+      // Antes las etiquetas de plan (Básica/Profesional/Premium) solo se mostraban con una
+      // prueba gratis formalmente activada (botón "Iniciar prueba gratis"). Pero mientras no
+      // hay ninguna licencia activa la app ya deja ver todos los módulos igual (modo de prueba
+      // libre, sin activar nada) — y es justo ahí donde más falta saber qué plan incluye cada
+      // módulo. Por eso las etiquetas se muestran en los dos casos: prueba activa o sin licencia.
+      const showBadges = isTrial || !payload;
       const banner = byId('trialPlanBanner');
       if (banner) banner.classList.toggle('is-hidden', !isTrial);
       document.querySelectorAll('.nav-item[data-module]').forEach((item) => {
         let badge = item.querySelector('.tier-badge');
-        if (!isTrial) {
+        if (!showBadges) {
           if (badge) badge.remove();
           return;
         }

@@ -13,6 +13,12 @@
         // El ERP guarda la licencia verificada como { key, payload: { exp, licenseId, owner, ... } },
         // no con exp/licenseId en el nivel superior: sin este chequeo anidado nunca se detectaba el vencimiento.
         var payload = record && record.payload;
+        // Una prueba gratis vencida (payload.trial === true, o key === 'TRIAL-10DIAS') no es
+        // una suscripción paga sin renovar: no corresponde mostrarle a ese usuario el cartel de
+        // "renueve su abono" con el link de WhatsApp de pago. Para pruebas vencidas, que se
+        // encargue el cartel de activación de licencia propio de la app.
+        var isTrialRecord = Boolean(payload && payload.trial) || record.key === 'TRIAL-10DIAS';
+        if (isTrialRecord) continue;
         var expiration = record && (record.expiresAt || record.expirationDate || record.exp
           || (record.license && record.license.expiresAt)
           || (payload && (payload.exp || payload.expiresAt)));
