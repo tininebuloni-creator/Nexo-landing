@@ -5754,10 +5754,28 @@
           return;
         }
 
-        if (params.get('trial') !== 'auto') return;
+        // En la web publicada, pampa-web-trial-guard.js ya borró "?trial=auto" de la URL
+        // (corre antes que cualquier otro script), así que a esta altura params.get('trial')
+        // va a estar vacío: por eso también miramos window.__pampaTrialAutoRequested, que es
+        // donde ese guard deja guardada la intención del link.
+        const autoRequested = params.get('trial') === 'auto' || window.__pampaTrialAutoRequested === true;
+        if (!autoRequested) return;
         const current = loadLicenseData();
         if (current?.payload && !isLicenseExpired(current.payload.exp)) return;
-        
+
+        const payload = buildTrialLicensePayload();
+        const info = {
+          key: 'TRIAL-10DIAS',
+          payload,
+          activatedAt: new Date().toISOString(),
+        };
+        localStorage.setItem(LICENSE_STORAGE_KEY, JSON.stringify(info));
+        renderLicenseStatus();
+        setRole(currentRole);
+        if (byId('licenseActivationMsg')) byId('licenseActivationMsg').textContent = `Prueba activada por ${TRIAL_DAYS} días.`;
+        recordAudit('EDICION', 'trial activado por enlace');
+        window.history.replaceState({}, document.title, window.location.pathname);
+        unlockLicenseGate();
       } catch {
         // Ignorar errores de query en modo standalone.
       }
@@ -12590,7 +12608,7 @@
     // La web/PWA queda abierta sin gate obligatorio (se puede navegar y usar sin activar):
     // el gate de activación es solo para el .exe de escritorio. Acá solo se procesa un link
     // oficial de trial si vino por la URL (?trial=auto / trial_token).
-    
+    maybeAutoActivateTrialFromQuery();
     state.auditoria = loadAuditLogs();
     currentRole = normalizeRole(localStorage.getItem(ROLE_STORAGE_KEY) || 'propietario');
     byId('roleSelector').addEventListener('change', (event) => setRole(event.target.value));

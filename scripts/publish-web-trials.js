@@ -89,8 +89,12 @@ for (const [folderName, source] of Object.entries(sources)) {
   let html = fs.readFileSync(entryPoint, 'utf8');
   html = html.replace(/\bconst\s+TRIAL_DAYS\s*=\s*10\s*;/g, 'var TRIAL_DAYS = 10;');
   html = html.replace(/\bawait\s+activateTrial\s*\(\s*\)\s*;/g, '');
-  html = html.replace(/\bmaybeAutoActivateTrialFromQuery\s*\(\s*\)\s*;/g, '');
   html = html.replace(/\bactivateTrial\s*\(\s*\)\s*;/g, '');
+  // OJO: acá antes se borraba también el llamado a maybeAutoActivateTrialFromQuery() al
+  // publicar. Eso dejaba completamente muerto el link de trial que se manda por WhatsApp
+  // (?trial=auto): pampa-web-trial-guard ya guarda la intención en
+  // window.__pampaTrialAutoRequested, pero si esta función nunca se llama, nadie la lee
+  // y el link no activa nada. Se saca el borrado para que el link automático funcione.
   const trialProgressTag = '<script src="./trial-progress.js"></script>';
   const popupTag = '<script src="./pampa-privacy-popup.js"></script>';
   const guardTag = webTrialGuard();
