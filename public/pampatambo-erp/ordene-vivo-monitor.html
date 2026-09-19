@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Monitor de ordeñe en vivo · PampaTambo</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#0f172a; color:#e2e8f0; }
+  header { padding:14px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; border-bottom:1px solid #1e293b; position:sticky; top:0; background:#0f172a; z-index:5; }
+  header h1 { font-size:16px; margin:0; }
+  .estado-conn { font-size:12px; display:flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; }
+  .estado-conn.ok { background:rgba(34,197,94,.15); color:#86efac; }
+  .estado-conn.mal { background:rgba(239,68,68,.2); color:#fca5a5; }
+  .dot { width:8px; height:8px; border-radius:50%; background:currentColor; }
+  main { padding:16px; max-width:1100px; margin:0 auto; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:14px; }
+  .card { background:#151f38; border:1px solid #1e293b; border-radius:12px; padding:14px; }
+  .card.alerta { border-color:#dc2626; box-shadow:0 0 0 1px rgba(220,38,38,.4) inset; }
+  .card h3 { margin:0 0 4px; font-size:18px; }
+  .card .sub { color:#94a3b8; font-size:12px; margin-bottom:10px; }
+  .metricas { display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px; }
+  .metrica { background:#0f172a; border-radius:8px; padding:8px 10px; }
+  .metrica .label { font-size:11px; color:#94a3b8; }
+  .metrica .valor { font-size:18px; font-weight:600; }
+  .alertas { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+  .alerta-item { background:rgba(220,38,38,.15); color:#fca5a5; border-radius:8px; padding:6px 8px; font-size:12px; }
+  .vacio { color:#94a3b8; text-align:center; padding:60px 20px; font-size:14px; }
+  .cerradas { margin-top:28px; }
+  .cerradas h2 { font-size:14px; color:#94a3b8; text-transform:uppercase; letter-spacing:.04em; }
+  .fila-cerrada { display:flex; justify-content:space-between; font-size:13px; padding:8px 10px; border-bottom:1px solid #1e293b; color:#cbd5e1; }
+  a.link-carga { color:#7dd3fc; text-decoration:none; font-size:12px; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>📊 Monitor de ordeñe en vivo</h1>
+    <span class="estado-conn mal" id="estadoConn"><span class="dot"></span><span id="estadoConnTexto">Conectando…</span></span>
+  </header>
+  <main>
+    <p style="color:#94a3b8;font-size:12px;margin-top:0;">Carga manual desde <a class="link-carga" href="./ordene-vivo-carga.html">ordene-vivo-carga.html</a> mientras no haya caudalímetros/sensores instalados. Solo funciona en la red WiFi del tambo (no hace falta internet).</p>
+    <div class="grid" id="gridBajadas"></div>
+    <div id="vacioMsg" class="vacio" style="display:none;">Sin ordeñes en curso ahora mismo.</div>
+    <div class="cerradas">
+      <h2>Últimas bajadas cerradas (esta sesión del servidor)</h2>
+      <div id="listaCerradas"></div>
+    </div>
+  </main>
+<script>
+  const gridBajadas = document.getElementById('gridBajadas');
+  const vacioMsg = document.getElementById('vacioMsg');
+  const listaCerradas = document.getElementById('listaCerradas');
+  const estadoConn = document.getElementById('estadoConn');
+  const estadoConnTexto = document.getElementById('estadoConnTexto');
+
+  function fmt(n, dec) {
+    if (n == null || Number.isNaN(Number(n))) return '-';
+    return Number(n).toFixed(dec ?? 1);
+  }
+  function fmtTiempo(seg) {
+    const s = Math.max(0, Math.round(Number(seg || 0)));
+    const m = Math.floor(s / 60);
+    const r = s % 60;
+    return `${m}:${String(r).padStart(2, '0')}`;
+  }
+
+  function render(data) {
+    const bajadas = data.bajadas || [];
+    vacioMsg.style.display = bajadas.length ? 'none' : 'block';
+    gridBajadas.innerHTML = bajadas.map((b) => {
+      const alerta = (b.alertas || []).length > 0;
+      return `
+        <div class="card ${alerta ? 'alerta' : ''}">
+          <h3>Puesto ${b.bajada_id}</h3>
+          <div class="sub">${b.caravana ? `Caravana ${b.caravana}` : 'Sin caravana cargada'} · actualizado ${new Date(b.actualizado).toLocaleTimeString('es-AR')}</div>
+          <div class="metricas">
+            <div class="metrica"><div class="label">Litros acumulados</div><div class="valor">${fmt(b.litros_actual, 1)} L</div></div>
+            <div class="metrica"><div class="label">Flujo actual</div><div class="valor">${fmt(b.litros_min, 2)} L/min</div></div>
+            <div class="metrica"><div class="label">Temperatura</div><div class="valor">${fmt(b.temperatura, 1)} °C</div></div>
+            <div class="metrica"><div class="label">Tiempo ordeñando</div><div class="valor">${fmtTiempo(b.tiempo_seg)}</div></div>
+          </div>
+          ${alerta ? `<div class="alertas">${b.alertas.map((a) => `<div class="alerta-item">⚠️ ${a.mensaje}</div>`).join('')}</div>` : ''}
+        </div>
+      `;
+    }).join('');
+
+    listaCerradas.innerHTML = (data.cerradas || []).slice(0, 10).map((b) => `
+      <div class="fila-cerrada"><span>Puesto ${b.bajada_id}${b.caravana ? ` · ${b.caravana}` : ''}</span><span>${fmt(b.litros_actual, 1)} L · ${fmtTiempo(b.tiempo_seg)} · cerrado ${new Date(b.cerrado_en).toLocaleTimeString('es-AR')}</span></div>
+    `).join('') || '<div class="fila-cerrada"><span>Sin bajadas cerradas todavía.</span></div>';
+  }
+
+  function marcarConexion(ok) {
+    estadoConn.classList.toggle('ok', ok);
+    estadoConn.classList.toggle('mal', !ok);
+    estadoConnTexto.textContent = ok ? 'En vivo' : 'Reconectando…';
+  }
+
+  function conectar() {
+    // EventSource reconecta solo ante corte de señal (ideal para WiFi rural inestable):
+    // no hace falta lógica manual de reintento.
+    const es = new EventSource('/tambo/ordene-vivo/stream');
+    es.onopen = () => marcarConexion(true);
+    es.onerror = () => marcarConexion(false);
+    es.onmessage = (ev) => {
+      marcarConexion(true);
+      try { render(JSON.parse(ev.data)); } catch { /* ignorar mensaje corrupto */ }
+    };
+  }
+
+  // Snapshot inicial por si el navegador tarda en abrir el stream.
+  fetch('/tambo/ordene-vivo/estado').then((r) => r.json()).then(render).catch(() => {});
+  conectar();
+</script>
+</body>
+</html>

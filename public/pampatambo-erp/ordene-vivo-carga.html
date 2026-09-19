@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Carga de ordeñe en vivo · PampaTambo</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#0f172a; color:#e2e8f0; }
+  header { padding:14px 16px; border-bottom:1px solid #1e293b; }
+  header h1 { font-size:16px; margin:0 0 2px; }
+  header .sub { font-size:12px; color:#94a3b8; }
+  main { padding:16px; max-width:480px; margin:0 auto; padding-bottom:100px; }
+  label { display:block; font-size:13px; color:#94a3b8; margin:14px 0 6px; }
+  input, select { width:100%; padding:14px; font-size:18px; border-radius:10px; border:1px solid #1e293b; background:#151f38; color:#e2e8f0; }
+  input:focus, select:focus { outline:2px solid #38bdf8; }
+  .fila2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .acciones { position:fixed; left:0; right:0; bottom:0; padding:14px 16px; background:#0f172a; border-top:1px solid #1e293b; display:flex; gap:10px; max-width:480px; margin:0 auto; }
+  button { flex:1; padding:16px; font-size:16px; font-weight:600; border-radius:10px; border:none; cursor:pointer; }
+  #btnActualizar { background:#0ea5e9; color:#03202e; }
+  #btnCerrar { background:#1e293b; color:#e2e8f0; }
+  #estadoMsg { margin-top:12px; font-size:13px; min-height:18px; }
+  #estadoMsg.ok { color:#86efac; }
+  #estadoMsg.mal { color:#fca5a5; }
+  .pendientes { font-size:12px; color:#fbbf24; margin-top:6px; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>🥛 Carga de ordeñe en vivo</h1>
+    <div class="sub">Carga manual mientras no haya caudalímetros/sensores instalados. Un dato por puesto, actualizalo cada vez que cambie.</div>
+  </header>
+  <main>
+    <label for="bajadaId">Puesto / bajada</label>
+    <input id="bajadaId" inputmode="text" placeholder="Ej: 1, 2, Fosa A...">
+
+    <label for="caravana">Caravana (RP) — opcional</label>
+    <input id="caravana" inputmode="text" placeholder="Ej: 1234">
+
+    <div class="fila2">
+      <div>
+        <label for="litrosActual">Litros acumulados</label>
+        <input id="litrosActual" type="number" step="0.1" min="0" inputmode="decimal">
+      </div>
+      <div>
+        <label for="litrosMin">Flujo (L/min)</label>
+        <input id="litrosMin" type="number" step="0.1" min="0" inputmode="decimal">
+      </div>
+    </div>
+
+    <div class="fila2">
+      <div>
+        <label for="temperatura">Temperatura (°C)</label>
+        <input id="temperatura" type="number" step="0.1" inputmode="decimal">
+      </div>
+      <div>
+        <label for="conductividad">Conductividad (mS/cm)</label>
+        <input id="conductividad" type="number" step="0.1" min="0" inputmode="decimal">
+      </div>
+    </div>
+
+    <label for="tiempoMin">Tiempo ordeñando (minutos)</label>
+    <input id="tiempoMin" type="number" step="0.5" min="0" inputmode="decimal">
+
+    <div id="estadoMsg"></div>
+    <div id="pendientesMsg" class="pendientes" style="display:none;"></div>
+  </main>
+  <div class="acciones">
+    <button id="btnActualizar">Actualizar</button>
+    <button id="btnCerrar">Cerrar puesto</button>
+  </div>
+<script>
+  const $ = (id) => document.getElementById(id);
+  const estadoMsg = $('estadoMsg');
+  const pendientesMsg = $('pendientesMsg');
+
+  // Recordar el último puesto usado en este celular, para no re-tipearlo en cada bajada.
+  try { $('bajadaId').value = localStorage.getItem('ordeneVivo.ultimoPuesto') || ''; } catch {}
+
+  let colaPendiente = [];
+  let reintentando = false;
+
+  function leerPayload() {
+    const bajada_id = $('bajadaId').value.trim();
+    if (!bajada_id) return null;
+    const num = (id) => { const v = $(id).value; return v === '' ? null : Number(v); };
+    return {
+      bajada_id,
+      caravana: $('caravana').value.trim() || null,
+      litros_actual: num('litrosActual'),
+      litros_min: num('litrosMin'),
+      temperatura: num('temperatura'),
+      conductividad: num('conductividad'),
+      tiempo_seg: $('tiempoMin').value === '' ? null : Math.round(Number($('tiempoMin').value) * 60),
+    };
+  }
+
+  async function enviar(path, payload) {
+    const res = await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload || {}),
+    });
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Error al enviar.');
+    return res.json();
+  }
+
+  function actualizarPendientesMsg() {
+    if (colaPendiente.length) {
+      pendientesMsg.style.display = 'block';
+      pendientesMsg.textContent = `${colaPendiente.length} actualización(es) sin enviar todavía — reintentando…`;
+    } else {
+      pendientesMsg.style.display = 'none';
+    }
+  }
+
+  // Sin señal en el corral: en vez de perder el dato, lo guardamos y reintentamos solos
+  // apenas vuelva la conexión (igual que pidió el "buffer local", pero simple: en memoria del navegador).
+  async function vaciarCola() {
+    if (reintentando || !colaPendiente.length) return;
+    reintentando = true;
+    while (colaPendiente.length) {
+      const item = colaPendiente[0];
+      try {
+        await enviar(item.path, item.payload);
+        colaPendiente.shift();
+        actualizarPendientesMsg();
+      } catch {
+        break; // seguimos sin señal, se reintenta en el próximo ciclo
+      }
+    }
+    reintentando = false;
+  }
+  setInterval(vaciarCola, 5000);
+  window.addEventListener('online', vaciarCola);
+
+  async function accion(path, payload, mensajeOk) {
+    estadoMsg.className = '';
+    estadoMsg.textContent = 'Enviando…';
+    try {
+      await enviar(path, payload);
+      estadoMsg.className = 'ok';
+      estadoMsg.textContent = mensajeOk;
+    } catch (e) {
+      colaPendiente.push({ path, payload });
+      actualizarPendientesMsg();
+      estadoMsg.className = 'mal';
+      estadoMsg.textContent = 'Sin conexión ahora: se guardó y se reintenta solo.';
+    }
+  }
+
+  $('btnActualizar').addEventListener('click', () => {
+    const payload = leerPayload();
+    if (!payload) { estadoMsg.className = 'mal'; estadoMsg.textContent = 'Cargá el número de puesto/bajada primero.'; return; }
+    try { localStorage.setItem('ordeneVivo.ultimoPuesto', payload.bajada_id); } catch {}
+    accion('/tambo/ordene-vivo/actualizar', payload, 'Actualizado ✓');
+  });
+
+  $('btnCerrar').addEventListener('click', () => {
+    const bajadaId = $('bajadaId').value.trim();
+    if (!bajadaId) { estadoMsg.className = 'mal'; estadoMsg.textContent = 'Cargá el número de puesto/bajada primero.'; return; }
+    accion(`/tambo/ordene-vivo/${encodeURIComponent(bajadaId)}/cerrar`, null, 'Puesto cerrado ✓');
+  });
+</script>
+</body>
+</html>

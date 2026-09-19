@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <script id="pampa-web-trial-guard">(function(){try{const url=new URL(window.location.href);if(url.searchParams.get('trial')==='auto'){window.__pampaTrialAutoRequested=true;url.searchParams.delete('trial');window.history.replaceState({},document.title,url.pathname+url.search+url.hash);}}catch(error){}}());</script>
-  <meta charset="UTF-8" />
+<meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PampaTambo ERP - Gestión Agropecuaria Integral</title>
   <link rel="manifest" href="./manifest.webmanifest" />
@@ -2008,6 +2008,19 @@
             </div>
           </div>
 
+          <div class="card" id="ordeneVivoCard">
+            <div class="card-header">
+              <div>
+                <div class="card-title">🔴 Monitor de ordeñe en vivo (beta)</div>
+                <div class="muted">Carga manual por ahora (celular en la sala) · pantalla en vivo para PC/celular · solo dentro de la red del tambo</div>
+              </div>
+            </div>
+            <div style="padding:0 16px 16px; display:flex; gap:10px; flex-wrap:wrap;">
+              <button type="button" class="btn" onclick="window.open('./ordene-vivo-monitor.html','_blank')">📺 Ver monitor en vivo</button>
+              <button type="button" class="btn" onclick="window.open('./ordene-vivo-carga.html','_blank')">📱 Cargar datos de un puesto</button>
+            </div>
+          </div>
+
           <div class="card is-hidden" id="ordenesMonitorCard">
             <div class="card-header">
               <div>
@@ -2487,6 +2500,69 @@
           </div>
 
           <div class="card arca-section" id="arca-lume">
+            <div class="card-header">
+              <div class="card-title">💵 Precios de mercado (leche) por período</div>
+              <button class="btn primary" id="btnNuevoPrecioMercadoLeche">+ Nuevo precio</button>
+            </div>
+            <p class="muted" style="padding:0 16px 8px;font-size:12px;">Cargá acá, una vez por período (AAAA-MM), el precio por Kg de Grasa Butirosa (P_GB) y Proteína (P_PR) que informa el sector. El cálculo del Neto de cada LUME de ese período los usa automáticamente.</p>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Período</th>
+                    <th>Precio Kg Grasa Butirosa (P_GB)</th>
+                    <th>Precio Kg Proteína (P_PR)</th>
+                    <th>Observaciones</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyPreciosMercadoLeche"></tbody>
+              </table>
+            </div>
+            <div class="card-header">
+              <div class="card-title">🧪 Muestras de calidad (propio/laboratorio oficial)</div>
+              <button class="btn primary" id="btnNuevaMuestraCalidad">+ Nueva muestra</button>
+            </div>
+            <p class="muted" style="padding:0 16px 8px;font-size:12px;">Cargá acá cada análisis (diario si tenés sensor/laboratorio propio, o los 3-4 del laboratorio oficial si no). El sistema los pondera por volumen y compara el resultado contra lo que declaró la usina en el LUME de ese período.</p>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Origen</th>
+                    <th>Litros</th>
+                    <th>Grasa %</th>
+                    <th>Proteína %</th>
+                    <th>RCS</th>
+                    <th>UFC</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyMuestrasCalidadLeche"></tbody>
+              </table>
+            </div>
+            <div class="card-header">
+              <div class="card-title">🧾 Reglas de retención fiscal (IVA / Ganancias / IIBB / SUSS)</div>
+              <button class="btn primary" id="btnNuevaReglaRetencion">+ Nueva regla</button>
+            </div>
+            <p class="muted" style="padding:0 16px 8px;font-size:12px;">Cargá acá las alícuotas reales vigentes (confirmalas con tu contador). El botón "Calcular fiscal" de cada LUME busca acá, por Régimen + Condición (+ Jurisdicción si es IIBB), la primera regla en estado <strong>Validada</strong> y vigente a la fecha del LUME. Sin al menos IVA_LECHE_ALICUOTA, IVA_LECHE_RETENCION y GANANCIAS_LECHE_RETENCION cargadas y validadas para el Estado SISA correspondiente, el cálculo va a fallar.</p>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Régimen</th>
+                    <th>Condición</th>
+                    <th>Jurisdicción</th>
+                    <th>Alícuota</th>
+                    <th>Mínimo no imponible</th>
+                    <th>Vigencia</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyReglasRetencion"></tbody>
+              </table>
+            </div>
             <div class="card-header">
               <div class="card-title">🥛 Liquidación de leche / LUME</div>
               <button class="btn primary" id="btnNuevaLiquidacionLeche">+ Nueva liquidación</button>
@@ -3094,6 +3170,9 @@
       chequesCobrar: '/cheques-cobrar',
       chequesCubrir: '/cheques-cubrir',
       liquidacionesLeche: '/liquidaciones-leche',
+      preciosMercadoLeche: '/precios-mercado-leche',
+      muestrasCalidadLeche: '/muestras-calidad-leche',
+      reglasRetencion: '/fiscal/reglas-retencion',
       ventasHacienda: '/ventas-hacienda',
       comprasInsumos: '/compras-insumos',
       gastosArca: '/gastos-arca',
@@ -3132,6 +3211,9 @@
       chequesCobrar: [],
       chequesCubrir: [],
       liquidacionesLeche: [],
+      preciosMercadoLeche: [],
+      muestrasCalidadLeche: [],
+      reglasRetencion: [],
       ventasHacienda: [],
       comprasInsumos: [],
       gastosArca: [],
@@ -3298,7 +3380,7 @@
           'empresa', 'dashboard', 'reportes',
           'campos',
           'hacienda', 'animales', 'toros', 'guachera', 'recria', 'reproduccion', 'partos', 'produccion', 'sanidad',
-          'inventario', 'alimentos', 'instalaciones', 'mantenimiento',
+          'inventario', 'alimentos', 'instalaciones', 'mantenimiento', 'silos',
           'entregas', 'ordenes',
           'costos', 'costosOperativos',
           'finanzas', 'arca',
@@ -3662,17 +3744,70 @@
         { key: 'proteina_pct', label: 'Proteína %', type: 'number' },
         { key: 'grasa_kg', label: 'Grasa (kg, según LUME)', type: 'number' },
         { key: 'proteina_kg', label: 'Proteína (kg, según LUME)', type: 'number' },
-        { key: 'rcs', label: 'RCS', type: 'number' },
-        { key: 'ufc', label: 'UFC', type: 'number' },
-        { key: 'precio_litro', label: 'Precio/litro', type: 'number' },
-        { key: 'bonificaciones', label: 'Bonificaciones', type: 'number' },
-        { key: 'descuentos', label: 'Descuentos', type: 'number' },
-        { key: 'neto', label: 'Neto', type: 'number' },
+        { key: 'rcs', label: 'RCS (células/ml)', type: 'number' },
+        { key: 'ufc', label: 'UFC (bacterias/ml)', type: 'number' },
+        { key: 'temp_entrega', label: 'Temperatura de entrega (°C)', type: 'number' },
+        { key: 'crioscopia', label: 'Punto crioscópico (°C)', type: 'number' },
+        { key: 'antibioticos', label: '¿Antibióticos/inhibidores detectados?', type: 'select', options: ['NO', 'SI'] },
+        { key: 'precio_litro', label: 'Precio/litro (declarado por la usina)', type: 'number' },
+        { key: 'kg_gb', label: 'Kg Grasa Butirosa (calculado)', type: 'number', readOnly: true },
+        { key: 'kg_pr', label: 'Kg Proteína (calculado)', type: 'number', readOnly: true },
+        { key: 'precio_basico_total', label: 'Precio Básico Total - PBT (calculado)', type: 'number', readOnly: true },
+        { key: 'factor_rcs', label: 'Factor RCS (%)', type: 'number', hint: 'Se calcula automático por el escalón que corresponde (el % de esa banda). Podés editarlo a mano si querés aplicar otro valor.' },
+        { key: 'factor_ufc', label: 'Factor UFC (%)', type: 'number', hint: 'Se calcula automático por el escalón que corresponde (el % de esa banda). Podés editarlo a mano si querés aplicar otro valor.' },
+        { key: 'factor_volumen', label: 'Factor escala por volumen diario (%)', type: 'number', hint: 'Se calcula automático por el escalón que corresponde (el % de esa banda). Podés editarlo a mano si querés aplicar otro valor.' },
+        { key: 'coeficiente_temp', label: 'Coeficiente temperatura (%)', type: 'number', hint: 'Se calcula automático (0,90 si la entrega superó 4,5°C). Podés editarlo a mano si querés aplicar otro valor.' },
+        { key: 'precio_final_liquidado', label: 'Precio Final Liquidado (calculado)', type: 'number', readOnly: true },
+        { key: 'precio_litro_calculado', label: 'Precio/litro calculado (referencia)', type: 'number', readOnly: true },
+        { key: 'descuento_flete', label: 'Descuento Flete/Distancia a planta ($)', type: 'number', hint: 'Carga manual: no hay fórmula fija por km, se descuenta directo del Precio Final Liquidado.' },
+        { key: 'bonificaciones', label: 'Bonificaciones (aparte, ej. promos)', type: 'number' },
+        { key: 'descuentos', label: 'Descuentos (aparte, ej. penalizaciones manuales)', type: 'number' },
+        { key: 'neto', label: 'Subtotal Neto Teórico / Gravado (calculado sobre lo declarado por la usina)', type: 'number', readOnly: true },
+        { key: 'neto_usina_declarado', label: 'Neto según LUME de la usina ($) — para auditar', type: 'number', hint: 'Cargá acá el neto que realmente figura en el LUME que te mandó la usina, para comparar contra lo que calculó el sistema.' },
+        { key: 'diferencia_auditoria', label: 'Diferencia Auditoría (Sistema − Usina, mismos datos)', type: 'number', readOnly: true, hint: 'Compara con la fórmula aplicada a los datos que la USINA declaró. Si no da $0, la usina se equivocó en su propia cuenta.' },
+        { key: 'origen_datos_calidad_periodo', label: 'Muestras propias del período', type: 'text', readOnly: true, hint: 'Se completa solo según lo cargado en "Muestras de calidad" para este período.' },
+        { key: 'litros_erp_ponderado', label: 'Litros (ponderado, muestras propias)', type: 'number', readOnly: true },
+        { key: 'grasa_pct_erp_ponderado', label: 'Grasa % (ponderado, muestras propias)', type: 'number', readOnly: true },
+        { key: 'proteina_pct_erp_ponderado', label: 'Proteína % (ponderado, muestras propias)', type: 'number', readOnly: true },
+        { key: 'rcs_erp_ponderado', label: 'RCS (ponderado, muestras propias)', type: 'number', readOnly: true },
+        { key: 'ufc_erp_ponderado', label: 'UFC (ponderado, muestras propias)', type: 'number', readOnly: true },
+        { key: 'subtotal_neto_estimado_erp', label: 'Subtotal Neto Estimado (con composición propia)', type: 'number', readOnly: true, hint: 'Misma fórmula, pero usando lo que midió tu propio monitor/laboratorio en vez de lo declarado por la usina.' },
+        { key: 'desvio_composicion_erp', label: 'Desvío vs. usina (Estimado propio − Usina declarado)', type: 'number', readOnly: true, hint: 'Si es muy distinto de $0, la composición que declaró la usina difiere de la que mediste vos: motivo para reclamar.' },
         { key: 'fecha_cobro', label: 'Fecha cobro', type: 'date' },
-        { key: 'porcentaje_tambero', label: '% tambero asociado', type: 'number' },
+        { key: 'porcentaje_tambero', label: '% tambero asociado', type: 'number', hint: 'Se pacta libremente entre las partes (Contrato Asociativo de Explotación Tambera, Ley 25.169 — no fija un %). Rangos habituales orientativos, NO una tabla legal: ~10-12% cuando el tambero solo aporta la mano de obra del ordeñe; ~15-18% cuando además pone maquinaria; ~20-25% cuando el tambero también absorbe insumos/energía u otros costos operativos. Se calcula sobre el Subtotal Neto (sin IVA), nunca sobre el total facturado.' },
+        { key: 'responsable_tambero', label: 'Responsable (tambero)', type: 'select', source: 'empleadosResponsable' },
         { key: 'tipo_inscripcion_tambero', label: 'Inscripción fiscal tambero', type: 'select', options: ['SIN_DECLARAR', 'MONOTRIBUTO', 'RESPONSABLE_INSCRIPTO', 'AUTONOMO'] },
         { key: 'estado_sisa', label: 'Estado SISA', type: 'select', options: ['1', '2', '3', 'INACTIVO', 'MONOTRIBUTO'], required: true },
         { key: 'provincia_compradora', label: 'Provincia compradora (IIBB)', type: 'text' },
+        { key: 'observaciones', label: 'Observaciones', type: 'textarea', full: true }
+      ],
+      preciosMercadoLeche: [
+        { key: 'periodo', label: 'Período (AAAA-MM)', type: 'text', required: true },
+        { key: 'precio_gb', label: 'Precio por Kg Grasa Butirosa (P_GB)', type: 'number', required: true },
+        { key: 'precio_pr', label: 'Precio por Kg Proteína (P_PR)', type: 'number', required: true },
+        { key: 'observaciones', label: 'Observaciones', type: 'textarea', full: true }
+      ],
+      muestrasCalidadLeche: [
+        { key: 'fecha', label: 'Fecha de la muestra', type: 'date', required: true },
+        { key: 'origen_datos', label: 'Origen del dato', type: 'select', options: ['INTERNO_DIARIO', 'LAB_OFICIAL'], hint: 'INTERNO_DIARIO: sensor/laboratorio propio, un dato por día. LAB_OFICIAL: análisis del laboratorio arbitral (CeCalPo, ALEPA, etc.), pocos por mes.' },
+        { key: 'turno', label: 'Turno (opcional)', type: 'text' },
+        { key: 'litros_del_periodo', label: 'Litros del día (o del tramo que representa esta muestra)', type: 'number', required: true },
+        { key: 'porcentaje_gb', label: 'Grasa %', type: 'number', required: true },
+        { key: 'porcentaje_pr', label: 'Proteína %', type: 'number', required: true },
+        { key: 'rcs', label: 'RCS (células/ml)', type: 'number' },
+        { key: 'ufc', label: 'UFC (bacterias/ml)', type: 'number' },
+        { key: 'observaciones', label: 'Observaciones', type: 'textarea', full: true }
+      ],
+      reglasRetencion: [
+        { key: 'regimen', label: 'Régimen', type: 'select', options: ['IVA_LECHE_ALICUOTA', 'IVA_LECHE_RETENCION', 'GANANCIAS_LECHE_RETENCION', 'IIBB_LECHE_RETENCION', 'SUSS_TAMBERO_ASOCIADO'], required: true, hint: 'IVA_LECHE_ALICUOTA = alícuota de IVA débito fiscal sobre la leche (condición GENERAL). IVA_LECHE_RETENCION y GANANCIAS_LECHE_RETENCION = retenciones según Estado SISA del tambo. IIBB_LECHE_RETENCION = retención de Ingresos Brutos (una regla por provincia, en Jurisdicción). SUSS_TAMBERO_ASOCIADO = aporte del tambero mediero.' },
+        { key: 'condicion', label: 'Condición', type: 'text', required: true, hint: 'Para IVA_LECHE_ALICUOTA e IIBB_LECHE_RETENCION usá GENERAL. Para IVA_LECHE_RETENCION y GANANCIAS_LECHE_RETENCION usá SISA_1, SISA_2, SISA_3, SISA_INACTIVO o SISA_MONOTRIBUTO según el Estado SISA cargado en la LUME. Para SUSS_TAMBERO_ASOCIADO usá GENERAL.' },
+        { key: 'jurisdiccion', label: 'Jurisdicción', type: 'text', hint: 'Dejar "NACIONAL" salvo en IIBB_LECHE_RETENCION, donde va el nombre de la provincia en mayúsculas (ej. CORDOBA, SANTA FE, BUENOS AIRES) igual a como se carga "Provincia compradora" en la LUME.' },
+        { key: 'alicuota_pct', label: 'Alícuota %', type: 'number', required: true, hint: 'Porcentaje a aplicar sobre la base imponible (ej. 10,5 para IVA leche). Se carga como número de %, no como fracción.' },
+        { key: 'minimo_no_imponible', label: 'Mínimo no imponible ($)', type: 'number', hint: 'Monto que se resta de la base antes de aplicar la alícuota. Dejar en 0 si no corresponde.' },
+        { key: 'vigencia_desde', label: 'Vigente desde', type: 'date' },
+        { key: 'vigencia_hasta', label: 'Vigente hasta', type: 'date', hint: 'Dejar vacío si sigue vigente.' },
+        { key: 'fuente_normativa', label: 'Fuente normativa', type: 'text', hint: 'Ej. RG AFIP/ARCA 3187, RG 3337, norma de IIBB de la provincia, etc.' },
+        { key: 'estado', label: 'Estado', type: 'select', options: ['BORRADOR', 'VALIDADA'], required: true, hint: 'Solo las reglas en estado VALIDADA (y dentro de su vigencia) se usan al calcular. Dejá en BORRADOR hasta confirmar el dato.' },
         { key: 'observaciones', label: 'Observaciones', type: 'textarea', full: true }
       ],
       ventasHacienda: [
@@ -3892,7 +4027,7 @@
       ]
     };
 
-    const IMPORT_TYPES = ['campos', 'lotes', 'instalaciones', 'entregasUsina', 'costos', 'costosOperativos', 'finanzas', 'caja', 'bancos', 'creditos', 'chequesCobrar', 'chequesCubrir', 'liquidacionesLeche', 'ventasHacienda', 'comprasInsumos', 'gastosArca', 'comprobantesArca', 'cobrosPagos', 'empleados', 'asistencias', 'animales', 'toros', 'guachera', 'recria', 'alimentos', 'ordenes', 'reproduccion', 'sanidad', 'maquinas', 'mantenimiento', 'insumosSanidad'];
+    const IMPORT_TYPES = ['campos', 'lotes', 'instalaciones', 'entregasUsina', 'costos', 'costosOperativos', 'finanzas', 'caja', 'bancos', 'creditos', 'chequesCobrar', 'chequesCubrir', 'liquidacionesLeche', 'preciosMercadoLeche', 'muestrasCalidadLeche', 'ventasHacienda', 'comprasInsumos', 'gastosArca', 'comprobantesArca', 'cobrosPagos', 'empleados', 'asistencias', 'animales', 'toros', 'guachera', 'recria', 'alimentos', 'ordenes', 'reproduccion', 'sanidad', 'maquinas', 'mantenimiento', 'insumosSanidad'];
     const INLINE_IMPORT_BUTTONS = [
       { anchorId: 'btnNuevoCampo', type: 'campos' },
       { anchorId: 'btnNuevoLote', type: 'lotes' },
@@ -3918,6 +4053,8 @@
       { anchorId: 'btnNuevoBanco', type: 'bancos' },
       { anchorId: 'btnNuevoCredito', type: 'creditos' },
       { anchorId: 'btnNuevaLiquidacionLeche', type: 'liquidacionesLeche' },
+      { anchorId: 'btnNuevoPrecioMercadoLeche', type: 'preciosMercadoLeche' },
+      { anchorId: 'btnNuevaMuestraCalidad', type: 'muestrasCalidadLeche' },
       { anchorId: 'btnNuevaVentaHacienda', type: 'ventasHacienda' },
       { anchorId: 'btnNuevaCompraInsumo', type: 'comprasInsumos' },
       { anchorId: 'btnNuevoGasto', type: 'gastosArca' },
@@ -4463,7 +4600,9 @@
       creditos: ['monto', 'tasa_anual', 'cuotas'],
       chequesCobrar: ['importe'],
       chequesCubrir: ['importe'],
-      liquidacionesLeche: ['litros_liquidados', 'grasa_pct', 'proteina_pct', 'grasa_kg', 'proteina_kg', 'rcs', 'ufc', 'precio_litro', 'bonificaciones', 'descuentos', 'neto'],
+      liquidacionesLeche: ['litros_liquidados', 'grasa_pct', 'proteina_pct', 'grasa_kg', 'proteina_kg', 'rcs', 'ufc', 'precio_litro', 'bonificaciones', 'descuentos', 'neto', 'temp_entrega', 'crioscopia', 'kg_gb', 'kg_pr', 'precio_basico_total', 'factor_rcs', 'factor_ufc', 'factor_volumen', 'coeficiente_temp', 'precio_final_liquidado', 'precio_litro_calculado', 'descuento_flete', 'neto_usina_declarado', 'diferencia_auditoria', 'litros_erp_ponderado', 'grasa_pct_erp_ponderado', 'proteina_pct_erp_ponderado', 'rcs_erp_ponderado', 'ufc_erp_ponderado', 'subtotal_neto_estimado_erp', 'desvio_composicion_erp'],
+      reglasRetencion: ['alicuota_pct', 'minimo_no_imponible'],
+      muestrasCalidadLeche: ['litros_del_periodo', 'porcentaje_gb', 'porcentaje_pr', 'rcs', 'ufc'],
       ventasHacienda: ['kg_vivo', 'precio_kg', 'importe'],
       comprasInsumos: ['cantidad', 'precio_unitario', 'total'],
       gastosArca: ['importe'],
@@ -4720,6 +4859,9 @@
         guachera: 'Registro de Guachera',
         recria: 'Registro de Recría',
         liquidacionesLeche: 'Liquidación de Leche',
+        preciosMercadoLeche: 'Precio de Mercado (Leche)',
+        muestrasCalidadLeche: 'Muestra de Calidad (Leche)',
+        reglasRetencion: 'Regla de Retención Fiscal',
         ventasHacienda: 'Venta de Hacienda',
         comprasInsumos: 'Compra de Insumos',
         gastosArca: 'Gasto',
@@ -4741,6 +4883,34 @@
 
     function getSelectOptions(type, field, row = {}) {
       if (!field) return [];
+
+      if (field.source === 'empleadosResponsable') {
+        const activos = ['ACTIVO', ''];
+        const fromEmpleados = (state.empleados || [])
+          .filter((e) => activos.includes(`${e?.estado || ''}`.toUpperCase()))
+          .map((e) => {
+            const legajo = normalizeCatalogValue(e?.legajo);
+            const nombreCompleto = normalizeCatalogValue(`${e?.nombre || ''} ${e?.apellido || ''}`.trim());
+            const value = legajo || nombreCompleto;
+            if (!value) return null;
+            const label = nombreCompleto
+              ? `${nombreCompleto}${e?.cargo ? ` (${e.cargo})` : ''}`
+              : value;
+            return { value, label };
+          })
+          .filter(Boolean);
+        const current = normalizeCatalogValue(row?.[field.key]);
+        const merged = current ? [{ value: current, label: current }, ...fromEmpleados] : fromEmpleados;
+        const deduped = [];
+        const seen = new Set();
+        merged.forEach((item) => {
+          if (!item?.value || seen.has(item.value)) return;
+          seen.add(item.value);
+          deduped.push(item);
+        });
+        deduped.sort((a, b) => `${a.label}`.localeCompare(`${b.label}`, 'es', { sensitivity: 'base' }));
+        return deduped;
+      }
 
       if (field.source === 'animalesCaravana') {
         const fromAnimales = (state.animales || [])
@@ -5404,7 +5574,33 @@
       }
     }
 
+    // Se usa desde el arranque para no dejar entrar al panel sin licencia (ni trial silencioso).
+    function hasActiveLicense() {
+      const info = loadLicenseData();
+      return Boolean(info?.payload) && !isLicenseExpired(info.payload.exp);
+    }
+
+    function unlockLicenseGate() {
+      const modal = byId('modalLicencia');
+      if (modal) delete modal.dataset.mandatory;
+      const closeBtn = byId('btnCerrarLicencia');
+      if (closeBtn) closeBtn.style.display = '';
+    }
+
+    // Pantalla de activación obligatoria: si no hay licencia válida (ni se activó un trial
+    // explícito por link oficial), se abre el modal de licencia y no se deja cerrar hasta
+    // que activen una licencia o inicien la prueba gratis desde ahí.
+    function enforceLicenseGate() {
+      if (hasActiveLicense()) return;
+      openLicenseModal();
+      const modal = byId('modalLicencia');
+      if (modal) modal.dataset.mandatory = '1';
+      const closeBtn = byId('btnCerrarLicencia');
+      if (closeBtn) closeBtn.style.display = 'none';
+    }
+
     function closeLicenseModal() {
+      if (byId('modalLicencia')?.dataset.mandatory === '1' && !hasActiveLicense()) return;
       byId('modalLicencia')?.classList.remove('active');
     }
 
@@ -5494,6 +5690,7 @@
       setRole(currentRole);
       byId('licenseActivationMsg').textContent = `Prueba activada por ${TRIAL_DAYS} días.`;
       recordAudit('EDICION', 'trial activado');
+      unlockLicenseGate();
     }
 
     async function sendTrialLinkByWhatsApp() {
@@ -5553,6 +5750,7 @@
           byId('licenseActivationMsg').textContent = `Prueba activada hasta ${redeemed.payload.exp}.`;
           recordAudit('EDICION', 'trial activado por enlace seguro');
           window.history.replaceState({}, document.title, window.location.pathname);
+          unlockLicenseGate();
           return;
         }
 
@@ -5596,6 +5794,7 @@
         const contactsConfigured = mergeLicenseContactsIntoEmpresa(payload);
         byId('licenseActivationMsg').textContent = `Licencia activa para ${payload.owner || 'cliente'} hasta ${payload.exp}. Contactos WhatsApp cargados: ${contactsConfigured}.`;
         recordAudit('EDICION', `licencia activada (${payload.version || 'sin version'})`);
+        unlockLicenseGate();
       } catch (error) {
         byId('licenseActivationMsg').textContent = error.message || 'No se pudo activar la licencia.';
       }
@@ -5606,7 +5805,7 @@
       if (type === 'maquinas' || type === 'insumosSanidad') return 'inventario';
       if (type === 'mantenimiento' || type === 'mantenimientoMaquinas' || type === 'tareasMantenimiento') return 'mantenimiento';
       if (type === 'entregasUsina') return 'entregas';
-      if (type === 'liquidacionesLeche' || type === 'ventasHacienda' || type === 'comprasInsumos' || type === 'gastosArca' || type === 'comprobantesArca' || type === 'cobrosPagos') return 'arca';
+      if (type === 'liquidacionesLeche' || type === 'preciosMercadoLeche' || type === 'muestrasCalidadLeche' || type === 'reglasRetencion' || type === 'ventasHacienda' || type === 'comprasInsumos' || type === 'gastosArca' || type === 'comprobantesArca' || type === 'cobrosPagos') return 'arca';
       if (type === 'caja' || type === 'bancos' || type === 'creditos' || type === 'chequesCobrar' || type === 'chequesCubrir') return 'finanzas';
       if (type === 'empleados' || type === 'asistencias') return 'rrhh';
       return type;
@@ -5675,6 +5874,9 @@
         if (!parsed || typeof parsed !== 'object') return {};
         return {
           liquidacionesLeche: Array.isArray(parsed.liquidacionesLeche) ? parsed.liquidacionesLeche : [],
+          preciosMercadoLeche: Array.isArray(parsed.preciosMercadoLeche) ? parsed.preciosMercadoLeche : [],
+          muestrasCalidadLeche: Array.isArray(parsed.muestrasCalidadLeche) ? parsed.muestrasCalidadLeche : [],
+          reglasRetencion: Array.isArray(parsed.reglasRetencion) ? parsed.reglasRetencion : [],
           ventasHacienda: Array.isArray(parsed.ventasHacienda) ? parsed.ventasHacienda : [],
           comprasInsumos: Array.isArray(parsed.comprasInsumos) ? parsed.comprasInsumos : [],
           gastosArca: Array.isArray(parsed.gastosArca) ? parsed.gastosArca : [],
@@ -5689,6 +5891,9 @@
     function saveArcaLocalState() {
       const payload = {
         liquidacionesLeche: state.liquidacionesLeche || [],
+        preciosMercadoLeche: state.preciosMercadoLeche || [],
+        muestrasCalidadLeche: state.muestrasCalidadLeche || [],
+        reglasRetencion: state.reglasRetencion || [],
         ventasHacienda: state.ventasHacienda || [],
         comprasInsumos: state.comprasInsumos || [],
         gastosArca: state.gastosArca || [],
@@ -5917,6 +6122,9 @@
       setVisible('btnNuevoBanco', canWrite && cfg.modules.includes('finanzas'));
       setVisible('btnNuevoCredito', canWrite && cfg.modules.includes('finanzas'));
       setVisible('btnNuevaLiquidacionLeche', canWrite && cfg.modules.includes('arca'));
+      setVisible('btnNuevoPrecioMercadoLeche', canWrite && cfg.modules.includes('arca'));
+      setVisible('btnNuevaMuestraCalidad', canWrite && cfg.modules.includes('arca'));
+      setVisible('btnNuevaReglaRetencion', canWrite && cfg.modules.includes('arca'));
       setVisible('btnNuevaVentaHacienda', canWrite && cfg.modules.includes('arca'));
       setVisible('btnNuevaCompraInsumo', canWrite && cfg.modules.includes('arca'));
       setVisible('btnNuevoGasto', canWrite && cfg.modules.includes('arca'));
@@ -7121,7 +7329,7 @@
       loadDataHadApiSuccess = false;
       loadDataHadConnectivityError = false;
       const arcaLocal = loadArcaLocalState();
-      const [campos, lotes, instalaciones, entregasUsina, costos, costosOperativos, finanzas, caja, bancos, creditos, chequesCobrar, chequesCubrir, liquidacionesLeche, ventasHacienda, comprasInsumos, gastosArca, comprobantesArca, cobrosPagos, empleados, asistencias, animales, toros, guachera, recria, alimentos, ordenes, reproduccion, sanidad, maquinas, insumosSanidad, mantenimiento, mantenimientoMaquinas, tareasMantenimiento, liquidacionesMediero, silos, siloMovimientos] = await Promise.all([
+      const [campos, lotes, instalaciones, entregasUsina, costos, costosOperativos, finanzas, caja, bancos, creditos, chequesCobrar, chequesCubrir, liquidacionesLeche, preciosMercadoLeche, muestrasCalidadLeche, reglasRetencion, ventasHacienda, comprasInsumos, gastosArca, comprobantesArca, cobrosPagos, empleados, asistencias, animales, toros, guachera, recria, alimentos, ordenes, reproduccion, sanidad, maquinas, insumosSanidad, mantenimiento, mantenimientoMaquinas, tareasMantenimiento, liquidacionesMediero, silos, siloMovimientos] = await Promise.all([
         request('/campos').catch(() => []),
         request('/lotes').catch(() => []),
         request('/instalaciones').catch(() => []),
@@ -7135,6 +7343,9 @@
         request('/cheques-cobrar').catch(() => []),
         request('/cheques-cubrir').catch(() => []),
         request('/liquidaciones-leche').catch(() => arcaLocal.liquidacionesLeche || []),
+        request('/precios-mercado-leche').catch(() => arcaLocal.preciosMercadoLeche || []),
+        request('/muestras-calidad-leche').catch(() => arcaLocal.muestrasCalidadLeche || []),
+        request('/fiscal/reglas-retencion').catch(() => arcaLocal.reglasRetencion || []),
         request('/ventas-hacienda').catch(() => arcaLocal.ventasHacienda || []),
         request('/compras-insumos').catch(() => arcaLocal.comprasInsumos || []),
         request('/gastos-arca').catch(() => arcaLocal.gastosArca || []),
@@ -7184,6 +7395,9 @@
       state.chequesCobrar = chequesCobrar;
       state.chequesCubrir = chequesCubrir;
       state.liquidacionesLeche = liquidacionesLeche;
+      state.preciosMercadoLeche = preciosMercadoLeche;
+      state.muestrasCalidadLeche = muestrasCalidadLeche;
+      state.reglasRetencion = reglasRetencion;
       state.ventasHacienda = ventasHacienda;
       state.comprasInsumos = comprasInsumos;
       state.gastosArca = gastosArca;
@@ -8729,11 +8943,59 @@
 
     function renderArca() {
       const liquidaciones = state.liquidacionesLeche || [];
+      const preciosMercado = state.preciosMercadoLeche || [];
+      const muestrasCalidad = state.muestrasCalidadLeche || [];
+      const reglasRetencion = state.reglasRetencion || [];
       const ventas = state.ventasHacienda || [];
       const compras = state.comprasInsumos || [];
       const gastos = state.gastosArca || [];
       const comprobantes = state.comprobantesArca || [];
       const cobrosPagos = state.cobrosPagos || [];
+
+      byId('tbodyPreciosMercadoLeche') && (byId('tbodyPreciosMercadoLeche').innerHTML = [...preciosMercado].sort((a, b) => `${b.periodo || ''}`.localeCompare(`${a.periodo || ''}`)).map((row) => `
+        <tr>
+          <td><strong>${row.periodo || ''}</strong></td>
+          <td>${formatMoney(row.precio_gb)}</td>
+          <td>${formatMoney(row.precio_pr)}</td>
+          <td>${row.observaciones || ''}</td>
+          <td>
+            <button class="btn" onclick="editRow('preciosMercadoLeche','${row.id}')">Editar</button>
+            <button class="btn" onclick="deleteRow('preciosMercadoLeche','${row.id}')">Borrar</button>
+          </td>
+        </tr>
+      `).join('') || '<tr><td colspan="5" class="muted">Sin precios de mercado cargados todavía. Cargá al menos el período actual para que el Neto de los LUME se calcule.</td></tr>');
+
+      byId('tbodyMuestrasCalidadLeche') && (byId('tbodyMuestrasCalidadLeche').innerHTML = [...muestrasCalidad].sort((a, b) => `${b.fecha || ''}`.localeCompare(`${a.fecha || ''}`)).map((row) => `
+        <tr>
+          <td>${row.fecha || ''}</td>
+          <td>${row.origen_datos === 'LAB_OFICIAL' ? 'Lab. oficial' : 'Interno/diario'}</td>
+          <td>${Number(row.litros_del_periodo || 0).toFixed(1)}</td>
+          <td>${Number(row.porcentaje_gb || 0).toFixed(2)}%</td>
+          <td>${Number(row.porcentaje_pr || 0).toFixed(2)}%</td>
+          <td>${row.rcs || ''}</td>
+          <td>${row.ufc || ''}</td>
+          <td>
+            <button class="btn" onclick="editRow('muestrasCalidadLeche','${row.id}')">Editar</button>
+            <button class="btn" onclick="deleteRow('muestrasCalidadLeche','${row.id}')">Borrar</button>
+          </td>
+        </tr>
+      `).join('') || '<tr><td colspan="8" class="muted">Sin muestras cargadas todavía. Sin esto, el sistema no puede calcular su propia estimación independiente para auditar a la usina.</td></tr>');
+
+      byId('tbodyReglasRetencion') && (byId('tbodyReglasRetencion').innerHTML = [...reglasRetencion].sort((a, b) => `${a.regimen || ''}${a.jurisdiccion || ''}${a.condicion || ''}`.localeCompare(`${b.regimen || ''}${b.jurisdiccion || ''}${b.condicion || ''}`)).map((row) => `
+        <tr>
+          <td>${row.regimen || ''}</td>
+          <td>${row.condicion || ''}</td>
+          <td>${row.jurisdiccion || 'NACIONAL'}</td>
+          <td>${Number(row.alicuota_pct || 0).toFixed(2)}%</td>
+          <td>${row.minimo_no_imponible ? formatMoney(row.minimo_no_imponible) : '-'}</td>
+          <td>${row.vigencia_desde || ''}${row.vigencia_hasta ? ` a ${row.vigencia_hasta}` : (row.vigencia_desde ? ' (sin fin)' : '')}</td>
+          <td><span class="pill ${row.estado === 'VALIDADA' ? 'ok' : 'warn'}">${row.estado === 'VALIDADA' ? 'Validada' : 'Borrador'}</span></td>
+          <td>
+            <button class="btn" onclick="editRow('reglasRetencion','${row.id}')">Editar</button>
+            <button class="btn" onclick="deleteRow('reglasRetencion','${row.id}')">Borrar</button>
+          </td>
+        </tr>
+      `).join('') || '<tr><td colspan="8" class="muted">Sin reglas cargadas todavía. Sin al menos IVA_LECHE_ALICUOTA / IVA_LECHE_RETENCION / GANANCIAS_LECHE_RETENCION en estado Validada, el botón "Calcular fiscal" de la LUME va a fallar.</td></tr>');
 
       byId('tbodyLiquidacionesLeche') && (byId('tbodyLiquidacionesLeche').innerHTML = liquidaciones.map((row) => `
         <tr>
@@ -8752,7 +9014,7 @@
           <td>${formatMoney(row.descuentos)}</td>
           <td><strong>${formatMoney(row.neto)}</strong></td>
           <td>${row.fecha_cobro || ''}</td>
-          <td>${estadoPill(row.estado_arca || 'SIN_ENVIAR')}${row.resumen_fiscal ? `<small>IVA ret. ${formatMoney(row.resumen_fiscal.retenciones?.iva_sisa || 0)}<br>Neto banco ${formatMoney(row.resumen_fiscal.neto_estimado_tambo || 0)}${row.resumen_fiscal.auditoriaArca ? `<br>CondicionIVAReceptorId: ${row.resumen_fiscal.auditoriaArca.pendienteDeclararCondicionIva ? '<span style="color:var(--red,#dc2626)">sin declarar</span>' : row.resumen_fiscal.auditoriaArca.condicionIvaReceptorId}` : ''}</small>` : ''}</td>
+          <td>${estadoPill(row.estado_arca || 'SIN_ENVIAR')}${row.resumen_fiscal ? `<small>IVA débito ${formatMoney(row.resumen_fiscal.iva_debito || 0)}<br>Ret. IVA ${formatMoney(row.resumen_fiscal.retenciones?.iva_sisa || 0)} · Ret. Ganancias ${formatMoney(row.resumen_fiscal.retenciones?.ganancias_sisa || 0)}${row.resumen_fiscal.retenciones?.iibb ? ` · Ret. IIBB ${formatMoney(row.resumen_fiscal.retenciones.iibb)}` : ''}<br><strong>Neto banco ${formatMoney(row.resumen_fiscal.neto_estimado_tambo || 0)}</strong>${row.resumen_fiscal.auditoriaArca ? `<br>CondicionIVAReceptorId: ${row.resumen_fiscal.auditoriaArca.pendienteDeclararCondicionIva ? '<span style="color:var(--red,#dc2626)">sin declarar</span>' : row.resumen_fiscal.auditoriaArca.condicionIvaReceptorId}` : ''}<br><span class="muted">Calculado ${row.resumen_fiscal.calculado_en ? new Date(row.resumen_fiscal.calculado_en).toLocaleString('es-AR') : ''}</span></small>` : '<br><small class="muted">Sin calcular todavía</small>'}</td>
           <td>
             <button class="btn" onclick="calcularRetencionesLiquidacionLeche('${row.id}')">Calcular fiscal</button>
             <button class="btn" onclick="simularLiquidacionLecheArca('${row.id}')">Simular ARCA</button>
@@ -9056,7 +9318,9 @@
         showToast(`Fiscal calculado. Neto banco: ${formatMoney(resultado.resumenFiscal.neto_estimado_tambo)}.`);
         await loadData();
       } catch (error) {
-        showToast(error.message || 'No se pudo calcular la liquidación fiscal.', 'error');
+        const mensaje = error.message || 'No se pudo calcular la liquidación fiscal.';
+        const faltaRegla = /regla VALIDADA/i.test(mensaje);
+        showToast(faltaRegla ? `${mensaje} Cargala en ARCA → Reglas de retención.` : mensaje, 'error');
       }
     }
 
@@ -9183,11 +9447,85 @@
             </div>
             <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
               <span class="muted">Neto a transferir estimado: <strong id="med-preview-${liq.id}">${formatMoney(netoPreview)}</strong></span>
-              <button class="btn primary" onclick="emitirLiquidacionMediero('${liq.id}')">${recibo ? 'Actualizar y remitir' : 'Emitir recibo y cerrar período'}</button>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                ${recibo ? `<button class="btn" onclick="imprimirReciboMediero('${liq.id}')">🖨️ Imprimir recibo</button>` : ''}
+                <button class="btn primary" onclick="emitirLiquidacionMediero('${liq.id}')">${recibo ? 'Actualizar y remitir' : 'Emitir recibo y cerrar período'}</button>
+              </div>
             </div>
           </div>
         `;
       }).join('');
+    }
+
+    // Recibo interno de liquidación asociativa tambera (Ley 25.169), sin IVA. Se genera como HTML y se exporta a
+    // PDF con el diálogo de impresión del navegador (Ctrl+P → Guardar como PDF) — mismo resultado visual que un
+    // generador server-side (encabezado institucional, tabla de haberes/descuentos, renglón de neto destacado y
+    // firmas), pero sin sumar un runtime de Python/reportlab a una app Electron que hoy es 100% Node. Firma lista
+    // para el titular del tambo y el tambero asociado como comprobante de la liquidación interna del período.
+    function imprimirReciboMediero(liquidacionId) {
+      const liq = (state.liquidacionesLeche || []).find((r) => `${r.id}` === `${liquidacionId}`);
+      const recibo = (state.liquidacionesMediero || []).find((r) => `${r.liquidacion_leche_id}` === `${liquidacionId}`);
+      if (!liq || !recibo) {
+        showToast('Primero emití el recibo de este período.', 'error');
+        return;
+      }
+      const ventana = window.open('', '_blank', 'width=520,height=760');
+      if (!ventana) {
+        alert('El navegador bloqueó la ventana de impresión.');
+        return;
+      }
+      const establecimiento = escapeHtml(state.empresa?.nombre || 'PampaTambo');
+      const tamberoNombre = escapeHtml(recibo.tambero || 'Sin nombre cargado');
+      const suss = Number(recibo.suss_tambero || 0);
+      const deducciones = [
+        { concepto: 'SUSS tambero asociado', monto: suss },
+        { concepto: 'Químicos / insumos compartidos', monto: Number(recibo.deduccion_quimicos || 0) },
+        { concepto: 'Adelantos / vales en efectivo', monto: Number(recibo.deduccion_adelantos || 0) },
+        { concepto: 'Otros (energía, etc.)', monto: Number(recibo.deduccion_otros || 0) },
+      ].filter((d) => d.monto > 0);
+      const totalDescuentos = suss + Number(recibo.total_deducciones || 0);
+      const filasEconomicas = [
+        `<tr><td>Participación ${recibo.porcentaje_aplicado}% sobre Subtotal Neto LUME</td><td class="der">${formatMoney(recibo.bruto_tambero)}</td><td class="der">-</td></tr>`,
+        ...deducciones.map((d) => `<tr><td>${escapeHtml(d.concepto)}</td><td class="der">-</td><td class="der">${formatMoney(d.monto)}</td></tr>`),
+        `<tr class="totales"><td><b>TOTALES</b></td><td class="der"><b>${formatMoney(recibo.bruto_tambero)}</b></td><td class="der"><b>${formatMoney(totalDescuentos)}</b></td></tr>`,
+        `<tr class="neto"><td colspan="2"><b>NETO FINAL A TRANSFERIR / PERCIBIR</b></td><td class="der"><b>${formatMoney(recibo.neto_a_transferir)}</b></td></tr>`,
+      ].join('');
+      const titulo = 'Liquidación Interna de Explotación Tambera';
+      const html = `<html><head><title>${titulo}</title><style>
+        body{font-family:Arial,Helvetica,sans-serif;padding:32px;max-width:560px;margin:auto;color:#2D3748}
+        h1{font-size:1.15rem;text-align:center;color:#1A365D;margin:0 0 4px}
+        .subtitulo{font-size:0.75rem;text-align:center;color:#4A5568;margin:0 0 18px}
+        .info{width:100%;border-collapse:collapse;background:#F7FAFC;border:1px solid #E2E8F0;border-radius:6px;margin-bottom:18px}
+        .info td{padding:8px 10px;font-size:0.82rem;vertical-align:top}
+        h2.section{font-size:0.9rem;color:#2B6CB0;margin:18px 0 6px}
+        table.detalle{width:100%;border-collapse:collapse;font-size:0.82rem}
+        table.detalle th{background:#2B6CB0;color:#fff;text-align:left;padding:7px}
+        table.detalle td{padding:7px;border-bottom:1px solid #E2E8F0}
+        table.detalle .der{text-align:right}
+        tr.totales td{background:#EDF2F7}
+        tr.neto td{background:#C6F6D5;border:1.5px solid #48BB78;font-size:0.95rem}
+        .nota{font-size:0.7rem;color:#718096;margin-top:16px}
+        .firmas{display:flex;justify-content:space-between;margin-top:64px}
+        .firma{width:45%;text-align:center;border-top:1px solid #333;padding-top:6px;font-size:0.78rem}
+      </style></head><body>
+        <h1>${titulo}</h1>
+        <div class="subtitulo">Ley Nacional N° 25.169 — Contrato Asociativo de Explotación Tambera</div>
+        <table class="info">
+          <tr><td><b>Establecimiento:</b> ${establecimiento}</td><td><b>Período liquidado:</b> ${liq.periodo || ''}</td></tr>
+          <tr><td><b>Usina / LUME:</b> ${escapeHtml(liq.usina || '')} · ${escapeHtml(liq.numero_lume || '')}</td><td><b>Tambero asociado:</b> ${tamberoNombre}</td></tr>
+          <tr><td><b>Litros liquidados:</b> ${Number(liq.litros_liquidados || 0).toLocaleString('es-AR')} Lts</td><td><b>% participación pactado:</b> ${recibo.porcentaje_aplicado}%</td></tr>
+        </table>
+        <h2 class="section">Detalle del movimiento económico</h2>
+        <table class="detalle">
+          <tr><th>Concepto</th><th class="der">Haberes (+)</th><th class="der">Descuentos (-)</th></tr>
+          ${filasEconomicas}
+        </table>
+        <div class="nota">Documento interno de la explotación tambera asociativa, sin IVA — refleja el reparto pactado entre las partes sobre el Subtotal Neto de leche liquidado por la usina, neto de las deducciones compartidas del período. No reemplaza la liquidación fiscal (LUME) de la usina ni tiene validez impositiva por sí mismo.</div>
+        <div class="firmas"><div class="firma">Firma del titular del tambo</div><div class="firma">Firma del tambero asociado</div></div>
+        <script>window.onload=()=>window.print();<\/script>
+      </body></html>`;
+      ventana.document.write(html);
+      ventana.document.close();
     }
 
     function actualizarPreviewMediero(liquidacionId) {
@@ -10482,6 +10820,301 @@
       });
     }
 
+    // ── Cálculo avanzado de la Liquidación de Leche (LUME) ──────────────────────────────────────
+    // Fórmula polinómica del sector: Precio Básico por composición de sólidos útiles (grasa +
+    // proteína, usando los precios de mercado P_GB/P_PR del período), ajustado por escalas de
+    // calidad sanitaria (RCS), higiénica (UFC) y volumen diario, más el corte por temperatura de
+    // entrega. Antibióticos anula el lote (Precio Final = 0). Crioscopía fuera de rango solo
+    // avisa - no aplicamos un descuento inventado sin la fórmula real de la usina.
+    function calcularFactorRcs(rcs) {
+      const v = Number(rcs);
+      if (rcs === '' || rcs == null || !Number.isFinite(v) || v < 0) return null;
+      if (v < 100000) return 1.08;
+      if (v < 200000) return 1.05;
+      if (v <= 400000) return 1.00;
+      if (v <= 500000) return 0.95;
+      if (v <= 700000) return 0.85;
+      return 0.70;
+    }
+
+    function calcularFactorUfc(ufc) {
+      const v = Number(ufc);
+      if (ufc === '' || ufc == null || !Number.isFinite(v) || v < 0) return null;
+      if (v < 10000) return 1.04;
+      if (v < 50000) return 1.02;
+      if (v <= 100000) return 1.00;
+      if (v <= 250000) return 0.92;
+      return 0.80;
+    }
+
+    function calcularFactorVolumenDiario(volDiario) {
+      if (volDiario == null || !Number.isFinite(volDiario) || volDiario < 0) return null;
+      if (volDiario < 2000) return 0.95;
+      if (volDiario < 5000) return 1.00;
+      if (volDiario < 10000) return 1.03;
+      return 1.06;
+    }
+
+    function diasDelPeriodoLume(periodo) {
+      const m = `${periodo || ''}`.trim().match(/^(\d{4})-(\d{2})$/);
+      if (!m) return null;
+      const anio = Number(m[1]);
+      const mes = Number(m[2]);
+      if (!anio || !mes || mes < 1 || mes > 12) return null;
+      return new Date(anio, mes, 0).getDate();
+    }
+
+    function buscarPrecioMercadoLeche(periodo) {
+      const lista = state.preciosMercadoLeche || [];
+      const p = `${periodo || ''}`.trim();
+      if (!p) return null;
+      return lista.find((row) => `${row.periodo || ''}`.trim() === p) || null;
+    }
+
+    // Motor de ponderación mensual de calidad, a partir de las muestras propias del tambo (sensor/
+    // laboratorio interno diario, o los 3-5 análisis del laboratorio oficial arbitral). No depende de
+    // lo que declare la usina: es la base para que el ERP audite al camión con datos propios.
+    // - INTERNO_DIARIO: cada muestra pesa según sus litros reales (promedio ponderado por volumen,
+    //   tal cual la fórmula de Sólidos Útiles: Kg = Litros × %/100 × 1,032, sumado y vuelto a expresar en %).
+    // - LAB_OFICIAL: pocas muestras al mes, sin litros propios por muestra confiables; se promedian
+    //   linealmente los % y el RCS/UFC, y ese promedio se aplica al total de litros del LUME del período.
+    function calcularConsolidadoCalidadPeriodo(periodo, litrosTotalesLume) {
+      const p = `${periodo || ''}`.trim();
+      if (!p) return null;
+      const muestras = (state.muestrasCalidadLeche || []).filter((m) => `${m.fecha || ''}`.slice(0, 7) === p);
+      if (!muestras.length) return null;
+
+      const esLabOficial = muestras[0].origen_datos === 'LAB_OFICIAL';
+      const DENSIDAD = 1.032;
+
+      if (!esLabOficial) {
+        // INTERNO_DIARIO: ponderado por volumen real de cada muestra.
+        const totalLitros = muestras.reduce((acc, m) => acc + Number(m.litros_del_periodo || 0), 0);
+        if (totalLitros <= 0) return null;
+        const totalKgGb = muestras.reduce((acc, m) => acc + Number(m.litros_del_periodo || 0) * (Number(m.porcentaje_gb || 0) / 100) * DENSIDAD, 0);
+        const totalKgPr = muestras.reduce((acc, m) => acc + Number(m.litros_del_periodo || 0) * (Number(m.porcentaje_pr || 0) / 100) * DENSIDAD, 0);
+        const rcsPonderado = muestras.reduce((acc, m) => acc + Number(m.litros_del_periodo || 0) * Number(m.rcs || 0), 0) / totalLitros;
+        const ufcPonderado = muestras.reduce((acc, m) => acc + Number(m.litros_del_periodo || 0) * Number(m.ufc || 0), 0) / totalLitros;
+        return {
+          origen: 'INTERNO_DIARIO',
+          litros: totalLitros,
+          grasaPct: (totalKgGb / (totalLitros * DENSIDAD)) * 100,
+          proteinaPct: (totalKgPr / (totalLitros * DENSIDAD)) * 100,
+          rcs: rcsPonderado,
+          ufc: ufcPonderado,
+          kgGb: totalKgGb,
+          kgPr: totalKgPr,
+        };
+      }
+
+      // LAB_OFICIAL: promedio lineal directo de los pocos análisis, aplicado al total de litros del LUME.
+      const n = muestras.length;
+      const avgGb = muestras.reduce((acc, m) => acc + Number(m.porcentaje_gb || 0), 0) / n;
+      const avgPr = muestras.reduce((acc, m) => acc + Number(m.porcentaje_pr || 0), 0) / n;
+      const avgRcs = muestras.reduce((acc, m) => acc + Number(m.rcs || 0), 0) / n;
+      const avgUfc = muestras.reduce((acc, m) => acc + Number(m.ufc || 0), 0) / n;
+      const litrosBase = Number(litrosTotalesLume || 0) || muestras.reduce((acc, m) => acc + Number(m.litros_del_periodo || 0), 0);
+      if (litrosBase <= 0) return null;
+      return {
+        origen: 'LAB_OFICIAL',
+        litros: litrosBase,
+        grasaPct: avgGb,
+        proteinaPct: avgPr,
+        rcs: avgRcs,
+        ufc: avgUfc,
+        kgGb: litrosBase * (avgGb / 100) * DENSIDAD,
+        kgPr: litrosBase * (avgPr / 100) * DENSIDAD,
+      };
+    }
+
+    const CAMPOS_FACTOR_EDITABLES = ['factor_rcs', 'factor_ufc', 'factor_volumen', 'coeficiente_temp'];
+
+    function calcularLumeAvanzado(container, { avisar = false } = {}) {
+      if (!container) return;
+      const getVal = (key) => container.querySelector(`[name="${key}"]`)?.value ?? '';
+      const setVal = (key, value) => {
+        const el = container.querySelector(`[name="${key}"]`);
+        if (el) el.value = value;
+      };
+      // Los 4 factores (RCS, UFC, Volumen, Temp) se calculan automático por el escalón que
+      // corresponde, pero Cristina pidió poder editarlos a mano: si el usuario ya tocó ese
+      // campo en este formulario, no lo pisamos con el valor automático de nuevo.
+      const esManual = (key) => !!(container._lumeManual && container._lumeManual.has(key));
+      const setValAuto = (key, value) => { if (!esManual(key)) setVal(key, value); };
+
+      const litros = Number(getVal('litros_liquidados') || 0);
+      const grasaPct = Number(getVal('grasa_pct') || 0);
+      const proteinaPct = Number(getVal('proteina_pct') || 0);
+      const rcs = getVal('rcs');
+      const ufc = getVal('ufc');
+      const temp = getVal('temp_entrega');
+      const crioscopia = getVal('crioscopia');
+      const antibioticos = `${getVal('antibioticos') || ''}`.trim().toUpperCase() === 'SI';
+      const periodo = getVal('periodo');
+      const bonif = Number(getVal('bonificaciones') || 0);
+      const desc = Number(getVal('descuentos') || 0);
+      const descuentoFlete = Number(getVal('descuento_flete') || 0);
+      const netoUsinaDeclarado = getVal('neto_usina_declarado');
+
+      const camposCalculados = ['kg_gb', 'kg_pr', 'precio_basico_total', 'factor_rcs', 'factor_ufc', 'factor_volumen', 'coeficiente_temp', 'precio_final_liquidado', 'precio_litro_calculado'];
+      const camposErp = ['origen_datos_calidad_periodo', 'litros_erp_ponderado', 'grasa_pct_erp_ponderado', 'proteina_pct_erp_ponderado', 'rcs_erp_ponderado', 'ufc_erp_ponderado', 'subtotal_neto_estimado_erp', 'desvio_composicion_erp'];
+
+      const precioMercado = buscarPrecioMercadoLeche(periodo);
+      if (!precioMercado || !litros) {
+        // Sin precio de mercado del período o sin litros cargados todavía: dejamos los campos
+        // calculados en blanco (no en $0, que parecería un resultado real) hasta tener lo necesario.
+        camposCalculados.forEach((k) => { if (!esManual(k)) setVal(k, ''); });
+        setVal('neto', '');
+        setVal('diferencia_auditoria', '');
+        camposErp.forEach((k) => setVal(k, ''));
+        return;
+      }
+
+      const pGb = Number(precioMercado.precio_gb || 0);
+      const pPr = Number(precioMercado.precio_pr || 0);
+
+      const kgGb = litros * (grasaPct / 100) * 1.032;
+      const kgPr = litros * (proteinaPct / 100) * 1.032;
+      const pbt = (kgGb * pGb) + (kgPr * pPr);
+
+      const factorRcsAuto = calcularFactorRcs(rcs) ?? 1;
+      const factorUfcAuto = calcularFactorUfc(ufc) ?? 1;
+
+      const dias = diasDelPeriodoLume(periodo);
+      const volDiario = dias ? litros / dias : null;
+      const factorVolAuto = volDiario != null ? (calcularFactorVolumenDiario(volDiario) ?? 1) : 1;
+
+      const coeficienteTempAuto = (temp !== '' && Number(temp) > 4.5) ? 0.90 : 1;
+
+      setValAuto('factor_rcs', factorRcsAuto);
+      setValAuto('factor_ufc', factorUfcAuto);
+      setValAuto('factor_volumen', factorVolAuto);
+      setValAuto('coeficiente_temp', coeficienteTempAuto);
+
+      // Para el cálculo final usamos lo que quedó en pantalla (automático, o lo que el
+      // usuario haya editado a mano en esos 4 campos, incluso si puso 0 a propósito).
+      const valOrAuto = (key, auto) => {
+        const raw = getVal(key);
+        return raw !== '' && !Number.isNaN(Number(raw)) ? Number(raw) : auto;
+      };
+      const factorRcs = valOrAuto('factor_rcs', factorRcsAuto);
+      const factorUfc = valOrAuto('factor_ufc', factorUfcAuto);
+      const factorVol = valOrAuto('factor_volumen', factorVolAuto);
+      const coeficienteTemp = valOrAuto('coeficiente_temp', coeficienteTempAuto);
+
+      const rcsNum = rcs !== '' ? Number(rcs) : null;
+      const rcsRechazo = !esManual('factor_rcs') && rcsNum != null && rcsNum > 700000;
+
+      let precioFinal;
+      if (antibioticos || rcsRechazo) {
+        precioFinal = 0;
+      } else {
+        const bruto = pbt * factorRcs * factorUfc * factorVol * coeficienteTemp;
+        precioFinal = Math.max(0, bruto - descuentoFlete);
+      }
+      const precioLitroCalc = litros > 0 ? precioFinal / litros : 0;
+      // Subtotal Neto Teórico / Gravado (Pre-LUME): A (precio final, ya neto de flete) + Bonif. − Dsctos.
+      // El IVA y las retenciones (IVA/Ganancias/IIBB/SUSS) ya NO se calculan acá: los calcula el motor
+      // fiscal de reglas (services/fiscalRules.service.js) al apretar "Calcular fiscal" en la tabla de
+      // LUME, que busca las alícuotas reales cargadas en ARCA → Reglas de retención.
+      const neto = precioFinal + bonif - desc;
+      // Auditoría: comparamos contra lo que realmente liquidó la usina, si lo cargaste.
+      const diferenciaAuditoria = netoUsinaDeclarado !== '' && !Number.isNaN(Number(netoUsinaDeclarado))
+        ? neto - Number(netoUsinaDeclarado) : null;
+
+      setVal('kg_gb', kgGb.toFixed(3));
+      setVal('kg_pr', kgPr.toFixed(3));
+      setVal('precio_basico_total', pbt.toFixed(2));
+      setVal('precio_final_liquidado', precioFinal.toFixed(2));
+      setVal('precio_litro_calculado', precioLitroCalc.toFixed(4));
+      setVal('neto', neto.toFixed(2));
+      setVal('diferencia_auditoria', diferenciaAuditoria != null ? diferenciaAuditoria.toFixed(2) : '');
+
+      // Columna "Cálculo del ERP": la misma fórmula, pero con la composición que midieron tus propias
+      // muestras (sensor/laboratorio propio o laboratorio oficial) en vez de lo que declaró la usina.
+      // Sirve para auditar: si difiere mucho de lo declarado, la usina puede haber cargado mal un dato.
+      const consolidadoErp = calcularConsolidadoCalidadPeriodo(periodo, litros);
+      let desvioComposicionErp = null;
+      if (consolidadoErp) {
+        const factorRcsErp = calcularFactorRcs(consolidadoErp.rcs) ?? 1;
+        const factorUfcErp = calcularFactorUfc(consolidadoErp.ufc) ?? 1;
+        const volDiarioErp = dias ? consolidadoErp.litros / dias : null;
+        const factorVolErp = volDiarioErp != null ? (calcularFactorVolumenDiario(volDiarioErp) ?? 1) : 1;
+        const pbtErp = (consolidadoErp.kgGb * pGb) + (consolidadoErp.kgPr * pPr);
+        const rcsRechazoErp = consolidadoErp.rcs > 700000;
+        let precioFinalErp;
+        if (antibioticos || rcsRechazoErp) {
+          precioFinalErp = 0;
+        } else {
+          const brutoErp = pbtErp * factorRcsErp * factorUfcErp * factorVolErp * coeficienteTemp;
+          precioFinalErp = Math.max(0, brutoErp - descuentoFlete);
+        }
+        const subtotalNetoEstimadoErp = precioFinalErp + bonif - desc;
+        desvioComposicionErp = netoUsinaDeclarado !== '' && !Number.isNaN(Number(netoUsinaDeclarado))
+          ? subtotalNetoEstimadoErp - Number(netoUsinaDeclarado) : null;
+
+        setVal('origen_datos_calidad_periodo', consolidadoErp.origen === 'LAB_OFICIAL' ? 'Laboratorio oficial (promedio lineal de las muestras)' : 'Interno/diario (ponderado por litros)');
+        setVal('litros_erp_ponderado', consolidadoErp.litros.toFixed(1));
+        setVal('grasa_pct_erp_ponderado', consolidadoErp.grasaPct.toFixed(3));
+        setVal('proteina_pct_erp_ponderado', consolidadoErp.proteinaPct.toFixed(3));
+        setVal('rcs_erp_ponderado', Math.round(consolidadoErp.rcs));
+        setVal('ufc_erp_ponderado', Math.round(consolidadoErp.ufc));
+        setVal('subtotal_neto_estimado_erp', subtotalNetoEstimadoErp.toFixed(2));
+        setVal('desvio_composicion_erp', desvioComposicionErp != null ? desvioComposicionErp.toFixed(2) : '');
+
+        if (avisar) {
+          const desvioLitrosPct = consolidadoErp.litros > 0 ? Math.abs((litros - consolidadoErp.litros) / consolidadoErp.litros) * 100 : 0;
+          const desvioGrasaPct = consolidadoErp.grasaPct > 0 ? Math.abs((grasaPct - consolidadoErp.grasaPct) / consolidadoErp.grasaPct) * 100 : 0;
+          if (desvioLitrosPct > 0.5 || desvioGrasaPct > 0.5) {
+            const partes = [];
+            if (desvioLitrosPct > 0.5) partes.push(`${desvioLitrosPct.toFixed(1)}% en litros`);
+            if (desvioGrasaPct > 0.5) partes.push(`${desvioGrasaPct.toFixed(1)}% en grasa`);
+            showToast(`🔴 Desvío crítico: la usina declaró ${partes.join(' y ')} distinto de lo que midió tu propio monitor/laboratorio (tolerancia habitual: 0,5%). Revisá antes de aceptar la liquidación.`, 'error');
+          }
+        }
+      } else {
+        camposErp.forEach((k) => setVal(k, ''));
+      }
+
+      if (avisar && crioscopia !== '' && Number(crioscopia) > -0.512) {
+        showToast('⚠️ Punto crioscópico por encima de -0,512°C: posible adulteración con agua. Revisalo con la usina - no se aplicó ningún descuento automático porque no tenemos la fórmula exacta.', 'error');
+      }
+      if (avisar && antibioticos) {
+        showToast('⚠️ Antibióticos/inhibidores detectados: el Precio Final se calculó en $0 (pérdida total del lote).', 'error');
+      }
+      if (avisar && rcsRechazo) {
+        showToast('⚠️ RCS por encima de 700.000 cél/ml: se considera lote de rechazo y el Precio Final se calculó en $0. Si preferís aplicar el -30% en vez del rechazo, editá el Factor RCS a mano.', 'error');
+      }
+      if (avisar && diferenciaAuditoria != null && Math.abs(diferenciaAuditoria) > 1) {
+        const signo = diferenciaAuditoria > 0 ? 'a favor del tambo' : 'a favor de la usina';
+        showToast(`🔴 Diferencia de auditoría: el sistema calculó $${Math.abs(diferenciaAuditoria).toFixed(2)} ${signo} respecto de lo que declaró la usina. Revisá los parámetros del LUME antes de reclamar.`, 'error');
+      }
+    }
+
+    function bindLumeCalculoAvanzado(container) {
+      if (!container) return;
+      container._lumeManual = new Set();
+      const camposInput = ['litros_liquidados', 'grasa_pct', 'proteina_pct', 'rcs', 'ufc', 'temp_entrega', 'periodo', 'bonificaciones', 'descuentos', 'descuento_flete'];
+      camposInput.forEach((key) => {
+        const el = container.querySelector(`[name="${key}"]`);
+        if (el) el.addEventListener('input', () => calcularLumeAvanzado(container, { avisar: false }));
+      });
+      ['crioscopia', 'antibioticos', 'tipo_inscripcion_tambero', 'neto_usina_declarado'].forEach((key) => {
+        const el = container.querySelector(`[name="${key}"]`);
+        if (el) el.addEventListener('change', () => calcularLumeAvanzado(container, { avisar: true }));
+      });
+      // Los 4 factores se pueden editar a mano: si el usuario escribe ahí directamente,
+      // dejamos de pisar ese campo con el valor automático hasta que reabra el formulario.
+      CAMPOS_FACTOR_EDITABLES.forEach((key) => {
+        const el = container.querySelector(`[name="${key}"]`);
+        if (el) el.addEventListener('input', () => {
+          container._lumeManual.add(key);
+          calcularLumeAvanzado(container, { avisar: false });
+        });
+      });
+      calcularLumeAvanzado(container, { avisar: false });
+    }
+
     function openModal(type, id = null) {
       const module = collectionToModule(type);
       const cfg = getRoleConfig();
@@ -10530,7 +11163,7 @@
           const options = renderDatalistOptions(type, field.key);
           return `<div class="field field--${field.key} ${field.full ? 'full' : ''}"><div class="field-label-row"><label>${field.label}</label><button type="button" class="btn btn-link" data-dropdown-manage="1" data-field-key="${field.key}">Administrar</button></div><input name="${field.key}" type="text" list="${datalistId}" value="${value}" ${field.required ? 'required' : ''}><datalist id="${datalistId}">${options}</datalist></div>`;
         }
-        return `<div class="field field--${field.key} ${field.full ? 'full' : ''}"><label>${field.label}</label><input name="${field.key}" type="${field.type}" value="${value}" ${field.required ? 'required' : ''}></div>`;
+        return `<div class="field field--${field.key} ${field.full ? 'full' : ''}"><label>${field.label}</label><input name="${field.key}" type="${field.type}" value="${value}" ${field.required ? 'required' : ''} ${field.readOnly ? 'readonly tabindex="-1" style="opacity:.75;background:rgba(255,255,255,.04);"' : ''}>${field.hint ? `<div class="hint" style="font-size:.72rem;color:var(--text-dim);margin-top:3px;">${field.hint}</div>` : ''}</div>`;
       }).join('');
 
       byId('fieldsContainer').querySelectorAll('[data-dropdown-manage="1"]').forEach((btn) => {
@@ -10544,6 +11177,7 @@
       bindReproduccionPartoEstimator(byId('fieldsContainer'));
       bindVacasPostpartoEstimator(byId('fieldsContainer'));
       configurarLectorBluetoothCaravana(byId('fieldsContainer'));
+      if (type === 'liquidacionesLeche') bindLumeCalculoAvanzado(byId('fieldsContainer'));
 
       setupAutoCoordinates(type, row || {});
 
@@ -10989,12 +11623,18 @@
       });
 
       if (type === 'liquidacionesLeche') {
-        const litros = Number(payload.litros_liquidados || 0);
-        const precio = Number(payload.precio_litro || 0);
-        const bonif = Number(payload.bonificaciones || 0);
-        const desc = Number(payload.descuentos || 0);
-        if (!payload.neto || Number(payload.neto) === 0) {
+        // El Neto normalmente ya viene calculado (campo readonly, ver calcularLumeAvanzado) con la
+        // fórmula completa por composición/calidad, usando el precio de mercado del período. Si
+        // llegó vacío es porque no había precio de mercado cargado para ese período - en vez de
+        // guardar sin Neto (rompe Finanzas/Cobros), usamos un cálculo simple de respaldo y avisamos
+        // que no es el cálculo completo.
+        if (payload.neto === '' || payload.neto == null) {
+          const litros = Number(payload.litros_liquidados || 0);
+          const precio = Number(payload.precio_litro || 0);
+          const bonif = Number(payload.bonificaciones || 0);
+          const desc = Number(payload.descuentos || 0);
           payload.neto = (litros * precio) + bonif - desc;
+          showToast('No había precio de mercado cargado para este período: se guardó un Neto simple (litros × precio/litro + bonif. − dsctos.), no el cálculo completo por calidad. Cargá el precio de mercado del período en "Precios de mercado" y volvé a guardar.', 'info');
         }
       }
 
@@ -11319,6 +11959,66 @@
           return;
         }
 
+        // Precios de mercado (leche): dato de configuración fiscal que también vive en el servidor
+        // (lo usa el cálculo del Neto para cualquier LUME del mismo período, no solo en esta máquina).
+        if (type === 'preciosMercadoLeche') {
+          const endpoint = endpointMap[type] || '/precios-mercado-leche';
+          try {
+            if (id) {
+              await request(`${endpoint}/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+              recordAudit('EDICION', `${type} #${id}`);
+            } else {
+              await request(endpoint, { method: 'POST', body: JSON.stringify(payload) });
+              recordAudit('ALTA', `${type}`);
+            }
+            await loadData();
+            closeModal();
+          } catch (error) {
+            showToast(error.message || 'No se pudo guardar el precio de mercado.', 'error');
+          }
+          return;
+        }
+
+        // Muestras de calidad (leche): datos diarios/periódicos de laboratorio propio u oficial,
+        // también en el servidor porque el motor de ponderación mensual del LUME los necesita.
+        if (type === 'muestrasCalidadLeche') {
+          const endpoint = endpointMap[type] || '/muestras-calidad-leche';
+          try {
+            if (id) {
+              await request(`${endpoint}/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+              recordAudit('EDICION', `${type} #${id}`);
+            } else {
+              await request(endpoint, { method: 'POST', body: JSON.stringify(payload) });
+              recordAudit('ALTA', `${type}`);
+            }
+            await loadData();
+            closeModal();
+          } catch (error) {
+            showToast(error.message || 'No se pudo guardar la muestra de calidad.', 'error');
+          }
+          return;
+        }
+
+        // Reglas de retención fiscal (motor de "Calcular fiscal"): también en el servidor, porque
+        // fiscalRules.service.js las lee ahí mismo al calcular las retenciones de cualquier LUME.
+        if (type === 'reglasRetencion') {
+          const endpoint = endpointMap[type] || '/fiscal/reglas-retencion';
+          try {
+            if (id) {
+              await request(`${endpoint}/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+              recordAudit('EDICION', `${type} #${id}`);
+            } else {
+              await request(endpoint, { method: 'POST', body: JSON.stringify(payload) });
+              recordAudit('ALTA', `${type}`);
+            }
+            await loadData();
+            closeModal();
+          } catch (error) {
+            showToast(error.message || 'No se pudo guardar la regla de retención.', 'error');
+          }
+          return;
+        }
+
         if (collectionToModule(type) === 'arca') {
           let previousRow = null;
           const next = { ...payload };
@@ -11435,6 +12135,29 @@
           state.recria = (state.recria || []).filter((row) => `${row.id}` !== `${id}`);
           saveRecriaLocal();
           recordAudit('BAJA', `recria #${id}`);
+          renderAll();
+          return;
+        }
+
+        // liquidacionesLeche y preciosMercadoLeche: igual que en saveCurrent, estos SÍ viven en el
+        // servidor (no solo local como el resto de "arca" mas abajo), asi que hay que borrarlos ahi
+        // tambien - si no, quedan registros huerfanos que "Calcular fiscal"/otros LUME siguen viendo.
+        if (type === 'liquidacionesLeche' || type === 'preciosMercadoLeche' || type === 'muestrasCalidadLeche' || type === 'reglasRetencion') {
+          const endpoint = endpointMap[type] || `/${type}`;
+          try {
+            await request(`${endpoint}/${id}`, { method: 'DELETE' });
+            recordAudit('BAJA', `${type} #${id}`);
+          } catch (error) {
+            if (isConnectivityError(error)) {
+              enqueueSyncOperation({ type, op: 'delete', rowId: id });
+              recordAudit('BAJA', `${type} #${id} (offline)`);
+            } else if (`${error?.message || ''}` !== 'No encontrado') {
+              throw error;
+            }
+          }
+          state[type] = (state[type] || []).filter((row) => `${row.id}` !== `${id}`);
+          saveArcaLocalState();
+          saveOfflineSnapshot();
           renderAll();
           return;
         }
@@ -11556,6 +12279,9 @@
     byId('btnNuevoBanco').addEventListener('click', () => openModal('bancos'));
     byId('btnNuevoCredito').addEventListener('click', () => openModal('creditos'));
     byId('btnNuevaLiquidacionLeche').addEventListener('click', () => openModal('liquidacionesLeche'));
+    byId('btnNuevoPrecioMercadoLeche').addEventListener('click', () => openModal('preciosMercadoLeche'));
+    byId('btnNuevaMuestraCalidad').addEventListener('click', () => openModal('muestrasCalidadLeche'));
+    byId('btnNuevaReglaRetencion').addEventListener('click', () => openModal('reglasRetencion'));
     byId('btnNuevaVentaHacienda').addEventListener('click', () => openModal('ventasHacienda'));
     byId('btnNuevaCompraInsumo').addEventListener('click', () => openModal('comprasInsumos'));
     byId('btnNuevoGasto').addEventListener('click', () => openModal('gastosArca'));
@@ -11861,7 +12587,9 @@
       byId('trialPublicBaseUrl').value = localStorage.getItem(TRIAL_PUBLIC_BASE_URL_KEY) || DEFAULT_TRIAL_PUBLIC_BASE_URL;
     }
     
-    maybeStartTrialOnEntry().catch(() => {});
+    // No se otorga trial silencioso solo por abrir la app (antes: maybeStartTrialOnEntry()).
+    // Si no viene un link oficial de trial (?trial=auto / trial_token), se exige activar.
+    maybeAutoActivateTrialFromQuery().finally(() => enforceLicenseGate());
     state.auditoria = loadAuditLogs();
     currentRole = normalizeRole(localStorage.getItem(ROLE_STORAGE_KEY) || 'propietario');
     byId('roleSelector').addEventListener('change', (event) => setRole(event.target.value));

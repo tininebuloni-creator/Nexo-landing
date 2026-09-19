@@ -41,9 +41,13 @@ const ignored = new Set(['node_modules', '.git', '.wrangler', 'data', 'services'
 const ignoredPrefixes = ['dist-', 'release-'];
 const privacyPopup = path.join(projectsRoot, 'PAMPA N-ecosystem', 'packages', 'pampa-privacy-popup.js');
 const trialProgress = path.join(landingRoot, 'trial-progress.js');
-const indexOverrides = {
-  'pampatambo-erp': path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'pampatambo', 'index.html')
-};
+// OJO: pampatambo-erp tenía acá un override que pisaba el index.html publicado con el
+// index.html de ESCRITORIO (apps/pampatambo/index.html), no con el de public/. Ese archivo
+// de escritorio ya no lleva el botón "Iniciar prueba gratis" (la prueba gratis es solo para
+// la web, a pedido explícito), así que con el override puesto el trial publicado se quedaba
+// sin botón de prueba. Se saca el override: ahora, igual que el resto de las apps, se usa
+// directo apps/pampatambo/public/index.html (que sí mantiene el botón de trial).
+const indexOverrides = {};
 
 function webTrialGuard() {
   // OJO: este guard corre como el PRIMER script de <head>, antes que cualquier otro codigo de
