@@ -12587,9 +12587,10 @@
       byId('trialPublicBaseUrl').value = localStorage.getItem(TRIAL_PUBLIC_BASE_URL_KEY) || DEFAULT_TRIAL_PUBLIC_BASE_URL;
     }
     
-    // No se otorga trial silencioso solo por abrir la app (antes: maybeStartTrialOnEntry()).
-    // Si no viene un link oficial de trial (?trial=auto / trial_token), se exige activar.
-    maybeAutoActivateTrialFromQuery().finally(() => enforceLicenseGate());
+    // La web/PWA queda abierta sin gate obligatorio (se puede navegar y usar sin activar):
+    // el gate de activación es solo para el .exe de escritorio. Acá solo se procesa un link
+    // oficial de trial si vino por la URL (?trial=auto / trial_token).
+    
     state.auditoria = loadAuditLogs();
     currentRole = normalizeRole(localStorage.getItem(ROLE_STORAGE_KEY) || 'propietario');
     byId('roleSelector').addEventListener('change', (event) => setRole(event.target.value));
