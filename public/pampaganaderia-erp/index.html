@@ -1214,6 +1214,16 @@ body {
   } catch(error) {}
   document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('button,a,input,label,.field,.form-group').forEach(node=>{const text=[node.textContent,node.id,node.name,node.htmlFor,node.getAttribute('href')].join(' ');if(/trial|prueba gratis|iniciar prueba/i.test(text))node.remove()})},{once:true});
 })();</script>
+<script id="pampa-desktop-commercial-guard">(function(){
+  window.PAMPA_DESKTOP_MODE=true;
+  try {
+    const url=new URL(window.location.href);
+    [...url.searchParams.keys()].filter(key=>/trial/i.test(key)).forEach(key=>url.searchParams.delete(key));
+    if(url.href!==window.location.href) window.history.replaceState({},document.title,url.pathname+url.search+url.hash);
+    Object.keys(localStorage).forEach(key=>{if(/license|licencia/i.test(key)){try{const value=JSON.parse(localStorage.getItem(key));if(value&&(value.type==='trial'||value.trial===true||value.payload?.trial===true))localStorage.removeItem(key)}catch(error){}}});
+  } catch(error) {}
+  document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('button,a,input,label,.field,.form-group').forEach(node=>{const text=[node.textContent,node.id,node.name,node.htmlFor,node.getAttribute('href')].join(' ');if(/trial|prueba gratis|iniciar prueba/i.test(text))node.remove()})},{once:true});
+})();</script>
 </head>
 <body>
 
