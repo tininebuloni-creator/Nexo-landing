@@ -436,7 +436,7 @@ body {
   position: fixed;
   top: 10px;
   left: 10px;
-  z-index: 2300;
+  z-index: 100001;
   border: 1px solid var(--border);
   background: var(--bg-secondary);
   color: var(--text-primary);
@@ -1023,6 +1023,10 @@ body {
   }
   .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
   #modalBody #modalForm.modal-form-siembra { grid-template-columns: 1fr; }
+  /* El cartel azul de "prueba gratuita" (#trialBlueBanner, inyectado por JS con top:14px y
+     centrado casi a todo el ancho) tapaba el boton hamburguesa (fixed, top:10px left:10px) en
+     mobile, dejando el menu sin poder abrirse. Se lo baja para que quede debajo de esa fila. */
+  #trialBlueBanner { top: 60px !important; max-width: calc(100vw - 24px) !important; }
 }
 
 /* === REPORT CARDS === */
