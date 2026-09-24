@@ -1,6 +1,10 @@
 (function () {
   const TRIAL_DAYS = 10;
-  const INIT_KEY = 'pampa_trial_init';
+  // Todas las demos viven en el mismo dominio y comparten localStorage: con una clave unica,
+  // abrir PampaAgro hacia arrancar tambien el reloj de PampaGanaderia (y viceversa). Por eso la
+  // clave lleva el id de la app (lo define pampa-web-trial-guard; si no esta, se toma la carpeta).
+  const APP_ID = window.PAMPA_TRIAL_APP_ID || window.location.pathname.split('/').filter(Boolean)[0] || 'app';
+  const INIT_KEY = `pampa_trial_init:${APP_ID}`;
   const PANEL_ID = 'pampaTrialControlPanel';
   const FILE_INPUT_ID = 'pampaTrialImportInput';
 
@@ -196,6 +200,8 @@
         }
         sessionStorage.setItem(INIT_KEY, payload.fecha_inicio_trial); // compat con versiones viejas
         localStorage.setItem(INIT_KEY, payload.fecha_inicio_trial);
+        // Recalcula la licencia de trial con la fecha importada para que badge y cartel coincidan.
+        if (typeof window.pampaWebTrialEnsure === 'function') window.pampaWebTrialEnsure();
         const daysLeft = getDaysLeft(payload.fecha_inicio_trial);
         await restoreAppState(payload.datos_usuario);
         renderPanel(daysLeft);

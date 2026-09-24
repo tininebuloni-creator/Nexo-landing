@@ -11,7 +11,7 @@
         if (!raw) continue;
         var record = JSON.parse(raw);
         var expiration = record && (record.expiresAt || record.expirationDate || record.exp || record.license && record.license.expiresAt);
-        if (!expiration) continue;
+        if (!expiration || record.type === 'trial') continue;
         var end = new Date(expiration);
         if (!isNaN(end.getTime()) && end.getTime() < Date.now()) return { record: record, expiration: end };
       } catch (error) {
