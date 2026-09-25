@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://sitemaps.org">
+  
+  <!-- 1. Tu Página Principal (Donde ya está el catálogo) -->
+</url>   
+ <loc>https://solucioneseningenieria.com.ar</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- 2. Ruta fija de la App 1: PampaAgropecuario ERP
+</url>
+    <loc>https://solucioneseningenieria.com.ar.comapps/erp/</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- 3. Ruta fija de la App 2: PampaTambo ERP-->
+</url>
+    <loc>https://solucioneseningenieria.com.ar.comapps/pampa-ia/</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- 4. Ruta fija de la App 3: PampaTopografia -->
+</url>
+    <loc>https://solucioneseningenieria.com.ar.comapps/ganaderia/</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- 5. Ruta fija de la App 4: PampaGanaderia ERP -->
+</url>
+    <loc>https://solucioneseningenieria.com.ar.comapps/logistica/</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- 6. Ruta fija de la App 5: PampaPorcinos ERP -->
+</url>
+    <loc>https://solucioneseningenieria.com.ar.comapps/stock/</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- 7. Ruta fija de la App 6: PampaPrecision ERP -->
+</url>
+    <loc>https://solucioneseningenieria.com.ar.comapps/satelital/</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- 8. Ruta fija de la App 7: PampaBiogas -->
+  <url>
+    <loc>https://solucioneseningenieria.com.ar.comapps/maquinaria/</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- 9. Ruta fija de la App 8: PampaHidroponia -->
+  <url>
+    <loc>https://solucioneseningenieria.com.ar.comapps/finanzas/</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- 10. Ruta fija de la App 9: PampaFeedlot -->
+  <url>
+    <loc>https://solucioneseningenieria.com.ar.comapps/clima/</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- 11. Ruta fija de la App 10: PampaCooperativas -->
+  <url>
+    <loc>https://solucioneseningenieria.com.ar.comapps/auditoria/</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+</urlset>
