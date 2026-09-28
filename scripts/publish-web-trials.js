@@ -12,10 +12,9 @@ const sources = {
   'pampatambo-erp': path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'pampatambo', 'public'),
   'pampaporcinos-erp': path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'pampaporcinos'),
   'pampaprecision-erp': path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'pampaprecision', 'public'),
-  // pampatopo-app es un repo HERMANO de "PAMPA N-ecosystem" (vive directo en Proyectos/), no
-  // esta anidado adentro de PAMPA N-ecosystem/apps/. Ese path viejo apuntaba a una copia vieja
-  // e incompleta que quedo suelta ahi (sin package.json, sin scripts, con index.html desactualizado).
-  PampaTopografia: path.join(projectsRoot, 'pampatopo-app')
+  // Topografia se integro al ecosistema en apps/PampaTopografia (fuente oficial desde 28/9/2026).
+  // El repo hermano Proyectos/pampatopo-app queda como copia historica y ya no se publica.
+  PampaTopografia: path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'PampaTopografia')
 };
 
 // Por defecto solo se publican estas 4 (las que ya estan completas y en uso). Para publicar
@@ -37,8 +36,12 @@ if (invalidKeys.length) {
 }
 console.log(`Publicando: ${selectedKeys.join(', ')}`);
 
-const ignored = new Set(['node_modules', '.git', '.wrangler', 'data', 'services', 'server', 'controllers', 'models', 'routes', 'scripts', 'dist', 'release', 'build', 'public_protected']);
-const ignoredPrefixes = ['dist-', 'release-'];
+// packs, desktop-public y electron son del build de escritorio (instaladores, UI protegida, main de
+// Electron): aparecen en las apps que se publican desde su raíz (PampaTopografia, Porcinos) y no
+// tienen que llegar a la web. package.json, package-lock.json y wrangler.jsonc son configuración de build/deploy.
+const ignored = new Set(['node_modules', '.git', '.wrangler', 'data', 'services', 'server', 'controllers', 'models', 'routes', 'scripts', 'dist', 'release', 'build', 'public_protected', 'packs', 'desktop-public', 'electron', 'package.json', 'package-lock.json', 'wrangler.jsonc']);
+// '~$': archivos de bloqueo que crea Office mientras un documento está abierto (ej: ~$Planilla_...xlsx)
+const ignoredPrefixes = ['dist-', 'release-', '~$'];
 const privacyPopup = path.join(projectsRoot, 'PAMPA N-ecosystem', 'packages', 'pampa-privacy-popup.js');
 const trialProgress = path.join(landingRoot, 'trial-progress.js');
 // OJO: pampatambo-erp tenía acá un override que pisaba el index.html publicado con el
@@ -77,7 +80,8 @@ for (const [folderName, source] of Object.entries(sources)) {
         && !ignoredPrefixes.some(prefix => name.startsWith(prefix))
         && !entry.endsWith('.env')
         && !entry.endsWith('.key')
-        && !entry.endsWith('.crt');
+        && !entry.endsWith('.crt')
+        && !entry.toLowerCase().endsWith('.bat');
     }
   });
   fs.copyFileSync(privacyPopup, path.join(destination, 'pampa-privacy-popup.js'));
