@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Allow: /apps/
+
+# Reemplaza con la dirección real de tu mapa de sitio
+Sitemap: https://solucioneseningenieria.com.ar
