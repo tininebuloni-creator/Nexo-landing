@@ -39,9 +39,15 @@ console.log(`Publicando: ${selectedKeys.join(', ')}`);
 // packs, desktop-public y electron son del build de escritorio (instaladores, UI protegida, main de
 // Electron): aparecen en las apps que se publican desde su raíz (PampaTopografia, Porcinos) y no
 // tienen que llegar a la web. package.json, package-lock.json y wrangler.jsonc son configuración de build/deploy.
-const ignored = new Set(['node_modules', '.git', '.wrangler', 'data', 'services', 'server', 'controllers', 'models', 'routes', 'scripts', 'dist', 'release', 'build', 'public_protected', 'packs', 'desktop-public', 'electron', 'package.json', 'package-lock.json', 'wrangler.jsonc']);
+// Código de servidor que nunca se publica: server.js (Express de Porcinos, que se publica desde la
+// raíz de la app), _worker.js (Worker de Cloudflare; Pages no lo ejecuta fuera de la raíz y quedaba
+// descargable) y Pampa-Packs (entregas de clientes).
+const ignored = new Set(['node_modules', '.git', '.wrangler', 'data', 'services', 'server', 'controllers', 'models', 'routes', 'scripts', 'dist', 'release', 'build', 'public_protected', 'packs', 'Pampa-Packs', 'desktop-public', 'electron', 'server.js', '_worker.js', 'package.json', 'package-lock.json', 'wrangler.jsonc', 'wrangler.toml']);
 // '~$': archivos de bloqueo que crea Office mientras un documento está abierto (ej: ~$Planilla_...xlsx)
-const ignoredPrefixes = ['dist-', 'release-', '~$'];
+// 'electron-builder': configs del instalador de escritorio (ej: electron-builder-premium.json)
+const ignoredPrefixes = ['dist-', 'release-', '~$', 'electron-builder'];
+// Scripts de desarrollo que no tienen que llegar a la web (ej: aplicar_parche.py)
+const ignoredExtensions = ['.env', '.key', '.crt', '.bat', '.py', '.sh', '.ps1'];
 const privacyPopup = path.join(projectsRoot, 'PAMPA N-ecosystem', 'packages', 'pampa-privacy-popup.js');
 const trialProgress = path.join(landingRoot, 'trial-progress.js');
 // OJO: pampatambo-erp tenía acá un override que pisaba el index.html publicado con el
@@ -78,10 +84,7 @@ for (const [folderName, source] of Object.entries(sources)) {
       const name = path.basename(entry);
       return !ignored.has(name)
         && !ignoredPrefixes.some(prefix => name.startsWith(prefix))
-        && !entry.endsWith('.env')
-        && !entry.endsWith('.key')
-        && !entry.endsWith('.crt')
-        && !entry.toLowerCase().endsWith('.bat');
+        && !ignoredExtensions.some(ext => name.toLowerCase().endsWith(ext));
     }
   });
   fs.copyFileSync(privacyPopup, path.join(destination, 'pampa-privacy-popup.js'));
