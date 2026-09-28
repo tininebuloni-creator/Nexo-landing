@@ -726,16 +726,6 @@ body.pampa-license-locked .app { display: none; }
 #pampaLicenseStatusBadge.show { display: flex; }
 #pampaLicenseStatusBadge.trial { color: var(--orange); border-color: rgba(255,140,66,0.35); }
 </style>
-<script id="pampa-desktop-commercial-guard">(function(){
-  window.PAMPA_DESKTOP_MODE=true;
-  try {
-    const url=new URL(window.location.href);
-    [...url.searchParams.keys()].filter(key=>/trial/i.test(key)).forEach(key=>url.searchParams.delete(key));
-    if(url.href!==window.location.href) window.history.replaceState({},document.title,url.pathname+url.search+url.hash);
-    Object.keys(localStorage).forEach(key=>{if(/license|licencia/i.test(key)){try{const value=JSON.parse(localStorage.getItem(key));if(value&&(value.type==='trial'||value.trial===true||value.payload?.trial===true))localStorage.removeItem(key)}catch(error){}}});
-  } catch(error) {}
-  document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('button,a,input,label,.field,.form-group').forEach(node=>{const text=[node.textContent,node.id,node.name,node.htmlFor,node.getAttribute('href')].join(' ');if(/trial|prueba gratis|iniciar prueba/i.test(text))node.remove()})},{once:true});
-})();</script>
 </head>
 <body>
 
@@ -4236,9 +4226,25 @@ if ('serviceWorker' in navigator) {
     mostrarGate(false);
   };
 
+  // ---- Trial automático desde la landing ("Ver aplicación" → "Entendido, ir al Trial Web") ----
+  // El link llega con ?trial=auto; pampa-web-trial-guard (primer script del <head>) lo saca de la URL
+  // y deja la intención en window.__pampaTrialAutoRequested. Igual que en las demás apps: si no hay
+  // licencia o la prueba venció, se activa una prueba nueva. Nunca pisa una licencia real ni corre
+  // en escritorio (ahí siempre se pide la clave).
+  function activarTrialAutomaticoSiCorresponde(info) {
+    if (window.__pampaTrialAutoRequested !== true || window.PAMPA_DESKTOP_MODE === true) return info;
+    if (info && !info.trial) return info;
+    if (info && !licenciaVencida(info)) return info;
+    var ahora = new Date();
+    var vence = new Date(ahora.getTime() + TRIAL_DIAS * 24 * 60 * 60 * 1000);
+    var nueva = { trial: true, activatedAt: ahora.toISOString(), expiresAt: vence.toISOString() };
+    guardarLicencia(nueva);
+    return nueva;
+  }
+
   // ---- Verificación al cargar: revalida SIEMPRE (incl. expiración) ----
   async function verificarAlCargar() {
-    var info = leerLicencia();
+    var info = activarTrialAutomaticoSiCorresponde(leerLicencia());
     if (!info) { mostrarGate(true); actualizarBadge(null); return; }
 
     if (info.trial) {

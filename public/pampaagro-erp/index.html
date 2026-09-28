@@ -27,6 +27,7 @@
 
 <script src="vendor/chart.umd.min.js"></script>
 <script src="vendor/jspdf.umd.min.js"></script>
+<script src="vendor/qrcode.js"></script>
 <script src="vendor/leaflet/leaflet.js"></script>
  <script src="vendor/dexie.min.js"></script>
 <script src="vendor/pampa-license-key.js"></script>
@@ -3183,11 +3184,6 @@ const state = {
   creditos: [],
   empleados: [],
   documentos: [],
-  boletosMarca: [],
-  fiscalDutHistorial: [],
-  fiscalNotificaciones: [],
-  fiscalDutQueue: [],
-  fiscalCartasPorte: [],
   empresa: {
     nombre: '',
     cuit: '',
@@ -8512,6 +8508,10 @@ function generarQrPreDut(item) {
     creadoEn: item.creadoEn
   });
   if (typeof qrcode !== 'function') return payload;
+  // Codificar en UTF-8 (el modo por defecto de la librería trunca acentos y ñ)
+  if (qrcode.stringToBytesFuncs && qrcode.stringToBytesFuncs['UTF-8']) {
+    qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
+  }
   const codigo = qrcode(0, 'M');
   codigo.addData(payload);
   codigo.make();
@@ -11827,9 +11827,8 @@ function generarReporteCompleto() {
   }
 }
 
-// Variables globales del mapa (declaradas más arriba con var; aquí solo garantizamos default)
-if (typeof mapaLotes === 'undefined') { var mapaLotes = null; }
-if (typeof marcadoresLotes === 'undefined') { var marcadoresLotes = []; }
+// Variables globales del mapa: mapaLotes y marcadoresLotes se declaran con var al inicio del script
+// (antes de switchModule) para evitar errores de TDZ en la carga inicial.
 
 // Inicializar mapa de lotes
 function inicializarMapaLotes() {
