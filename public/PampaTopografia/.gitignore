@@ -1,5 +1,13 @@
-Planilla_Relevamiento_Topografico.xlsx
+# Planilla_Relevamiento_Topografico.xlsx SÍ se versiona: la cachea sw.js y la publica el trial web.
+# Solo se ignoran los archivos de bloqueo que crea Excel mientras está abierta.
 ~$*.xlsx
+
+# Salidas generadas por el build de escritorio y los packs (no se versionan)
+node_modules/
+release/
+packs/
+desktop-public/
+armar-pack-log.txt
 
 # wrangler files
 .wrangler

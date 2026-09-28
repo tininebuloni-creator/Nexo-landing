@@ -1624,6 +1624,11 @@ uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag
 uploadZone.addEventListener('drop', e => { e.preventDefault(); uploadZone.classList.remove('dragover'); if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
 fileInput.addEventListener('change', e => { if(e.target.files[0]) handleFile(e.target.files[0]); });
 
+// Escapa texto de origen externo (archivos importados, inputs) antes de insertarlo como HTML
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
+}
+
 function handleFile(file) {
   const ext = file.name.split('.').pop().toLowerCase();
   const formatLabel = { xls: 'Excel 97-2003', xlsx: 'Excel', csv: 'CSV', txt: 'TXT' };
@@ -1632,8 +1637,8 @@ function handleFile(file) {
   // Visual feedback
   uploadZone.innerHTML = `
     <div class="icon" style="color:var(--teal)">✓</div>
-    <div class="title">${file.name}</div>
-    <div class="subtitle">Formato detectado: <span class="tag teal">${fmt}</span> — Cargado</div>
+    <div class="title">${escapeHtml(file.name)}</div>
+    <div class="subtitle">Formato detectado: <span class="tag teal">${escapeHtml(fmt)}</span> — Cargado</div>
     <div class="subtitle" style="margin-top:8px; color:var(--cyan);">Haz clic para cargar otro archivo</div>
   `;
 
@@ -1652,7 +1657,7 @@ function showUploadReady(fmt, fileName) {
   uploadZone.innerHTML = `
     <div class="icon" style="color:var(--teal)">✓</div>
     <div class="title">${state.points.length} puntos importados</div>
-    <div class="subtitle">Archivo: ${fileName} | Formato: <span class="tag teal">${fmt}</span></div>
+    <div class="subtitle">Archivo: ${escapeHtml(fileName)} | Formato: <span class="tag teal">${escapeHtml(fmt)}</span></div>
     <div class="subtitle" style="margin-top:8px; color:var(--cyan);">Haz clic para cargar otro archivo</div>
   `;
 }
@@ -1951,7 +1956,7 @@ function parsePoints(text) {
 function renderPointsTable() {
   const tbody = document.getElementById('pointsBody');
   tbody.innerHTML = state.points.map(p =>
-    `<tr><td>${p.punto}</td><td>${p.norte.toFixed(3)}</td><td>${p.este.toFixed(3)}</td><td>${p.cota.toFixed(3)}</td><td>${p.codigo}</td></tr>`
+    `<tr><td>${escapeHtml(p.punto)}</td><td>${p.norte.toFixed(3)}</td><td>${p.este.toFixed(3)}</td><td>${p.cota.toFixed(3)}</td><td>${escapeHtml(p.codigo)}</td></tr>`
   ).join('');
   document.getElementById('pointCount').textContent = state.points.length + ' puntos';
 }
@@ -3287,7 +3292,7 @@ function updateMapFromPoints() {
         color: '#fff',
         weight: 1,
         fillOpacity: 0.8
-      }).bindPopup(`<b>${p.punto}</b><br>Cota: ${p.cota.toFixed(2)}m<br>Código: ${p.codigo}`);
+      }).bindPopup(`<b>${escapeHtml(p.punto)}</b><br>Cota: ${p.cota.toFixed(2)}m<br>Código: ${escapeHtml(p.codigo)}`);
     });
     mapLayers.points = L.layerGroup(markers).addTo(leafletMap);
   }
@@ -3372,10 +3377,10 @@ function updatePdfPreview() {
   const fecha = document.getElementById('pFecha').value || '—';
 
   document.getElementById('previewPortada').innerHTML = `
-    <b>Obra:</b> ${obra}<br>
-    <b>Cliente:</b> ${cliente}<br>
-    <b>Responsable:</b> ${resp}<br>
-    <b>Fecha:</b> ${fecha}
+    <b>Obra:</b> ${escapeHtml(obra)}<br>
+    <b>Cliente:</b> ${escapeHtml(cliente)}<br>
+    <b>Responsable:</b> ${escapeHtml(resp)}<br>
+    <b>Fecha:</b> ${escapeHtml(fecha)}
   `;
 
   document.getElementById('previewDatos').innerHTML = `

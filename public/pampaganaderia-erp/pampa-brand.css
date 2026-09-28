@@ -9,15 +9,12 @@
 }
 
 /* Para logos que se muestran con <img> */
-.brand-logo {
-  height: 45px;
-  width: auto;
-  display: block;
-}
 
 /* Simbolo de marca de servicio */
 .brand-badge {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
   font-size: 10px;
   font-weight: 700;
   color: var(--brand-badge-color, #555555);
@@ -29,8 +26,6 @@
 
 /* Las apps con barra lateral oscura pintan el logo como fondo de .logo-icon.
    Ahi la insignia necesita contraste claro. */
-.sidebar .brand-badge,
-.logo .brand-badge,
-.brand .brand-badge {
+.sidebar .brand-badge {
   color: var(--brand-badge-color-dark, #c7d2d8);
 }
