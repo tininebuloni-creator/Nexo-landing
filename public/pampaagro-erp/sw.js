@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pampaagro-erp-v4-separada';
+const CACHE_NAME = 'pampaagro-erp-v5-residuos';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './logo2.png'];
 
 // Caché aparte y ESTABLE para las imágenes del mapa (tiles). No se borra cuando
@@ -70,6 +70,19 @@ self.addEventListener('fetch', (event) => {
 
   if (event.request.mode === 'navigate' || event.request.destination === 'document') {
     event.respondWith(fetch(event.request, { cache: 'no-store' }).catch(() => caches.match('./index.html')));
+    return;
+  }
+  // Lo que la app pide "sin caché" (ej: los datos de ejemplo) va primero a la red y la copia
+  // guardada solo se usa sin conexión. Antes se respondía siempre desde la caché y quien había
+  // cargado la demo una vez seguía recibiendo la versión vieja.
+  if (event.request.cache === 'no-store') {
+    event.respondWith(fetch(event.request).then((response) => {
+      if (response.ok && response.type === 'basic') {
+        const copia = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copia)).catch(() => {});
+      }
+      return response;
+    }).catch(() => caches.match(event.request, { ignoreSearch: true })));
     return;
   }
   event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request).then((response) => {

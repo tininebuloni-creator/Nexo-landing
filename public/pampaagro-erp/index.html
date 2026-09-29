@@ -3858,7 +3858,15 @@
               <div class="card" style="margin-top: 16px">
                 <div class="card-header">
                   <div class="card-title">🧴 Envases Generados</div>
-                  <div style="display: flex; gap: 8px">
+                  <div style="display: flex; gap: 8px; flex-wrap: wrap">
+                    <button
+                      class="topbar-btn"
+                      type="button"
+                      onclick="cargarResiduosAnterioresDesdeBoton()"
+                      title="Carga los envases, bolsas y filtros de aplicaciones, siembras, alimentación y mantenimientos registrados antes"
+                    >
+                      ⚙️ Cargar de registros anteriores
+                    </button>
                     <button
                       class="topbar-btn"
                       onclick="openImportModal('residuosEnvases')"
@@ -10631,6 +10639,8 @@
           cargadoEn: new Date().toISOString(),
           empresa: datos.empresa?.nombre || "",
         };
+        // Residuos de las aplicaciones, siembras y mantenimientos del ejemplo.
+        cargarResiduosDeRegistrosAnteriores();
         saveState();
         renderTables();
         alert(
@@ -11858,10 +11868,25 @@
             },
             {
               name: "capacidadEnvase",
-              label: "Capacidad del envase (solo fitosanitarios, opcional)",
+              label: "Envase (para cargar los residuos automáticamente)",
               type: "select",
-              options: ["", "1 L", "5 L", "10 L", "20 L", "200 L"],
-              placeholder: "Para generar envases automáticamente al aplicar",
+              options: [
+                "",
+                "1 L",
+                "5 L",
+                "10 L",
+                "20 L",
+                "200 L",
+                "1000 L",
+                "10 kg (bolsa)",
+                "20 kg (bolsa)",
+                "25 kg (bolsa)",
+                "40 kg (bolsa)",
+                "50 kg (bolsa)",
+                "500 kg (big bag)",
+                "1000 kg (big bag)",
+              ],
+              placeholder: "Al usarlo, los envases o bolsas se cargan solos en Residuos",
             },
             {
               name: "enDepositoTercero",
@@ -12297,6 +12322,9 @@
               type: "select",
               options: [
                 "Bolsas de semilla tratada",
+                "Bolsas de fertilizante / insumos",
+                "Bolsas de balanceado",
+                "Big bags",
                 "Filtros de aceite/aire",
                 "Trapos / EPP contaminado",
                 "Envases de aceite/lubricante",
@@ -14181,6 +14209,14 @@
             ? state[moduloGuardado][currentModal.editIndex]
             : null;
         if (currentModal.editIndex !== null) {
+          // Un residuo generado automáticamente que el usuario edita queda como él lo dejó.
+          if (/^residuos/.test(moduloGuardado) && registroAnterior?.origenRef) {
+            Object.assign(data, {
+              origen: "editado",
+              origenRef: registroAnterior.origenRef,
+              origenModulo: registroAnterior.origenModulo,
+            });
+          }
           // Editar registro existente
           state[moduloGuardado][currentModal.editIndex] = data;
           showToast("Registro actualizado", "success");
@@ -15155,36 +15191,254 @@
           }
         }
 
-        // Generar automáticamente los envases vacíos que corresponden a esta aplicación (RAD),
-        // solo para los productos que tengan cargada su "Capacidad del envase" en Inventario.
-        // Si no está cargada, no se genera nada — el usuario puede seguir cargándolo a mano en Residuos.
-        if (module === "aplicaciones" && Array.isArray(data.productos)) {
-          if (!Array.isArray(state.residuosEnvases)) state.residuosEnvases = [];
-          data.productos.forEach((linea) => {
-            const insumo = (state.inventario || []).find(
-              (p) => String(p.codigo || p.producto) === String(linea.producto),
-            );
-            const capacidadTexto = insumo?.capacidadEnvase;
-            if (!insumo || !capacidadTexto) return;
-            const capacidadLitros = parseFloat(
-              String(capacidadTexto).replace(/[^0-9.]/g, ""),
-            );
-            const cantidadUsada = parseFloat(linea.cantidad) || 0;
-            if (!capacidadLitros || !cantidadUsada) return;
-            const cantidadEnvases = Math.ceil(cantidadUsada / capacidadLitros);
-            if (!cantidadEnvases) return;
-            state.residuosEnvases.push({
-              fecha: data.fecha,
-              producto: insumo.producto || linea.producto,
-              cantidadEnvases,
-              capacidad: capacidadTexto,
-              lote: data.lote,
-              estado: "Pendiente triple lavado",
-              observaciones:
-                `Generado automáticamente desde la aplicación RAD ${data.radNumero || ""}`.trim(),
-            });
-          });
+        // Residuos que genera este registro (envases, bolsas, filtros): se cargan solos en Residuos.
+        sincronizarResiduosAutomaticos(module, data, registroAnterior);
+      }
+
+      /* === RESIDUOS AUTOMÁTICOS ===
+         Al registrar el uso de insumos o un mantenimiento, sus residuos se cargan solos en Residuos
+         Agroquímicos: bidones de fitosanitarios → Envases (para triple lavado y entrega al CAT);
+         bolsas de semilla, fertilizante o balanceado, big bags, filtros y envases de aceite → Otros.
+         La cantidad de envases sale de la capacidad del envase cargada en Inventario; si no está y el
+         producto es un agroquímico líquido, se estima con bidones de 20 L y se avisa. Cada registro
+         guarda una referencia: al editarlo se reemplazan sus residuos (no se duplican) y si el usuario
+         editó un residuo generado, ese queda como lo dejó. */
+      const RESIDUOS_AUTO_TABLAS = ["residuosEnvases", "residuosOtros"];
+
+      function capacidadDeEnvase(insumo) {
+        const texto = String(insumo?.capacidadEnvase || "").trim();
+        const m = texto.match(/([\d.,]+)\s*(l|lt|lts|litros?|kg)\b/i);
+        if (!m) return null;
+        return {
+          valor: parseFloat(m[1].replace(",", ".")),
+          unidad: /kg/i.test(m[2]) ? "kg" : "L",
+          bigBag: /big\s*bag/i.test(texto),
+          texto,
+          estimado: false,
+        };
+      }
+
+      // Sin capacidad cargada: solo se estima para agroquímicos líquidos (bidón de 20 L, el más común).
+      function capacidadEstimada(insumo) {
+        const esLiquido = /litro/i.test(insumo?.unidad || "");
+        const esAgroquimico = /agr[ií]col|fitosanit|herbic|fungic|insectic|agroqu/i.test(
+          `${insumo?.categoria || ""} ${insumo?.ambito || ""}`,
+        );
+        return esLiquido && esAgroquimico ? { valor: 20, unidad: "L", bigBag: false, texto: "20 L", estimado: true } : null;
+      }
+
+      function cantidadEnUnidadDeEnvase(insumo, cantidad, capacidad) {
+        const unidad = String(insumo?.unidad || "").toLowerCase();
+        if (capacidad.unidad === "L") return /litro/.test(unidad) ? cantidad : null;
+        if (/tonelada/.test(unidad)) return cantidad * 1000;
+        return /kg|kilo/.test(unidad) ? cantidad : null;
+      }
+
+      function residuosDeInsumo(codigo, cantidad, contexto) {
+        const insumo = (state.inventario || []).find(
+          (p) => String(p.codigo) === String(codigo) || String(p.producto) === String(codigo),
+        );
+        const usada = parseMonto(cantidad);
+        if (!insumo || !(usada > 0)) return [];
+        const textoInsumo = normalizarTextoCatalogo(`${insumo.categoria || ""} ${insumo.producto || ""}`);
+        if (/unidad/i.test(insumo.unidad || "") && /bolsa|big bag/.test(`${textoInsumo} ${normalizarTextoCatalogo(insumo.capacidadEnvase || "")}`)) {
+          const bigBag = /big bag/.test(`${textoInsumo} ${normalizarTextoCatalogo(insumo.capacidadEnvase || "")}`);
+          return [{
+            tabla: "residuosOtros",
+            registro: {
+              fecha: contexto.fecha,
+              tipoResiduo: bigBag ? "Big bags" : contexto.origen === "siembra" || /semilla/.test(textoInsumo) ? "Bolsas de semilla tratada" : /aliment|balancead/.test(textoInsumo) ? "Bolsas de balanceado" : "Bolsas de fertilizante / insumos",
+              cantidad: Math.ceil(usada),
+              unidad: bigBag ? "unidades" : "bolsas",
+              metodoDisposicion: "",
+              responsable: "",
+              observaciones: `${contexto.detalle} · ${insumo.producto}`,
+            },
+          }];
         }
+        const capacidad = capacidadDeEnvase(insumo) || capacidadEstimada(insumo);
+        if (!capacidad || !(capacidad.valor > 0)) return [];
+        const enUnidad = cantidadEnUnidadDeEnvase(insumo, usada, capacidad);
+        if (!(enUnidad > 0)) return [];
+        const envases = Math.ceil(enUnidad / capacidad.valor);
+        const nota = capacidad.estimado
+          ? ` · estimado con bidones de 20 L: cargá la capacidad del envase de "${insumo.producto}" en Inventario para que sea exacto`
+          : "";
+        if (capacidad.unidad === "L" && !/agr[ií]col|fitosanit|herbic|fungic|insectic|agroqu/.test(textoInsumo)) {
+          if (!/lubric|aceite/.test(textoInsumo)) return [];
+          return [residuoDeMantenimiento("Envases de aceite/lubricante", { fecha: contexto.fecha, detalle: `${contexto.detalle} · ${insumo.producto}` })].map((r) => ({
+            ...r,
+            registro: { ...r.registro, cantidad: envases, observaciones: `${contexto.detalle} · ${insumo.producto} (${capacidad.texto})` },
+          }));
+        }
+        if (capacidad.unidad === "L") {
+          return [{
+            tabla: "residuosEnvases",
+            registro: {
+              fecha: contexto.fecha,
+              producto: insumo.producto || codigo,
+              cantidadEnvases: envases,
+              capacidad: capacidad.texto,
+              lote: contexto.lote || "",
+              estado: "Pendiente triple lavado",
+              observaciones: `${contexto.detalle}${nota}`,
+            },
+          }];
+        }
+        const texto = textoInsumo;
+        const tipoResiduo = capacidad.bigBag
+          ? "Big bags"
+          : contexto.origen === "siembra" || /semilla/.test(texto)
+            ? "Bolsas de semilla tratada"
+            : contexto.origen === "alimentacion" || /aliment|balancead|racion|forraj/.test(texto)
+              ? "Bolsas de balanceado"
+              : "Bolsas de fertilizante / insumos";
+        return [{
+          tabla: "residuosOtros",
+          registro: {
+            fecha: contexto.fecha,
+            tipoResiduo,
+            cantidad: envases,
+            unidad: capacidad.bigBag ? "unidades" : "bolsas",
+            metodoDisposicion: "",
+            responsable: "",
+            observaciones: `${contexto.detalle} · ${insumo.producto} (${capacidad.texto})`,
+          },
+        }];
+      }
+
+      function residuoDeMantenimiento(tipoResiduo, contexto) {
+        return {
+          tabla: "residuosOtros",
+          registro: {
+            fecha: contexto.fecha,
+            tipoResiduo,
+            cantidad: 1,
+            unidad: "unidades",
+            metodoDisposicion: "",
+            responsable: "",
+            observaciones: `${contexto.detalle} · cantidad estimada: revisala`,
+          },
+        };
+      }
+
+      // Residuos que genera un registro (sin guardarlos).
+      function residuosDeRegistro(module, data) {
+        const fecha = data.fecha || new Date().toISOString().slice(0, 10);
+        const lote = data.lote || "";
+        if (module === "aplicaciones") {
+          // Borrador o programada: todavía no se usaron los productos.
+          if (["Borrador", "Programada"].includes(data.estado) || !Array.isArray(data.productos)) return [];
+          const detalle = `Automático · aplicación del ${fecha}${lote ? " en " + lote : ""}${data.radNumero ? " (RAD " + data.radNumero + ")" : ""}`;
+          return data.productos.flatMap((linea) => residuosDeInsumo(linea.producto, linea.cantidad, { fecha, lote, detalle, origen: "aplicaciones" }));
+        }
+        if (module === "siembra") {
+          const detalle = `Automático · siembra del ${fecha}${lote ? " en " + lote : ""}`;
+          return residuosDeInsumo(data.producto, data.cantidadUsada, { fecha, lote, detalle, origen: "siembra" });
+        }
+        if (module === "alimentacion") {
+          const cantidad = Number(data.cantidadTotal) || Number(data.racion || 0) * Number(data.cabezas || 0) * Number(data.dias || 0);
+          const detalle = `Automático · alimentación del ${fecha}${data.categoria ? " (" + data.categoria + ")" : ""}`;
+          return residuosDeInsumo(data.producto, cantidad, { fecha, lote, detalle, origen: "alimentacion" });
+        }
+        if (module === "movimientoStock") {
+          if (data.tipo !== "Salida" || !MOTIVOS_CONSUMO_STOCK.includes(data.motivo)) return [];
+          const detalle = `Automático · salida de stock del ${fecha} (${data.motivo})`;
+          return residuosDeInsumo(data.producto, data.cantidad, { fecha, lote, detalle, origen: "movimientoStock" });
+        }
+        if (module === "costosOperativos") {
+          const detalle = `Automático · ${data.tipoCosto || "costo operativo"} de ${data.equipo || "equipo"} (${fecha})`;
+          if (/^filtro/i.test(data.tipoCosto || "")) return [residuoDeMantenimiento("Filtros de aceite/aire", { fecha, detalle })];
+          if (/^lubricante/i.test(data.tipoCosto || "")) return [residuoDeMantenimiento("Envases de aceite/lubricante", { fecha, detalle })];
+          return [];
+        }
+        if (module === "mantenimiento") {
+          if (data.estado !== "Completado") return [];
+          const detalle = `Automático · ${data.descripcion || data.tipo || "mantenimiento"} de ${data.equipo || "equipo"} (${fecha})`;
+          const d = normalizarTextoCatalogo(data.descripcion || "");
+          const out = [];
+          const esService = data.tipo === "Service" || /service/.test(d);
+          if (esService || /filtro|cambio de aceite/.test(d)) out.push(residuoDeMantenimiento("Filtros de aceite/aire", { fecha, detalle }));
+          if (esService || /aceite|fluido|lubric/.test(d)) out.push(residuoDeMantenimiento("Envases de aceite/lubricante", { fecha, detalle }));
+          return out;
+        }
+        return [];
+      }
+
+      const MODULOS_CON_RESIDUOS = ["aplicaciones", "siembra", "alimentacion", "movimientoStock", "costosOperativos", "mantenimiento"];
+
+      function sincronizarResiduosAutomaticos(module, data, registroAnterior) {
+        if (!MODULOS_CON_RESIDUOS.includes(module) || !data) return 0;
+        const ref =
+          data.residuosRef ||
+          registroAnterior?.residuosRef ||
+          `${module}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+        data.residuosRef = ref;
+        RESIDUOS_AUTO_TABLAS.forEach((t) => { if (!Array.isArray(state[t])) state[t] = []; });
+        // Aplicaciones cargadas con la versión anterior (sin referencia): sus envases automáticos se
+        // reconocen por el texto y la fecha/lote, para no duplicarlos al editar.
+        if (module === "aplicaciones" && registroAnterior && !registroAnterior.residuosRef) {
+          state.residuosEnvases = state.residuosEnvases.filter(
+            (r) =>
+              !(!r.origenRef &&
+                String(r.observaciones || "").startsWith("Generado automáticamente desde la aplicación") &&
+                r.fecha === registroAnterior.fecha &&
+                r.lote === registroAnterior.lote),
+          );
+        }
+        // Los que el usuario editó quedan como los dejó; los automáticos se regeneran.
+        const tablasEditadas = new Set(
+          RESIDUOS_AUTO_TABLAS.filter((t) => state[t].some((r) => r.origenRef === ref && r.origen === "editado")),
+        );
+        RESIDUOS_AUTO_TABLAS.forEach((t) => {
+          state[t] = state[t].filter((r) => !(r.origenRef === ref && r.origen === "auto"));
+        });
+        const nuevos = residuosDeRegistro(module, data).filter((r) => !tablasEditadas.has(r.tabla));
+        nuevos.forEach(({ tabla, registro }) =>
+          state[tabla].push({ ...registro, origen: "auto", origenRef: ref, origenModulo: module }),
+        );
+        return nuevos.length;
+      }
+
+      // Registros cargados antes de esta función (o importados): se procesan una sola vez.
+      function cargarResiduosDeRegistrosAnteriores() {
+        let registros = 0;
+        let residuos = 0;
+        MODULOS_CON_RESIDUOS.forEach((module) =>
+          (state[module] || []).forEach((registro) => {
+            if (!registro || registro.residuosRef) return;
+            // Movimientos de stock que generan otros módulos (aplicación, siembra, alimentación): ya
+            // se cuentan en su registro de origen.
+            if (module === "movimientoStock" && /aplicaci|siembra|alimentaci|RAD/i.test(`${registro.motivo} ${registro.observaciones || ""}`)) return;
+            registros += 1;
+            residuos += sincronizarResiduosAutomaticos(module, registro, null);
+          }),
+        );
+        if (registros) saveState();
+        return { registros, residuos };
+      }
+
+      function cargarResiduosAnterioresDesdeBoton() {
+        const { registros, residuos } = cargarResiduosDeRegistrosAnteriores();
+        renderTables();
+        showToast(
+          registros
+            ? `Se revisaron ${registros} registro(s) anteriores: ${residuos} residuo(s) cargado(s).`
+            : "No hay registros anteriores pendientes: los nuevos se cargan solos.",
+          registros ? "success" : "info",
+        );
+      }
+
+      // Borrar un registro desde el botón 🗑️ de las tablas (en la web esta función se había perdido y los
+      // botones de Residuos, Combustible y Costos operativos daban error).
+      function deleteRecord(module, index) {
+        const lista = state[module];
+        if (!Array.isArray(lista) || !lista[index]) return;
+        if (!confirm("¿Eliminar este registro?")) return;
+        lista.splice(index, 1);
+        saveState();
+        renderTables();
+        showToast("Registro eliminado", "success");
       }
 
       /* === IMPORT SYSTEM === */
@@ -19273,7 +19527,7 @@
               .map(
                 (r, i) => `
     <tr onclick="openModal('residuosEnvases', ${i})" style="cursor:pointer;">
-      <td>${r.fecha || "-"}</td><td>${r.producto || "-"}</td><td>${r.cantidadEnvases || 0}</td><td>${r.capacidad || "-"}</td><td>${r.lote || "-"}</td>
+      <td>${r.fecha || "-"}</td><td>${r.producto || "-"}${r.origen ? `<div style="font-size:11px;color:var(--text-dim)">${r.origen === "editado" ? "✏️ generado y editado" : "⚙️ automático"}</div>` : ""}</td><td>${r.cantidadEnvases || 0}</td><td>${r.capacidad || "-"}</td><td>${r.lote || "-"}</td>
       <td><span class="tag ${r.estado === "Entregado a CAT" ? "green" : r.estado === "Lavado, pendiente entrega" ? "blue" : "orange"}">${r.estado || "-"}</span></td>
       <td><button onclick="event.stopPropagation(); deleteRecord('residuosEnvases', ${i})" class="btn-delete">🗑️</button></td>
     </tr>`,
@@ -19329,7 +19583,7 @@
               .map(
                 (r, i) => `
     <tr onclick="openModal('residuosOtros', ${i})" style="cursor:pointer;">
-      <td>${r.fecha || "-"}</td><td>${r.tipoResiduo || "-"}</td><td>${r.cantidad || 0} ${r.unidad || ""}</td><td>${r.metodoDisposicion || "-"}</td><td>${r.responsable || "-"}</td>
+      <td>${r.fecha || "-"}</td><td>${r.tipoResiduo || "-"}${r.origen ? `<div style="font-size:11px;color:var(--text-dim)">${r.origen === "editado" ? "✏️ generado y editado" : "⚙️ automático"}</div>` : ""}</td><td>${r.cantidad || 0} ${r.unidad || ""}</td><td>${r.metodoDisposicion || "-"}</td><td>${r.responsable || "-"}</td>
       <td><button onclick="event.stopPropagation(); deleteRecord('residuosOtros', ${i})" class="btn-delete">🗑️</button></td>
     </tr>`,
               )
