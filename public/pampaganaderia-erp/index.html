@@ -2,6 +2,7 @@
 <html lang="es">
   <head>
 <script id="pampa-web-trial-guard">(function(){try{const url=new URL(window.location.href);if(url.searchParams.get('trial')==='auto'){window.__pampaTrialAutoRequested=true;url.searchParams.delete('trial');window.history.replaceState({},document.title,url.pathname+url.search+url.hash);}}catch(error){}}());</script>
+    <script src="pampa-trial-guard.js"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PampaGanaderia ERP - Gestión Agropecuaria Integral</title>
@@ -14979,7 +14980,54 @@
         initializeAppAfterLicense();
       }
 
-      function activateTrial() {
+      // Control de días del trial en el servidor (pampa-trial-guard.js, en el <head>): recuerda el
+      // primer inicio aunque se borren los datos del navegador. Sin servidor que responda
+      // (escritorio, servidor local, sin red) → disponible: false y manda el control local.
+      function estadoTrialServidor(registrar, desde) {
+        const guard = window.PampaTrialGuard;
+        if (!guard || typeof guard.estado !== "function") return Promise.resolve({ disponible: false });
+        return registrar ? guard.registrar(desde) : guard.estado();
+      }
+      function trialAgotadoLocal() {
+        return localStorage.getItem("pampa_trial_exhausted_ganaderia") === "1";
+      }
+      function marcarTrialAgotado() {
+        localStorage.setItem("pampa_trial_exhausted_ganaderia", "1");
+        localStorage.removeItem("nexoAgroLicense");
+        window.PampaTrialGuard?.mostrarAgotado?.();
+      }
+      // Crea la licencia de prueba con el inicio y vencimiento del servidor. false = ya se usó.
+      async function activarTrialWeb() {
+        if (trialAgotadoLocal()) {
+          marcarTrialAgotado();
+          return false;
+        }
+        const servidor = await estadoTrialServidor(true);
+        if (servidor.disponible && servidor.agotado) {
+          marcarTrialAgotado();
+          return false;
+        }
+        const ahora = new Date();
+        const inicio = servidor.disponible && servidor.activatedAt ? new Date(servidor.activatedAt) : ahora;
+        const fin = servidor.disponible && servidor.expiresAt
+          ? new Date(servidor.expiresAt)
+          : new Date(ahora.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
+        const licencia = {
+          type: "trial",
+          key: "TRIAL-10DIAS",
+          activatedAt: inicio.toISOString(),
+          expiresAt: fin.toISOString(),
+          deviceId: generateDeviceId(),
+        };
+        if (getTrialRemainingDays(licencia) <= 0) {
+          marcarTrialAgotado();
+          return false;
+        }
+        localStorage.setItem("nexoAgroLicense", JSON.stringify(licencia));
+        return true;
+      }
+
+      async function activateTrial() {
         const currentLicense = getLicenseData();
         if (
           currentLicense &&
@@ -14989,30 +15037,20 @@
           showToast("La prueba ya está activa en este equipo", "info");
           return;
         }
-
-        const now = new Date();
-        const end = new Date(now.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
-
-        const trialLicense = {
-          type: "trial",
-          key: "TRIAL-7DIAS",
-          activatedAt: now.toISOString(),
-          expiresAt: end.toISOString(),
-          deviceId: generateDeviceId(),
-        };
-
-        localStorage.setItem("nexoAgroLicense", JSON.stringify(trialLicense));
+        if (!(await activarTrialWeb())) {
+          showToast("La prueba gratuita ya venció en este equipo", "error");
+          return;
+        }
         document.getElementById("activationOverlay").style.display = "none";
         showToast(`Prueba activada por ${TRIAL_DAYS} días`, "success");
         updateLicenseBadge();
         initializeAppAfterLicense();
       }
 
-      function maybeAutoActivateTrialFromQuery() {
+      async function maybeAutoActivateTrialFromQuery() {
         // pampa-web-trial-guard (arriba en <head>) ya borro "?trial=auto" de la URL antes de que
-        // cualquier otro script corriera, asi que aca params.get('trial') va a estar vacio: por eso
-        // tambien miramos window.__pampaTrialAutoRequested, que es donde ese guard deja guardada la
-        // intencion del link. Devuelve true si activo (o ya habia) un trial valido.
+        // cualquier otro script corriera: la intención queda en window.__pampaTrialAutoRequested.
+        // Devuelve true si activo (o ya habia) un trial valido.
         const params = new URLSearchParams(window.location.search);
         const autoRequested =
           params.get("trial") === "auto" ||
@@ -15028,18 +15066,7 @@
         const cleanUrl = `${window.location.pathname}${window.location.hash}`;
 
         if (!hasValidTrial) {
-          const now = new Date();
-          const end = new Date(
-            now.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000,
-          );
-          const trialLicense = {
-            type: "trial",
-            key: "TRIAL-7DIAS",
-            activatedAt: now.toISOString(),
-            expiresAt: end.toISOString(),
-            deviceId: generateDeviceId(),
-          };
-          localStorage.setItem("nexoAgroLicense", JSON.stringify(trialLicense));
+          if (!(await activarTrialWeb())) return false;
           const overlay = document.getElementById("activationOverlay");
           if (overlay) overlay.style.display = "none";
           showToast(`Prueba activada por ${TRIAL_DAYS} dias`, "success");
@@ -15092,14 +15119,25 @@
           // sin cartel de trial, sin límite de días y sin las etiquetas de plan/aviso de
           // versión completa (esTrial nunca se volvía true). Activar el trial acá replica
           // el comportamiento del botón "Iniciar Prueba Gratis" para cualquier entrada directa.
-
-          return true;
+          // En escritorio nunca: ahí se pide la clave. En la web, la prueba la controla el servidor
+          // (antes devolvía true sin licencia: acceso completo y sin límite de días).
+          if (window.PAMPA_DESKTOP_MODE || window.electronAPI) return false;
+          return activarTrialWeb();
         }
 
         if (license.type === "trial") {
+          // El servidor manda: si allá la prueba ya venció (se reinició el navegador o se editó la
+          // fecha local) se corta; los trials anteriores a este control se registran con su inicio.
+          const servidor = await estadoTrialServidor(true, license.activatedAt);
+          if (servidor.disponible && servidor.expiresAt) {
+            if (servidor.agotado || new Date(servidor.expiresAt) < new Date(license.expiresAt)) {
+              license.expiresAt = servidor.expiresAt;
+              localStorage.setItem("nexoAgroLicense", JSON.stringify(license));
+            }
+          }
           const remaining = getTrialRemainingDays(license);
           if (remaining <= 0) {
-            localStorage.removeItem("nexoAgroLicense");
+            marcarTrialAgotado();
             return false;
           }
           return true;
@@ -15313,7 +15351,7 @@
       // Inicializar sistema de licencia al cargar la página
       async function initLicenseSystem() {
         if (!(await checkLicense())) {
-          if (!maybeAutoActivateTrialFromQuery()) {
+          if (!(await maybeAutoActivateTrialFromQuery())) {
             showActivationScreen();
           }
         } else {

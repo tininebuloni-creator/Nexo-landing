@@ -1795,6 +1795,8 @@
     <script src="js/pampa-sync-envelope.js?v=1"></script>
 
     <script src="js/pampa-core-sync.js"></script>
+    <script src="js/consultas-voz.js?v=1"></script>
+    <script src="js/asistente-ia.js?v=1"></script>
     <script src="js/pampa-report-voice.js"></script>
 
     <script src="./pampa-privacy-popup.js"></script>
@@ -2440,9 +2442,9 @@
               "
             >
               <option value="propietario">👑 Propietario / Responsable</option>
-              <option value="administracion">🧾 Administración</option>
-              <option value="ingeniero">🩺 Ingeniero / Veterinario</option>
-              <option value="oficina">👷 Operario de campo</option>
+              <option value="administracion">🩺 Ingeniero / Veterinario</option>
+              <option value="ingeniero">👷 Operario de campo</option>
+              <option value="oficina">🧾 Administración / Oficina</option>
             </select>
             <button
               class="topbar-btn"
@@ -2566,11 +2568,9 @@
                     <option value="propietario">
                       👑 Propietario / Responsable
                     </option>
-                    <option value="administracion">🧾 Administración</option>
-                    <option value="ingeniero">
-                      🩺 Ingeniero / Veterinario
-                    </option>
-                    <option value="oficina">👷 Operario de campo</option>
+                    <option value="administracion">🩺 Ingeniero / Veterinario</option>
+                    <option value="ingeniero">👷 Operario de campo</option>
+                    <option value="oficina">🧾 Administración / Oficina</option>
                   </select>
                   <button
                     class="dashboard-action-btn"
@@ -5301,6 +5301,16 @@
                   Sin compras, alimentación o sanidad
                 </div>
               </div>
+              <div class="kpi purple">
+                <div class="kpi-label">Estructura (a repartir)</div>
+                <div class="kpi-value" id="costosKpiEstructura">$0</div>
+                <div class="kpi-sub" id="costosKpiEstructuraSub">
+                  Combustible, sueldos, bancos y mantenimiento sin lote
+                </div>
+                <button class="topbar-btn" type="button" onclick="configurarRepartoEstructura()" style="margin-top: 6px">
+                  Definir reparto
+                </button>
+              </div>
               <div class="kpi red">
                 <div class="kpi-label">Costo Total Consolidado</div>
                 <div class="kpi-value" id="costosKpiConsolidado">$0</div>
@@ -5707,6 +5717,40 @@
 
           <!-- MODULE: EMPRESA -->
           <div class="module" id="mod-empresa">
+            <div class="card" id="partesVozCard" style="margin-bottom: 16px">
+              <div class="card-header">
+                <div class="card-title">
+                  🎙️ Partes por nota de voz
+                  <span class="tag" id="partesVozContador">0</span>
+                </div>
+              </div>
+              <p class="text-muted" style="margin: 8px 0">
+                Mandá el parte hablando: desde el celular (Android) mantené apretada la nota de voz en
+                WhatsApp y tocá <strong>Compartir → PampaAgro</strong>, o elegí un audio guardado. En la
+                app de escritorio también podés vincular un WhatsApp con QR. La transcripción y la
+                clasificación usan tu propia clave de OpenAI, que queda solo en este equipo.
+              </p>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+                <input id="partesVozClave" class="form-input" type="password" autocomplete="off" spellcheck="false" placeholder="Tu clave de OpenAI (sk-...)" style="max-width: 280px" />
+                <button class="topbar-btn" type="button" onclick="guardarClaveOpenAIDesdeTarjeta()">Guardar clave</button>
+                <label class="topbar-btn" style="cursor: pointer">
+                  🎤 Procesar audio
+                  <input type="file" accept="audio/*,.ogg,.opus,.m4a,.mp3,.mp4,.wav" style="display: none" onchange="procesarArchivoParteVoz(this)" />
+                </label>
+                <button class="topbar-btn" type="button" id="waQrVincular" onclick="vincularWhatsAppQR()" style="display: none">📱 Vincular WhatsApp (QR)</button>
+                <button class="topbar-btn" type="button" id="waQrDesvincular" onclick="desvincularWhatsAppQR()" style="display: none">Desvincular</button>
+              </div>
+              <div class="text-muted" id="partesVozEstado" style="margin-top: 8px"></div>
+              <div id="partesVozReporte" style="display: none; margin-top: 8px; padding: 10px 12px; border: 1px solid var(--border, #334155); border-radius: 8px; white-space: pre-wrap; font-size: 13px; line-height: 1.45"></div>
+              <div class="text-muted" id="waQrEstado" style="margin-top: 4px"></div>
+              <div id="waQrImagen" style="margin-top: 8px"></div>
+              <table class="data-table" style="margin-top: 12px">
+                <thead>
+                  <tr><th>Fecha</th><th>Parte</th><th>Centro de costo</th><th>Importe</th><th></th></tr>
+                </thead>
+                <tbody id="partesVozBody"></tbody>
+              </table>
+            </div>
             <div class="card">
               <div class="card-header">
                 <div class="card-title">🏢 Datos de la Empresa</div>
@@ -5864,6 +5908,13 @@
                   gap: 8px;
                 "
               >
+                <button
+                  class="topbar-btn"
+                  onclick="cargarDatosEjemplo()"
+                  title="Carga un establecimiento mixto ficticio para recorrer la app. Se borra con Limpieza profunda."
+                >
+                  📥 Cargar datos de ejemplo
+                </button>
                 <button
                   class="topbar-btn"
                   onclick="limpiarDatosPruebaSistema()"
@@ -7639,6 +7690,18 @@
     <script>
       /* === ESTADO GLOBAL === */
       const state = {
+        // F6: % de la estructura asignado a agricultura ({ agricola: 0-100 }); null = proporcional.
+        prorrateoEstructura: null,
+        // Antes estas colecciones no estaban acá y loadState() solo recupera las claves de este
+        // objeto: los costos, la cola de CPE y las operaciones ARCA se perdían al recargar la página.
+        costos: [],
+        agricolaCpeQueue: [],
+        arcaOperaciones: [],
+        pampaIAAcciones: [],
+        // Datos de ejemplo del Trial cargados ({ version, cargadoEn, empresa }) o null.
+        demoCargado: null,
+        // Partes de campo por nota de voz (compartidos desde WhatsApp, archivo o WhatsApp por QR).
+        partesVoz: [],
         campos: [],
         campañas: [],
         lotes: [],
@@ -7871,6 +7934,336 @@
         localStorage.setItem("nexoAgroERP", JSON.stringify(state));
       }
 
+      // saveState() reescribe el estado completo: con la app abierta en dos pestañas (una emitiendo
+      // un DUT, otra una CPE) la última en guardar borraba lo de la otra. Cuando otra pestaña
+      // guarda, esta toma esa versión antes de seguir. No se usa loadState() porque conserva el
+      // valor en memoria cuando el array guardado viene vacío (revertiría un borrado de la otra).
+      window.addEventListener("storage", (evento) => {
+        if (evento.key !== "nexoAgroERP" || !evento.newValue) return;
+        try {
+          const guardado = JSON.parse(evento.newValue);
+          Object.keys(state).forEach((clave) => {
+            if (guardado[clave] !== undefined) state[clave] = guardado[clave];
+          });
+          renderTables();
+          if (typeof renderFiscalDutQueue === "function") renderFiscalDutQueue();
+          if (typeof renderAgricolaCpe === "function") renderAgricolaCpe();
+        } catch (error) {
+          console.error("No se pudo recargar el estado de otra pestaña:", error);
+        }
+      });
+
+      // === Actividad (Agrícola / Ganadera / Estructura) ===
+      // Cada costo y movimiento de fondos lleva su actividad explícita. Antes se deducía del texto
+      // con una expresión regular: "Sanidad vegetal" caía en ganadería e "Ivermectina" en agricultura.
+      const ACTIVIDADES = ["Agrícola", "Ganadera", "Estructura"];
+      const AMBITO_POR_CATEGORIA = {
+        "Insumos Agrícolas": "Agrícola",
+        "Productos Terminados": "Agrícola",
+        "Insumos Ganaderos": "Ganadero",
+        Alimentación: "Ganadero",
+        Combustibles: "Compartido",
+        "Repuestos y Herramientas": "Compartido",
+      };
+      const MOTIVOS_CONSUMO_STOCK = [
+        "Consumo",
+        "Merma",
+        "Ajuste de Stock por Merma/Consumo",
+      ];
+      // Solo para registros viejos sin el campo actividad (la detección que existía antes).
+      const REGEX_TEXTO_GANADERO_LEGADO =
+        /ganad|hacienda|animal|aliment|sanidad|vacun|veterin|forraje|balanceado|insumo ganadero/i;
+
+      function normalizarActividad(valor) {
+        const texto = String(valor || "")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .trim()
+          .toLowerCase();
+        if (texto.startsWith("agric")) return "Agrícola";
+        if (texto.startsWith("ganad")) return "Ganadera";
+        if (texto.startsWith("estruct")) return "Estructura";
+        return "";
+      }
+
+      // Ámbito de un producto de inventario: el cargado, o el que corresponde a su categoría.
+      function ambitoProducto(producto) {
+        return (
+          (producto && (producto.ambito || AMBITO_POR_CATEGORIA[producto.categoria])) ||
+          "Compartido"
+        );
+      }
+
+      function actividadPorAmbito(ambito) {
+        return ambito === "Ganadero" ? "Ganadera" : ambito === "Agrícola" ? "Agrícola" : "";
+      }
+
+      function actividadDeRegistro(item) {
+        const explicita = normalizarActividad(item?.actividad);
+        if (explicita) return explicita;
+        return REGEX_TEXTO_GANADERO_LEGADO.test(
+          `${item?.categoria || ""} ${item?.concepto || ""} ${item?.detalle || ""}`,
+        )
+          ? "Ganadera"
+          : "";
+      }
+
+      // El CUIT con el que el servidor firma ante ARCA (CUIT_PRODUCTOR del .env) tiene que ser el de
+      // la empresa: si no, se emitirían CPE/LPG a nombre de otro CUIT.
+      async function verificarCuitServidorArca() {
+        const estado = (await fiscalJson("/api/fiscal/arca/estado")) || {};
+        const cuitServidor = String(estado.cuitProductor || "").replace(/\D/g, "");
+        const cuitEmpresa = String(state.empresa?.cuit || "").replace(/\D/g, "");
+        if (cuitServidor && cuitEmpresa && cuitServidor !== cuitEmpresa) {
+          const error = new Error(
+            `El servidor ARCA está configurado con el CUIT ${estado.cuitProductor} y la empresa es ${state.empresa.cuit}. Corregí CUIT_PRODUCTOR o los datos de la empresa antes de emitir.`,
+          );
+          error.status = 409;
+          error.codigo = "CUIT_DISTINTO";
+          throw error;
+        }
+      }
+
+      // === Costos: alquiler por campo, estructura, alimentación, tasa municipal ===
+      function loteExiste(codigo) {
+        return Boolean(codigo) && (state.lotes || []).some((l) => l.codigo === codigo);
+      }
+
+      // F5: parte del campo de uso ganadero según el contrato (porcentajeGanadero, 0 a 100).
+      // Devuelve [actividad, monto, porcentaje] y las partes suman exactamente el total.
+      function repartirPorUsoDelCampo(campo, total) {
+        const contrato = (state.contratosArrendamiento || []).find((c) => c.campo === campo);
+        const pctGanadero = Math.min(100, Math.max(0, Number(contrato?.porcentajeGanadero) || 0));
+        const ganadera = Math.round(total * pctGanadero) / 100;
+        return [
+          ["Agrícola", total - ganadera, 100 - pctGanadero],
+          ["Ganadera", ganadera, pctGanadero],
+        ].filter(([, , pct]) => pct > 0);
+      }
+
+      // F5: un costo cargado a nivel campo se reparte entre los lotes de ese campo por superficie.
+      // Los costos viejos de alquiler guardaban el código del campo en "lote": se interpretan igual.
+      function repartirCostoEnLotes(costo, monto, esLoteElegible = () => true) {
+        if (loteExiste(costo.lote)) return [{ lote: costo.lote, monto }];
+        const campo =
+          costo.campo ||
+          ((state.campos || []).some((c) => (c.codigo || c.nombre) === costo.lote) ? costo.lote : "");
+        if (!campo) return [];
+        const lotes = (state.lotes || []).filter(
+          (l) => l.campo === campo && Number(l.superficie) > 0 && esLoteElegible(l.codigo),
+        );
+        const ha = lotes.reduce((suma, l) => suma + Number(l.superficie), 0);
+        if (!ha) return [];
+        return lotes.map((l) => ({ lote: l.codigo, monto: (monto * Number(l.superficie)) / ha }));
+      }
+
+      // Partes { actividad, lote, monto } de un costo del módulo Costos; suman exactamente el monto.
+      // Manda la actividad del registro; si no tiene, el uso de su lote. Un costo a nivel campo sin
+      // actividad (ej: alquiler cargado a mano o de versiones viejas) se reparte por superficie
+      // entre los lotes usados del campo (cultivados, ganaderos o mixtos) y cada parte según el uso
+      // de su lote. Antes iba solo a los lotes cultivados como agrícola y la parte de los potreros
+      // ganaderos y de los mixtos no se contaba en ningún lado.
+      function partesDeCosto(costo, monto) {
+        const conLote = loteExiste(costo.lote);
+        const actividad =
+          normalizarActividad(costo.actividad) || (conLote ? "" : actividadDeRegistro(costo));
+        const cultivados = new Set(
+          [...(state.siembra || []), ...(state.cosecha || [])].map((x) => x.lote).filter(Boolean),
+        );
+        if (actividad === "Agrícola" && !costo.cultivo) {
+          const partes = repartirCostoEnLotes(costo, monto, (codigo) => cultivados.has(codigo));
+          if (partes.length) return partes.map((p) => ({ actividad, lote: p.lote, monto: p.monto }));
+        }
+        if (actividad) return [{ actividad, lote: conLote ? costo.lote : null, monto }];
+        if (conLote) return partesPorUsoLote(costo.lote, monto).map((p) => ({ ...p, lote: costo.lote }));
+        if (!costo.cultivo) {
+          const usado = (codigo) =>
+            cultivados.has(codigo) ||
+            ["Ganadero", "Mixto"].includes(usoLote((state.lotes || []).find((l) => l.codigo === codigo)));
+          const partes = repartirCostoEnLotes(costo, monto, usado);
+          if (partes.length)
+            return partes.flatMap((p) =>
+              partesPorUsoLote(p.lote, p.monto).map((x) => ({ ...x, lote: p.lote })),
+            );
+        }
+        return [{ actividad: "Agrícola", lote: null, monto }];
+      }
+
+      // F6: costos de estructura (no son de un cultivo ni de la hacienda). Antes se sumaban enteros
+      // al costo agrícola "Sin cultivo asignado" y el margen ganadero quedaba inflado.
+      function obtenerCostosEstructura() {
+        const detalle = {};
+        const sumar = (rubro, valor) => {
+          const monto = parseMonto(valor);
+          if (monto) detalle[rubro] = (detalle[rubro] || 0) + monto;
+        };
+        (state.cargacombustible || []).forEach((c) => sumar("Combustible", c.costoTotal));
+        if (typeof calcularCostoTotalEmpleados === "function")
+          sumar("Empleados", calcularCostoTotalEmpleados());
+        (state.bancos || []).forEach((m) => {
+          if (esCostoBancario(m)) sumar("Gastos bancarios", m.importe);
+        });
+        (state.mantenimiento || []).forEach((o) => {
+          if (!loteExiste(o.lote)) sumar("Mantenimiento", o.costo);
+        });
+        (state.costosOperativos || []).forEach((c) => {
+          if (!loteExiste(c.lote)) sumar("Costos operativos", c.costo);
+        });
+        (state.costos || []).forEach((c) => {
+          if (actividadDeRegistro(c) === "Estructura")
+            sumar(c.categoria || "Otros de estructura", c.monto ?? c.importe ?? c.costo);
+        });
+        return {
+          detalle,
+          total: Object.values(detalle).reduce((suma, v) => suma + v, 0),
+        };
+      }
+
+      // F6: porcentaje de la estructura que va a agricultura (el resto, a ganadería). Si el usuario
+      // no lo definió, se reparte en proporción a los costos directos de cada actividad.
+      function repartoEstructura(directoAgricola, directoGanadero) {
+        const definido = Number(state.prorrateoEstructura?.agricola);
+        if (state.prorrateoEstructura && definido >= 0 && definido <= 100)
+          return { pctAgricola: definido, criterio: "definido por el usuario" };
+        const suma = directoAgricola + directoGanadero;
+        return {
+          pctAgricola: suma > 0 ? Math.round((directoAgricola / suma) * 1000) / 10 : 100,
+          criterio: "proporcional a los costos directos",
+        };
+      }
+
+      function configurarRepartoEstructura() {
+        const actual = state.prorrateoEstructura?.agricola;
+        const texto = prompt(
+          "Porcentaje de los costos de estructura que corresponde a agricultura (0 a 100; el resto va a ganadería). Dejalo vacío para repartir en proporción a los costos directos:",
+          actual ?? "",
+        );
+        if (texto === null) return;
+        if (String(texto).trim() === "") {
+          state.prorrateoEstructura = null;
+        } else {
+          const pct = Number(String(texto).replace(",", "."));
+          if (!(pct >= 0 && pct <= 100)) {
+            showToast("Ingresá un porcentaje entre 0 y 100.", "error");
+            return;
+          }
+          state.prorrateoEstructura = { agricola: pct, definidoEn: new Date().toISOString() };
+        }
+        saveState();
+        renderTables();
+        try {
+          actualizarResumenCostos();
+          calcularRentabilidad();
+        } catch (error) {
+          console.error("No se pudieron recalcular los costos:", error);
+        }
+      }
+
+      // F4: costo de un registro de alimentación con el precio del momento en que se cargó. Los
+      // registros viejos no lo guardaron: usan el precio actual, la única referencia disponible.
+      function costoAlimentacion(item) {
+        const kilos = Number(
+          item.cantidadTotal ||
+            Number(item.racion || 0) * Number(item.cabezas || 0) * Number(item.dias || 0),
+        );
+        let unitario = Number(item.costoUnitAplicado);
+        if (item.costoUnitAplicado === undefined || item.costoUnitAplicado === "" || !Number.isFinite(unitario)) {
+          const producto = (state.inventario || []).find(
+            (p) => p.codigo === item.producto || p.producto === item.producto,
+          );
+          unitario = Number(producto?.costoUnit || 0);
+        }
+        return kilos * unitario;
+      }
+
+      // F9: el pago de la tasa municipal del DUT se registra como costo ganadero y, salvo en cuenta
+      // corriente (queda como deuda), como egreso de Caja. Una sola vez por DUT.
+      function registrarPagoTasaMunicipal(item) {
+        if (!item || item.pagoTasaRegistradoEn) return;
+        const estado = String(item.estadoPago || "").toUpperCase();
+        if (!["PAGADO", "ACREDITADO", "VEP", "TRANSFERENCIA", "CUENTA_CORRIENTE"].includes(estado)) return;
+        const importe = parseMonto(item.arancelMunicipal);
+        if (!(importe > 0)) return;
+        const fecha = new Date().toISOString().slice(0, 10);
+        const concepto = `Tasa municipal DUT ${item.dteNumero || item.id}`;
+        const referencia = item.comprobantePagoMunicipal || item.id;
+        if (!Array.isArray(state.costos)) state.costos = [];
+        state.costos.push({
+          fecha,
+          concepto,
+          monto: importe,
+          categoria: "Tasas municipales",
+          actividad: "Ganadera",
+          referencia,
+        });
+        if (estado !== "CUENTA_CORRIENTE") {
+          if (!Array.isArray(state.caja)) state.caja = [];
+          state.caja.push({
+            fecha,
+            concepto,
+            tipo: "Egreso",
+            importe: String(importe),
+            categoria: "Impuestos",
+            actividad: "Ganadera",
+            pagoDeCostoRegistrado: "Sí",
+            referencia,
+          });
+        }
+        item.pagoTasaRegistradoEn = new Date().toISOString();
+      }
+
+      // === Uso de los lotes ===
+      // Uso de un lote: el cargado; si no hay (lotes viejos), se deduce solo en los casos claros:
+      // con siembra o cosecha es agrícola, con cabezas o pastoreo es ganadero. Si tiene las dos
+      // señales queda sin definir (se trata como agrícola, igual que antes) hasta que se cargue.
+      function usoLote(lote) {
+        if (!lote) return "";
+        const texto = String(lote.uso || "")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase();
+        if (texto.startsWith("agric")) return "Agrícola";
+        if (texto.startsWith("ganad")) return "Ganadero";
+        if (texto.startsWith("mixt")) return "Mixto";
+        const agricola = [...(state.siembra || []), ...(state.cosecha || [])].some(
+          (x) => x.lote === lote.codigo,
+        );
+        const ganadero = Number(lote.capacidadCabezas) > 0 || Boolean(lote.ultimoPastoreo);
+        if (agricola && !ganadero) return "Agrícola";
+        if (ganadero && !agricola) return "Ganadero";
+        return "";
+      }
+
+      // Partes { actividad, monto } de un costo imputado a un lote según su uso. Las partes suman
+      // exactamente el monto.
+      function partesPorUsoLote(codigoLote, monto) {
+        const lote = (state.lotes || []).find((l) => l.codigo === codigoLote);
+        const uso = usoLote(lote);
+        if (uso === "Ganadero") return [{ actividad: "Ganadera", monto }];
+        if (uso === "Mixto") {
+          const pct = Math.min(100, Math.max(0, Number(lote.porcentajeGanadero) || 0));
+          const ganadera = Math.round(monto * pct) / 100;
+          return [
+            { actividad: "Agrícola", monto: monto - ganadera },
+            { actividad: "Ganadera", monto: ganadera },
+          ];
+        }
+        return [{ actividad: "Agrícola", monto }];
+      }
+
+      // Parte de un costo que corresponde a una actividad. Manda la actividad explícita del
+      // registro; si no tiene, el uso de su lote; si tampoco, la detección por texto de registros
+      // viejos (y lo que no se detecta como ganadero queda agrícola, como antes).
+      function montoDeActividad(item, monto, actividad) {
+        const explicita = normalizarActividad(item?.actividad);
+        if (explicita) return explicita === actividad ? monto : 0;
+        if (loteExiste(item?.lote))
+          return partesPorUsoLote(item.lote, monto)
+            .filter((parte) => parte.actividad === actividad)
+            .reduce((suma, parte) => suma + parte.monto, 0);
+        return (actividadDeRegistro(item) || "Agrícola") === actividad ? monto : 0;
+      }
+
       let autoSyncExportTimer = null;
 
       function buildExportSnapshot() {
@@ -8098,6 +8491,19 @@
         );
         const mode = modeEl ? modeEl.value : "replace";
 
+        // Un archivo de otra empresa no se mezcla ni reemplaza: antes pisaba el CUIT y la razón
+        // social de esta sin avisar y mezclaba sus comprobantes con los de este CUIT.
+        const soloDigitos = (valor) => String(valor || "").replace(/\D/g, "");
+        const cuitActual = soloDigitos(state.empresa?.cuit);
+        const cuitEntrante = soloDigitos(incoming.empresa?.cuit);
+        if (cuitActual && cuitEntrante && cuitActual !== cuitEntrante) {
+          showToast(
+            `El archivo es de otra empresa (CUIT ${incoming.empresa.cuit}, esta es ${state.empresa.cuit}). No se importó nada.`,
+            "error",
+          );
+          return;
+        }
+
         try {
           if (mode === "replace") {
             Object.keys(incoming).forEach((k) => {
@@ -8108,14 +8514,27 @@
               if (Array.isArray(incoming[k])) {
                 if (!Array.isArray(state[k])) state[k] = [];
                 const key = detectClavePrimaria(k);
+                // Sin clave propia se compara el registro completo: antes esas colecciones
+                // (costos, hacienda, colas fiscales...) se duplicaban enteras al combinar.
+                const firmas = key
+                  ? null
+                  : new Set(state[k].map((existing) => JSON.stringify(existing)));
                 incoming[k].forEach((item) => {
-                  const yaExiste =
-                    key &&
-                    state[k].some(
+                  if (key) {
+                    const existente = state[k].find(
                       (existing) =>
-                        existing[key] && existing[key] === item[key],
+                        existing[key] && existing[key] === item?.[key],
                     );
-                  if (!yaExiste) state[k].push(item);
+                    if (existente) {
+                      resolverConflictoImport(k, existente, item);
+                      return;
+                    }
+                  } else {
+                    const firma = JSON.stringify(item);
+                    if (firmas.has(firma)) return;
+                    firmas.add(firma);
+                  }
+                  state[k].push(item);
                 });
               } else if (
                 typeof incoming[k] === "object" &&
@@ -8147,8 +8566,33 @@
           chequesCubrir: "numero",
           creditos: "numero",
           documentos: "nombre",
+          fiscalDutQueue: "id",
+          agricolaCpeQueue: "id",
+          partesVoz: "id",
         };
         return mapa[modulo] || null;
+      }
+
+      // En las colas fiscales gana el registro más avanzado: un DUT o una CPE ya emitidos en la
+      // otra PC no pueden volver a quedar "Pendiente" acá, porque se reenviarían.
+      const RANGO_ESTADO_FISCAL_IMPORT = {
+        Pendiente: 0,
+        Rechazado: 1,
+        "Verificar en ARCA": 1,
+        "Simulado (no oficial)": 1,
+        "Listo para SIGSA": 2,
+        Sincronizado: 3,
+        "Emitido (oficial)": 3,
+        "Cerrado local": 4,
+        Cerrado: 4,
+      };
+
+      function resolverConflictoImport(modulo, existente, entrante) {
+        if (!["fiscalDutQueue", "agricolaCpeQueue"].includes(modulo)) return;
+        const rango = (registro) =>
+          RANGO_ESTADO_FISCAL_IMPORT[registro?.estado] ?? 0;
+        if (rango(entrante) > rango(existente))
+          Object.assign(existente, entrante);
       }
 
       /* === NAVEGACIÓN === */
@@ -8259,24 +8703,6 @@
           ],
         },
         administracion: {
-          nombre: "Administración",
-          icono: "🧾",
-          modulos: [
-            "dashboard",
-            "campos",
-            "lotes",
-            "campañas",
-            "siembra",
-            "aplicaciones",
-            "residuos",
-            "cosecha",
-            "hacienda",
-            "alimentacion",
-            "fiscal",
-            "reportes",
-          ],
-        },
-        ingeniero: {
           nombre: "Ingeniero / Veterinario",
           icono: "🩺",
           modulos: [
@@ -8290,7 +8716,23 @@
             "cosecha",
             "hacienda",
             "alimentacion",
-            "fiscal",
+            "reportes",
+          ],
+        },
+        ingeniero: {
+          nombre: "Operario de campo",
+          icono: "👷",
+          modulos: [
+            "dashboard",
+            "campos",
+            "lotes",
+            "campañas",
+            "siembra",
+            "aplicaciones",
+            "residuos",
+            "cosecha",
+            "hacienda",
+            "alimentacion",
             "maquinarias",
             "cargacombustible",
             "costosOperativos",
@@ -8299,8 +8741,8 @@
           ],
         },
         oficina: {
-          nombre: "Operario de campo",
-          icono: "👷",
+          nombre: "Administración / Oficina",
+          icono: "🧾",
           modulos: [
             "dashboard",
             "fiscal",
@@ -8372,12 +8814,30 @@
         ];
       }
 
+      // Rótulos anteriores de cada rol (estaban cruzados con sus módulos). Un usuario creado con el
+      // rótulo por defecto pasa al nombre nuevo; si le pusieron un nombre propio, se respeta.
+      const NOMBRES_ROL_ANTERIORES = {
+        administracion: "Administración",
+        ingeniero: "Ingeniero / Veterinario",
+        oficina: "Operario de campo",
+      };
+      const MIGRACION_NOMBRES_ROL = "nexoAgroRolesNombres2026";
+
       function getInstalledRoles() {
         let roles = [];
         try {
           const raw = localStorage.getItem("nexoAgroInstalledRoles");
           if (raw) {
-            const parsed = JSON.parse(raw);
+            let parsed = JSON.parse(raw);
+            if (Array.isArray(parsed) && !localStorage.getItem(MIGRACION_NOMBRES_ROL)) {
+              parsed = parsed.map((r) =>
+                r && String(r.name || "").trim() === NOMBRES_ROL_ANTERIORES[r.roleKey]
+                  ? { ...r, name: rolePermissions[r.roleKey].nombre }
+                  : r,
+              );
+              localStorage.setItem("nexoAgroInstalledRoles", JSON.stringify(parsed));
+              localStorage.setItem(MIGRACION_NOMBRES_ROL, "1");
+            }
             if (Array.isArray(parsed)) {
               roles = parsed
                 .filter((r) => r && rolePermissions[r.roleKey])
@@ -8482,9 +8942,9 @@
               <label class="form-label">Perfil base</label>
               <select class="form-select" id="rolesLicenciaPerfil">
                 <option value="propietario">👑 Propietario / Responsable</option>
-                <option value="administracion">🧾 Administración</option>
-                <option value="ingeniero" selected>🩺 Ingeniero / Veterinario</option>
-                <option value="oficina">👷 Operario de campo</option>
+                <option value="administracion">🩺 Ingeniero / Veterinario</option>
+                <option value="ingeniero" selected>👷 Operario de campo</option>
+                <option value="oficina">🧾 Administración / Oficina</option>
               </select>
             </div>
             <button class="btn btn-primary" id="rolesLicenciaAgregarBtn" onclick="agregarRolLicenciaDesdeModal()">Agregar rol</button>
@@ -8719,7 +9179,9 @@
 
       function actualizarPermisos() {
         const permisos = rolePermissions[currentRole];
-        const bypassPlan = currentRole === "propietario";
+        // El propietario ve completa la versión que paga (su rol tiene todos los módulos); el plan
+        // limita a todos por igual. Antes el propietario se salteaba el plan y veía módulos Premium.
+        const bypassPlan = false;
 
         // Ocultar/mostrar módulos en el menú lateral (rol + plan)
         document.querySelectorAll(".nav-item").forEach((item) => {
@@ -8802,7 +9264,9 @@
       }
 
       function switchModule(id) {
-        const bypassPlan = currentRole === "propietario";
+        // El propietario ve completa la versión que paga (su rol tiene todos los módulos); el plan
+        // limita a todos por igual. Antes el propietario se salteaba el plan y veía módulos Premium.
+        const bypassPlan = false;
 
         // Verificar permisos del rol actual
         if (!rolePermissions[currentRole].modulos.includes(id)) {
@@ -9156,18 +9620,30 @@
         showToast("WhatsApp abierto correctamente", "success");
       }
 
+      // Antes descartaba la coma: "1.500,50" se leía como 1,5005. Ahora usa el mismo lector que el
+      // resto de la app (formato AR "1.500,50", internacional "1,500.50" y numérico "1500.50").
       function parseImporteNumero(value) {
-        if (typeof value === "number")
-          return Number.isFinite(value) ? value : 0;
-        const cleaned = String(value || "").replace(/[^0-9.-]/g, "");
-        const num = parseFloat(cleaned);
+        const num = parseMonto(value);
         return Number.isFinite(num) ? num : 0;
       }
 
-      // Chequeo simple de formato CUIT: 11 dígitos (no valida dígito verificador, solo evita errores de tipeo groseros)
+      // CUIT válido: 11 dígitos y dígito verificador módulo 11 (mismo algoritmo que
+      // validarDigitoVerificadorCuit de @pampa/core-fiscal-arca). Antes solo contaba 11 dígitos y un
+      // CUIT mal tipeado llegaba hasta ARCA, que lo rechazaba.
+      function motivoCuitInvalido(valor) {
+        const digitos = String(valor || "").replace(/\D/g, "");
+        if (digitos.length !== 11) return `El CUIT "${valor}" debe tener 11 dígitos.`;
+        const pesos = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
+        const suma = pesos.reduce((acc, peso, i) => acc + peso * Number(digitos[i]), 0);
+        let verificador = 11 - (suma % 11);
+        if (verificador === 11) verificador = 0;
+        if (verificador === 10 || verificador !== Number(digitos[10]))
+          return `El CUIT "${valor}" no es válido: el dígito verificador no corresponde. Revisá que no tenga un error de tipeo.`;
+        return "";
+      }
+
       function esCuitValido(valor) {
-        const soloDigitos = String(valor || "").replace(/\D/g, "");
-        return soloDigitos.length === 11;
+        return !motivoCuitInvalido(valor);
       }
 
       // Chequeo global: intercepta CUALQUIER envío de formulario de la app y valida los campos de CUIT
@@ -9183,10 +9659,7 @@
               evento.preventDefault();
               evento.stopImmediatePropagation();
               if (typeof showToast === "function")
-                showToast(
-                  `El CUIT "${campo.value}" debe tener 11 dígitos.`,
-                  "error",
-                );
+                showToast(motivoCuitInvalido(campo.value), "error");
               campo.focus();
               return;
             }
@@ -9210,7 +9683,7 @@
           ? rows
               .map(
                 (item) =>
-                  `<tr><td>${item.fecha || "-"}</td><td>${item.tipo || "-"}</td><td>${item.referencia || "-"}</td><td>${item.destinatario || "-"}</td><td>${formatMoney(item.importe)}</td><td><span class="tag ${item.estado === "Presentada" ? "green" : "orange"}">${item.estado || "Pendiente de enviar"}</span></td></tr>`,
+                  `<tr><td>${escaparHtmlFiscal(item.fecha || "-")}</td><td>${escaparHtmlFiscal(item.tipo || "-")}${item.actividad ? ` · ${escaparHtmlFiscal(item.actividad)}` : ""}</td><td>${escaparHtmlFiscal(item.referencia || "-")}</td><td>${escaparHtmlFiscal(item.destinatario || "-")}</td><td>${formatMoney(item.importe)}</td><td><span class="tag ${item.estado === "Presentada" ? "green" : "orange"}">${escaparHtmlFiscal(item.estado || "Pendiente de enviar")}</span></td></tr>`,
               )
               .join("")
           : '<tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:18px;">Sin operaciones fiscales registradas.</td></tr>';
@@ -9218,6 +9691,20 @@
 
       function verificarConfiguracionARCA() {
         const cuit = document.getElementById("arcaCuit")?.value.trim() || "";
+        // Un solo CUIT: el de la empresa. Antes este panel guardaba el suyo aparte y podía no
+        // coincidir con el de la empresa ni con el CUIT_PRODUCTOR del servidor.
+        const cuitEmpresa = String(state.empresa?.cuit || "").replace(/\D/g, "");
+        if (cuit && cuitEmpresa && cuit.replace(/\D/g, "") !== cuitEmpresa) {
+          showToast(
+            `El CUIT ${cuit} no coincide con el de la empresa (${state.empresa.cuit}). Corregí uno de los dos.`,
+            "error",
+          );
+          return;
+        }
+        if (cuit && !esCuitValido(cuit)) {
+          showToast(motivoCuitInvalido(cuit), "error");
+          return;
+        }
         const entorno =
           document.getElementById("arcaEntorno")?.value || "Homologación";
         const servicio =
@@ -9257,7 +9744,8 @@
           localStorage.getItem("pampaAgroArcaConfig") || "{}",
         );
         if (document.getElementById("arcaCuit"))
-          document.getElementById("arcaCuit").value = config.cuit || "";
+          document.getElementById("arcaCuit").value =
+            state.empresa?.cuit || config.cuit || "";
         if (document.getElementById("arcaEntorno") && config.entorno)
           document.getElementById("arcaEntorno").value = config.entorno;
         if (document.getElementById("arcaServicio") && config.servicio)
@@ -9272,9 +9760,21 @@
             );
             if (!Array.isArray(state.arcaOperaciones))
               state.arcaOperaciones = []; // Bug: no estaba inicializado para instalaciones nuevas y rompía al guardar la primera operación
+            if (!state.empresa?.cuit || !esCuitValido(state.empresa.cuit)) {
+              showToast(
+                "Cargá un CUIT válido de la empresa antes de registrar operaciones ARCA.",
+                "error",
+              );
+              return;
+            }
             state.arcaOperaciones.unshift({
               ...data,
-              importe: Number(data.importe) || 0,
+              id:
+                window.crypto?.randomUUID?.() ||
+                `arca-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+              cuitEmisor: String(state.empresa.cuit).replace(/\D/g, ""),
+              actividad: normalizarActividad(data.actividad),
+              importe: parseMonto(data.importe),
               estado: "Pendiente de enviar",
             });
             saveState();
@@ -9324,7 +9824,7 @@
         if (waReporteVoiceActive) {
           try {
             waReporteRecognition.stop();
-          } catch (e) {}
+          } catch (e) { console.warn(e); }
           return;
         }
         waReporteRecognition = new SpeechRecognition();
@@ -9373,20 +9873,9 @@
 
       function buildReporteResumenWhatsApp(tipo, detalleInstantaneo = "") {
         const fecha = new Date().toLocaleString("es-AR");
-        const cajaIngresos = (state.caja || [])
-          .filter((m) => m.tipo === "Ingreso")
-          .reduce((sum, m) => sum + parseImporteNumero(m.importe), 0);
-        const cajaEgresos = (state.caja || [])
-          .filter((m) => m.tipo === "Egreso")
-          .reduce((sum, m) => sum + parseImporteNumero(m.importe), 0);
-        const saldoCaja = cajaIngresos - cajaEgresos;
-        const bancosIngresos = (state.bancos || [])
-          .filter((m) => m.tipo === "Ingreso")
-          .reduce((sum, m) => sum + parseImporteNumero(m.importe), 0);
-        const bancosEgresos = (state.bancos || [])
-          .filter((m) => m.tipo === "Egreso")
-          .reduce((sum, m) => sum + parseImporteNumero(m.importe), 0);
-        const saldoBancos = bancosIngresos - bancosEgresos;
+        // Mismos saldos que el PDF: las transferencias bancarias suman o restan según su dirección.
+        const saldoCaja = saldoMovimientosFondos(state.caja);
+        const saldoBancos = saldoTotalBancos();
 
         let detalle = "";
 
@@ -9463,15 +9952,25 @@
             ].join("\n");
             break;
           case "resultados": {
-            const neto =
-              cajaIngresos + bancosIngresos - (cajaEgresos + bancosEgresos);
+            // Mismo cálculo que el PDF (construirEstadoResultados), para el mes en curso: antes
+            // sumaba todo el historial y contaba transferencias y plazos fijos como resultado.
+            const er = construirEstadoResultados(
+              new Date().toISOString().slice(0, 7),
+            );
             detalle = [
-              `• Ingresos Caja: ${formatMoney(cajaIngresos)}`,
-              `• Egresos Caja: ${formatMoney(cajaEgresos)}`,
-              `• Ingresos Bancos: ${formatMoney(bancosIngresos)}`,
-              `• Egresos Bancos: ${formatMoney(bancosEgresos)}`,
-              `• Resultado Neto: ${formatMoney(neto)}`,
-            ].join("\n");
+              `• Período: ${er.periodo} (percibido, Caja + Bancos)`,
+              `• Ingresos: ${formatMoney(er.totalIngresos)}`,
+              `• Egresos: ${formatMoney(er.totalEgresos)}`,
+              `• Resultado Neto: ${formatMoney(er.resultado)}`,
+              ...er.porActividad.map(
+                (fila) => `• ${fila.actividad}: ${formatMoney(fila.resultado)}`,
+              ),
+              er.excluidos.length
+                ? `• No incluidos (transferencias, plazos fijos, préstamos): ${er.excluidos.length}`
+                : "",
+            ]
+              .filter(Boolean)
+              .join("\n");
             break;
           }
           case "costoLote":
@@ -9815,9 +10314,31 @@
         }
       }
 
+      // Colecciones de configuración (no son datos del establecimiento): la limpieza profunda y la
+      // carga de datos de ejemplo las conservan.
+      const CATALOGOS_ESTADO = ["tiposCuentaLista", "conceptosBancos", "conceptosCaja", "operadores"];
+
+      // Borra todos los datos del establecimiento. Antes la limpieza profunda vaciaba una lista fija
+      // de colecciones y dejaba contratos, retenciones, colas DUT/CPE, controles sanitarios, ventas,
+      // etc.: con datos de ejemplo cargados quedaban restos mezclados con los datos propios.
+      function resetearDatosOperativos() {
+        Object.keys(state).forEach((clave) => {
+          if (Array.isArray(state[clave]) && !CATALOGOS_ESTADO.includes(clave)) state[clave] = [];
+        });
+        state.saldosIniciales = {};
+        state.prorrateoEstructura = null;
+        state.demoCargado = null;
+        state.empresa = getDefaultEmpresaCleanState();
+        try {
+          localStorage.removeItem("pampaAgroArcaConfig");
+        } catch (error) {
+          // sin acceso a localStorage: no hay configuración ARCA que borrar
+        }
+      }
+
       function limpiezaProfundaSistema() {
         const confirmar = confirm(
-          "Se creará un respaldo y luego se resetearán datos operativos, datos de empresa y proyecciones. ¿Continuar con limpieza profunda?",
+          "Se descargará un respaldo y luego se borrarán todos los datos cargados (incluidos los datos de ejemplo), los datos de empresa y las proyecciones. Se conservan los catálogos de conceptos. ¿Continuar con limpieza profunda?",
         );
         if (!confirmar) return;
 
@@ -9833,36 +10354,7 @@
           if (!continuar) return;
         }
 
-        const arrayKeys = [
-          "campos",
-          "campañas",
-          "lotes",
-          "siembra",
-          "aplicaciones",
-          "cosecha",
-          "inventario",
-          "movimientoStock",
-          "maquinarias",
-          "hacienda",
-          "alimentacion",
-          "mantenimiento",
-          "caja",
-          "bancos",
-          "chequesCobrar",
-          "chequesCubrir",
-          "creditos",
-          "empleados",
-          "cuentasBancarias",
-          "flujo",
-          "costos",
-        ];
-
-        arrayKeys.forEach((key) => {
-          if (Array.isArray(state[key])) state[key] = [];
-        });
-
-        state.saldosIniciales = {};
-        state.empresa = getDefaultEmpresaCleanState();
+        resetearDatosOperativos();
 
         saveState();
         renderTables();
@@ -9872,6 +10364,587 @@
           : "Limpieza profunda completada.";
         showToast(msg, "success");
       }
+
+      // === Datos de ejemplo del Trial ===
+      // data/datosSemillaDemo.json: establecimiento mixto ficticio con agricultura y ganadería en
+      // carriles separados (actividad, uso de lotes, pagos vinculados a su costo). Se borra con la
+      // Limpieza profunda, que antes descarga un respaldo.
+
+      // Corre todas las fechas "AAAA-MM-DD..." del ejemplo la cantidad de días indicada, para que las
+      // alertas (DUT por vencer, carencias, DOES vencido) aparezcan activas el día que se cargan.
+      function correrFechasDemo(valor, dias) {
+        if (Array.isArray(valor)) return valor.map((v) => correrFechasDemo(v, dias));
+        if (valor && typeof valor === "object")
+          return Object.fromEntries(
+            Object.entries(valor).map(([clave, v]) => [clave, correrFechasDemo(v, dias)]),
+          );
+        if (typeof valor !== "string") return valor;
+        const partes = valor.match(/^(\d{4})-(\d{2})-(\d{2})(.*)$/);
+        if (!partes) return valor;
+        const fecha = new Date(Date.UTC(+partes[1], +partes[2] - 1, +partes[3]));
+        if (Number.isNaN(fecha.getTime())) return valor;
+        fecha.setUTCDate(fecha.getUTCDate() + dias);
+        return fecha.toISOString().slice(0, 10) + partes[4];
+      }
+
+      function diasDesdeFechaReferencia(fechaReferencia, hoy = new Date()) {
+        const [a, m, d] = String(fechaReferencia || "").split("-").map(Number);
+        if (!a || !m || !d) return 0;
+        const referencia = Date.UTC(a, m - 1, d);
+        const actual = Date.UTC(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+        return Math.round((actual - referencia) / 86400000);
+      }
+
+      function hayDatosCargados() {
+        return (
+          Object.keys(state).some(
+            (clave) =>
+              Array.isArray(state[clave]) &&
+              !CATALOGOS_ESTADO.includes(clave) &&
+              state[clave].length > 0,
+          ) || Boolean(state.empresa?.cuit)
+        );
+      }
+
+      async function cargarDatosEjemplo() {
+        let seed;
+        try {
+          const respuesta = await fetch("data/datosSemillaDemo.json", { cache: "no-store" });
+          if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
+          seed = await respuesta.json();
+        } catch (error) {
+          showToast(`No se pudieron leer los datos de ejemplo (${error.message}).`, "error");
+          return;
+        }
+        if (seed?._meta?.tipo !== "pampa-seed-demo" || !seed.estado) {
+          showToast("El archivo de datos de ejemplo no tiene el formato esperado.", "error");
+          return;
+        }
+        if (hayDatosCargados()) {
+          if (
+            !confirm(
+              "Ya hay datos cargados. Los datos de ejemplo los reemplazan por completo (antes se descarga un respaldo). ¿Continuar?",
+            )
+          )
+            return;
+          try {
+            crearRespaldoPreLimpieza("_pre-datos-ejemplo.json");
+          } catch (error) {
+            if (!confirm("No se pudo descargar el respaldo. ¿Continuar igual?")) return;
+          }
+        }
+        const datos = correrFechasDemo(
+          seed.estado,
+          diasDesdeFechaReferencia(seed._meta.fechaReferencia),
+        );
+        resetearDatosOperativos();
+        Object.keys(datos).forEach((clave) => {
+          state[clave] = datos[clave];
+        });
+        state.demoCargado = {
+          version: seed._meta.version,
+          cargadoEn: new Date().toISOString(),
+          empresa: datos.empresa?.nombre || "",
+        };
+        saveState();
+        renderTables();
+        alert(
+          `Se cargó el establecimiento de ejemplo "${state.demoCargado.empresa}".\n\n` +
+            "Agricultura, ganadería y estructura corren por carriles separados: cada costo y cada movimiento de Caja/Bancos tiene su actividad, y los lotes su uso. Revisá Costos, Rentabilidad y Reportes → Estado de Resultados.\n\n" +
+            "Incluye alertas de SENASA y ARCA para que veas cómo avisa la app.\n\n" +
+            "Para borrar los datos de ejemplo y cargar los tuyos: Seguridad → 🧼 Limpieza Profunda (o Empresa → 🧼 Limpieza profunda). Antes de borrar se descarga un respaldo.",
+        );
+      }
+
+      // Aviso fijo mientras haya datos de ejemplo cargados, con acceso directo a la limpieza.
+      function renderAvisoDemo() {
+        let aviso = document.getElementById("avisoDatosDemo");
+        if (!state.demoCargado) {
+          aviso?.remove();
+          return;
+        }
+        if (aviso) return;
+        aviso = document.createElement("div");
+        aviso.id = "avisoDatosDemo";
+        aviso.style.cssText =
+          "position:sticky;top:0;z-index:50;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;padding:8px 12px;background:#fff7ed;color:#9a3412;border-bottom:1px solid #fdba74;font-size:13px;";
+        aviso.innerHTML =
+          '<span>📋 Estás viendo <strong>datos de ejemplo</strong> de un establecimiento ficticio. Para borrarlos y cargar los tuyos usá la Limpieza profunda (se descarga un respaldo antes).</span><button type="button" class="topbar-btn">🧼 Borrar datos de ejemplo</button>';
+        aviso.querySelector("button").addEventListener("click", limpiezaProfundaSistema);
+        document.body.prepend(aviso);
+      }
+
+      // === Partes por nota de voz ===
+      // Llegan por "Compartir" desde WhatsApp a la app (PWA en Android), por un audio elegido como
+      // archivo, o por el WhatsApp vinculado con QR en la app de escritorio. Se transcriben y
+      // clasifican con la clave de OpenAI del cliente (queda en este equipo y viaja por pedido) y
+      // quedan pendientes: recién al confirmarlos se registra el costo con su actividad.
+      const CLAVE_CONFIG_IA = "pampaIA.services";
+      const CATEGORIA_POR_TIPO_PARTE = {
+        combustible: "Combustible",
+        alimentacion: "Alimentación",
+        sanidad_animal: "Sanidad",
+        aplicacion: "Insumos",
+        siembra: "Siembra",
+        cosecha: "Cosecha",
+        mantenimiento: "Mantenimiento",
+        movimiento_stock: "Inventario",
+        hacienda: "Hacienda",
+        dut: "Tasas municipales",
+        gasto: "Otros",
+      };
+      let sondeoWhatsAppQR = null;
+
+      function configIA() {
+        try {
+          return JSON.parse(localStorage.getItem(CLAVE_CONFIG_IA) || "{}");
+        } catch (error) {
+          return {};
+        }
+      }
+
+      function guardarClaveOpenAIDesdeTarjeta() {
+        const campo = document.getElementById("partesVozClave");
+        const valor = String(campo?.value || "").trim();
+        const config = configIA();
+        config.aiKey = valor;
+        localStorage.setItem(CLAVE_CONFIG_IA, JSON.stringify(config));
+        if (campo) campo.value = "";
+        renderPartesVoz();
+        showToast(valor ? "Clave de OpenAI guardada en este equipo." : "Clave de OpenAI borrada.", "success");
+      }
+
+      async function endpointIA() {
+        if (window.electronAPI?.getServerUrl) return `${await fiscalApiBase()}/api/ia`;
+        return String(configIA().aiUrl || "/api/ia").replace(/\/$/, "");
+      }
+
+      // Teléfonos de los usuarios cargados en Empresa: solo desde esos se aceptan notas de voz por QR.
+      function telefonosUsuariosEmpresa() {
+        const empresa = state.empresa || {};
+        return [
+          empresa.whatsappPropietario,
+          empresa.whatsappAdministracion,
+          empresa.whatsappIngeniero,
+          ...Object.values(empresa.whatsappRoles || {}),
+        ]
+          .map((valor) => String(valor || "").trim())
+          .filter((valor) => valor.replace(/\D/g, "").length >= 8);
+      }
+
+      // Teléfonos con el rol de cada uno (Empresa → WhatsApp por Rol).
+      function telefonosConRolEmpresa() {
+        const empresa = state.empresa || {};
+        const lista = [
+          { telefono: empresa.whatsappPropietario, rol: "propietario" },
+          { telefono: empresa.whatsappAdministracion, rol: "administracion" },
+          { telefono: empresa.whatsappIngeniero, rol: "ingeniero" },
+          ...Object.entries(empresa.whatsappRoles || {}).map(([clave, telefono]) => ({
+            telefono,
+            rol: rolePermissions[clave] ? clave : "",
+          })),
+        ];
+        return lista
+          .map((t) => ({ telefono: String(t.telefono || "").trim(), rol: t.rol }))
+          .filter((t) => t.telefono.replace(/\D/g, "").length >= 8);
+      }
+
+      function contextoLotesIA() {
+        return { lotes: (state.lotes || []).map((l) => ({ codigo: l.codigo, nombre: l.nombre, uso: l.uso || "" })) };
+      }
+
+      function blobABase64(blob) {
+        return new Promise((resolve, reject) => {
+          const lector = new FileReader();
+          lector.onload = () => resolve(String(lector.result).split(",")[1] || "");
+          lector.onerror = () => reject(new Error("No se pudo leer el audio."));
+          lector.readAsDataURL(blob);
+        });
+      }
+
+      async function procesarAudioParte(blob, origen) {
+        const clave = String(configIA().aiKey || "").trim();
+        if (!clave) {
+          showToast("Cargá tu clave de OpenAI en Empresa → Partes por nota de voz.", "error");
+          return null;
+        }
+        setEl("partesVozEstado", "Procesando la nota de voz…");
+        try {
+          const respuesta = await fetch(`${await endpointIA()}/nota-de-voz`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "x-ai-key": clave },
+            body: JSON.stringify({
+              audioBase64: await blobABase64(blob),
+              mimeType: blob.type || "audio/ogg",
+              contexto: contextoLotesIA(),
+            }),
+          });
+          const datos = await respuesta.json().catch(() => ({}));
+          if (!respuesta.ok || !datos.ok)
+            throw new Error(datos.error || `El servicio de IA respondió HTTP ${respuesta.status}.`);
+          if (esConsultaVoz(datos)) {
+            const respuestaConsulta = responderConsultaVoz(datos.texto);
+            mostrarReporteConsulta(respuestaConsulta.mensaje);
+            setEl("partesVozEstado", `Consulta: ${datos.texto}`);
+            return { consulta: respuestaConsulta };
+          }
+          const parte = {
+            id: window.crypto?.randomUUID?.() || `voz-${Date.now()}`,
+            origen,
+            recibidoEn: new Date().toISOString(),
+            texto: datos.texto,
+            clasificacion: datos.clasificacion,
+            estado: "pendiente",
+          };
+          agregarPartesVoz([parte]);
+          setEl("partesVozEstado", `Parte recibido: ${datos.clasificacion?.resumen || datos.texto}`);
+          return parte;
+        } catch (error) {
+          setEl("partesVozEstado", error.message);
+          showToast(error.message, "error");
+          return null;
+        }
+      }
+
+      function procesarArchivoParteVoz(input) {
+        const archivo = input?.files?.[0];
+        if (input) input.value = "";
+        if (archivo) procesarAudioParte(archivo, "archivo");
+      }
+
+      function agregarPartesVoz(partes) {
+        if (!Array.isArray(state.partesVoz)) state.partesVoz = [];
+        const existentes = new Set(state.partesVoz.map((p) => p.id));
+        (partes || [])
+          .filter((p) => p && p.id && !existentes.has(p.id))
+          .forEach((p) => state.partesVoz.unshift(p));
+        saveState();
+        renderPartesVoz();
+      }
+
+      function renderPartesVoz() {
+        const clave = document.getElementById("partesVozClave");
+        if (clave) clave.placeholder = configIA().aiKey ? "Clave de OpenAI cargada ✓ (escribí otra para cambiarla)" : "Tu clave de OpenAI (sk-...)";
+        const esEscritorio = Boolean(window.electronAPI?.getServerUrl);
+        const vincular = document.getElementById("waQrVincular");
+        if (vincular) vincular.style.display = esEscritorio ? "" : "none";
+        const cuerpo = document.getElementById("partesVozBody");
+        if (!cuerpo) return;
+        const pendientes = (state.partesVoz || []).filter((p) => p.estado === "pendiente");
+        setEl("partesVozContador", String(pendientes.length));
+        cuerpo.innerHTML = pendientes.length
+          ? pendientes
+              .map((p) => {
+                const c = p.clasificacion || {};
+                const actividad = normalizarActividad(c.actividad);
+                const id = escaparHtmlFiscal(p.id);
+                const selector = actividad
+                  ? escaparHtmlFiscal(actividad)
+                  : `<select class="form-input" id="actividadParte-${id}"><option value="">Revisar: elegí</option><option>Agrícola</option><option>Ganadera</option><option>Estructura</option></select>`;
+                const importe = Number(c.importe) > 0 ? `${c.moneda === "USD" ? "US$" : "$"} ${Number(c.importe).toLocaleString("es-AR")}` : "-";
+                return `<tr><td>${escaparHtmlFiscal(String(c.fecha || p.recibidoEn || "").slice(0, 10))}</td><td>${escaparHtmlFiscal(c.resumen || p.texto || "")}<div class="text-muted" style="font-size:11px">${escaparHtmlFiscal(p.texto || "")}${p.de ? " · " + escaparHtmlFiscal(p.de) : ""}</div></td><td>${selector}</td><td>${escaparHtmlFiscal(importe)}</td><td><button class="topbar-btn primary" type="button" onclick="confirmarParteVoz('${id}')">Confirmar</button> <button class="topbar-btn" type="button" onclick="descartarParteVoz('${id}')">Descartar</button></td></tr>`;
+              })
+              .join("")
+          : '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:12px;">No hay partes por voz pendientes.</td></tr>';
+      }
+
+      // Confirmar registra el costo con su actividad (si el parte trae un importe en pesos); sin
+      // importe solo se marca, para cargarlo en el módulo que corresponda.
+      function confirmarParteVoz(id) {
+        const parte = (state.partesVoz || []).find((p) => p.id === id);
+        if (!parte) return;
+        const c = parte.clasificacion || {};
+        const actividad =
+          normalizarActividad(c.actividad) ||
+          normalizarActividad(document.getElementById(`actividadParte-${id}`)?.value);
+        if (!actividad) {
+          showToast("Elegí la actividad del parte antes de confirmarlo.", "error");
+          return;
+        }
+        const importe = Number(c.importe);
+        if (importe > 0 && (c.moneda || "ARS") === "ARS") {
+          if (!Array.isArray(state.costos)) state.costos = [];
+          state.costos.push({
+            fecha: c.fecha || String(parte.recibidoEn || "").slice(0, 10),
+            concepto: c.resumen || String(parte.texto || "").slice(0, 120),
+            monto: importe,
+            categoria: CATEGORIA_POR_TIPO_PARTE[c.tipoRegistro] || "Otros",
+            actividad,
+            ...(c.lote && loteExiste(c.lote) ? { lote: c.lote } : {}),
+            origen: "nota-de-voz",
+            parteVozId: parte.id,
+          });
+          showToast(`Costo registrado en ${actividad}.`, "success");
+        } else {
+          showToast("Parte confirmado. No tenía un importe en pesos: cargalo en el módulo que corresponda.", "info");
+        }
+        Object.assign(parte, { estado: "confirmado", actividad, confirmadoEn: new Date().toISOString() });
+        saveState();
+        renderTables();
+        renderPartesVoz();
+      }
+
+      function descartarParteVoz(id) {
+        const parte = (state.partesVoz || []).find((p) => p.id === id);
+        if (!parte || !confirm("¿Descartar este parte?")) return;
+        Object.assign(parte, { estado: "descartado", descartadoEn: new Date().toISOString() });
+        saveState();
+        renderPartesVoz();
+      }
+
+      // "Compartir → PampaAgro" desde WhatsApp: el service worker guarda el audio y abre la app con
+      // ?compartido=nota-de-voz (ver sw.js y share_target en manifest.webmanifest).
+      async function recibirNotaCompartida() {
+        if (new URLSearchParams(location.search).get("compartido") !== "nota-de-voz") return;
+        history.replaceState(null, "", location.pathname);
+        if (!("caches" in window)) return;
+        const cache = await caches.open("pampaagro-compartidos");
+        const respuesta = await cache.match("./__compartido/nota-de-voz");
+        if (!respuesta) {
+          showToast("No llegó el audio compartido. Probá compartirlo de nuevo.", "error");
+          return;
+        }
+        await cache.delete("./__compartido/nota-de-voz");
+        if (typeof switchModule === "function") switchModule("empresa");
+        await procesarAudioParte(await respuesta.blob(), "compartido");
+      }
+
+      // --- WhatsApp vinculado por QR (solo escritorio) ---
+      async function apiWhatsAppQR(ruta, opciones) {
+        const respuesta = await fetch(`${await fiscalApiBase()}/api/whatsapp-qr${ruta}`, opciones);
+        const datos = await respuesta.json().catch(() => ({}));
+        if (!respuesta.ok || datos.ok === false) throw new Error(datos.error || `HTTP ${respuesta.status}`);
+        return datos;
+      }
+
+      async function vincularWhatsAppQR(sinPreguntar = false) {
+        if (!window.electronAPI?.getServerUrl) {
+          showToast("La vinculación por QR está disponible en la app de escritorio.", "info");
+          return;
+        }
+        const clave = String(configIA().aiKey || "").trim();
+        if (!clave) {
+          showToast("Primero cargá tu clave de OpenAI.", "error");
+          return;
+        }
+        const telefonos = telefonosUsuariosEmpresa();
+        if (!telefonos.length) {
+          showToast("Cargá los WhatsApp de los usuarios en Empresa: solo se aceptan notas de voz de esos teléfonos.", "error");
+          return;
+        }
+        if (
+          !sinPreguntar &&
+          !confirm(
+            "Vincular WhatsApp con QR NO es la integración oficial de WhatsApp:\n\n" +
+              "• WhatsApp puede bloquear el número vinculado.\n" +
+              "• Puede dejar de funcionar si WhatsApp cambia su versión web.\n" +
+              "• La PC tiene que estar encendida con PampaAgro abierto.\n\n" +
+              "Usá un número exclusivo para el campo, nunca tu WhatsApp personal.\n\n¿Continuar?",
+          )
+        )
+          return;
+        try {
+          await apiWhatsAppQR("/iniciar", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ clave, telefonos: telefonosConRolEmpresa(), contexto: contextoLotesIA() }),
+          });
+          localStorage.setItem("pampaWhatsAppQRActivo", "1");
+          iniciarSondeoWhatsAppQR();
+        } catch (error) {
+          showToast(error.message, "error");
+        }
+      }
+
+      async function desvincularWhatsAppQR() {
+        if (!confirm("¿Desvincular el WhatsApp? Para volver a usarlo hay que escanear el QR de nuevo.")) return;
+        localStorage.removeItem("pampaWhatsAppQRActivo");
+        try {
+          await apiWhatsAppQR("/detener", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ cerrarSesion: true }),
+          });
+        } catch (error) {
+          showToast(error.message, "error");
+        }
+        actualizarEstadoWhatsAppQR();
+      }
+
+      function iniciarSondeoWhatsAppQR() {
+        if (sondeoWhatsAppQR) return;
+        actualizarEstadoWhatsAppQR();
+        sondeoWhatsAppQR = setInterval(actualizarEstadoWhatsAppQR, 4000);
+      }
+
+      async function actualizarEstadoWhatsAppQR() {
+        try {
+          const e = await apiWhatsAppQR("/estado");
+          const textos = {
+            apagado: "WhatsApp no vinculado.",
+            iniciando: "Iniciando WhatsApp…",
+            qr: "Escaneá el QR desde el WhatsApp del número del campo: Dispositivos vinculados → Vincular un dispositivo.",
+            autenticado: "Vinculando…",
+            listo: `WhatsApp vinculado ✓ · se aceptan notas de voz de ${e.telefonosHabilitados} usuario(s).`,
+            desconectado: "WhatsApp desconectado.",
+            error: `No se pudo vincular WhatsApp: ${e.detalle || "error desconocido"}`,
+          };
+          setEl("waQrEstado", textos[e.estado] || e.estado);
+          const qr = document.getElementById("waQrImagen");
+          if (qr) qr.innerHTML = e.estado === "qr" ? e.qrImg || "" : "";
+          const desvincular = document.getElementById("waQrDesvincular");
+          if (desvincular) desvincular.style.display = e.estado === "apagado" ? "none" : "";
+          if (e.estado === "listo" && e.partesPendientes) await importarPartesWhatsAppQR();
+          if (e.estado === "listo" && e.consultasPendientes) await responderConsultasWhatsAppQR();
+          if (["apagado", "error", "desconectado"].includes(e.estado) && sondeoWhatsAppQR) {
+            clearInterval(sondeoWhatsAppQR);
+            sondeoWhatsAppQR = null;
+          }
+        } catch (error) {
+          setEl("waQrEstado", error.message);
+          if (sondeoWhatsAppQR) clearInterval(sondeoWhatsAppQR);
+          sondeoWhatsAppQR = null;
+        }
+      }
+
+      // Trae los partes que llegaron por WhatsApp a los datos de la app y los borra del servidor local.
+      async function importarPartesWhatsAppQR() {
+        const { partes } = await apiWhatsAppQR("/partes");
+        if (!partes?.length) return;
+        agregarPartesVoz(partes);
+        await apiWhatsAppQR("/partes/entregados", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids: partes.map((p) => p.id) }),
+        });
+        showToast(`${partes.length} parte(s) nuevo(s) por WhatsApp.`, "success");
+      }
+
+      // --- Consultas por voz ("¿cuánto gasté este mes?", "margen del lote 2") ---
+      // El motor (js/consultas-voz.js) enruta con un diccionario rígido y calcula con las mismas
+      // funciones de Costos/Rentabilidad: la IA solo transcribe, nunca pone un número.
+      let motorConsultasVozCache = null;
+      function motorConsultasVoz() {
+        if (!window.PampaConsultasVoz) throw new Error("No se cargó el motor de consultas (js/consultas-voz.js).");
+        if (!motorConsultasVozCache)
+          motorConsultasVozCache = window.PampaConsultasVoz.crearMotorConsultas({
+            estado: () => state,
+            parseMonto,
+            montoDeActividad,
+            actividadDeRegistro,
+            normalizarActividad,
+            loteExiste,
+            partesDeCosto,
+            costoAlimentacion,
+            esCostoBancario,
+            calcularCostoTotalEmpleados,
+            fechaMovimientoISO,
+            saldoMovimientosFondos,
+            saldoTotalBancos,
+          });
+        return motorConsultasVozCache;
+      }
+
+      function esConsultaVoz(datos) {
+        return datos?.clasificacion?.tipoRegistro === "consulta" || Boolean(window.PampaConsultasVoz?.esConsulta(datos?.texto));
+      }
+
+      // rol: el del teléfono que preguntó por WhatsApp; sin rol, el de la sesión abierta.
+      function responderConsultaVoz(texto, rol) {
+        const r = asistenteIA().responder(texto, rol === undefined ? {} : { rol });
+        return { ...r, mensaje: r.nota ? `${r.texto}\n\n${r.nota}` : r.texto };
+      }
+
+      // --- PampaIA: capacidades por versión (js/asistente-ia.js) ---
+      // Básica: consultas, resumen del día, alertas de desvíos. Profesional: proyección de stock,
+      // costos por lote, mantenimiento por horas. Premium: zonificación, prescripción variable y
+      // comparativa de establecimientos. Todo sale de los datos cargados, nunca de la IA.
+      let asistenteIACache = null;
+      function planIA() {
+        return typeof getEffectiveLicensePlan === "function" ? getEffectiveLicensePlan() : "basica";
+      }
+      function asistenteIA() {
+        if (!window.PampaAsistenteIA) throw new Error("No se cargó el asistente de PampaIA (js/asistente-ia.js).");
+        if (!asistenteIACache)
+          asistenteIACache = window.PampaAsistenteIA.crearAsistente({
+            motor: motorConsultasVoz(),
+            estado: () => state,
+            plan: planIA,
+            parseMonto,
+            fechaMovimientoISO,
+            saldoMovimientosFondos,
+            saldoTotalBancos,
+            usoLote,
+            rol: () => currentRole,
+            acceso: puedeVerModulo,
+            nombreRol: (rol) => rolePermissions[rol]?.nombre || "",
+            enrutar: (pregunta, hoy) => window.PampaConsultasVoz.enrutarConsulta(pregunta, { lotes: state.lotes || [], hoy }),
+          });
+        return asistenteIACache;
+      }
+      function mostrarResultadoIA(r) {
+        const html = window.PampaAsistenteIA.aHtml(r.texto) + (r.nota ? `<br><br><small>${window.PampaAsistenteIA.aHtml(r.nota)}</small>` : "");
+        const respuesta = document.getElementById("pampaIAAnswer");
+        if (respuesta) respuesta.innerHTML = html;
+        return html;
+      }
+      function montarCapacidadesIA() {
+        const panel = document.getElementById("pampaiaPanel");
+        if (!panel || !window.PampaAsistenteIA) return;
+        try {
+          window.PampaAsistenteIA.montarCapacidades(panel, asistenteIA(), mostrarResultadoIA);
+        } catch (error) {
+          console.error("PampaIA: no se pudieron mostrar las capacidades:", error);
+        }
+      }
+      // Lo usa js/pampaia-source.js (panel web) para no calcular con datos vacíos.
+      window.PampaIAAdapter = {
+        getState: () => state,
+        getRole: () => currentRole,
+        getPlan: planIA,
+        analizar: (tipo) => asistenteIA().analizar(tipo),
+        responder: (pregunta) => asistenteIA().responder(pregunta),
+        mostrar: mostrarResultadoIA,
+        montarCapacidades: montarCapacidadesIA,
+      };
+
+      // Muestra el mismo texto que se manda por WhatsApp (*negrita* y _cursiva_ como en WhatsApp).
+      function mostrarReporteConsulta(mensaje) {
+        const caja = document.getElementById("partesVozReporte");
+        if (!caja) return;
+        caja.innerHTML = escaparHtmlFiscal(mensaje)
+          .replace(/\*([^*\n]+)\*/g, "<b>$1</b>")
+          .replace(/(^|[\s(])_([^_\n]+)_/g, "$1<i>$2</i>");
+        caja.style.display = "";
+      }
+
+      // Las preguntas que llegan al WhatsApp vinculado se contestan acá, con los datos de este equipo.
+      async function responderConsultasWhatsAppQR() {
+        const { consultas } = await apiWhatsAppQR("/consultas");
+        for (const consulta of consultas || []) {
+          let mensaje;
+          try {
+            mensaje = responderConsultaVoz(consulta.texto, consulta.rol || "").mensaje;
+          } catch (error) {
+            console.error("No se pudo responder la consulta:", error);
+            mensaje = "⚠️ No pude calcular esa consulta ahora. Probá de nuevo en un rato o revisalo en PampaAgro.";
+          }
+          await apiWhatsAppQR(`/consultas/${encodeURIComponent(consulta.id)}/respuesta`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ mensaje }),
+          });
+        }
+      }
+
+      window.addEventListener("load", () => {
+        montarCapacidadesIA();
+        renderPartesVoz();
+        recibirNotaCompartida().catch((error) => showToast(error.message, "error"));
+        // La sesión de WhatsApp queda guardada: si estaba vinculado, se reconecta sin volver a preguntar.
+        if (window.electronAPI?.getServerUrl && localStorage.getItem("pampaWhatsAppQRActivo") === "1")
+          vincularWhatsAppQR(true);
+      });
 
       /* === TOAST === */
       function showToast(message, type = "info") {
@@ -9991,6 +11064,11 @@
               type: "select",
               required: true,
               dynamicOptions: "campos",
+            },
+            {
+              name: "porcentajeGanadero",
+              label: "% de la superficie de uso ganadero (0 = todo agrícola)",
+              type: "number",
             },
             {
               name: "tipoAcuerdo",
@@ -10119,6 +11197,18 @@
             },
             { name: "nombre", label: "Nombre", type: "text", required: true },
             { name: "campo", label: "Campo", type: "text" },
+            {
+              name: "uso",
+              label: "Uso del lote",
+              type: "select",
+              options: ["", "Agrícola", "Ganadero", "Mixto"],
+              required: true,
+            },
+            {
+              name: "porcentajeGanadero",
+              label: "% de uso ganadero (solo lotes mixtos)",
+              type: "number",
+            },
             { name: "superficie", label: "Superficie (ha)", type: "number" },
             {
               name: "capacidadCabezas",
@@ -10550,6 +11640,12 @@
               required: true,
             },
             {
+              name: "ambito",
+              label: "Ámbito de uso (vacío = según categoría)",
+              type: "select",
+              options: ["", "Agrícola", "Ganadero", "Compartido"],
+            },
+            {
               name: "stock",
               label: "Stock Inicial",
               type: "number",
@@ -10691,6 +11787,12 @@
                 "Merma",
               ],
               required: true,
+            },
+            {
+              name: "actividadDestino",
+              label: "Actividad de destino (obligatoria si el producto es de uso compartido)",
+              type: "select",
+              options: ["", "Agrícola", "Ganadera", "Estructura"],
             },
             {
               name: "observaciones",
@@ -11456,6 +12558,25 @@
                 "Otros",
               ],
             },
+            {
+              name: "pagoDeCostoRegistrado",
+              label: "¿Es el pago de algo ya cargado como costo (hacienda, insumo, alimentación, sanidad)?",
+              type: "select",
+              options: ["No", "Sí"],
+            },
+            {
+              name: "actividad",
+              label: "Actividad",
+              type: "select",
+              options: ["", "Agrícola", "Ganadera", "Estructura"],
+              required: true,
+            },
+            {
+              name: "cobroDeVentaRegistrada",
+              label: "¿Es el cobro de una venta ya cargada en Ventas?",
+              type: "select",
+              options: ["No", "Sí"],
+            },
             { name: "referencia", label: "Referencia/N°", type: "text" },
           ],
         },
@@ -11495,6 +12616,19 @@
               label: "Importe ($)",
               type: "text",
               required: true,
+            },
+            {
+              name: "actividad",
+              label: "Actividad",
+              type: "select",
+              options: ["", "Agrícola", "Ganadera", "Estructura"],
+              required: true,
+            },
+            {
+              name: "cobroDeVentaRegistrada",
+              label: "¿Es el cobro de una venta ya cargada en Ventas?",
+              type: "select",
+              options: ["No", "Sí"],
             },
             { name: "referencia", label: "Referencia/N°", type: "text" },
           ],
@@ -12435,6 +13569,28 @@
 
       async function saveModal() {
         const form = document.getElementById("modalForm");
+        // Antes no se exigían los campos obligatorios (*) y se podía guardar, por ejemplo, un
+        // movimiento sin fecha o sin importe. Solo se revisan los visibles y habilitados: algunos
+        // formularios ocultan campos según el tipo elegido.
+        const faltantes = Array.from(form.querySelectorAll("[required]")).filter(
+          (campo) =>
+            !campo.disabled &&
+            (campo.offsetParent !== null || campo.getClientRects().length > 0) &&
+            !String(campo.value ?? "").trim(),
+        );
+        if (faltantes.length) {
+          const nombres = faltantes.map(
+            (campo) =>
+              campo
+                .closest(".form-group")
+                ?.querySelector(".form-label")
+                ?.childNodes[0]?.textContent?.replace("*", "")
+                .trim() || campo.name,
+          );
+          showToast(`Completá los campos obligatorios: ${nombres.join(", ")}.`, "error");
+          faltantes[0].focus();
+          return;
+        }
         const formData = new FormData(form);
         const data = {};
 
@@ -12769,6 +13925,61 @@
             data.cartaPorteNumero ||
             `CP-${new Date().getFullYear()}-${Date.now().toString().slice(-8)}`;
           data.cartaPorteEstado = data.cpeEstadoFiscal || "Generada localmente";
+        }
+
+        // La actividad también se valida acá por si el campo no se mostró (ej: formulario viejo).
+        if (
+          moduloActual === "lotes" &&
+          String(data.uso || "") === "Mixto" &&
+          !(Number(data.porcentajeGanadero) > 0 && Number(data.porcentajeGanadero) < 100)
+        ) {
+          showToast(
+            "Un lote mixto necesita el % de uso ganadero (entre 1 y 99).",
+            "error",
+          );
+          return;
+        }
+        if (
+          (moduloActual === "caja" || moduloActual === "bancos") &&
+          !normalizarActividad(data.actividad)
+        ) {
+          showToast(
+            "Elegí la actividad del movimiento (Agrícola, Ganadera o Estructura).",
+            "error",
+          );
+          return;
+        }
+
+        // Una salida de stock que genera costo toma la actividad del ámbito del producto (o del
+        // destino, si es de uso compartido). Antes el costo quedaba sin actividad y un medicamento
+        // veterinario terminaba sumado al costo agrícola "Sin cultivo asignado".
+        if (
+          moduloActual === "movimientoStock" &&
+          data.tipo === "Salida" &&
+          MOTIVOS_CONSUMO_STOCK.includes(data.motivo)
+        ) {
+          const producto = (state.inventario || []).find(
+            (p) => p.codigo === data.producto,
+          );
+          const ambito = ambitoProducto(producto);
+          const esperada = actividadPorAmbito(ambito);
+          const destino = normalizarActividad(data.actividadDestino);
+          const nombre = producto?.producto || data.producto;
+          if (!esperada && !destino) {
+            showToast(
+              `"${nombre}" es de uso compartido: indicá la actividad de destino.`,
+              "error",
+            );
+            return;
+          }
+          if (esperada && destino && destino !== esperada) {
+            showToast(
+              `"${nombre}" es de uso ${ambito.toLowerCase()}: no puede imputarse a ${destino}.`,
+              "error",
+            );
+            return;
+          }
+          data.actividad = destino || esperada;
         }
 
         // Guardar o actualizar el registro
@@ -13587,6 +14798,10 @@
                 concepto: `Consumo de inventario: ${producto.producto || data.producto} (${data.motivo})`,
                 monto: cantidad * Number(producto.costoUnit),
                 categoria: "Inventario",
+                actividad:
+                  normalizarActividad(data.actividad) ||
+                  actividadPorAmbito(ambitoProducto(producto)),
+                producto: producto.codigo,
               });
             }
           }
@@ -13728,6 +14943,16 @@
             editIndex !== null ? editIndex : state.alimentacion.length - 1;
           if (state.alimentacion && state.alimentacion[idx]) {
             state.alimentacion[idx].cantidadTotal = cantidadTotal;
+            // F4: se congela el precio unitario del momento. Al editar se conserva el anterior,
+            // salvo que cambie el producto.
+            const conservaPrecio =
+              registroAnterior &&
+              registroAnterior.producto === data.producto &&
+              registroAnterior.costoUnitAplicado !== undefined;
+            const productoPrecio = state.inventario.find((p) => p.codigo === data.producto);
+            state.alimentacion[idx].costoUnitAplicado = conservaPrecio
+              ? registroAnterior.costoUnitAplicado
+              : Number(productoPrecio?.costoUnit || 0);
           }
           const producto = state.inventario.find(
             (p) => p.codigo === data.producto,
@@ -15253,6 +16478,8 @@
       }
 
       function renderTables() {
+        if (typeof renderPartesVoz === "function") renderPartesVoz();
+        renderAvisoDemo();
         // Asegurar arrays base para evitar undefined.map en localStorage viejos
         [
           "campos",
@@ -16040,14 +17267,21 @@
         const retencion = state.retencionesPendientesDepositar?.[index];
         if (!retencion || retencion.depositada) return;
         if (!Array.isArray(state.caja)) state.caja = [];
-        state.caja.push({
-          fecha: new Date().toISOString().slice(0, 10),
-          concepto: `Depósito ARCA - ${retencion.concepto}`,
-          tipo: "Egreso",
-          importe: String(retencion.importe),
-          categoria: "Impuestos",
-          referencia: retencion.referencia,
-        });
+        // La retención es parte del alquiler (ya está en el costo): en Caja va como Arrendamiento
+        // (antes "Impuestos") y con el mismo reparto por uso del campo.
+        repartirPorUsoDelCampo(retencion.campo, Number(retencion.importe) || 0).forEach(
+          ([actividad, monto, pct]) =>
+            state.caja.push({
+              fecha: new Date().toISOString().slice(0, 10),
+              concepto: `Depósito ARCA - ${retencion.concepto}${pct < 100 ? ` - ${pct}% ${actividad.toLowerCase()}` : ""}`,
+              tipo: "Egreso",
+              importe: String(monto),
+              categoria: "Arrendamiento",
+              referencia: retencion.referencia,
+              actividad,
+              pagoDeCostoRegistrado: "Sí",
+            }),
+        );
         retencion.depositada = true;
         retencion.fechaDeposito = new Date().toISOString().slice(0, 10);
         saveState();
@@ -16108,24 +17342,39 @@
 
           // Conexión con Costos: el alquiler es un costo directo del campo (costo hundido si es propio, OPEX si es alquilado).
           if (!Array.isArray(state.costos)) state.costos = [];
-          state.costos.push({
-            fecha: new Date().toISOString().slice(0, 10),
-            lote: contrato.campo,
-            concepto: "Alquiler rural",
-            monto: importe,
-            categoria: "Arrendamiento",
-          });
+          // F5: el alquiler es del campo (antes se guardaba el código del campo como "lote") y se
+          // reparte entre agricultura y ganadería según el uso del campo definido en el contrato.
+          const ivaAlquiler = datos.iva?.exento
+            ? 0
+            : Number(datos.iva?.importe ?? datos.iva?.monto ?? 0);
+          repartirPorUsoDelCampo(contrato.campo, importe).forEach(([actividad, monto, pct]) =>
+            state.costos.push({
+              fecha: new Date().toISOString().slice(0, 10),
+              campo: contrato.campo,
+              concepto: pct < 100 ? `Alquiler rural (${pct}% ${actividad.toLowerCase()})` : "Alquiler rural",
+              monto,
+              categoria: "Arrendamiento",
+              actividad,
+              iva: Math.round(ivaAlquiler * pct) / 100,
+            }),
+          );
 
           // Conexión con Finanzas: egreso al dueño (neto) + egreso de la retención a depositar en ARCA.
           if (!Array.isArray(state.caja)) state.caja = [];
-          state.caja.push({
-            fecha: new Date().toISOString().slice(0, 10),
-            concepto: `Alquiler rural - Campo ${contrato.campo} (CUIT ${contrato.cuitDueno})`,
-            tipo: "Egreso",
-            importe: String(Math.round(datos.ganancias.neto)),
-            categoria: "Otros",
-            referencia: `OP-${Date.now()}`,
-          });
+          const referenciaOp = `OP-${Date.now()}`;
+          repartirPorUsoDelCampo(contrato.campo, Math.round(datos.ganancias.neto)).forEach(
+            ([actividad, monto, pct]) =>
+              state.caja.push({
+                fecha: new Date().toISOString().slice(0, 10),
+                concepto: `Alquiler rural - Campo ${contrato.campo} (CUIT ${contrato.cuitDueno})${pct < 100 ? ` - ${pct}% ${actividad.toLowerCase()}` : ""}`,
+                tipo: "Egreso",
+                importe: String(monto),
+                categoria: "Arrendamiento",
+                referencia: referenciaOp,
+                actividad,
+                pagoDeCostoRegistrado: "Sí",
+              }),
+          );
           if (datos.ganancias.retencion > 0) {
             // No se registra como egreso de caja todavía: la retención se debe depositar en ARCA por separado.
             // Se deja en seguimiento explícito hasta que se confirme el depósito (marcarRetencionDepositada), para
@@ -16223,6 +17472,7 @@
             );
             return;
           }
+          await verificarCuitServidorArca();
           const respuesta = await fetch(`${base}/api/fiscal/lpg/emitir`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -16249,10 +17499,11 @@
           if (!Array.isArray(state.costos)) state.costos = [];
           state.costos.push({
             fecha: new Date().toISOString().slice(0, 10),
-            lote: contrato.campo,
+            campo: contrato.campo,
             concepto: `Alquiler en especie (canje ${kilosDueno.toLocaleString()} kg)`,
             monto: kilosDueno * precioPorKg,
             categoria: "Arrendamiento",
+            actividad: "Agrícola",
           });
           registrarLiquidacionCanjeContrato(
             contrato,
@@ -16273,23 +17524,77 @@
       }
 
       // === SUBMÓDULO GANADERO (DUT / Boletos de marca) — comparte la conexión WSAA con el submódulo Agrícola ===
+      // Los errores llevan red/status/codigo para poder distinguir una falla de conexión (se
+      // reintenta) de un rechazo de negocio (no se reintenta solo): ver clasificarErrorFiscal().
       async function fiscalJson(url, options) {
         const base = await fiscalApiBase();
-        const respuesta = await fetch(base + url, options);
-        const datos = await respuesta.json();
-        if (!respuesta.ok)
-          throw new Error(datos.message || "La operación no pudo completarse.");
+        let respuesta;
+        try {
+          respuesta = await fetch(base + url, options);
+        } catch (errorRed) {
+          const error = new Error(
+            `Sin conexión con el servidor fiscal (${errorRed.message}).`,
+          );
+          error.red = true;
+          throw error;
+        }
+        const datos = await respuesta.json().catch(() => ({}));
+        if (!respuesta.ok) {
+          const error = new Error(
+            datos.message ||
+              (respuesta.status === 404
+                ? "Esta función no está disponible en este servidor."
+                : "La operación no pudo completarse."),
+          );
+          error.status = respuesta.status;
+          error.codigo = datos.codigo || "";
+          error.datos = datos;
+          throw error;
+        }
         return datos;
       }
 
+      // "transitorio": se puede reintentar tal cual (sin señal, servidor o ARCA caídos).
+      // "incierto": ARCA pudo haber autorizado igual; no se reintenta sin verificar.
+      // "senasaManual": no hay webservice de SENASA; el DUT se emite a mano en SIGSA.
+      // "negocio": rechazo por datos o reglas; se corrige, nunca se reintenta solo.
+      function clasificarErrorFiscal(error) {
+        if (error?.codigo === "SENASA_NO_DISPONIBLE") return "senasaManual";
+        if (error?.codigo === "CPE_INCIERTA") return "incierto";
+        if (error?.codigo === "CPE_EN_CURSO") return "transitorio";
+        if (error?.red || !error?.status) return "transitorio";
+        if ([500, 502, 503, 504].includes(error.status)) return "transitorio";
+        return "negocio";
+      }
+
+      function escaparHtmlFiscal(valor) {
+        return String(valor ?? "").replace(
+          /[&<>"']/g,
+          (c) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            })[c],
+        );
+      }
+
+      // Filtro local rápido; la regla que manda es la del servidor (fiscalMunicipalService.js,
+      // mismos estados), que se vuelve a consultar al sincronizar: ver revalidarDutParaEnvio().
       function pagoMunicipalPuedeContinuar(datos) {
         const importe = Number(datos.arancelMunicipal || 0);
         const estado = String(datos.estadoPago || "NO_APLICA").toUpperCase();
         return (
           importe <= 0 ||
-          ["PAGADO", "VEP", "TRANSFERENCIA", "CUENTA_CORRIENTE"].includes(
-            estado,
-          )
+          [
+            "PAGADO",
+            "ACREDITADO",
+            "VEP",
+            "TRANSFERENCIA",
+            "CUENTA_CORRIENTE",
+          ].includes(estado)
         );
       }
 
@@ -16740,27 +18045,105 @@
         renderFiscalPanel(state.boletosMarca || []);
       }
 
+      // Versiones anteriores marcaban "Emitido (local)" un DUT con un número inventado por el
+      // servidor (simulación). No es un DUT oficial: se reetiqueta para que no se imprima ni se
+      // trate como emitido. El número simulado se conserva aparte solo como referencia.
+      function migrarDutSimulados() {
+        let cambio = false;
+        (state.fiscalDutQueue || []).forEach((item) => {
+          if (item.estado !== "Emitido (local)") return;
+          item.estado = "Simulado (no oficial)";
+          item.numeroSimulado = item.dteNumero;
+          delete item.dteNumero;
+          delete item.qrCodeData;
+          delete item.comprobanteUrl;
+          item.detalle =
+            "El número era una simulación local: emitilo en SIGSA y registrá el número oficial.";
+          cambio = true;
+        });
+        if (cambio) saveState();
+      }
+
+      // Estados de la cola: Pendiente (espera señal o pago) → Listo para SIGSA (validado, falta
+      // emitirlo a mano en SIGSA) → Emitido (oficial) → Cerrado local. Rechazado: requiere
+      // corrección y nunca se reenvía solo.
       function renderFiscalDutQueue() {
         const body = document.getElementById("fiscalDutQueueBody");
         if (!body) return;
+        migrarDutSimulados();
         const queue = Array.isArray(state.fiscalDutQueue)
           ? state.fiscalDutQueue
           : [];
+        const editables = [
+          "Pendiente",
+          "Rechazado",
+          "Listo para SIGSA",
+          "Simulado (no oficial)",
+        ];
         body.innerHTML = queue.length
           ? queue
-              .map(
-                (item, index) => `
+              .map((item, index) => {
+                const estado = item.estado || "Pendiente";
+                const emitido = estado.startsWith("Emitido");
+                const acciones = [
+                  editables.includes(estado)
+                    ? `<button class="topbar-btn primary" type="button" onclick="completarFormularioDut(${index})">↻ Completar DUT</button><button class="topbar-btn" type="button" onclick="imprimirPreDut(${index})">🖨️ Imprimir orden</button>`
+                    : "",
+                  estado === "Listo para SIGSA" ||
+                  estado === "Simulado (no oficial)"
+                    ? `<button class="topbar-btn" type="button" onclick="registrarNumeroSigsa(${index})">Registrar nº SIGSA</button>`
+                    : "",
+                  emitido
+                    ? `<button class="topbar-btn" type="button" onclick="cerrarDutLocal(${index})">Preparar cierre</button>`
+                    : "",
+                ].join("");
+                return `
     <tr>
-      <td>${item.dteNumero || item.nroBoleto || item.id}</td>
-      <td>${item.fechaCarga || ""} / ${item.fechaVencimiento || ""}</td>
-      <td>${item.estadoPago || "NO_APLICA"}${item.estadoPago === "PENDIENTE" ? ` <button class="topbar-btn" type="button" onclick="marcarPagoMunicipal(${index})">Marcar acreditado</button>` : ""}</td>
-      <td><span class="tag ${(item.estado || "").startsWith("Emitido") ? "green" : ""}">${item.estado || "Pendiente"}</span></td>
-      <td>${item.estado === "Pendiente" ? `<button class="topbar-btn primary" type="button" onclick="completarFormularioDut(${index})">↻ Completar DUT</button><button class="topbar-btn" type="button" onclick="imprimirPreDut(${index})">🖨️ Imprimir orden</button>` : ""}${item.qrCodeData ? `<button class="topbar-btn primary" type="button" onclick="mostrarComprobanteDut(${index})">📄 Ver comprobante (simulado)</button>` : ""}${(item.estado || "").startsWith("Emitido") ? ` <button class="topbar-btn" type="button" onclick="imprimirDutOficial(${index})">🖨️ Imprimir comprobante</button><button class="topbar-btn" type="button" onclick="cerrarDutLocal(${index})">Preparar cierre</button>` : ""}</td>
-    </tr>`,
-              )
+      <td>${escaparHtmlFiscal(item.dteNumero || item.nroBoleto || item.id)}</td>
+      <td>${escaparHtmlFiscal(item.fechaCarga || "")} / ${escaparHtmlFiscal(item.fechaVencimiento || "")}</td>
+      <td>${escaparHtmlFiscal(item.estadoPago || "NO_APLICA")}${item.estadoPago === "PENDIENTE" ? ` <button class="topbar-btn" type="button" onclick="marcarPagoMunicipal(${index})">Marcar acreditado</button>` : ""}</td>
+      <td><span class="tag ${emitido ? "green" : estado === "Rechazado" ? "" : "orange"}">${escaparHtmlFiscal(estado)}</span>${item.detalle && !emitido ? `<div class="text-muted" style="font-size:11px;margin-top:4px;">${escaparHtmlFiscal(item.detalle)}</div>` : ""}</td>
+      <td>${acciones}</td>
+    </tr>`;
+              })
               .join("")
           : '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:16px;">No hay DUT pendientes</td></tr>';
         renderFiscalAlertas();
+      }
+
+      function registrarNumeroSigsa(index) {
+        const item = state.fiscalDutQueue?.[index];
+        if (!item) return;
+        const numero = String(
+          prompt("Número de DUT/DT-e que asignó SENASA en SIGSA:", "") || "",
+        ).trim();
+        if (!numero) return;
+        if (!/^[A-Za-z0-9-]{4,30}$/.test(numero)) {
+          showToast(
+            "El número no tiene un formato válido (solo letras, números y guiones).",
+            "error",
+          );
+          return;
+        }
+        const duplicado = (state.fiscalDutQueue || []).some(
+          (otro, i) => i !== index && otro.dteNumero === numero,
+        );
+        if (duplicado) {
+          showToast(`El número ${numero} ya está registrado en otro DUT.`, "error");
+          return;
+        }
+        item.estado = "Emitido (oficial)";
+        item.dteNumero = numero;
+        item.emitidoEn = new Date().toISOString();
+        item.detalle = "Número oficial cargado desde SIGSA.";
+        saveState();
+        renderFiscalDutQueue();
+        guardarOperacionFiscal(
+          "DUT",
+          numero,
+          item.estado,
+          "Número oficial registrado a mano desde SIGSA.",
+        );
       }
 
       function renderFiscalAlertas() {
@@ -16776,6 +18159,14 @@
           if ((item.estado || "").startsWith("Emitido"))
             resultado.push({
               texto: `DUT ${identificador} sigue abierto: confirmar cierre en destino.`,
+              clase: "",
+            });
+          if (
+            item.estado === "Listo para SIGSA" ||
+            item.estado === "Simulado (no oficial)"
+          )
+            resultado.push({
+              texto: `DUT ${identificador} sin número oficial: emitilo en SIGSA y registrá el número.`,
               clase: "",
             });
           if (Number.isFinite(vencimiento)) {
@@ -16797,7 +18188,7 @@
           ? alertas
               .map(
                 (alerta) =>
-                  `<div class="alert-item"><span>${alerta.texto}</span><span class="tag">Revisar</span></div>`,
+                  `<div class="alert-item"><span>${escaparHtmlFiscal(alerta.texto)}</span><span class="tag">Revisar</span></div>`,
               )
               .join("")
           : '<div class="alert-item"><span>No hay vencimientos ni DUT abiertos.</span><span class="tag green">OK</span></div>';
@@ -16816,21 +18207,43 @@
         }
       }
 
-      function encolarDutOffline(datos, motivo = "Sin conexión") {
+      // Si el formulario se completó desde un DUT de la cola ("Completar DUT"), se actualiza ESE
+      // registro en vez de agregar uno nuevo: antes quedaban los dos y el viejo se volvía a
+      // enviar en la sincronización (DUT duplicado).
+      function guardarDutEnCola(datos, cambios) {
         if (!Array.isArray(state.fiscalDutQueue)) state.fiscalDutQueue = [];
-        const item = {
-          ...datos,
-          id: `DUT-${Date.now()}`,
-          estado: "Pendiente",
-          detalle: motivo,
-          creadoEn: new Date().toISOString(),
-        };
+        const formulario = document.getElementById("fiscalFormDut");
+        const origenId = formulario?.dataset.origenColaId || "";
+        let item = origenId
+          ? state.fiscalDutQueue.find(
+              (d) =>
+                d.id === origenId && !String(d.estado || "").startsWith("Emitido"),
+            )
+          : null;
+        if (item) {
+          Object.assign(item, datos, cambios, {
+            actualizadoEn: new Date().toISOString(),
+          });
+        } else {
+          item = {
+            ...datos,
+            id: `DUT-${Date.now()}`,
+            creadoEn: new Date().toISOString(),
+            ...cambios,
+          };
+          state.fiscalDutQueue.push(item);
+        }
         item.preDutQrData = generarQrPreDut(item);
-        state.fiscalDutQueue.push(item);
+        registrarPagoTasaMunicipal(item);
+        if (formulario) delete formulario.dataset.origenColaId;
         saveState();
         renderFiscalDutQueue();
-        guardarOperacionFiscal("DUT", item.id, "Pendiente", motivo);
+        guardarOperacionFiscal("DUT", item.id, item.estado, item.detalle || "");
         return item;
+      }
+
+      function encolarDutOffline(datos, motivo = "Sin conexión") {
+        return guardarDutEnCola(datos, { estado: "Pendiente", detalle: motivo });
       }
 
       function completarFormularioDut(index) {
@@ -16842,9 +18255,19 @@
           const campo = formulario.elements.namedItem(nombre);
           if (campo && typeof valor !== "object") campo.value = valor ?? "";
         });
+        if (Array.isArray(item.detalleTropa)) {
+          document.querySelectorAll(".fiscal-dut-category").forEach((input) => {
+            const linea = item.detalleTropa.find(
+              (d) => d.categoria === input.dataset.category,
+            );
+            input.value = linea ? linea.cantidad : "";
+          });
+          actualizarDetalleTropaDut();
+        }
+        formulario.dataset.origenColaId = item.id;
         formulario.scrollIntoView({ behavior: "smooth", block: "start" });
         document.getElementById("fiscalResultadoDut").textContent =
-          `DUT completado desde ${item.id}. Revisá la tasa y confirmá la emisión.`;
+          `Editando ${item.id}: al confirmar se actualiza ese mismo DUT (no se crea otro). Revisá la tasa y confirmá.`;
         document.getElementById("fiscalResultadoDut").className = "tag";
         showToast(
           `Datos del ${item.id} cargados en el formulario DUT.`,
@@ -16957,9 +18380,24 @@
       function marcarPagoMunicipal(index) {
         const item = state.fiscalDutQueue?.[index];
         if (!item) return;
+        // Antes bastaba un clic para dar la tasa por paga; ahora queda el comprobante asociado.
+        const comprobante = String(
+          prompt(
+            "Número de comprobante del pago municipal (VEP, transferencia o recibo):",
+            "",
+          ) || "",
+        ).trim();
+        if (!comprobante) {
+          showToast(
+            "Sin número de comprobante no se marca el pago como acreditado.",
+            "error",
+          );
+          return;
+        }
         item.estadoPago = "PAGADO";
-        item.detalle =
-          "Pago municipal acreditado localmente; pendiente de sincronización.";
+        item.comprobantePagoMunicipal = comprobante;
+        registrarPagoTasaMunicipal(item);
+        item.detalle = `Pago municipal acreditado (comprobante ${comprobante}); pendiente de sincronización.`;
         saveState();
         renderFiscalDutQueue();
         showToast(
@@ -17122,44 +18560,120 @@
           renderFiscalDutQueue();
           return;
         }
+        // Todo lo que se valida al emitir se vuelve a validar acá: entre que el DUT se encoló y
+        // que volvió la señal pueden haberse vencido el acta de aftosa, el boleto o el propio DUT.
+        const listos = [];
         try {
-          const respuesta = await fiscalJson("/api/logistica/emitir-dut-lote", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ duts: pendientes }),
-          });
-          (respuesta.resultados || []).forEach((resultado) => {
-            const item = pendientes.find(
-              (pendiente) => pendiente.id === resultado.id,
-            );
-            if (!item) return;
-            if (resultado.success) {
-              item.estado = "Emitido (local)";
-              item.dteNumero =
-                resultado.dteGenerado || resultado.data?.dteNumero || item.id;
-              item.qrCodeData =
-                resultado.data?.qrCodeData ||
-                resultado.data?.qr ||
-                item.dteNumero;
-              item.comprobanteUrl =
-                resultado.data?.comprobanteUrl || resultado.data?.pdfUrl || "";
-              guardarOperacionFiscal(
-                "DUT",
-                item.dteNumero,
-                "Confirmado (local)",
-                "Emitido en sincronización por lote (simulación local, no oficial ante SENASA).",
-              );
+          for (const item of pendientes) {
+            const motivos = await revalidarDutParaEnvio(item);
+            if (motivos.length) {
+              item.estado = "Rechazado";
+              item.detalle = `No se envió: ${motivos.join(" ")}`;
             } else {
-              item.detalle = resultado.message || "No se pudo emitir el DUT.";
+              listos.push(item);
             }
-          });
+          }
         } catch (error) {
+          // Se cortó la conexión en plena revalidación: no se envía nada, todo sigue pendiente.
           pendientes.forEach((item) => {
-            item.detalle = error.message;
+            if (item.estado === "Pendiente") item.detalle = error.message;
           });
+          listos.length = 0;
         }
+        if (listos.length) {
+          try {
+            const respuesta = await fiscalJson("/api/logistica/emitir-dut-lote", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ duts: listos }),
+            });
+            (respuesta.resultados || []).forEach((resultado) => {
+              const item = listos.find((listo) => listo.id === resultado.id);
+              if (!item) return;
+              // Solo cuenta como emitido si vuelve un número oficial (hoy no hay webservice SENASA).
+              if (resultado.success && resultado.oficial && resultado.dteNumero) {
+                item.estado = "Emitido (oficial)";
+                item.dteNumero = resultado.dteNumero;
+                item.emitidoEn = new Date().toISOString();
+                item.detalle = "";
+              } else if (resultado.codigo === "SENASA_NO_DISPONIBLE") {
+                marcarDutListoParaSigsa(item);
+              } else {
+                item.detalle = resultado.message || "No se pudo emitir el DUT.";
+              }
+            });
+          } catch (error) {
+            const tipo = clasificarErrorFiscal(error);
+            listos.forEach((item) => {
+              if (tipo === "senasaManual") {
+                marcarDutListoParaSigsa(item);
+              } else if (tipo === "negocio") {
+                item.estado = "Rechazado";
+                item.detalle = error.message;
+              } else {
+                item.detalle = error.message;
+              }
+            });
+          }
+        }
+        pendientes
+          .filter((item) => item.estado !== "Pendiente")
+          .forEach((item) =>
+            guardarOperacionFiscal(
+              "DUT",
+              item.dteNumero || item.id,
+              item.estado,
+              item.detalle || "",
+            ),
+          );
         saveState();
         renderFiscalDutQueue();
+      }
+
+      function cambiosListoParaSigsa() {
+        return {
+          estado: "Listo para SIGSA",
+          detalle:
+            "Validado (sanidad, boleto y tasa). SENASA no tiene webservice: emitilo en SIGSA y registrá el número oficial.",
+        };
+      }
+
+      function marcarDutListoParaSigsa(item) {
+        Object.assign(item, cambiosListoParaSigsa());
+      }
+
+      // Devuelve los motivos por los que el DUT ya no se puede enviar (vacío = OK). Si se corta la
+      // conexión al consultar el boleto, lanza el error para que la sincronización no envíe nada.
+      async function revalidarDutParaEnvio(item) {
+        const motivos = [];
+        const vencimientoMs = new Date(item.fechaVencimiento || "").getTime();
+        if (!Number.isFinite(vencimientoMs) || vencimientoMs <= Date.now())
+          motivos.push("El DUT está vencido o no tiene un vencimiento válido.");
+        if (!(Number(item.cantidadCabezas) > 0))
+          motivos.push("El DUT no tiene cabezas en el detalle de tropa.");
+        motivos.push(...evaluarCumplimientoBovino(item.renspaOrigen).bloqueos);
+        try {
+          await fiscalJson("/api/fiscal/tasa-municipal/validar", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(item),
+          });
+        } catch (error) {
+          if (clasificarErrorFiscal(error) === "transitorio") throw error;
+          motivos.push(error.message);
+        }
+        const boleto = String(item.nroBoleto || "").trim();
+        if (!boleto) {
+          motivos.push("Falta el número de boleto de marca.");
+        } else {
+          try {
+            await fiscalJson(`/api/boletos-marca/${encodeURIComponent(boleto)}`);
+          } catch (error) {
+            if (clasificarErrorFiscal(error) === "transitorio") throw error;
+            motivos.push(error.message);
+          }
+        }
+        return motivos;
       }
 
       document
@@ -17296,35 +18810,51 @@
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(datos),
             });
-            resultado.textContent = `${respuesta.message || `DUT emitido: ${respuesta.dteGenerado || "confirmado"}.`} Tasa: ${tasa.cotizacion?.importeTotal || 0}.`;
-            resultado.className = "tag green";
-            guardarOperacionFiscal(
-              "DUT",
-              respuesta.dteGenerado || datos.nroBoleto,
-              "Confirmado (local)",
-              (respuesta.message || "DUT emitido") +
-                " (simulación local, no oficial ante SENASA).",
-            );
-            if (!Array.isArray(state.fiscalDutQueue)) state.fiscalDutQueue = [];
-            state.fiscalDutQueue.push({
-              ...datos,
-              estado: "Emitido (local)",
-              dteNumero: respuesta.dteGenerado || datos.nroBoleto,
-              qrCodeData:
-                respuesta.data?.qrCodeData ||
-                respuesta.data?.qr ||
-                respuesta.dteGenerado ||
-                datos.nroBoleto,
-              comprobanteUrl:
-                respuesta.data?.comprobanteUrl || respuesta.data?.pdfUrl || "",
+            // Solo cuenta como emitido si vuelve un número oficial (hoy no hay webservice SENASA).
+            if (!respuesta.oficial || !respuesta.dteNumero) {
+              const sinNumero = new Error(
+                respuesta.message || "El servidor no devolvió un número oficial de DUT.",
+              );
+              sinNumero.codigo = "SENASA_NO_DISPONIBLE";
+              throw sinNumero;
+            }
+            guardarDutEnCola(datos, {
+              estado: "Emitido (oficial)",
+              dteNumero: respuesta.dteNumero,
+              emitidoEn: new Date().toISOString(),
+              detalle: "",
             });
-            saveState();
-            renderFiscalDutQueue();
+            resultado.textContent = `DUT ${respuesta.dteNumero} emitido. Tasa: ${tasa.cotizacion?.importeTotal || 0}.`;
+            resultado.className = "tag green";
           } catch (error) {
-            resultado.textContent = error.message;
-            resultado.className = "tag";
-            encolarDutOffline(datos, error.message);
+            const tipo = clasificarErrorFiscal(error);
+            if (tipo === "senasaManual") {
+              guardarDutEnCola(datos, cambiosListoParaSigsa());
+              resultado.textContent =
+                "DUT validado. Emitilo en SIGSA y después usá «Registrar nº SIGSA» en la cola.";
+              resultado.className = "tag orange";
+            } else if (tipo === "transitorio") {
+              encolarDutOffline(datos, error.message);
+              resultado.textContent = `${error.message} El DUT quedó pendiente para reintentar.`;
+              resultado.className = "tag";
+            } else {
+              // Un rechazo de negocio (tasa impaga, boleto inválido) no se encola: se corrige y se
+              // vuelve a enviar. Si venía de la cola, ese registro queda marcado como rechazado.
+              if (formulario.dataset.origenColaId)
+                guardarDutEnCola(datos, {
+                  estado: "Rechazado",
+                  detalle: error.message,
+                });
+              resultado.textContent = `DUT rechazado: ${error.message}`;
+              resultado.className = "tag";
+            }
           }
+        });
+
+      document
+        .getElementById("fiscalFormDut")
+        ?.addEventListener("reset", (evento) => {
+          delete evento.currentTarget.dataset.origenColaId;
         });
 
       document
@@ -18000,18 +19530,83 @@
 
       // Guarda localmente una CPE que no se pudo autorizar en el momento (offline o error de red),
       // para que "Sincronizar pendientes" la reintente más tarde. Patrón igual al de fiscalDutQueue.
-      function encolarCpeAgricolaOffline(payload) {
+      // El id de cada CPE es también su idempotencyKey ante el servidor: se manda el mismo en el
+      // primer intento y en todos los reintentos, así un reintento después de un timeout nunca
+      // pide una segunda CPE a ARCA para el mismo camión.
+      function generarIdCpeLocal() {
+        return (
+          window.crypto?.randomUUID?.() ||
+          `cpe-local-${Date.now()}-${Math.random().toString(16).slice(2)}`
+        );
+      }
+
+      function encolarCpeAgricolaOffline(payload, id, detalle = "", estado = "Pendiente") {
         if (!Array.isArray(state.agricolaCpeQueue)) state.agricolaCpeQueue = [];
         state.agricolaCpeQueue.push({
-          id:
-            window.crypto?.randomUUID?.() ||
-            `cpe-local-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-          estado: "Pendiente",
+          id: id || generarIdCpeLocal(),
+          estado,
           payload,
           creadoEn: new Date().toISOString(),
-          detalle: "",
+          detalle,
         });
         saveState();
+      }
+
+      async function enviarCpeAutorizar(payload, idempotencyKey, forzarReintento = false) {
+        await verificarCuitServidorArca();
+        return fiscalJson("/api/fiscal/cpe/autorizar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...payload, idempotencyKey, forzarReintento }),
+        });
+      }
+
+      // Rechazado: ARCA o la validación dijeron que no; se descarta y se carga de nuevo corregida.
+      // Verificar en ARCA: no hubo respuesta y pudo autorizarse igual; nunca se reenvía sola.
+      function aplicarErrorCpeEnCola(item, error) {
+        const tipo = clasificarErrorFiscal(error);
+        item.detalle = error.message;
+        if (tipo === "negocio") item.estado = "Rechazado";
+        else if (tipo === "incierto") item.estado = "Verificar en ARCA";
+        return tipo;
+      }
+
+      function descartarCpeLocal(id) {
+        if (
+          !confirm(
+            "¿Quitar esta Carta de Porte de la cola local? No se enviará a ARCA.",
+          )
+        )
+          return;
+        state.agricolaCpeQueue = (state.agricolaCpeQueue || []).filter(
+          (item) => item.id !== id,
+        );
+        saveState();
+        renderAgricolaCpe();
+      }
+
+      async function reintentarCpeIncierta(id) {
+        const item = (state.agricolaCpeQueue || []).find((i) => i.id === id);
+        if (!item) return;
+        if (
+          !confirm(
+            "Antes de reintentar, verificá en el portal de ARCA que esta Carta de Porte NO se haya autorizado. Si ya existe, reintentar genera una CPE duplicada.\n\n¿Reintentar igual?",
+          )
+        )
+          return;
+        try {
+          const respJson = await enviarCpeAutorizar(item.payload, item.id, true);
+          state.agricolaCpeQueue = state.agricolaCpeQueue.filter(
+            (i) => i.id !== id,
+          );
+          showToast(`CPE autorizada. CTG ${respJson.ctg}.`, "success");
+        } catch (error) {
+          const tipo = aplicarErrorCpeEnCola(item, error);
+          if (tipo === "transitorio") item.estado = "Pendiente";
+          showToast(error.message, "error");
+        }
+        saveState();
+        await renderAgricolaCpe();
       }
 
       // Reintenta contra el servidor todas las CPE que quedaron guardadas localmente por falta de conexión.
@@ -18041,16 +19636,13 @@
         }
         for (const item of pendientes) {
           try {
-            const respJson = await fiscalJson("/api/fiscal/cpe/autorizar", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(item.payload),
-            });
+            const respJson = await enviarCpeAutorizar(item.payload, item.id);
             item.estado = "Sincronizado";
             item.ctg = respJson.ctg;
             item.detalle = "";
           } catch (error) {
-            item.detalle = error.message;
+            // Sin señal o ARCA caída: se corta acá en vez de golpear el servicio con el resto.
+            if (aplicarErrorCpeEnCola(item, error) === "transitorio") break;
           }
         }
         state.agricolaCpeQueue = (state.agricolaCpeQueue || []).filter(
@@ -18061,23 +19653,48 @@
           boton.disabled = false;
         }
         await renderAgricolaCpe();
-        showToast("Sincronización de Cartas de Porte finalizada.", "success");
+        const requierenAtencion = state.agricolaCpeQueue.filter(
+          (item) => item.estado !== "Pendiente",
+        ).length;
+        showToast(
+          requierenAtencion
+            ? `Sincronización finalizada: ${requierenAtencion} Carta(s) de Porte requieren revisión.`
+            : "Sincronización de Cartas de Porte finalizada.",
+          requierenAtencion ? "info" : "success",
+        );
       }
 
       async function renderAgricolaCpe() {
         const body = document.getElementById("agricolaCpeBody");
         if (!body) return;
-        const pendientesLocal = (state.agricolaCpeQueue || []).filter(
+        const colaLocal = state.agricolaCpeQueue || [];
+        const pendientesLocal = colaLocal.filter(
           (item) => item.estado === "Pendiente",
         );
-        const filasPendientes = pendientesLocal
+        const filasPendientes = colaLocal
           .slice()
           .reverse()
-          .map(
-            (item) => `
-    <tr><td>-</td><td><span class="tag orange">Pendiente (sin sincronizar)</span></td><td>${item.payload?.kilosTotales ?? "-"}</td><td><span class="text-muted">Sin confirmar</span></td><td>${item.detalle ? `<span class="text-muted">${item.detalle}</span>` : '<span class="text-muted">Esperando conexión</span>'}</td></tr>
-  `,
-          )
+          .map((item) => {
+            const id = escaparHtmlFiscal(item.id);
+            const etiqueta =
+              item.estado === "Rechazado"
+                ? '<span class="tag">Rechazada: descartar y cargar corregida</span>'
+                : item.estado === "Verificar en ARCA"
+                  ? '<span class="tag orange">Verificar en ARCA</span>'
+                  : '<span class="tag orange">Pendiente (sin sincronizar)</span>';
+            const acciones =
+              item.estado === "Verificar en ARCA"
+                ? `<button class="topbar-btn" type="button" onclick="reintentarCpeIncierta('${id}')">Reintentar igual</button> <button class="topbar-btn" type="button" onclick="descartarCpeLocal('${id}')">Ya existe en ARCA: quitar</button>`
+                : item.estado === "Rechazado"
+                  ? `<button class="topbar-btn" type="button" onclick="descartarCpeLocal('${id}')">Descartar</button>`
+                  : "";
+            const detalle = item.detalle
+              ? `<span class="text-muted">${escaparHtmlFiscal(item.detalle)}</span>`
+              : '<span class="text-muted">Esperando conexión</span>';
+            return `
+    <tr><td>-</td><td>${etiqueta}</td><td>${escaparHtmlFiscal(item.payload?.kilosTotales ?? "-")}</td><td><span class="text-muted">Sin confirmar</span></td><td>${detalle} ${acciones}</td></tr>
+  `;
+          })
           .join("");
         const boton = document.getElementById("agricolaSincronizarCola");
         if (boton)
@@ -18106,9 +19723,13 @@
             filasPendientes + filasServidor ||
             '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:16px;">No hay Cartas de Porte de granos emitidas</td></tr>';
         } catch (error) {
-          body.innerHTML =
-            filasPendientes ||
-            `<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:16px;">${error.message}</td></tr>`;
+          if (filasPendientes) {
+            body.innerHTML = filasPendientes;
+          } else {
+            body.innerHTML =
+              '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:16px;"></td></tr>';
+            body.querySelector("td").textContent = error.message;
+          }
         }
       }
 
@@ -18152,7 +19773,9 @@
                 .join("")
             : '<tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:16px;">No hay liquidaciones de contratistas todavía</td></tr>';
         } catch (error) {
-          body.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:16px;">${error.message}</td></tr>`;
+          body.innerHTML =
+            '<tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:16px;"></td></tr>';
+          body.querySelector("td").textContent = error.message;
         }
       }
 
@@ -18210,16 +19833,21 @@
             resultado.className = "tag";
             return;
           }
+          const contrato = state.contratosArrendamiento.find(
+            (c) => c.campo === campo.codigo,
+          );
           const payload = {
             campo,
+            contrato,
             kilosTotales: Number(datos.kilosTotales),
             patente: datos.patente,
             tipoCPE: datos.tipoCPE,
             sucursal: datos.sucursal,
             cuitCliente: datos.cuitCliente,
           };
+          const idempotencyKey = generarIdCpeLocal();
           if (!navigator.onLine) {
-            encolarCpeAgricolaOffline(payload);
+            encolarCpeAgricolaOffline(payload, idempotencyKey);
             resultado.textContent =
               "Sin conexión: la CPE quedó guardada para sincronizar cuando vuelva la señal.";
             resultado.className = "tag orange";
@@ -18228,17 +19856,7 @@
             return;
           }
           try {
-            const base = await fiscalApiBase();
-            const respuesta = await fetch(`${base}/api/fiscal/cpe/autorizar`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload),
-            });
-            const respJson = await respuesta.json();
-            if (!respuesta.ok || !respJson.success)
-              throw new Error(
-                respJson.message || "No se pudo autorizar la CPE.",
-              );
+            const respJson = await enviarCpeAutorizar(payload, idempotencyKey);
             resultado.textContent = `CPE autorizada. CTG ${respJson.ctg}.`;
             resultado.className = "tag green";
             formulario.reset();
@@ -18248,8 +19866,24 @@
               await autoCompletarVentaDesdeCpe(respJson);
             }
           } catch (error) {
-            encolarCpeAgricolaOffline(payload);
-            resultado.textContent = `${error.message} La CPE quedó guardada para reintentar más tarde.`;
+            const tipo = clasificarErrorFiscal(error);
+            if (tipo === "negocio") {
+              // Rechazo de ARCA o de validación: no se encola (reintentarlo daría el mismo
+              // rechazo). El formulario queda cargado para corregirlo.
+              resultado.textContent = `CPE rechazada: ${error.message}`;
+              resultado.className = "tag";
+              return;
+            }
+            const incierta = tipo === "incierto";
+            encolarCpeAgricolaOffline(
+              payload,
+              idempotencyKey,
+              error.message,
+              incierta ? "Verificar en ARCA" : "Pendiente",
+            );
+            resultado.textContent = incierta
+              ? `${error.message} Quedó en la cola como «Verificar en ARCA».`
+              : `${error.message} La CPE quedó guardada para reintentar más tarde.`;
             resultado.className = "tag orange";
             formulario.reset();
             await renderAgricolaCpe();
@@ -18281,6 +19915,7 @@
               throw new Error(
                 "No hay Cartas de Porte confirmadas en destino para vincular a la LPG.",
               );
+            await verificarCuitServidorArca();
             const respuesta = await fetch(`${base}/api/fiscal/lpg/emitir`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -18355,6 +19990,7 @@
               importe: String(Math.round(respJson.liquidacion.netoACobrar)),
               categoria: "Ventas",
               referencia: respJson.numeroComprobante,
+              actividad: "Agrícola",
             });
 
             saveState();
@@ -18464,6 +20100,7 @@
                     : "Cosecha/Siembra por hectárea",
               monto: respJson.subtotalNeto || 0,
               categoria: "Contratistas",
+              actividad: "Agrícola",
             });
             // Conexión con Finanzas: egreso por el total a pagar al contratista.
             if (!Array.isArray(state.caja)) state.caja = [];
@@ -18474,6 +20111,8 @@
               importe: String(Math.round(respJson.totalAPagar || 0)),
               categoria: "Otros",
               referencia: `LIQ-${Date.now()}`,
+              actividad: "Agrícola",
+              pagoDeCostoRegistrado: "Sí",
             });
             saveState();
             formulario.reset();
@@ -18608,7 +20247,7 @@
 
           state.chequesCobrar.forEach((c) => {
             if (c.estado === "En cartera" || c.estado === "Depositado") {
-              const importe = parseInt(c.importe.replace(/[^0-9]/g, "")) || 0;
+              const importe = parseMonto(c.importe) || 0;
               totalCobrar += importe;
 
               const venc = c.vencimiento.split("/");
@@ -18663,7 +20302,7 @@
 
           state.chequesCubrir.forEach((c) => {
             if (c.estado === "Emitido" || c.estado === "Entregado") {
-              const importe = parseInt(c.importe.replace(/[^0-9]/g, "")) || 0;
+              const importe = parseMonto(c.importe) || 0;
               totalCubrir += importe;
 
               const venc = c.vencimiento.split("/");
@@ -19221,8 +20860,7 @@
         // Calcular costo total (parsear strings de dinero)
         let costoTotal = 0;
         state.mantenimiento.forEach((m) => {
-          const costoStr = m.costo.replace(/[^0-9]/g, "");
-          costoTotal += parseInt(costoStr) || 0;
+          costoTotal += parseMonto(m.costo);
         });
 
         document.getElementById("mantCompletadas").textContent = completadas;
@@ -19284,11 +20922,9 @@
 
           if (!saldos[banco]) saldos[banco] = 0;
 
-          if (b.tipo === "Ingreso") {
-            saldos[banco] += importe;
-          } else if (b.tipo === "Egreso") {
-            saldos[banco] -= importe;
-          }
+          // Las transferencias antes se ignoraban acá (y el PDF las restaba siempre): ahora las
+          // tres vistas usan signoMovimientoFondos (recibida suma, enviada resta).
+          saldos[banco] += signoMovimientoFondos(b) * importe;
         });
 
         // Actualizar KPIs de cada banco
@@ -20255,26 +21891,41 @@
           grupos[clave].iva += parseMonto(iva || 0);
           grupos[clave].retenciones += parseMonto(retenciones || 0);
         };
-        const esGanadero = (valor) =>
-          /ganad|hacienda|animal|aliment|sanidad|vacun|veterin|forraje|balanceado|insumo ganadero/i.test(
-            String(valor || ""),
-          );
-
         (state.costos || []).forEach((item) => {
-          if (esGanadero(`${item.categoria} ${item.concepto} ${item.detalle}`))
+          // Actividad explícita; si no tiene, el uso de su lote (un lote mixto aporta su parte).
+          const montoGanadero = partesDeCosto(item, parseMonto(item.monto ?? item.importe ?? item.costo))
+            .filter((parte) => parte.actividad === "Ganadera")
+            .reduce((suma, parte) => suma + parte.monto, 0);
+          if (montoGanadero)
             agregar(
               item.concepto || item.categoria || "Costo ganadero",
-              item.monto ?? item.importe ?? item.costo,
+              montoGanadero,
               "Costos",
               item,
               item.iva ?? item.ivaImporte,
               item.retenciones ?? item.retencion,
             );
         });
+        // Lotes de uso ganadero o mixto: su parte de aplicaciones (ej: fertilización de pasturas),
+        // costos operativos y mantenimiento es costo ganadero (antes iba siempre a agricultura).
+        [
+          ["aplicaciones", "Aplicaciones en lotes ganaderos"],
+          ["costosOperativos", "Costos operativos en lotes ganaderos"],
+          ["mantenimiento", "Mantenimiento en lotes ganaderos"],
+        ].forEach(([coleccion, concepto]) =>
+          (state[coleccion] || []).forEach((item) => {
+            if (!loteExiste(item.lote)) return;
+            const monto = montoDeActividad(item, parseMonto(item.costo), "Ganadera");
+            if (monto) agregar(concepto, monto, "Lotes", item);
+          }),
+        );
         (state.caja || []).forEach((item) => {
+          // Un egreso que paga algo ya cargado como costo (compra de hacienda, insumo...) no se
+          // vuelve a sumar: el costo ya está en su registro de origen.
           if (
             item.tipo === "Egreso" &&
-            esGanadero(`${item.categoria} ${item.concepto}`)
+            item.pagoDeCostoRegistrado !== "Sí" &&
+            actividadDeRegistro(item) === "Ganadera"
           )
             agregar(
               item.concepto || "Egreso ganadero",
@@ -20304,15 +21955,9 @@
               producto.codigo === item.producto ||
               producto.producto === item.producto,
           );
-          const kilos = Number(
-            item.cantidadTotal ||
-              Number(item.racion || 0) *
-                Number(item.cabezas || 0) *
-                Number(item.dias || 0),
-          );
           agregar(
             "Alimentación ganadera",
-            kilos * Number(producto?.costoUnit || 0),
+            costoAlimentacion(item),
             "Alimentación",
             item,
             producto?.iva ?? producto?.ivaImporte,
@@ -20421,57 +22066,32 @@
         // este KPI ("Costos Total") y queda contado dos veces si alguien suma ambos KPIs — mismo
         // criterio que ya usa calcularRentabilidad() (esCostoGanaderoRent) para no duplicar.
         const esCostoGanaderoKpi = (item) =>
-          /ganad|hacienda|animal|aliment|sanidad|vacun|veterin|forraje|balanceado|insumo ganadero/i.test(
-            `${item.categoria || ""} ${item.concepto || ""} ${item.detalle || ""}`,
-          );
+          actividadDeRegistro(item) === "Ganadera";
+        // Solo la parte agrícola de cada costo: manda la actividad explícita y, si no hay, el uso
+        // del lote (ver montoDeActividad). Lo ganadero va a obtenerCostosGanaderos y la estructura a
+        // obtenerCostosEstructura, así ningún costo se cuenta en dos lugares.
+        const agricola = (item, monto) => montoDeActividad(item, parseMonto(monto), "Agrícola");
         (state.costos || []).forEach((costo) => {
-          if (esCostoGanaderoKpi(costo)) return;
-          registrar(
-            costo.cultivo || porLote[costo.lote],
-            "otros",
-            costo.monto ?? costo.importe ?? costo.costo,
-            costo.categoria || costo.concepto || "Otros directos",
-          );
+          const monto = parseMonto(costo.monto ?? costo.importe ?? costo.costo);
+          const categoria = costo.categoria || costo.concepto || "Otros directos";
+          if (costo.cultivo) return registrar(costo.cultivo, "otros", agricola(costo, monto), categoria);
+          // F5: los costos a nivel campo (ej: alquiler) se reparten entre sus lotes (partesDeCosto).
+          partesDeCosto(costo, monto)
+            .filter((parte) => parte.actividad === "Agrícola")
+            .forEach((parte) => registrar(porLote[parte.lote], "otros", parte.monto, categoria));
         });
-        // OJO: Aplicaciones, Costos Operativos y Mantenimiento quedaban afuera de este resumen —
-        // el KPI de Costos daba $0 aunque hubiera aplicaciones u órdenes cargadas con costo.
-        // Aplicaciones sí tiene lote, así que se puede imputar al cultivo correspondiente;
-        // Costos Operativos y Mantenimiento son por equipo/maquinaria, sin lote, así que caen en
-        // "Sin cultivo asignado" (igual que un costo del módulo Costos sin cultivo/lote cargado).
+        // Aplicaciones, costos operativos y mantenimiento con lote: parte agrícola según el uso del
+        // lote. Sin lote (igual que combustible, empleados y gastos bancarios) son estructura.
         (state.aplicaciones || []).forEach((app) => {
-          registrar(porLote[app.lote], "otros", app.costo, "Aplicaciones");
+          registrar(porLote[app.lote], "otros", agricola(app, app.costo), "Aplicaciones");
         });
         (state.costosOperativos || []).forEach((costo) => {
-          registrar(
-            porLote[costo.lote],
-            "otros",
-            costo.costo,
-            "Costos Operativos",
-          );
+          if (loteExiste(costo.lote))
+            registrar(porLote[costo.lote], "otros", agricola(costo, costo.costo), "Costos Operativos");
         });
         (state.mantenimiento || []).forEach((orden) => {
-          registrar(porLote[orden.lote], "otros", orden.costo, "Mantenimiento");
-        });
-        // OJO: Cargas de Combustible, Empleados (sueldos + cargas sociales) y los gastos bancarios
-        // (comisiones, intereses, impuestos, débitos automáticos, cargos de mantenimiento) también
-        // quedaban aislados en sus propios módulos, sin entrar al resumen general de Costos.
-        (state.cargacombustible || []).forEach((carga) => {
-          registrar(undefined, "otros", carga.costoTotal, "Combustible");
-        });
-        registrar(
-          undefined,
-          "otros",
-          calcularCostoTotalEmpleados(),
-          "Empleados",
-        );
-        (state.bancos || []).forEach((mov) => {
-          if (esCostoBancario(mov))
-            registrar(
-              undefined,
-              "otros",
-              mov.importe,
-              mov.concepto || "Gastos bancarios",
-            );
+          if (loteExiste(orden.lote))
+            registrar(porLote[orden.lote], "otros", agricola(orden, orden.costo), "Mantenimiento");
         });
         return resultado;
       }
@@ -20530,8 +22150,15 @@
           (suma, fila) => suma + fila.costo,
           0,
         );
-        setEl("costosKpiConsolidado", fmt(total + totalGanadero));
-        setEl("costosKpiConsolidadoSub", "Agrícola + Ganadero, sin duplicar");
+        const estructura = obtenerCostosEstructura();
+        const reparto = repartoEstructura(total, totalGanadero);
+        setEl("costosKpiEstructura", fmt(estructura.total));
+        setEl(
+          "costosKpiEstructuraSub",
+          `Agrícola ${reparto.pctAgricola}% · Ganadera ${Math.round((100 - reparto.pctAgricola) * 10) / 10}% (${reparto.criterio})`,
+        );
+        setEl("costosKpiConsolidado", fmt(total + totalGanadero + estructura.total));
+        setEl("costosKpiConsolidadoSub", "Agrícola + Ganadero + Estructura, sin duplicar");
 
         const cuerpo = document.getElementById("costosPorCultivoBody");
         if (cuerpo)
@@ -20958,19 +22585,40 @@
       // Devuelve true si el trial ya está agotado en esta IP (o hay error y no se
       // puede verificar: se corta por lo sano y no se reactiva).
       async function consultarTrialServidor() {
-        try {
-          const res = await fetch("/api/pampa-trial-status", {
-            method: "GET",
-            cache: "no-store",
-          });
-          if (!res.ok) return true; // si el endpoint falla, tratar como agotado
-          const data = await res.json();
-          if (data && data.trialExhausted === true) return true;
-          return false;
-        } catch (error) {
-          // Sin red o servidor inaccesible: no arriesgar una reactivación indebida.
-          return true;
-        }
+        const estado = await estadoTrialServidor(false);
+        return estado.disponible && estado.agotado;
+      }
+      // Control de días del trial en el servidor (pampa-trial-guard.js, cargado en el <head>):
+      // recuerda el primer inicio aunque se borren los datos del navegador o se use otro. Si no
+      // hay servidor que responda (escritorio, servidor local, sin red) → disponible: false y
+      // queda el control local de siempre.
+      function estadoTrialServidor(registrar, desde) {
+        const guard = window.PampaTrialGuard;
+        if (!guard || typeof guard.estado !== "function") return Promise.resolve({ disponible: false });
+        return registrar ? guard.registrar(desde) : guard.estado();
+      }
+      // Licencia de prueba con el inicio y el vencimiento que fija el servidor. null = agotada.
+      async function crearLicenciaTrial() {
+        const servidor = await estadoTrialServidor(true);
+        if (servidor.disponible && servidor.agotado) return null;
+        const ahora = new Date();
+        const inicio = servidor.disponible && servidor.activatedAt ? new Date(servidor.activatedAt) : ahora;
+        const fin = servidor.disponible && servidor.expiresAt
+          ? new Date(servidor.expiresAt)
+          : new Date(ahora.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
+        return {
+          type: "trial",
+          key: "TRIAL-10DIAS",
+          activatedAt: inicio.toISOString(),
+          expiresAt: fin.toISOString(),
+          deviceId: generateDeviceId(),
+        };
+      }
+      function marcarTrialAgotado() {
+        localStorage.setItem("pampa_trial_exhausted", "1");
+        localStorage.removeItem("nexoAgroLicense");
+        updateTrialBlueBanner();
+        window.PampaTrialGuard?.mostrarAgotado?.();
       }
       // Electron corre con contextIsolation, así que window.process no llega al renderer:
       // por eso también se miran el guard de escritorio, el preload y el user agent.
@@ -20987,21 +22635,7 @@
       // /api/pampa-trial-status; ahí la ruta devuelve el HTML del catálogo y
       // consultarTrialServidor() lo tomaba como "agotado", así que el link nunca activaba nada.
       async function trialAgotadoConfirmadoPorServidor() {
-        try {
-          const res = await fetch("/api/pampa-trial-status", {
-            method: "GET",
-            cache: "no-store",
-          });
-          if (!res.ok) return false;
-          const data = await res.json();
-          return data?.trialExhausted === true;
-        } catch (error) {
-          console.warn(
-            "[trial] /api/pampa-trial-status no disponible; se usa el control local:",
-            error,
-          );
-          return false;
-        }
+        return consultarTrialServidor();
       }
       // Verificar licencia antes de inicializar la app.
       (async () => {
@@ -21083,167 +22717,22 @@
           .join("");
       }
       function pampaIAAnalizar(tipo) {
-        const d = pampaIAData();
-        const role = currentRole;
-        const moneyCosts = pampaIASum(d.costos, [
-          "importe",
-          "monto",
-          "total",
-          "valor",
-          "costo",
-        ]);
-        const moneyCaja = pampaIASum(d.caja, [
-          "importe",
-          "monto",
-          "total",
-          "valor",
-        ]);
-        const moneyBanco = pampaIASum(d.bancos, [
-          "importe",
-          "monto",
-          "total",
-          "valor",
-        ]);
-        const moneyCobrar = pampaIASum(d.cobrar, [
-          "importe",
-          "monto",
-          "total",
-          "valor",
-          "saldo",
-        ]);
-        const moneyPagar = pampaIASum(d.pagar, [
-          "importe",
-          "monto",
-          "total",
-          "valor",
-          "saldo",
-        ]);
-
-        document.getElementById("pampaiaRole").textContent = pampaIARoleLabel();
-
-        let items = [],
-          answer = "";
-        if (tipo === "empresa") {
-          const totalReg =
-            d.campos.length +
-            d.lotes.length +
-            d.maquinas.length +
-            d.empleados.length +
-            d.inventario.length +
-            d.hacienda.length;
-          items = [
-            [
-              "ok",
-              `La empresa tiene ${d.campos.length} campos, ${d.lotes.length} lotes, ${d.maquinas.length} máquinas y ${d.empleados.length} empleados registrados.`,
-            ],
-            [
-              "ok",
-              `La base operativa contiene ${totalReg} registros principales para analizar.`,
-            ],
-            [
-              d.mantenimiento.length ? "warn" : "ok",
-              d.mantenimiento.length
-                ? `Hay ${d.mantenimiento.length} registros de mantenimiento para revisar.`
-                : "No hay registros de mantenimiento cargados.",
-            ],
-          ];
-          answer = `<strong>Diagnóstico general</strong><br>El análisis se realizó con los datos disponibles para el rol <strong>${role}</strong>. PampaIA detectó ${totalReg} registros principales y puede profundizar por área.`;
-        } else if (tipo === "operacion") {
-          const alertMant = d.mantenimiento.length;
-          items = [
-            [
-              "ok",
-              `Operación: ${d.lotes.length} lotes · ${d.hacienda.length} registros de hacienda · ${d.maquinas.length} máquinas.`,
-            ],
-            [
-              alertMant ? "warn" : "ok",
-              alertMant
-                ? `Hay ${alertMant} registros de mantenimiento: conviene revisar vencimientos y estado.`
-                : "No hay mantenimientos cargados para priorizar.",
-            ],
-            [
-              d.inventario.length ? "ok" : "warn",
-              d.inventario.length
-                ? `Inventario: ${d.inventario.length} registros disponibles para analizar stock y reposición.`
-                : "No hay inventario cargado.",
-            ],
-          ];
-          answer = `<strong>Análisis operativo</strong><br>La prioridad automática queda enfocada en mantenimiento, inventario, maquinaria y actividad de campo.`;
-        } else if (tipo === "finanzas") {
-          const saldo = moneyCaja + moneyBanco;
-          items = [
-            ["ok", `Caja + bancos registrados: ${pampaIAFormatMoney(saldo)}.`],
-            [
-              moneyPagar > moneyCobrar ? "risk" : "ok",
-              `Por cobrar: ${pampaIAFormatMoney(moneyCobrar)} · Por cubrir: ${pampaIAFormatMoney(moneyPagar)}.`,
-            ],
-            [
-              moneyCosts ? "warn" : "ok",
-              moneyCosts
-                ? `Costos registrados: ${pampaIAFormatMoney(moneyCosts)}.`
-                : "No hay importes de costos suficientes para calcular el total.",
-            ],
-          ];
-          answer = `<strong>Análisis financiero</strong><br>Liquidez registrada: <strong>${pampaIAFormatMoney(saldo)}</strong>. Por cobrar: <strong>${pampaIAFormatMoney(moneyCobrar)}</strong>. Por cubrir: <strong>${pampaIAFormatMoney(moneyPagar)}</strong>.`;
-        } else {
-          items = [
-            [
-              d.mantenimiento.length ? "risk" : "ok",
-              d.mantenimiento.length
-                ? `Revisar ${d.mantenimiento.length} registros de mantenimiento.`
-                : "No hay mantenimiento cargado.",
-            ],
-            [
-              d.inventario.length ? "warn" : "ok",
-              d.inventario.length
-                ? `Revisar ${d.inventario.length} registros de inventario.`
-                : "No hay inventario cargado.",
-            ],
-            [
-              d.pagar.length ? "warn" : "ok",
-              d.pagar.length
-                ? `Hay ${d.pagar.length} registros por cubrir.`
-                : "No hay registros por cubrir.",
-            ],
-          ];
-          answer = `<strong>Mapa de riesgos</strong><br>PampaIA priorizó mantenimiento, inventario y compromisos financieros según la información actualmente cargada.`;
-        }
-        pampaIASetInsights(items);
-        pampaIASetAnswer(answer);
+        const rol = document.getElementById("pampaiaRole");
+        if (rol) rol.textContent = pampaIARoleLabel();
+        const r = asistenteIA().analizar(tipo);
+        const box = document.getElementById("pampaiaInsights");
+        if (box) box.innerHTML = window.PampaAsistenteIA.insightsHtml(r.lineas);
+        pampaIASetAnswer(`<strong>${window.PampaAsistenteIA.aHtml(r.titulo)}</strong><br><small>Calculado con los datos cargados para el rol ${escaparHtmlFiscal(currentRole || "")}.</small>`);
+        montarCapacidadesIA();
       }
       function pampaIAResponder() {
         const input = document.getElementById("pampaIAQuestion");
-        const q = (input?.value || "").toLowerCase().trim();
-        if (!q) {
-          pampaIASetAnswer(
-            "Escribí una pregunta para analizar la información disponible.",
-          );
+        const pregunta = (input?.value || "").trim();
+        if (!pregunta) {
+          pampaIASetAnswer("Escribí una pregunta para analizar la información disponible.");
           return;
         }
-        if (/gasto|costo|rentab|margen|dinero|financ/.test(q)) {
-          pampaIAAnalizar("finanzas");
-          return;
-        }
-        if (/maquin|tractor|manten|combust/.test(q)) {
-          pampaIAAnalizar("operacion");
-          return;
-        }
-        if (/stock|invent|insumo/.test(q)) {
-          pampaIAAnalizar("operacion");
-          return;
-        }
-        if (/riesgo|problema|alerta|urgente/.test(q)) {
-          pampaIAAnalizar("riesgos");
-          return;
-        }
-        if (/empresa|resumen|general|cómo está|como esta/.test(q)) {
-          pampaIAAnalizar("empresa");
-          return;
-        }
-        const d = pampaIAData();
-        pampaIASetAnswer(
-          `<strong>Puedo analizar:</strong> empresa, operación, finanzas, maquinaria, mantenimiento, inventario y riesgos.<br><br>Ejemplos: <em>“¿Dónde estoy gastando más?”</em>, <em>“¿Qué debería revisar hoy?”</em> o <em>“¿Cómo está la operación?”</em>`,
-        );
+        mostrarResultadoIA(asistenteIA().responder(pregunta));
       }
 
       /* === PAMPAIA V2: VOZ + DOCUMENTOS + REVISIÓN === */
@@ -21697,30 +23186,19 @@
       }
 
       /* === PAMPAIA V5: AUTOMATIZACIÓN CONTROLADA === */
+      function puedeVerModulo(rol, modulo) {
+        const permisos = rolePermissions[rol];
+        return Boolean(permisos && permisos.modulos.includes(modulo) && planTieneModulo(modulo));
+      }
+
       function pampaIAPermissions() {
-        const role = currentRole || "";
-        return {
-          documentos: [
-            "propietario",
-            "administracion",
-            "oficina",
-            "ingeniero",
-          ].includes(role),
-          caja: ["propietario", "administracion", "oficina"].includes(role),
-          bancos: ["propietario", "administracion", "oficina"].includes(role),
-          costosOperativos: [
-            "propietario",
-            "administracion",
-            "ingeniero",
-            "oficina",
-          ].includes(role),
-          inventario: [
-            "propietario",
-            "administracion",
-            "oficina",
-            "ingeniero",
-          ].includes(role),
-        };
+        const rol = currentRole;
+        return Object.fromEntries(
+          ["documentos", "caja", "bancos", "costosOperativos", "inventario"].map((modulo) => [
+            modulo,
+            puedeVerModulo(rol, modulo),
+          ]),
+        );
       }
 
       function pampaIADetectDestination(data) {
@@ -21925,7 +23403,7 @@
                   "). Elegí una imagen.",
                 "info",
               );
-            } catch (e) {}
+            } catch (e) { console.warn(e); }
           });
       }
       function cerrarPampaIACamera() {
@@ -21943,7 +23421,7 @@
         if (!video || !video.videoWidth) {
           try {
             showToast("La cámara todavía no está lista.", "info");
-          } catch (e) {}
+          } catch (e) { console.warn(e); }
           return;
         }
         const canvas = document.createElement("canvas");
@@ -21984,6 +23462,190 @@
       document.addEventListener("DOMContentLoaded", pampaIADeviceHint);
 
       /* === GENERACIÓN DE REPORTES PDF === */
+      // === Estado de Resultados y saldos (criterio percibido: movimientos de Caja y Bancos) ===
+      // Antes el PDF tomaba como ingresos solo Caja "Ventas"/"Cobros" y como egresos solo
+      // "Sueldos"/"Combustible" (quedaban afuera alquileres, insumos, contratistas y todo Bancos),
+      // decía "Período: <mes actual>" pero sumaba todo el historial, y leía "1.500,50" como 150050.
+
+      // Movimientos que mueven fondos pero no son ingreso ni gasto (se listan aparte, no se suman).
+      const CONCEPTOS_FUERA_DE_RESULTADO = [
+        "Transferencia recibida",
+        "Transferencia enviada",
+        "Plazo fijo constitución",
+        "Plazo fijo vencimiento",
+        "Cuota préstamo",
+        "Caja chica",
+        "Adelanto",
+      ];
+      const RUBRO_BANCO_POR_CONCEPTO = {
+        "Cobro factura": "Cobros",
+        "Cobro cheque": "Cobros",
+        "Pago de sueldos": "Sueldos",
+        "Pago de proveedor": "Proveedores",
+        "Pago cheque": "Proveedores",
+        "Comisión bancaria": "Gastos bancarios",
+        "Débito automático": "Gastos bancarios",
+        "Cargos por mantenimiento": "Gastos bancarios",
+      };
+
+      // "AAAA-MM-DD" o "DD/MM/AAAA" -> "AAAA-MM-DD" ("" si no se reconoce).
+      function fechaMovimientoISO(fecha) {
+        const texto = String(fecha || "").trim();
+        if (/^\d{4}-\d{2}-\d{2}/.test(texto)) return texto.slice(0, 10);
+        const partes = texto.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        return partes
+          ? `${partes[3]}-${partes[2].padStart(2, "0")}-${partes[1].padStart(2, "0")}`
+          : "";
+      }
+
+      // "Transferencia" (solo Bancos) no indica la dirección en el tipo: se toma del concepto.
+      // Antes toda transferencia restaba, también las recibidas.
+      function signoMovimientoFondos(movimiento) {
+        if (movimiento.tipo === "Ingreso") return 1;
+        if (movimiento.tipo === "Egreso") return -1;
+        if (movimiento.tipo === "Transferencia")
+          return /recibid/i.test(movimiento.concepto || "") ? 1 : -1;
+        return 0;
+      }
+
+      function saldoMovimientosFondos(lista) {
+        return (lista || []).reduce(
+          (suma, m) => suma + signoMovimientoFondos(m) * parseMonto(m.importe),
+          0,
+        );
+      }
+
+      // Saldo total de Bancos igual al del módulo Bancos (actualizarKPIsBancos): saldos iniciales
+      // de cada cuenta + movimientos. El Balance en PDF antes ignoraba los saldos iniciales.
+      function saldoTotalBancos() {
+        const iniciales = {};
+        (state.bancosLista || []).forEach((cuenta) => {
+          iniciales[cuenta.nombre] = cuenta.saldoInicial
+            ? parseMonto(cuenta.saldoInicial)
+            : 0;
+        });
+        Object.keys(state.saldosIniciales || {}).forEach((banco) => {
+          if (!iniciales[banco])
+            iniciales[banco] = parseMonto(state.saldosIniciales[banco]);
+        });
+        return (
+          Object.values(iniciales).reduce((suma, v) => suma + v, 0) +
+          saldoMovimientosFondos(state.bancos)
+        );
+      }
+
+      // periodo: "AAAA-MM" (un mes) o "AAAA" (año completo). filtroActividad: "" (todas) o una de
+      // ACTIVIDADES / "Sin asignar" (movimientos cargados antes de que existiera el campo).
+      function construirEstadoResultados(periodo, filtroActividad = "") {
+        const ingresos = {};
+        const porActividad = {};
+        const egresos = {};
+        const excluidos = [];
+        let sinFecha = 0;
+        const movimientos = [
+          ...(state.caja || []).map((m) => ({
+            ...m,
+            origen: "Caja",
+            rubro: m.categoria || "Sin categoría",
+          })),
+          ...(state.bancos || []).map((m) => ({
+            ...m,
+            origen: "Bancos",
+            rubro:
+              m.concepto === "Intereses"
+                ? m.tipo === "Ingreso"
+                  ? "Intereses ganados"
+                  : "Gastos bancarios"
+                : RUBRO_BANCO_POR_CONCEPTO[m.concepto] || m.concepto || "Sin concepto",
+          })),
+        ];
+        movimientos.forEach((m) => {
+          const fecha = fechaMovimientoISO(m.fecha);
+          if (!fecha) {
+            sinFecha += 1;
+            return;
+          }
+          if (!fecha.startsWith(periodo)) return;
+          const importe = parseMonto(m.importe);
+          const concepto = String(m.concepto || "").trim();
+          const actividad = normalizarActividad(m.actividad) || "Sin asignar";
+          if (filtroActividad && actividad !== filtroActividad) return;
+          // Cobro de una venta que ya está en Ventas: sumarlo contaría la misma venta dos veces.
+          const cobroDeVentaRegistrada =
+            m.tipo === "Ingreso" && m.cobroDeVentaRegistrada === "Sí";
+          if (
+            m.tipo === "Transferencia" ||
+            CONCEPTOS_FUERA_DE_RESULTADO.includes(concepto) ||
+            cobroDeVentaRegistrada ||
+            (m.tipo !== "Ingreso" && m.tipo !== "Egreso")
+          ) {
+            excluidos.push({
+              fecha,
+              origen: m.origen,
+              concepto: cobroDeVentaRegistrada
+                ? `${concepto} (cobro de venta ya cargada)`
+                : concepto,
+              tipo: m.tipo,
+              importe,
+            });
+            return;
+          }
+          const destino = m.tipo === "Ingreso" ? ingresos : egresos;
+          destino[m.rubro] = (destino[m.rubro] || 0) + importe;
+          if (!porActividad[actividad])
+            porActividad[actividad] = { ingresos: 0, egresos: 0 };
+          porActividad[actividad][m.tipo === "Ingreso" ? "ingresos" : "egresos"] +=
+            importe;
+        });
+        const aLista = (grupo) =>
+          Object.entries(grupo)
+            .map(([rubro, importe]) => ({ rubro, importe }))
+            .sort((a, b) => b.importe - a.importe);
+        const totalIngresos = Object.values(ingresos).reduce((s, v) => s + v, 0);
+        const totalEgresos = Object.values(egresos).reduce((s, v) => s + v, 0);
+        return {
+          periodo,
+          ingresos: aLista(ingresos),
+          egresos: aLista(egresos),
+          excluidos,
+          sinFecha,
+          totalIngresos,
+          totalEgresos,
+          resultado: totalIngresos - totalEgresos,
+          porActividad: [...ACTIVIDADES, "Sin asignar"]
+            .filter((a) => porActividad[a])
+            .map((a) => ({
+              actividad: a,
+              ...porActividad[a],
+              resultado: porActividad[a].ingresos - porActividad[a].egresos,
+            })),
+          conEstructuraRepartida: (() => {
+            const fila = (a) => porActividad[a] || { ingresos: 0, egresos: 0 };
+            const estructura = fila("Estructura");
+            const resultadoEstructura = estructura.ingresos - estructura.egresos;
+            if (!estructura.ingresos && !estructura.egresos) return null;
+            const reparto = repartoEstructura(fila("Agrícola").egresos, fila("Ganadera").egresos);
+            const parteAgricola = (resultadoEstructura * reparto.pctAgricola) / 100;
+            return {
+              ...reparto,
+              agricola: fila("Agrícola").ingresos - fila("Agrícola").egresos + parteAgricola,
+              ganadera:
+                fila("Ganadera").ingresos - fila("Ganadera").egresos + resultadoEstructura - parteAgricola,
+            };
+          })(),
+        };
+      }
+
+      function formatearImportePdf(valor) {
+        return (
+          "$" +
+          Number(valor || 0).toLocaleString("es-AR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })
+        );
+      }
+
       function generarReporte(tipo) {
         alert("Iniciando generación de reporte: " + tipo);
         try {
@@ -22023,13 +23685,13 @@
               y += 8;
               doc.setFont(undefined, "normal");
               doc.text(
-                `Caja: $${state.caja.reduce((sum, m) => sum + (m.tipo === "Ingreso" ? parseInt(m.importe.replace(/[^0-9]/g, "")) : -parseInt(m.importe.replace(/[^0-9]/g, ""))), 0).toLocaleString()}`,
+                `Caja: ${formatearImportePdf(saldoMovimientosFondos(state.caja))}`,
                 25,
                 y,
               );
               y += 6;
               doc.text(
-                `Bancos: $${state.bancos.reduce((sum, m) => sum + (m.tipo === "Ingreso" ? parseInt(m.importe.replace(/[^0-9]/g, "")) : -parseInt(m.importe.replace(/[^0-9]/g, ""))), 0).toLocaleString()}`,
+                `Bancos: ${formatearImportePdf(saldoTotalBancos())}`,
                 25,
                 y,
               );
@@ -22061,77 +23723,105 @@
               doc.text(`Resultados Acumulados: $2.450.000`, 25, y);
               break;
 
-            case "resultados":
+            case "resultados": {
+              const periodo = String(
+                prompt(
+                  "Período del Estado de Resultados (AAAA-MM para un mes, AAAA para el año):",
+                  new Date().toISOString().slice(0, 7),
+                ) || "",
+              ).trim();
+              if (!/^\d{4}(-(0[1-9]|1[0-2]))?$/.test(periodo)) {
+                alert("Período inválido. Usá AAAA-MM (ej: 2026-09) o AAAA (ej: 2026).");
+                return;
+              }
+              const er = construirEstadoResultados(periodo);
+              const linea = (texto, x = 25, salto = 6) => {
+                if (y > 270) {
+                  doc.addPage();
+                  y = 20;
+                }
+                doc.text(texto, x, y);
+                y += salto;
+              };
               doc.text("ESTADO DE RESULTADOS", 105, y, { align: "center" });
               y += 10;
-              doc.text(`Período: Enero 2026`, 20, y);
-              y += 15;
-
-              doc.setFont(undefined, "bold");
-              doc.text("INGRESOS", 20, y);
-              y += 8;
-              doc.setFont(undefined, "normal");
-
-              const ingresosVentas = state.caja
-                .filter((m) => m.tipo === "Ingreso" && m.categoria === "Ventas")
-                .reduce(
-                  (sum, m) => sum + parseInt(m.importe.replace(/[^0-9]/g, "")),
-                  0,
-                );
-              const ingresosCobros = state.caja
-                .filter((m) => m.tipo === "Ingreso" && m.categoria === "Cobros")
-                .reduce(
-                  (sum, m) => sum + parseInt(m.importe.replace(/[^0-9]/g, "")),
-                  0,
-                );
-
-              doc.text(`Ventas: $${ingresosVentas.toLocaleString()}`, 25, y);
-              y += 6;
-              doc.text(`Cobros: $${ingresosCobros.toLocaleString()}`, 25, y);
-              y += 10;
-
-              doc.setFont(undefined, "bold");
-              doc.text("EGRESOS", 20, y);
-              y += 8;
-              doc.setFont(undefined, "normal");
-
-              const egresosSueldos = state.caja
-                .filter((m) => m.tipo === "Egreso" && m.categoria === "Sueldos")
-                .reduce(
-                  (sum, m) => sum + parseInt(m.importe.replace(/[^0-9]/g, "")),
-                  0,
-                );
-              const egresosCombustible = state.caja
-                .filter(
-                  (m) => m.tipo === "Egreso" && m.categoria === "Combustible",
-                )
-                .reduce(
-                  (sum, m) => sum + parseInt(m.importe.replace(/[^0-9]/g, "")),
-                  0,
-                );
-
-              doc.text(`Sueldos: $${egresosSueldos.toLocaleString()}`, 25, y);
-              y += 6;
-              doc.text(
-                `Combustible: $${egresosCombustible.toLocaleString()}`,
-                25,
-                y,
-              );
-              y += 10;
-
-              doc.setFont(undefined, "bold");
-              doc.text(
-                "RESULTADO NETO: $" +
-                  (
-                    ingresosVentas +
-                    ingresosCobros -
-                    egresosSueldos -
-                    egresosCombustible
-                  ).toLocaleString(),
+              linea(`Período: ${periodo}`, 20);
+              doc.setFontSize(9);
+              linea(
+                "Criterio percibido: movimientos de Caja y Bancos del período. Los cobros marcados",
                 20,
-                y,
+                5,
               );
+              linea(
+                "como cobro de una venta ya cargada no se suman (la venta ya está en Ventas).",
+                20,
+                10,
+              );
+              doc.setFontSize(12);
+
+              doc.setFont(undefined, "bold");
+              linea("INGRESOS", 20, 8);
+              doc.setFont(undefined, "normal");
+              er.ingresos.forEach((fila) =>
+                linea(`${fila.rubro}: ${formatearImportePdf(fila.importe)}`),
+              );
+              if (!er.ingresos.length) linea("Sin ingresos en el período.");
+              doc.setFont(undefined, "bold");
+              linea(`Total ingresos: ${formatearImportePdf(er.totalIngresos)}`, 25, 10);
+
+              linea("EGRESOS", 20, 8);
+              doc.setFont(undefined, "normal");
+              er.egresos.forEach((fila) =>
+                linea(`${fila.rubro}: ${formatearImportePdf(fila.importe)}`),
+              );
+              if (!er.egresos.length) linea("Sin egresos en el período.");
+              doc.setFont(undefined, "bold");
+              linea(`Total egresos: ${formatearImportePdf(er.totalEgresos)}`, 25, 10);
+
+              linea(`RESULTADO NETO: ${formatearImportePdf(er.resultado)}`, 20, 12);
+              linea("RESULTADO POR ACTIVIDAD", 20, 8);
+              doc.setFont(undefined, "normal");
+              doc.setFontSize(10);
+              er.porActividad.forEach((fila) =>
+                linea(
+                  `${fila.actividad}: ingresos ${formatearImportePdf(fila.ingresos)} · egresos ${formatearImportePdf(fila.egresos)} · resultado ${formatearImportePdf(fila.resultado)}`,
+                ),
+              );
+              if (er.conEstructuraRepartida)
+                linea(
+                  `Con estructura repartida (${er.conEstructuraRepartida.pctAgricola}% agrícola, ${er.conEstructuraRepartida.criterio}): Agrícola ${formatearImportePdf(er.conEstructuraRepartida.agricola)} · Ganadera ${formatearImportePdf(er.conEstructuraRepartida.ganadera)}`,
+                );
+              if (er.porActividad.some((fila) => fila.actividad === "Sin asignar"))
+                linea(
+                  '"Sin asignar": movimientos cargados antes del campo Actividad. Editalos para asignarla.',
+                  25,
+                  8,
+                );
+              doc.setFontSize(12);
+              y += 4;
+
+              if (er.excluidos.length) {
+                doc.setFont(undefined, "bold");
+                linea("NO INCLUIDOS EN EL RESULTADO (transferencias, plazos fijos, préstamos, adelantos)", 20, 8);
+                doc.setFont(undefined, "normal");
+                doc.setFontSize(10);
+                er.excluidos.forEach((m) =>
+                  linea(
+                    `${m.fecha} · ${m.origen} · ${m.tipo || "-"} · ${m.concepto || "-"}: ${formatearImportePdf(m.importe)}`,
+                    25,
+                    5,
+                  ),
+                );
+                doc.setFontSize(12);
+                y += 4;
+              }
+              if (er.sinFecha)
+                linea(
+                  `${er.sinFecha} movimiento(s) sin fecha válida no se incluyeron: revisalos en Caja/Bancos.`,
+                  20,
+                );
               break;
+            }
 
             case "costoLote":
               doc.text("COSTO POR LOTE", 105, y, { align: "center" });
@@ -22155,7 +23845,7 @@
                   (s) => s.lote && s.lote.includes(lote.codigo),
                 );
                 const costoSiembra = siembrasLote.reduce((sum, s) => {
-                  const costo = parseInt(s.costo.replace(/[^0-9]/g, "")) || 0;
+                  const costo = parseMonto(s.costo) || 0;
                   return sum + costo;
                 }, 0);
 
@@ -22164,7 +23854,7 @@
                   (c) => c.lote && c.lote.includes(lote.codigo),
                 );
                 const costoCosecha = cosechasLote.reduce((sum, c) => {
-                  const costo = parseInt(c.costo.replace(/[^0-9]/g, "")) || 0;
+                  const costo = parseMonto(c.costo) || 0;
                   return sum + costo;
                 }, 0);
 
@@ -22346,7 +24036,7 @@
                 }
                 cultivos[s.cultivo].ha += parseFloat(s.ha) || 0;
                 cultivos[s.cultivo].costoSiembra +=
-                  parseInt(s.costo.replace(/[^0-9]/g, "")) || 0;
+                  parseMonto(s.costo) || 0;
               });
 
               state.cosecha.forEach((c) => {
@@ -22359,7 +24049,7 @@
                   };
                 }
                 cultivos[c.cultivo].costoCosecha +=
-                  parseInt(c.costo.replace(/[^0-9]/g, "")) || 0;
+                  parseMonto(c.costo) || 0;
                 cultivos[c.cultivo].cosechas.push(c);
               });
 
@@ -23175,7 +24865,10 @@
       };
 
       function getAllowedModulesForPlan(plan) {
-        return PLAN_MODULES[plan] ?? PLAN_MODULES.basica;
+        // Premium y trial valen null (sin restricción): con "??" caían en la lista de Básica.
+        return Object.prototype.hasOwnProperty.call(PLAN_MODULES, plan)
+          ? PLAN_MODULES[plan]
+          : PLAN_MODULES.basica;
       }
 
       function planTieneModulo(modulo) {
@@ -23518,33 +25211,20 @@
         // Demo web: 10 días y nada más. Un trial agotado no se reactiva.
         // Ahora la fuente de verdad del agotamiento es el servidor (KV por IP),
         // no solo el localStorage local que el usuario puede borrar.
-        if (await consultarTrialServidor()) {
+        if ((await consultarTrialServidor()) || isTrialExhausted()) {
+          marcarTrialAgotado();
           showToast("La prueba gratuita ya venció en este equipo", "error");
           return;
         }
-        if (isTrialExhausted()) {
+
+        // El servidor registra el inicio (o devuelve el que ya tenía): reactivar no suma días.
+        const trialLicense = await crearLicenciaTrial();
+        if (!trialLicense || getTrialRemainingDays(trialLicense) <= 0) {
+          marcarTrialAgotado();
           showToast("La prueba gratuita ya venció en este equipo", "error");
           return;
         }
-
-        const now = new Date();
-        const end = new Date(now.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
-
-        const trialLicense = {
-          type: "trial",
-          key: "TRIAL-10DIAS",
-          activatedAt: now.toISOString(),
-          expiresAt: end.toISOString(),
-          deviceId: generateDeviceId(),
-        };
-
         localStorage.setItem("nexoAgroLicense", JSON.stringify(trialLicense));
-        // Registrar la IP en el servidor (KV) para que no se pueda reactivar borrando
-        // el localStorage. Fire-and-forget: no bloquea la activación local.
-        fetch("/api/pampa-trial-status?pampa_trial=1", {
-          method: "GET",
-          cache: "no-store",
-        }).catch(() => {});
         const overlay = document.getElementById("activationOverlay");
         if (overlay) {
           overlay.style.display = "none";
@@ -23602,22 +25282,12 @@
           return true;
         }
 
-        const now = new Date();
-        const end = new Date(now.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
-        const trialLicense = {
-          type: "trial",
-          key: "TRIAL-10DIAS",
-          activatedAt: now.toISOString(),
-          expiresAt: end.toISOString(),
-          deviceId: generateDeviceId(),
-        };
+        const trialLicense = await crearLicenciaTrial();
+        if (!trialLicense || getTrialRemainingDays(trialLicense) <= 0) {
+          marcarTrialAgotado();
+          return false;
+        }
         localStorage.setItem("nexoAgroLicense", JSON.stringify(trialLicense));
-        // Registrar la IP en el servidor (KV) para que no se pueda reactivar borrando
-        // el localStorage. Fire-and-forget: no bloquea la activación local.
-        fetch("/api/pampa-trial-status?pampa_trial=1", {
-          method: "GET",
-          cache: "no-store",
-        }).catch(() => {});
         const overlay = document.getElementById("activationOverlay");
         if (overlay) overlay.style.display = "none";
         showToast(`Prueba activada por ${TRIAL_DAYS} dias`, "success");
@@ -23693,8 +25363,19 @@
         }
 
         if (license.type === "trial") {
+          // El servidor manda: si la prueba venció allá (se reinició el navegador o se editó la
+          // fecha local) se corta; si allá vence antes, se toma esa fecha. Los trials locales
+          // anteriores a este control se registran con su inicio real.
+          const servidor = await estadoTrialServidor(true, license.activatedAt);
+          if (servidor.disponible && servidor.expiresAt) {
+            if (servidor.agotado || new Date(servidor.expiresAt) < new Date(license.expiresAt)) {
+              license.expiresAt = servidor.expiresAt;
+              localStorage.setItem("nexoAgroLicense", JSON.stringify(license));
+            }
+          }
           const remaining = getTrialRemainingDays(license);
           if (remaining <= 0) {
+            window.PampaTrialGuard?.mostrarAgotado?.();
             // Demo web: 10 días y nada más. Al vencer, el trial queda agotado en este
             // equipo de forma permanente: no se reactiva nunca (ni con ?trial=auto).
             localStorage.setItem("pampa_trial_exhausted", "1");
@@ -23934,6 +25615,7 @@
             if (isTrialExhausted()) {
               // Trial ya agotado en este equipo: la demo terminó. No reactivar.
               showTrialExhaustedNotice();
+              marcarTrialAgotado();
             } else if (!(await maybeAutoActivateTrialFromQuery())) {
               
             }
@@ -24849,9 +26531,7 @@
         // obtenerCostosGanaderos: compras de hacienda, alimentación, sanidad, etc.) se excluyen acá
         // para no duplicarlos — esos ya se suman más abajo dentro de costoGanadero.
         const esCostoGanaderoRent = (item) =>
-          /ganad|hacienda|animal|aliment|sanidad|vacun|veterin|forraje|balanceado|insumo ganadero/i.test(
-            `${item.categoria || ""} ${item.concepto || ""} ${item.detalle || ""}`,
-          );
+          actividadDeRegistro(item) === "Ganadera";
         // Con un filtro de campaña o cultivo activo, solo tiene sentido sumar al costo "agrícola
         // filtrado" lo que realmente se puede atribuir a un lote de ese filtro (siembra, cosecha,
         // aplicaciones, costos operativos y costos del módulo Costos con lote cargado). Mantenimiento,
@@ -24861,16 +26541,22 @@
         // el problema: cambiar el filtro no cambiaba estos números porque nunca se filtraban).
         let costosTotales = 0;
         let costosNoAsignables = 0;
+        // F6: la estructura (combustible, sueldos, gastos bancarios, mantenimiento y operativos
+        // sin lote, costos marcados Estructura) antes se sumaba entera al costo agrícola. Ahora va
+        // aparte y se reparte entre actividades al mostrar los KPIs.
+        const estructura = obtenerCostosEstructura();
+        // Solo la parte agrícola (ver montoDeActividad): lo ganadero está en costoGanadero y la
+        // estructura en obtenerCostosEstructura.
         (state.costos || []).forEach((c) => {
-          if (esCostoGanaderoRent(c)) return;
           const v = parseMonto(c.monto || c.importe || c.costo || 0);
-          if (hayFiltroLote) {
-            if (c.lote && lotesFiltrados.has(c.lote)) costosTotales += v;
-            else if (!c.lote) costosNoAsignables += v;
-            // costo con lote que no está en el filtro: no corresponde a este recorte, se ignora.
-          } else {
-            costosTotales += v;
-          }
+          // F5: costos a nivel campo (alquiler) se reparten entre sus lotes (partesDeCosto).
+          partesDeCosto(c, v)
+            .filter((parte) => parte.actividad === "Agrícola")
+            .forEach((parte) => {
+              if (!hayFiltroLote) costosTotales += parte.monto;
+              else if (!parte.lote) costosNoAsignables += parte.monto;
+              else if (lotesFiltrados.has(parte.lote)) costosTotales += parte.monto;
+            });
         });
         // Sumar costos cargados en siembra
         siembras.forEach((s) => {
@@ -24880,46 +26566,17 @@
         cosechas.forEach((c) => {
           costosTotales += parseMonto(c.costo || 0);
         });
-        // Mantenimiento, RRHH y bancos: costos generales, sin lote — no entran al total filtrado por
-        // campaña/cultivo (si no, el filtro seguiría sin cambiar estos componentes), pero sí siguen
-        // sumando al costo consolidado cuando no hay filtro activo.
-        const totalMantenimiento = (state.mantenimiento || []).reduce(
-          (sum, m) => sum + parseMonto(m.costo || 0),
-          0,
-        );
-        if (hayFiltroLote) costosNoAsignables += totalMantenimiento;
-        else costosTotales += totalMantenimiento;
-        // Aplicaciones (fitosanitarios/fertilizantes) y costos operativos de maquinaria sí tienen
-        // lote, así que si hay filtro se puede saber cuáles corresponden.
-        (state.aplicaciones || []).forEach((a) => {
-          const v = parseMonto(a.costo || 0);
+        // Aplicaciones, costos operativos y mantenimiento con lote: costo directo del lote.
+        const sumarPorLote = (item) => {
+          const v = montoDeActividad(item, parseMonto(item.costo || 0), "Agrícola");
           if (hayFiltroLote) {
-            if (a.lote && lotesFiltrados.has(a.lote)) costosTotales += v;
+            if (item.lote && lotesFiltrados.has(item.lote)) costosTotales += v;
           } else costosTotales += v;
-        });
-        (state.costosOperativos || []).forEach((c) => {
-          const v = parseMonto(c.costo || 0);
-          if (hayFiltroLote) {
-            if (c.lote && lotesFiltrados.has(c.lote)) costosTotales += v;
-          } else costosTotales += v;
-        });
-        const totalCombustible = (state.cargacombustible || []).reduce(
-          (sum, c) => sum + parseMonto(c.costoTotal || 0),
-          0,
-        );
-        if (hayFiltroLote) costosNoAsignables += totalCombustible;
-        else costosTotales += totalCombustible;
-        const totalRRHH =
-          typeof calcularCostoTotalEmpleados === "function"
-            ? calcularCostoTotalEmpleados()
-            : 0;
-        if (hayFiltroLote) costosNoAsignables += totalRRHH;
-        else costosTotales += totalRRHH;
-        const totalBancos = (state.bancos || [])
-          .filter(esCostoBancario)
-          .reduce((sum, mov) => sum + parseMonto(mov.importe || 0), 0);
-        if (hayFiltroLote) costosNoAsignables += totalBancos;
-        else costosTotales += totalBancos;
+        };
+        (state.aplicaciones || []).forEach(sumarPorLote);
+        (state.costosOperativos || []).filter((c) => loteExiste(c.lote)).forEach(sumarPorLote);
+        (state.mantenimiento || []).filter((m) => loteExiste(m.lote)).forEach(sumarPorLote);
+        if (hayFiltroLote) costosNoAsignables += estructura.total;
 
         // ---- Agrupar por cultivo ----
         const porCultivo = {};
@@ -25018,15 +26675,8 @@
         (state.alimentacion || []).forEach((a) => {
           const cat = a.categoria || "Todos";
           if (!alimentCosto[cat]) alimentCosto[cat] = 0;
-          const prod = (state.inventario || []).find(
-            (i) => i.producto === a.producto || i.codigo === a.producto,
-          );
-          const costoUnit = parseFloat(prod?.costoUnit || 0);
-          const kg =
-            parseFloat(a.racion || 0) *
-            parseFloat(a.cabezas || 0) *
-            parseFloat(a.dias || 0);
-          alimentCosto[cat] = (alimentCosto[cat] || 0) + kg * costoUnit;
+          // F4: precio del momento de la carga (antes, el precio actual del inventario).
+          alimentCosto[cat] = (alimentCosto[cat] || 0) + costoAlimentacion(a);
         });
 
         let ingresoGan = 0;
@@ -25102,7 +26752,10 @@
         // que ignoraba los costos cargados en el módulo Costos y en Mantenimiento aunque ambos ya
         // se recorrían arriba y se acumulaban en costosTotales — esa variable quedaba calculada
         // pero nunca se usaba. Se usa costosTotales (siembra + cosecha + módulo Costos + Mantenimiento).
-        const cosTotal = costosTotales + costoGanadero;
+        const cosTotal =
+          costosTotales + costoGanadero + (hayFiltroLote ? 0 : estructura.total);
+        const repartoRent = repartoEstructura(costosTotales, costoGanadero);
+        const estructuraAgricola = (estructura.total * repartoRent.pctAgricola) / 100;
         const margenTotal = ingTotal - cosTotal;
         const pct =
           ingTotal > 0 ? ((margenTotal / ingTotal) * 100).toFixed(1) : 0;
@@ -25124,7 +26777,7 @@
           "rentKpiCostoSub",
           hayFiltroLote
             ? `Agrícola (filtro): ${fmt(costosTotales)} | Ganadero: ${fmt(costoGanadero)} | Costos generales no filtrados: ${fmt(costosNoAsignables)}`
-            : `Agrícola: ${fmt(costosTotales)} | Ganadero: ${fmt(costoGanadero)}`,
+            : `Agrícola: ${fmt(costosTotales + estructuraAgricola)} | Ganadero: ${fmt(costoGanadero + estructura.total - estructuraAgricola)} (incluye estructura ${fmt(estructura.total)} repartida ${repartoRent.pctAgricola}% agrícola, ${repartoRent.criterio})`,
         );
         setEl(
           "rentKpiKgProducidos",
@@ -26209,6 +27862,13 @@
               return {};
             }
           })();
+          if (window.PampaIAAdapter?.responder) {
+            const r = window.PampaIAAdapter.responder(q);
+            addChat(String(r.texto || "").replace(/[*_]/g, "") + (r.nota ? "\n\n" + String(r.nota).replace(/[*_]/g, "") : ""), "ai");
+            document.querySelector("#piaChat .pia-msg:last-child")?.style.setProperty("white-space", "pre-line");
+            history("Consulta: " + q);
+            return;
+          }
           if (c.aiUrl && navigator.onLine && window.pampaServices?.ai) {
             addChat("Estoy consultando PampaIA…", "ai");
             try {
@@ -26307,7 +27967,7 @@
       })();
     </script>
 
-    <script src="js/pampaia-source.js?v=pampaia-published-6"></script>
+    <script src="js/pampaia-source.js?v=pampaia-published-7"></script>
     <script src="js/pampa-seat-control.js" data-product="pampa-agro"></script>
     <script>
       (function () {

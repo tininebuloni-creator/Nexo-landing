@@ -6,6 +6,12 @@ pages_build_output_dir = "./public"
 binding = "LICENSE_ACTIVATIONS"
 id = "fa014cf3b1464683ad27be93c292c23d"
 
+# Control de días del trial web (functions/api/pampa-trial-status.js, generado por
+# PAMPA N-ecosystem/scripts/sync-trial-guard.js). Mismo KV que usa el Worker de PampaAgro.
+[[kv_namespaces]]
+binding = "PAMPA_TRIAL_KV"
+id = "2578c4ec7ff3438dbe389ae8739c08aa"
+
 
 
 

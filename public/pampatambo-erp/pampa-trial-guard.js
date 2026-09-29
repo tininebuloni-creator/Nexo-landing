@@ -2,7 +2,7 @@
 // browser-trial-guard.js — CANÓNICO del lado navegador del control de días del trial web.
 //
 // Lo distribuye scripts/sync-trial-guard.js a cada app publicada en la landing como
-// pampa-trial-guard.js, reemplazando agro por el id corto de la app. Se carga en el
+// pampa-trial-guard.js, reemplazando tambo por el id corto de la app. Se carga en el
 // <head>, antes del script de la app. El servidor (trial-status-core.js) recuerda el primer
 // inicio de la prueba: su vencimiento manda sobre el que guarda el navegador.
 //
@@ -16,7 +16,7 @@
 // ahí cada app sigue con su control local de siempre.
 (function () {
   'use strict';
-  var APP_ID = 'agro';
+  var APP_ID = 'tambo';
   var ENDPOINT = '/api/pampa-trial-status';
   var CLAVE = 'pampaTrialDispositivo';
   var NO_DISPONIBLE = { disponible: false, activo: false, agotado: false };

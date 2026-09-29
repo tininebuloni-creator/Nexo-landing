@@ -150,12 +150,19 @@
     el.innerHTML = `<span style="width:10px;height:10px;border-radius:50%;display:inline-block;background:${online ? '#28a745' : '#dc3545'}"></span><span>${label}</span>`;
   }
 
-  async function readDefaultPendingRows() {
+  // Escaneo directo de IndexedDB para apps que marcan filas con pendiente_sincro sin usar Dexie.
+  // Solo recorre las bases que la app declara en options.databases: antes recorría TODAS las del
+  // origen, así que si dos apps compartían dominio (o una base con el mismo nombre, como
+  // "NexoAgroERP" en Agro y Ganadería) se enviaban al servidor filas pendientes de la otra app.
+  // Además descarta filas marcadas con el appId de otra app.
+  async function readDefaultPendingRows(appId, allowedDatabases) {
+    const permitidas = new Set((allowedDatabases || []).map(String));
+    if (!permitidas.size) return [];
     if (typeof indexedDB === 'undefined' || typeof indexedDB.databases !== 'function') return [];
     const databases = await indexedDB.databases().catch(() => []);
     const rows = [];
     for (const item of databases) {
-      if (!item || !item.name) continue;
+      if (!item || !item.name || !permitidas.has(item.name)) continue;
       const db = await new Promise((resolve) => {
         const req = indexedDB.open(item.name);
         req.onsuccess = () => resolve(req.result);
@@ -168,7 +175,7 @@
           const req = tx.objectStore(storeName).getAll();
           req.onsuccess = () => {
             (req.result || []).forEach((row) => {
-              if (row && row.pendiente_sincro === true) {
+              if (row && row.pendiente_sincro === true && (!row.appId || !appId || row.appId === appId)) {
                 rows.push({ dbName: item.name, storeName, row, operation: buildOperation(row.action || row.accion || 'UPSERT', row.table || row.module || storeName, row.data || row.datos || row, String(row.id || row.syncKey || row.createdAt)) });
               }
             });
@@ -244,6 +251,8 @@
   function activarSincronizacionAutomatica(options) {
     options = options || {};
     const appId = options.appId || 'pampa';
+    // options.databases: nombres de las bases IndexedDB propias que se escanean buscando filas con
+    // pendiente_sincro (solo si la app no usa Dexie ni getPendingOperations). Sin lista no se escanea.
     const intervalMs = options.intervalMs || 5 * 60 * 1000;
     const displayIntervalMs = options.displayIntervalMs || 10 * 1000;
     const indicatorOpts = { id: options.id, mountEl: options.mountEl, mountSelector: options.mountSelector };
@@ -254,7 +263,7 @@
       if (customRows) return customRows.length;
       const dexieCount = await countPendingOperations(appId);
       if (dexieCount) return dexieCount;
-      return (await readDefaultPendingRows()).length;
+      return (await readDefaultPendingRows(appId, options.databases)).length;
     }
 
     async function refreshDisplay() {
@@ -274,8 +283,11 @@
       try {
         const customRows = typeof options.getPendingOperations === 'function' ? await options.getPendingOperations() : null;
         const dexieRows = customRows ? [] : await getPendingOperations(appId);
-        const defaultEntries = customRows || dexieRows.length ? [] : await readDefaultPendingRows();
-        const operations = customRows || dexieRows || defaultEntries.map((entry) => entry.operation);
+        const defaultEntries = customRows || dexieRows.length ? [] : await readDefaultPendingRows(appId, options.databases);
+        // Un array vacío es "verdadero" en JS: con "customRows || dexieRows || ..." dexieRows=[]
+        // siempre ganaba y las filas del escaneo directo de IndexedDB nunca se enviaban (corrección
+        // que existía solo en la copia de pampaganaderia; ahora vive en la fuente).
+        const operations = customRows || (dexieRows.length ? dexieRows : defaultEntries.map((entry) => entry.operation));
         updateStatusIndicator(Object.assign({ pending: operations.length }, indicatorOpts));
         if (!operations.length) return;
         const result = await pushOperations(appId, operations);

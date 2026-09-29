@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pampaagro-erp-v2-mobile-nav';
+const CACHE_NAME = 'pampaagro-erp-v3-pampaia';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './logo2.png'];
 
 // Caché aparte y ESTABLE para las imágenes del mapa (tiles). No se borra cuando
@@ -16,12 +16,33 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
+// Nota de voz compartida desde WhatsApp ("Compartir → PampaAgro", share_target del manifest): se
+// guarda un momento acá y la app la procesa al abrirse (recibirNotaCompartida en index.html).
+const SHARE_CACHE_NAME = 'pampaagro-compartidos';
+const SHARE_KEY = './__compartido/nota-de-voz';
+
 self.addEventListener('activate', (event) => {
-  event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME && key !== TILES_CACHE_NAME).map((key) => caches.delete(key)))));
+  event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME && key !== TILES_CACHE_NAME && key !== SHARE_CACHE_NAME).map((key) => caches.delete(key)))));
   self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
+  if (event.request.method === 'POST' && new URL(event.request.url).pathname.endsWith('/compartir-nota-de-voz')) {
+    event.respondWith((async () => {
+      try {
+        const formulario = await event.request.formData();
+        const audio = formulario.getAll('audio').find((archivo) => archivo && archivo.size > 0);
+        if (audio) {
+          const cache = await caches.open(SHARE_CACHE_NAME);
+          await cache.put(SHARE_KEY, new Response(audio, { headers: { 'Content-Type': audio.type || 'audio/ogg' } }));
+        }
+      } catch (error) {
+        // Si falla la lectura, la app avisa que no llegó el audio.
+      }
+      return Response.redirect('./?compartido=nota-de-voz', 303);
+    })());
+    return;
+  }
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
   if (url.origin === self.location.origin && url.pathname.startsWith('/api/')) {

@@ -2,6 +2,7 @@
 <html lang="es">
   <head>
 <script id="pampa-web-trial-guard">(function(){try{const url=new URL(window.location.href);if(url.searchParams.get('trial')==='auto'){window.__pampaTrialAutoRequested=true;url.searchParams.delete('trial');window.history.replaceState({},document.title,url.pathname+url.search+url.hash);}}catch(error){}}());</script>
+    <script src="pampa-trial-guard.js"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PampaTambo ERP - Gestión Agropecuaria Integral</title>
@@ -9553,9 +9554,9 @@
         return DEFAULT_TRIAL_PUBLIC_BASE_URL;
       }
 
-      function buildTrialLicensePayload() {
-        const end = new Date();
-        end.setDate(end.getDate() + TRIAL_DAYS);
+      function buildTrialLicensePayload(vencimiento) {
+        const end = vencimiento ? new Date(vencimiento) : new Date();
+        if (!vencimiento) end.setDate(end.getDate() + TRIAL_DAYS);
         const y = end.getFullYear();
         const m = `${end.getMonth() + 1}`.padStart(2, "0");
         const d = `${end.getDate()}`.padStart(2, "0");
@@ -9570,6 +9571,38 @@
         };
       }
 
+      // Control de días del trial en el servidor (pampa-trial-guard.js, en el <head>): recuerda el
+      // primer inicio aunque se borren los datos del navegador o se use otro. Sin servidor que
+      // responda (escritorio, servidor local, sin red) → disponible: false y manda lo local.
+      const TRIAL_AGOTADO_KEY = "pampa_trial_exhausted_tambo";
+      function esEscritorio() {
+        return Boolean(window.PAMPA_DESKTOP_MODE || window.electronAPI || /\bElectron\//.test(navigator.userAgent));
+      }
+      function estadoTrialServidor(registrar, desde) {
+        const guard = window.PampaTrialGuard;
+        if (!guard || typeof guard.estado !== "function") return Promise.resolve({ disponible: false });
+        return registrar ? guard.registrar(desde) : guard.estado();
+      }
+      function marcarTrialAgotado() {
+        localStorage.setItem(TRIAL_AGOTADO_KEY, "1");
+        const actual = loadLicenseData();
+        if (actual?.payload?.trial) localStorage.removeItem(LICENSE_STORAGE_KEY);
+        window.PampaTrialGuard?.mostrarAgotado?.();
+      }
+      // Licencia de prueba con el vencimiento del servidor (reactivar no suma días). null = ya se usó.
+      async function crearLicenciaTrial() {
+        if (localStorage.getItem(TRIAL_AGOTADO_KEY) === "1") return null;
+        const servidor = await estadoTrialServidor(true);
+        if (servidor.disponible && servidor.agotado) return null;
+        const payload = buildTrialLicensePayload(servidor.disponible ? servidor.expiresAt : null);
+        if (isLicenseExpired(payload.exp)) return null;
+        return {
+          key: "TRIAL-10DIAS",
+          payload,
+          activatedAt: servidor.disponible && servidor.activatedAt ? servidor.activatedAt : new Date().toISOString(),
+        };
+      }
+
       async function activateTrial() {
         const current = loadLicenseData();
         if (current?.payload && !isLicenseExpired(current.payload.exp)) {
@@ -9577,17 +9610,18 @@
             "Ya hay una licencia activa. Desactivala antes de iniciar la prueba.";
           return;
         }
-        const payload = buildTrialLicensePayload();
-        const info = {
-          key: "TRIAL-10DIAS",
-          payload,
-          activatedAt: new Date().toISOString(),
-        };
+        const info = await crearLicenciaTrial();
+        if (!info) {
+          byId("licenseActivationMsg").textContent =
+            "La prueba gratuita de 10 días ya se usó en este equipo.";
+          marcarTrialAgotado();
+          return;
+        }
         localStorage.setItem(LICENSE_STORAGE_KEY, JSON.stringify(info));
         renderLicenseStatus();
         setRole(currentRole);
         byId("licenseActivationMsg").textContent =
-          `Prueba activada por ${TRIAL_DAYS} días.`;
+          `Prueba activada hasta el ${info.payload.exp}.`;
         recordAudit("EDICION", "trial activado");
         unlockLicenseGate();
       }
@@ -9686,12 +9720,11 @@
           if (current?.payload && !isLicenseExpired(current.payload.exp))
             return;
 
-          const payload = buildTrialLicensePayload();
-          const info = {
-            key: "TRIAL-10DIAS",
-            payload,
-            activatedAt: new Date().toISOString(),
-          };
+          const info = await crearLicenciaTrial();
+          if (!info) {
+            marcarTrialAgotado();
+            return;
+          }
           localStorage.setItem(LICENSE_STORAGE_KEY, JSON.stringify(info));
           renderLicenseStatus();
           setRole(currentRole);
@@ -9711,9 +9744,32 @@
       }
 
       async function maybeStartTrialOnEntry() {
-        const params = new URLSearchParams(window.location.search || "");
-        if (params.get("trial") === "auto" || params.get("trial_token")) return;
-        if (loadLicenseData()) return;
+        // Escritorio: ahí se pide la clave, no hay trial. Web publicada: 10 días controlados por el
+        // servidor. Una licencia paga no se toca.
+        if (esEscritorio()) return;
+        let info = loadLicenseData();
+        if (info?.payload && !info.payload.trial) return;
+        if (info?.payload?.trial) {
+          const servidor = await estadoTrialServidor(true, info.activatedAt);
+          if (servidor.disponible && servidor.expiresAt) {
+            const segunServidor = buildTrialLicensePayload(servidor.expiresAt).exp;
+            if (servidor.agotado || segunServidor < info.payload.exp) {
+              info.payload.exp = servidor.agotado ? "1970-01-01" : segunServidor;
+              localStorage.setItem(LICENSE_STORAGE_KEY, JSON.stringify(info));
+            }
+          }
+          if (isLicenseExpired(info.payload.exp)) marcarTrialAgotado();
+          renderLicenseStatus();
+          return;
+        }
+        info = await crearLicenciaTrial();
+        if (!info) {
+          marcarTrialAgotado();
+          return;
+        }
+        localStorage.setItem(LICENSE_STORAGE_KEY, JSON.stringify(info));
+        renderLicenseStatus();
+        setRole(currentRole);
       }
 
       async function activateLicenseFromInput() {
@@ -14881,22 +14937,6 @@
         }
       }
 
-      function parseFlexibleDate(value) {
-        const raw = `${value || ""}`.trim();
-        if (!raw) return null;
-
-        const iso = new Date(`${raw}T00:00:00`);
-        if (!Number.isNaN(iso.getTime())) return iso;
-
-        const slash = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-        if (!slash) return null;
-
-        const day = Number(slash[1]);
-        const month = Number(slash[2]);
-        const year = Number(slash[3]);
-        const parsed = new Date(year, month - 1, day);
-        return Number.isNaN(parsed.getTime()) ? null : parsed;
-      }
 
       function toIsoDate(dateObj) {
         if (!(dateObj instanceof Date) || Number.isNaN(dateObj.getTime()))
@@ -18927,7 +18967,7 @@
       // La web/PWA queda abierta sin gate obligatorio (se puede navegar y usar sin activar):
       // el gate de activación es solo para el .exe de escritorio. Acá solo se procesa un link
       // oficial de trial si vino por la URL (?trial=auto / trial_token).
-      maybeAutoActivateTrialFromQuery();
+      maybeAutoActivateTrialFromQuery().then(maybeStartTrialOnEntry).catch((error) => console.warn("[trial]", error));
       state.auditoria = loadAuditLogs();
       currentRole = normalizeRole(
         localStorage.getItem(ROLE_STORAGE_KEY) || "propietario",
