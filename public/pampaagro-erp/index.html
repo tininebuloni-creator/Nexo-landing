@@ -8963,7 +8963,8 @@
       const PLAN_ROLE_LIMITS = {
         basica: 4,
         profesional: 10,
-        premium: 10,
+        // Premium: 20 roles; más roles se contratan aparte (costo extra).
+        premium: 20,
         trial: Number.POSITIVE_INFINITY,
       };
 
@@ -9113,7 +9114,14 @@
           .replace(/'/g, "&#039;");
       }
 
-      function abrirRolesLicenciaModal() {
+      async function abrirRolesLicenciaModal() {
+        if (currentRole !== "propietario") {
+          if (!pinPropietarioGuardado()) {
+            showToast("Solo el propietario administra los roles.", "error");
+            return;
+          }
+          if (!(await verificarPinPropietario("Administrar los roles requiere el PIN del propietario."))) return;
+        }
         cerrarRolesLicenciaModal();
 
         const modalHTML = `
@@ -9124,7 +9132,12 @@
           <button class="modal-close" onclick="cerrarRolesLicenciaModal()">×</button>
         </div>
         <div class="modal-body">
-          <div id="rolesLicenciaInfo" style="margin-bottom:14px; font-size:12px; color:var(--text-dim);"></div>
+          <div id="rolesLicenciaInfo" style="margin-bottom:10px; font-size:12px; color:var(--text-dim);"></div>
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px; font-size:12px;">
+            <button class="btn" type="button" onclick="configurarPinPropietario()">🔒 PIN del propietario</button>
+            <span id="rolesPinEstado" style="color:var(--text-dim);"></span>
+            <a href="#" onclick="event.preventDefault(); mostrarConsultaMasRoles(getPlanRoleLimit())" style="margin-left:auto;">👥 ¿Necesitás más roles? Consultar</a>
+          </div>
 
           <div style="display:grid; grid-template-columns: 2fr 1fr auto; gap:10px; align-items:end; margin-bottom:16px;">
             <div class="form-group" style="margin:0;">
@@ -9194,11 +9207,21 @@
 
         if (addBtn) {
           const cupoCompleto = Number.isFinite(limit) && roles.length >= limit;
-          addBtn.disabled = cupoCompleto;
+          addBtn.disabled = false;
           addBtn.title = cupoCompleto
             ? `Tu plan permite hasta ${limit} roles instalados`
             : "";
         }
+
+        const pinEstado = document.getElementById("rolesPinEstado");
+
+        if (pinEstado)
+
+          pinEstado.textContent = pinPropietarioGuardado()
+
+            ? "PIN configurado: se pide para cambiar de rol."
+
+            : "Sin PIN: cualquiera puede pasar a Propietario.";
 
         if (!body) return;
 
@@ -9234,7 +9257,7 @@
         const limit = getPlanRoleLimit();
 
         if (Number.isFinite(limit) && roles.length >= limit) {
-          showToast(`Tu plan permite hasta ${limit} roles instalados`, "error");
+          mostrarConsultaMasRoles(limit);
           return;
         }
 
@@ -9347,7 +9370,163 @@
         }
       }
 
-      function cambiarRol(rol) {
+      // === PIN del propietario (4 dígitos) ===
+      // Sin PIN cualquiera podía pasarse a Propietario desde el selector. El PIN se crea la primera vez
+      // que el propietario pasa a otro rol y se pide para volver a cambiar de rol y para administrar
+      // los roles. Se guarda cifrado (SHA-256 con sal) solo en este equipo.
+      const CLAVE_PIN_PROPIETARIO = "nexoAgroPinPropietario";
+      function pinPropietarioGuardado() {
+        try {
+          const dato = JSON.parse(localStorage.getItem(CLAVE_PIN_PROPIETARIO) || "null");
+          return dato && dato.hash && dato.sal ? dato : null;
+        } catch (error) {
+          return null;
+        }
+      }
+      async function hashPin(pin, sal) {
+        const texto = `${sal}|${pin}`;
+        if (window.crypto?.subtle) {
+          const buffer = await window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(texto));
+          return Array.from(new Uint8Array(buffer), (b) => b.toString(16).padStart(2, "0")).join("");
+        }
+        let h = 5381;
+        for (const c of texto) h = ((h << 5) + h + c.charCodeAt(0)) >>> 0;
+        return "x" + h.toString(16);
+      }
+      // Ventana para escribir el PIN. crear: pide el PIN dos veces. Devuelve el PIN o null.
+      function pedirPin({ titulo, detalle = "", crear = false, olvido = false }) {
+        return new Promise((resolve) => {
+          document.getElementById("pinPropietarioModal")?.remove();
+          const campo = (id, etiqueta) =>
+            `<label class="form-label" for="${id}">${etiqueta}</label><input class="form-input" id="${id}" type="password" inputmode="numeric" autocomplete="off" maxlength="4" pattern="\\d{4}" style="letter-spacing:8px;font-size:20px;text-align:center;max-width:160px;">`;
+          document.body.insertAdjacentHTML(
+            "beforeend",
+            `<div class="modal-overlay active" id="pinPropietarioModal" style="z-index:100050;">
+              <div class="modal" style="max-width:380px;">
+                <div class="modal-header"><div class="modal-title">🔒 ${escapeHtmlRoles(titulo)}</div></div>
+                <div class="modal-body">
+                  ${detalle ? `<p style="font-size:13px;margin:0 0 12px;">${escapeHtmlRoles(detalle)}</p>` : ""}
+                  <div class="form-group">${campo("pinPropietario1", crear ? "Nuevo PIN (4 dígitos)" : "PIN del propietario")}</div>
+                  ${crear ? `<div class="form-group">${campo("pinPropietario2", "Repetí el PIN")}</div>` : ""}
+                  <div id="pinPropietarioError" style="color:var(--red);font-size:12px;min-height:16px;"></div>
+                  ${olvido ? '<a href="#" id="pinPropietarioOlvido" style="font-size:12px;">Olvidé el PIN</a>' : ""}
+                </div>
+                <div class="modal-footer">
+                  <button class="btn" type="button" id="pinPropietarioCancelar">Cancelar</button>
+                  <button class="btn btn-primary" type="button" id="pinPropietarioAceptar">Aceptar</button>
+                </div>
+              </div>
+            </div>`,
+          );
+          const modal = document.getElementById("pinPropietarioModal");
+          const cerrar = (valor) => {
+            modal.remove();
+            resolve(valor);
+          };
+          const aceptar = () => {
+            const p1 = String(document.getElementById("pinPropietario1").value || "");
+            const p2 = crear ? String(document.getElementById("pinPropietario2").value || "") : p1;
+            const error = document.getElementById("pinPropietarioError");
+            if (!/^\d{4}$/.test(p1)) return (error.textContent = "El PIN tiene que ser de 4 números.");
+            if (p1 !== p2) return (error.textContent = "Los dos PIN no coinciden.");
+            cerrar(p1);
+          };
+          document.getElementById("pinPropietarioAceptar").onclick = aceptar;
+          document.getElementById("pinPropietarioCancelar").onclick = () => cerrar(null);
+          modal.querySelectorAll("input").forEach((i) => i.addEventListener("keydown", (e) => { if (e.key === "Enter") aceptar(); }));
+          document.getElementById("pinPropietarioOlvido")?.addEventListener("click", (e) => {
+            e.preventDefault();
+            cerrar(null);
+            recuperarPinPropietario();
+          });
+          setTimeout(() => document.getElementById("pinPropietario1")?.focus(), 50);
+        });
+      }
+      async function crearPinPropietario(detalle) {
+        const pin = await pedirPin({ titulo: "Crear PIN del propietario", detalle, crear: true });
+        if (!pin) return false;
+        const sal = window.crypto?.randomUUID?.() || String(Date.now());
+        localStorage.setItem(CLAVE_PIN_PROPIETARIO, JSON.stringify({ sal, hash: await hashPin(pin, sal), creadoEn: new Date().toISOString() }));
+        showToast("PIN del propietario guardado.", "success");
+        return true;
+      }
+      async function verificarPinPropietario(detalle) {
+        const guardado = pinPropietarioGuardado();
+        if (!guardado) return true;
+        const pin = await pedirPin({ titulo: "PIN del propietario", detalle, olvido: true });
+        if (!pin) return false;
+        if ((await hashPin(pin, guardado.sal)) === guardado.hash) return true;
+        showToast("PIN incorrecto.", "error");
+        return false;
+      }
+      // Olvido: con la licencia paga se recupera pegando el token de la licencia; en la prueba, se borra.
+      function recuperarPinPropietario() {
+        const licencia = typeof getLicenseData === "function" ? getLicenseData() : null;
+        if (!licencia || licencia.type === "trial") {
+          if (!confirm("Estás en la versión de prueba: ¿borrar el PIN del propietario? Vas a poder crear uno nuevo.")) return;
+          localStorage.removeItem(CLAVE_PIN_PROPIETARIO);
+          showToast("PIN borrado. Creá uno nuevo al cambiar de rol.", "info");
+          return;
+        }
+        const token = String(prompt("Para borrar el PIN pegá el token de la licencia de la empresa:") || "").replace(/\s+/g, "");
+        if (!token) return;
+        if (token === String(licencia.key || "").replace(/\s+/g, "")) {
+          localStorage.removeItem(CLAVE_PIN_PROPIETARIO);
+          showToast("PIN borrado. Creá uno nuevo al cambiar de rol.", "success");
+        } else {
+          showToast("El token no coincide con la licencia instalada.", "error");
+        }
+      }
+      async function configurarPinPropietario() {
+        if (pinPropietarioGuardado() && !(await verificarPinPropietario("Escribí el PIN actual para cambiarlo."))) return;
+        await crearPinPropietario("Este PIN se pide para cambiar de rol y para administrar los roles.");
+        if (typeof renderRolesLicenciaModal === "function") renderRolesLicenciaModal();
+      }
+      function restaurarSelectoresRol() {
+        if (typeof actualizarRoleSelectorUI === "function") actualizarRoleSelectorUI();
+      }
+      async function cambiarRol(rol) {
+        const destino = getInstalledRoles().find((r) => r.id === rol)?.roleKey || rol;
+        if (currentRole === "propietario") {
+          if (destino !== "propietario" && !pinPropietarioGuardado()) {
+            const creado = await crearPinPropietario(
+              "Antes de pasar a otro rol, creá el PIN de 4 dígitos del propietario: lo vas a necesitar para volver a Propietario o para cambiar de rol.",
+            );
+            if (!creado) return restaurarSelectoresRol();
+          }
+          return aplicarCambioRol(rol);
+        }
+        if (!(await verificarPinPropietario("Cambiar de rol requiere el PIN del propietario."))) return restaurarSelectoresRol();
+        aplicarCambioRol(rol);
+      }
+
+      // Roles adicionales: tienen costo extra, se consultan.
+      function mostrarConsultaMasRoles(limite) {
+        document.getElementById("masRolesModal")?.remove();
+        const plan = typeof getEffectiveLicensePlan === "function" ? getEffectiveLicensePlan() : "";
+        const texto = encodeURIComponent(
+          `Hola, quiero consultar por roles/usuarios adicionales para PampaAgro (${state?.empresa?.nombre || "mi empresa"}, versión ${plan}).`,
+        );
+        document.body.insertAdjacentHTML(
+          "beforeend",
+          `<div class="modal-overlay active" id="masRolesModal" onclick="if(event.target === this) this.remove()" style="z-index:100040;">
+            <div class="modal" style="max-width:420px;">
+              <div class="modal-header"><div class="modal-title">👥 Por más roles, consultar</div><button class="modal-close" onclick="document.getElementById('masRolesModal').remove()">×</button></div>
+              <div class="modal-body">
+                <p style="font-size:14px;margin:0 0 10px;">${Number.isFinite(limite) ? `Tu versión incluye hasta <strong>${limite} roles/usuarios</strong>.` : "Tu versión incluye un cupo de roles/usuarios."}</p>
+                <p style="font-size:13px;color:var(--text-dim);margin:0;">Los roles adicionales se contratan aparte, con costo extra. Consultanos y te pasamos la propuesta.</p>
+              </div>
+              <div class="modal-footer">
+                <button class="btn" onclick="document.getElementById('masRolesModal').remove()">Cerrar</button>
+                <a class="btn btn-primary" href="https://wa.me/5492364719731?text=${texto}" target="_blank" rel="noopener noreferrer">💬 Consultar por WhatsApp</a>
+              </div>
+            </div>
+          </div>`,
+        );
+      }
+
+
+      function aplicarCambioRol(rol) {
         const roles = getInstalledRoles();
         const roleInstance = roles.find((r) => r.id === rol);
 
