@@ -1,36 +1,100 @@
 /* Marca PAMPA N S.I.A. — fuente unica: packages/share-styles/brand.css
-   Se distribuye a las apps con: npm run sync-brand */
+   Se distribuye a las apps con: npm run sync-brand
 
-/* Agrupa el logo y la insignia de servicio */
+   Los nuevos archivos logo-sm-*.png/webp ya incluyen la insignia SM.
+   Usar la clase .brand-logo--with-sm para evitar duplicarla en el HTML. */
+
+:root {
+  --brand-logo-height: 45px;
+  --brand-square-logo-height: 64px;
+}
+
+/* Agrupa el logo y la insignia de servicio. */
 .brand-container {
   display: inline-flex;
   align-items: flex-start;
   position: relative;
+  max-width: 100%;
+  line-height: 0;
 }
 
-/* Para logos que se muestran con <img> */
+/* Para logos que se muestran con <img>. */
 .brand-logo {
-  height: 45px;
-  width: auto;
   display: block;
+  width: auto;
+  max-width: 100%;
+  height: var(--brand-logo-height);
+  object-fit: contain;
+  border: 0;
 }
 
-/* Simbolo de marca de servicio */
+/* Los logos entregados son cuadrados; esta clase evita que el texto quede
+   demasiado pequeno dentro de headers y barras laterales. */
+.brand-logo--square,
+.brand-logo--with-sm {
+  width: var(--brand-square-logo-height);
+  height: var(--brand-square-logo-height);
+  aspect-ratio: 1 / 1;
+}
+
+/* La insignia ya esta incorporada en logo-sm-esquina y
+   logo-sm-superindice. Mantiene compatibilidad con el markup anterior. */
+.brand-container--with-sm .brand-badge,
+.brand-logo--with-sm + .brand-badge {
+  display: none;
+}
+
+/* Insignia externa: solo para logos antiguos que todavia no incluyen SM. */
 .brand-badge {
+  display: inline-block;
+  margin-left: 2px;
+  color: var(--brand-badge-color, #555555);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   font-size: 10px;
   font-weight: 700;
-  color: var(--brand-badge-color, #555555);
-  margin-left: 2px;
   line-height: 1;
   user-select: none;
   pointer-events: none;
 }
 
 /* Las apps con barra lateral oscura pintan el logo como fondo de .logo-icon.
-   Ahi la insignia necesita contraste claro. */
+   Ahi la insignia externa necesita contraste claro. */
 .sidebar .brand-badge,
 .logo .brand-badge,
 .brand .brand-badge {
   color: var(--brand-badge-color-dark, #c7d2d8);
+}
+
+/* Opcion para usar el logo como fondo. Los cuatro archivos deben estar en
+   la misma carpeta que este CSS. PNG queda como respaldo de WebP. */
+.logo-icon--pampa {
+  display: block;
+  width: var(--brand-square-logo-height);
+  height: var(--brand-square-logo-height);
+  aspect-ratio: 1 / 1;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.logo-icon--pampa-corner {
+  background-image: url("./logo-sm-esquina.png");
+  background-image: image-set(
+    url("./logo-sm-esquina.webp") type("image/webp"),
+    url("./logo-sm-esquina.png") type("image/png")
+  );
+}
+
+.logo-icon--pampa-inline {
+  background-image: url("./logo-sm-superindice.png");
+  background-image: image-set(
+    url("./logo-sm-superindice.webp") type("image/webp"),
+    url("./logo-sm-superindice.png") type("image/png")
+  );
+}
+
+@media (max-width: 480px) {
+  :root {
+    --brand-square-logo-height: 56px;
+  }
 }
