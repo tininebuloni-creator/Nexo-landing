@@ -7895,6 +7895,7 @@
         demoCargado: null,
         // Partes de campo por nota de voz (compartidos desde WhatsApp, archivo o WhatsApp por QR).
         partesVoz: [],
+        agronomos: [],
         campos: [],
         campañas: [],
         lotes: [],
@@ -13748,6 +13749,146 @@
             actualizarDescripcionPorTipo();
           }
         }
+
+        prepararDesplegablesEspeciales(module);
+      }
+
+      // === Desplegables con opción "Otro" (Envases y Receta agronómica) ===
+      // Pone un desplegable delante de un campo de texto del formulario; el campo de texto sigue
+      // siendo el que se guarda y solo se muestra al elegir la última opción, para escribir otro.
+      function desplegableConOtro(input, opciones, { textoOtro = "➕ Otro…", vacio = "", alElegir } = {}) {
+        if (!input || input.dataset.desplegable) return null;
+        input.dataset.desplegable = "1";
+        const OTRO = "__otro__";
+        const select = document.createElement("select");
+        select.className = "form-select";
+        select.setAttribute("aria-label", input.getAttribute("placeholder") || input.name);
+        if (vacio) select.add(new Option(vacio, ""));
+        opciones.forEach((o) => select.add(new Option(o.etiqueta || o.valor, o.valor)));
+        select.add(new Option(textoOtro, OTRO));
+        input.parentNode.insertBefore(select, input);
+        const verTexto = (ver) => {
+          input.style.display = ver ? "" : "none";
+          if (ver) input.style.marginTop = "6px";
+        };
+        const actual = String(input.value || "").trim();
+        const elegida = opciones.find((o) => o.valor === actual);
+        if (elegida) {
+          select.value = actual;
+          verTexto(false);
+        } else if (actual || (!opciones.length && !vacio)) {
+          select.value = OTRO;
+          verTexto(true);
+        } else if (vacio) {
+          select.value = "";
+          verTexto(false);
+        } else {
+          select.value = opciones[0].valor;
+          input.value = opciones[0].valor;
+          verTexto(false);
+          if (alElegir) alElegir(opciones[0]);
+        }
+        select.addEventListener("change", () => {
+          if (select.value === OTRO) {
+            input.value = "";
+            verTexto(true);
+            input.focus();
+            if (alElegir) alElegir(null);
+            return;
+          }
+          verTexto(false);
+          input.value = select.value;
+          if (alElegir) alElegir(opciones.find((o) => o.valor === select.value) || null);
+        });
+        return select;
+      }
+
+      // Productos fitosanitarios de Inventario (agroquímicos; sin semillas ni fertilizantes).
+      function fitosanitariosDeInventario() {
+        return (state.inventario || [])
+          .filter((p) => {
+            const tipo = normalizarSinAcentos(`${p.categoria || ""} ${p.ambito || ""}`);
+            const nombre = normalizarSinAcentos(p.producto || "");
+            return p.producto && /agric|fitosanit|agroqu/.test(tipo) && !/semilla|fertiliz|urea|fosfat|nitrat|cosechad/.test(nombre);
+          })
+          .map((p) => ({ valor: p.producto, etiqueta: `${p.producto}${p.capacidadEnvase ? " · envase " + p.capacidadEnvase : ""}`, insumo: p }))
+          .sort((a, b) => a.valor.localeCompare(b.valor, "es"));
+      }
+
+      // Ingenieros para la receta: primero el/los de Usuarios (perfil Ingeniero / Veterinario con
+      // nombre propio), después los guardados y los de recetas anteriores, cada uno con su matrícula.
+      function ingenierosDeUsuarios() {
+        const generico = normalizarSinAcentos(rolePermissions.administracion?.nombre || "");
+        return (typeof getInstalledRoles === "function" ? getInstalledRoles() : [])
+          .filter((r) => r.roleKey === "administracion" && r.name && normalizarSinAcentos(r.name) !== generico)
+          .map((r) => r.name.trim());
+      }
+
+      function listaAgronomos() {
+        const lista = new Map();
+        const agregar = (nombre, datos = {}, manda = false) => {
+          const n = String(nombre || "").trim();
+          if (!n) return;
+          const clave = normalizarSinAcentos(n);
+          const previo = lista.get(clave) || { nombre: n };
+          const nuevos = Object.fromEntries(Object.entries(datos).filter(([, v]) => v));
+          lista.set(clave, manda ? { ...previo, ...nuevos } : { ...nuevos, ...previo });
+        };
+        ingenierosDeUsuarios().forEach((n) => agregar(n, { deUsuarios: true }));
+        (state.agronomos || []).forEach((a) => agregar(a.nombre, a, true));
+        (state.aplicaciones || []).slice().reverse().forEach((a) =>
+          agregar(a.agronomo, { matricula: a.matricula, provinciaEmisora: a.provinciaEmisora, registroProfesional: a.registroProfesional }),
+        );
+        return [...lista.values()];
+      }
+
+      // Al guardar una receta, el ingeniero y su matrícula quedan para las próximas.
+      function recordarAgronomo(data) {
+        const nombre = String(data?.agronomo || "").trim();
+        if (!nombre) return;
+        if (!Array.isArray(state.agronomos)) state.agronomos = [];
+        const clave = normalizarSinAcentos(nombre);
+        const datos = Object.fromEntries(
+          Object.entries({
+            nombre,
+            matricula: String(data.matricula || "").trim(),
+            provinciaEmisora: String(data.provinciaEmisora || "").trim(),
+            registroProfesional: String(data.registroProfesional || "").trim(),
+          }).filter(([, v]) => v),
+        );
+        const i = state.agronomos.findIndex((a) => normalizarSinAcentos(a.nombre) === clave);
+        if (i >= 0) state.agronomos[i] = { ...state.agronomos[i], ...datos, actualizado: new Date().toISOString() };
+        else state.agronomos.push({ ...datos, actualizado: new Date().toISOString() });
+      }
+
+      function prepararDesplegablesEspeciales(module) {
+        const form = document.getElementById("modalForm");
+        if (!form) return;
+        const campo = (n) => form.querySelector(`[name="${n}"]`);
+        if (module === "residuosEnvases") {
+          desplegableConOtro(campo("producto"), fitosanitariosDeInventario(), {
+            vacio: "-- Seleccionar producto de Inventario --",
+            textoOtro: "➕ Otro producto (no está en Inventario)",
+            alElegir: (o) => {
+              const capacidad = campo("capacidad");
+              const envase = o?.insumo?.capacidadEnvase;
+              if (capacidad && envase && [...capacidad.options].some((op) => op.value === envase)) capacidad.value = envase;
+            },
+          });
+        }
+        if (module === "aplicaciones") {
+          const completar = (a) => {
+            ["matricula", "provinciaEmisora", "registroProfesional"].forEach((n) => {
+              const c = campo(n);
+              if (c) c.value = (a && a[n]) || "";
+            });
+          };
+          desplegableConOtro(
+            campo("agronomo"),
+            listaAgronomos().map((a) => ({ ...a, valor: a.nombre, etiqueta: `${a.nombre}${a.matricula ? " · Mat. " + a.matricula : ""}${a.deUsuarios ? " (Usuarios)" : ""}` })),
+            { textoOtro: "➕ Cargar otro ingeniero", alElegir: completar },
+          );
+        }
       }
 
       function evaluarVtoAplicador(
@@ -15192,7 +15333,14 @@
         }
 
         // Residuos que genera este registro (envases, bolsas, filtros): se cargan solos en Residuos.
+        if (module === "aplicaciones") recordarAgronomo(data);
         sincronizarResiduosAutomaticos(module, data, registroAnterior);
+      }
+
+      // Minúsculas y sin acentos (normalizarTextoCatalogo conserva los acentos: "agrícola" no
+      // coincidía con "agric").
+      function normalizarSinAcentos(valor) {
+        return String(valor || "").normalize("NFD").replace(/[̀-ͯ]/g, "").trim().toLowerCase();
       }
 
       /* === RESIDUOS AUTOMÁTICOS ===
@@ -15240,9 +15388,9 @@
         );
         const usada = parseMonto(cantidad);
         if (!insumo || !(usada > 0)) return [];
-        const textoInsumo = normalizarTextoCatalogo(`${insumo.categoria || ""} ${insumo.producto || ""}`);
-        if (/unidad/i.test(insumo.unidad || "") && /bolsa|big bag/.test(`${textoInsumo} ${normalizarTextoCatalogo(insumo.capacidadEnvase || "")}`)) {
-          const bigBag = /big bag/.test(`${textoInsumo} ${normalizarTextoCatalogo(insumo.capacidadEnvase || "")}`);
+        const textoInsumo = normalizarSinAcentos(`${insumo.categoria || ""} ${insumo.producto || ""}`);
+        if (/unidad/i.test(insumo.unidad || "") && /bolsa|big bag/.test(`${textoInsumo} ${normalizarSinAcentos(insumo.capacidadEnvase || "")}`)) {
+          const bigBag = /big bag/.test(`${textoInsumo} ${normalizarSinAcentos(insumo.capacidadEnvase || "")}`);
           return [{
             tabla: "residuosOtros",
             registro: {
@@ -15355,7 +15503,7 @@
         if (module === "mantenimiento") {
           if (data.estado !== "Completado") return [];
           const detalle = `Automático · ${data.descripcion || data.tipo || "mantenimiento"} de ${data.equipo || "equipo"} (${fecha})`;
-          const d = normalizarTextoCatalogo(data.descripcion || "");
+          const d = normalizarSinAcentos(data.descripcion || "");
           const out = [];
           const esService = data.tipo === "Service" || /service/.test(d);
           if (esService || /filtro|cambio de aceite/.test(d)) out.push(residuoDeMantenimiento("Filtros de aceite/aire", { fecha, detalle }));
@@ -25269,43 +25417,55 @@
 
       // Módulos bloqueados por plan
       const PLAN_MODULES = {
+        // Básica: agricultura, ganadería y administración esencial (es un ERP agropecuario: sin
+        // Hacienda y Alimentación sería solo agrícola).
         basica: [
           "dashboard",
-          "campos",
-          "lotes",
-          "campañas",
-          "siembra",
-          "aplicaciones",
-          "residuos",
-          "cosecha",
-          "inventario",
-          "caja",
-          "bancos",
-          "cuentasBancarias",
-          "cheques",
-          "creditos",
-          "costos",
           "empresa",
-          "reportes",
-        ],
-        profesional: [
-          "dashboard",
           "campos",
           "lotes",
           "campañas",
           "siembra",
           "aplicaciones",
-          "residuos",
           "cosecha",
           "inventario",
           "hacienda",
           "alimentacion",
+          "caja",
+          "bancos",
+          "cuentasBancarias",
+          "cheques",
+          "costos",
+          "reportes",
+        ],
+        // Profesional = TODO Básica + créditos, costos operativos, maquinaria, mantenimiento y
+        // rentabilidad.
+        profesional: [
+          "dashboard",
+          "empresa",
+          "campos",
+          "lotes",
+          "campañas",
+          "siembra",
+          "aplicaciones",
+          "cosecha",
+          "inventario",
+          "hacienda",
+          "alimentacion",
+          "caja",
+          "bancos",
+          "cuentasBancarias",
+          "cheques",
+          "costos",
+          "reportes",
+          "creditos",
+          "costosOperativos",
           "maquinarias",
           "mantenimiento",
           "rentabilidad",
-          "empresa",
-          "reportes",
         ],
+        // Premium (null = sin restricción): además Fiscal ARCA/SENASA, Residuos agroquímicos,
+        // Cargas de combustible, Empleados, Flujo de fondos y Documentos.
         premium: null, // null = sin restricción de plan (todos los módulos)
         trial: null, // trial = acceso completo durante el período
       };
