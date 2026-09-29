@@ -1,13 +1,29 @@
 {
   "name": "PampaGanaderia ERP",
-  "short_name": "PampaERP",
-  "description": "Gestión agropecuaria offline-first",
-  "start_url": "/",
-  "scope": "/",
+  "short_name": "PampaGanaderia",
+  "description": "Gestión ganadera offline-first",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#0f1419",
   "theme_color": "#0f1419",
   "lang": "es-AR",
+  "share_target": {
+    "action": "./compartir-nota-de-voz",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "files": [
+        {
+          "name": "audio",
+          "accept": ["audio/*", ".ogg", ".opus", ".m4a", ".mp3", ".mp4", ".wav"]
+        }
+      ]
+    }
+  },
   "icons": [
     {
       "src": "logo2.png",

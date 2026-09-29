@@ -4800,6 +4800,42 @@
                 </button>
               </div>
             </div>
+          
+            <div class="card" id="partesVozCard" style="margin-top: 16px">
+              <div class="card-header">
+                <div class="card-title">
+                  🎙️ Partes y consultas por nota de voz
+                  <span class="tag" id="partesVozContador">0</span>
+                </div>
+              </div>
+              <p class="text-muted" style="font-size: 12px; margin: 0 0 10px">
+                Desde el celular: abrí la nota de voz en WhatsApp y tocá <strong>Compartir → PampaGanaderia</strong>, o elegí un audio guardado.
+                Si es un parte ("vacuné 40 terneros", "gasté 80 mil en gasoil") queda acá para confirmar; si es una pregunta
+                ("¿cuánto gasté este mes?", "¿cuántas cabezas tengo?") PampaIA la contesta con los datos cargados y se puede mandar por WhatsApp.
+                La transcripción usa tu clave de OpenAI (queda solo en este equipo).
+              </p>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center">
+                <input id="partesVozClave" class="form-input" type="password" autocomplete="off" spellcheck="false" placeholder="Tu clave de OpenAI (sk-...)" style="max-width: 280px" />
+                <button class="topbar-btn" type="button" onclick="guardarClaveOpenAIDesdeTarjeta()">Guardar clave</button>
+                <button class="topbar-btn primary" type="button" onclick="document.getElementById('partesVozArchivo').click()">🎧 Elegir audio</button>
+                <input id="partesVozArchivo" type="file" accept="audio/*,.ogg,.opus,.m4a,.mp3,.mp4,.wav" style="display: none" onchange="procesarArchivoParteVoz(this)" />
+                <button class="topbar-btn" type="button" id="waQrVincular" onclick="vincularWhatsAppQR()" style="display: none">📱 Vincular WhatsApp</button>
+                <button class="topbar-btn" type="button" id="waQrDesvincular" onclick="desvincularWhatsAppQR()" style="display: none">Desvincular</button>
+              </div>
+              <div class="text-muted" id="partesVozEstado" style="margin-top: 8px"></div>
+              <div class="text-muted" id="waQrEstado" style="margin-top: 4px"></div>
+              <div id="waQrImagen" style="margin-top: 8px"></div>
+              <div id="partesVozReporte" style="display: none; margin-top: 8px; padding: 10px 12px; border: 1px solid var(--border, #334155); border-radius: 8px; font-size: 13px; line-height: 1.5"></div>
+              <div id="partesVozReporteAcciones" style="display: none; margin-top: 6px">
+                <button class="topbar-btn" type="button" onclick="enviarReporteConsultaWhatsApp()">💬 Enviar por WhatsApp</button>
+              </div>
+              <div style="overflow-x: auto; margin-top: 10px">
+                <table class="data-table">
+                  <thead><tr><th>Fecha</th><th>Parte</th><th>Importe</th><th></th></tr></thead>
+                  <tbody id="partesVozBody"></tbody>
+                </table>
+              </div>
+            </div>
           </div>
 
           <!-- MODULE: REPORTES -->
@@ -5231,6 +5267,7 @@
       /* === ESTADO GLOBAL === */
       const state = {
         campos: [],
+        partesVoz: [],
 sanidadEstablecimiento: {},
         sanidadCampanas: [],
         sanidadVacunaciones: [],
@@ -6840,14 +6877,71 @@ sanidadEstablecimiento: {},
 
       function getReporteTypesForWhatsApp() {
         return [
-          { value: "balance", label: "Balance General" },
-          { value: "resultados", label: "Estado de Resultados" },
-          { value: "stockGanadero", label: "Stock Ganadero" },
-          { value: "costoMaquinaria", label: "Costo Maquinaria" },
-          { value: "flujoFondos", label: "Flujo de Fondos" },
+          { value: "cambiosDiarios", label: "Reporte operativo diario completo" },
+          { value: "cambiosInstantaneos", label: "Reporte operativo instantáneo completo" },
+          { value: "resumen", label: "Resumen del día" },
+          { value: "existencias", label: "Stock ganadero (existencias por categoría)" },
+          { value: "gastos", label: "Gastos del mes" },
+          { value: "plata", label: "Caja y Bancos" },
+          { value: "alertas", label: "Alertas de desvíos" },
+          { value: "sanidad", label: "Sanidad SENASA" },
+          { value: "stock", label: "Alimento e insumos" },
+          { value: "costoCabeza", label: "Costo por cabeza" },
+          { value: "mantenimiento", label: "Equipos y mantenimiento" },
           { value: "rentabilidad", label: "Rentabilidad Ganadera" },
-          { value: "movimientos", label: "Movimientos Financieros" },
+          { value: "cumplimiento", label: "Cumplimiento SENASA y fiscal" },
+          { value: "caja90", label: "Flujo de fondos a 90 días" },
         ];
+      }
+
+      let waReporteRecognition = null;
+      let waReporteVoiceActive = false;
+
+      function toggleWhatsAppReporteVoice() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const status = document.getElementById("waReporteVozEstado");
+        const button = document.getElementById("waReporteVozBtn");
+        const detalle = document.getElementById("waReporteDetalle");
+        if (!SpeechRecognition) {
+          if (status) status.textContent = "El navegador no dispone de transcripción de voz. Probá con Chrome o Edge.";
+          return;
+        }
+        if (waReporteVoiceActive) {
+          try {
+            waReporteRecognition.stop();
+          } catch (e) {
+            console.warn(e);
+          }
+          return;
+        }
+        waReporteRecognition = new SpeechRecognition();
+        waReporteRecognition.lang = "es-AR";
+        waReporteRecognition.interimResults = true;
+        waReporteRecognition.continuous = false;
+        waReporteVoiceActive = true;
+        if (button) button.textContent = "⏹ Detener";
+        if (status) status.textContent = "🎙️ Escuchando...";
+        waReporteRecognition.onresult = (event) => {
+          let transcript = "";
+          for (let i = event.resultIndex; i < event.results.length; i++) transcript += event.results[i][0].transcript;
+          if (detalle) detalle.value = transcript.trim();
+          actualizarWhatsAppReporteMensaje();
+        };
+        waReporteRecognition.onerror = (event) => {
+          if (status) status.textContent = "No pude transcribir la voz: " + (event.error || "error");
+        };
+        waReporteRecognition.onend = () => {
+          waReporteVoiceActive = false;
+          if (button) button.textContent = "🎙️ Dictar";
+          if (status) status.textContent = detalle?.value ? "✓ Transcripción lista. Revisá el texto antes de enviar." : "";
+        };
+        try {
+          waReporteRecognition.start();
+        } catch (e) {
+          waReporteVoiceActive = false;
+          if (button) button.textContent = "🎙️ Dictar";
+          if (status) status.textContent = "No se pudo iniciar el micrófono.";
+        }
       }
 
       function getReporteLabel(tipo) {
@@ -6857,91 +6951,58 @@ sanidadEstablecimiento: {},
         return found ? found.label : tipo;
       }
 
-      function buildReporteResumenWhatsApp(tipo) {
+      // El reporte se calcula con el rol de quien lo recibe: si ese rol no ve un módulo, el
+      // mensaje lo dice en vez de mandar la información (igual que la IA y el WhatsApp por QR).
+      function buildReporteResumenWhatsApp(tipo, detalleInstantaneo = "", rolDestino = currentRole) {
         const fecha = new Date().toLocaleString("es-AR");
-        const cajaIngresos = (state.caja || [])
-          .filter((m) => m.tipo === "Ingreso")
-          .reduce((sum, m) => sum + parseImporteNumero(m.importe), 0);
-        const cajaEgresos = (state.caja || [])
-          .filter((m) => m.tipo === "Egreso")
-          .reduce((sum, m) => sum + parseImporteNumero(m.importe), 0);
-        const saldoCaja = cajaIngresos - cajaEgresos;
-        const bancosIngresos = (state.bancos || [])
-          .filter((m) => m.tipo === "Ingreso")
-          .reduce((sum, m) => sum + parseImporteNumero(m.importe), 0);
-        const bancosEgresos = (state.bancos || [])
-          .filter((m) => m.tipo === "Egreso")
-          .reduce((sum, m) => sum + parseImporteNumero(m.importe), 0);
-        const saldoBancos = bancosIngresos - bancosEgresos;
-
-        let detalle = "";
-
-        switch (tipo) {
-          case "balance":
-            detalle = [
-              `• Saldo Caja: ${formatMoney(saldoCaja)}`,
-              `• Saldo Bancos: ${formatMoney(saldoBancos)}`,
-              `• Siembras registradas: ${(state.siembra || []).length}`,
-              `• Cosechas registradas: ${(state.cosecha || []).length}`,
-            ].join("\n");
-            break;
-          case "resultados": {
-            const neto =
-              cajaIngresos + bancosIngresos - (cajaEgresos + bancosEgresos);
-            detalle = [
-              `• Ingresos Caja: ${formatMoney(cajaIngresos)}`,
-              `• Egresos Caja: ${formatMoney(cajaEgresos)}`,
-              `• Ingresos Bancos: ${formatMoney(bancosIngresos)}`,
-              `• Egresos Bancos: ${formatMoney(bancosEgresos)}`,
-              `• Resultado Neto: ${formatMoney(neto)}`,
-            ].join("\n");
-            break;
-          }
-          case "stockGanadero":
-            detalle = [
-              `• Movimientos ganaderos: ${(state.hacienda || []).length}`,
-              `• Último movimiento: ${(state.hacienda || [])[0]?.fecha || "Sin datos"}`,
-            ].join("\n");
-            break;
-          case "costoMaquinaria":
-            detalle = [
-              `• Maquinarias registradas: ${(state.maquinarias || []).length}`,
-              `• Mantenimientos registrados: ${(state.mantenimiento || []).length}`,
-            ].join("\n");
-            break;
-          case "flujoFondos":
-            detalle = [
-              `• Saldo Caja: ${formatMoney(saldoCaja)}`,
-              `• Saldo Bancos: ${formatMoney(saldoBancos)}`,
-              `• Flujo neto total: ${formatMoney(saldoCaja + saldoBancos)}`,
-            ].join("\n");
-            break;
-          case "rentabilidad":
-            detalle = [
-              `• Cultivos en siembra: ${new Set((state.siembra || []).map((s) => s.cultivo).filter(Boolean)).size}`,
-              `• Registros de siembra: ${(state.siembra || []).length}`,
-              `• Registros de cosecha: ${(state.cosecha || []).length}`,
-            ].join("\n");
-            break;
-          case "campana":
-            detalle = [
-              `• Campañas: ${(state.campañas || []).length}`,
-              `• Siembras: ${(state.siembra || []).length}`,
-              `• Cosechas: ${(state.cosecha || []).length}`,
-            ].join("\n");
-            break;
-          case "movimientos":
-            detalle = [
-              `• Movimientos de Caja: ${(state.caja || []).length}`,
-              `• Movimientos de Bancos: ${(state.bancos || []).length}`,
-              `• Saldo consolidado: ${formatMoney(saldoCaja + saldoBancos)}`,
-            ].join("\n");
-            break;
-          default:
-            detalle = "Resumen no disponible para este reporte.";
+        const empresa = state?.empresa?.nombre || "PampaGanaderia ERP";
+        const para = rolePermissions[rolDestino]?.nombre || rolDestino || "";
+        const encabezado = `📋 *${getReporteLabel(tipo)}*\nEmpresa: ${empresa}\nFecha: ${fecha}${para ? `\nPara: ${para}` : ""}`;
+        if (tipo === "cambiosDiarios" || tipo === "cambiosInstantaneos") {
+          if (!puedeVerModulo(rolDestino, "hacienda"))
+            return `${encabezado}\n\n🔒 Ese usuario no tiene acceso a Hacienda.`;
+          const hoy = new Date().toISOString().slice(0, 10);
+          const instantaneo = tipo === "cambiosInstantaneos";
+          const esDelDia = (f) => String(PampaAsistenteIA.fechaIso(f) || "").slice(0, 10) === hoy;
+          const limite = instantaneo ? 20 : Infinity;
+          const recientes = (lista, campoFecha = "fecha") =>
+            (lista || []).filter((x) => instantaneo || esDelDia(x[campoFecha])).slice(-limite);
+          const lineas = [];
+          if (instantaneo && detalleInstantaneo) lineas.push(`• Descripción: ${detalleInstantaneo}`);
+          recientes(state.hacienda).forEach((m) =>
+            lineas.push(`• ${m.tipo}: ${m.cantidad || 0} ${m.categoria || ""}${m.destino ? " · " + m.destino : ""}${m.detalle ? " · " + m.detalle : ""}`),
+          );
+          recientes(state.animalesTrazabilidad, "fechaNacimiento").forEach((a) =>
+            lineas.push(`• Alta animal: ${a.idAnimal || "-"} · RFID: ${a.rfidTag || "sin RFID"} · ${a.categoria || ""}`),
+          );
+          recientes(state.alimentacion).forEach((a) =>
+            lineas.push(`• Alimentación: ${a.categoria || ""} · ${a.cabezas || 0} cabezas · ${(parseFloat(a.cantidadTotal) || 0).toLocaleString("es-AR")} kg`),
+          );
+          recientes(state.eventosSanitarios).forEach((e) =>
+            lineas.push(`• Sanidad: ${e.tipoVacunaMedicamento || "-"} · animal ${e.idAnimal || "-"}${e.carenciaDias ? ` · carencia ${e.carenciaDias} días` : ""}`),
+          );
+          recientes(state.sanidadVacunaciones).forEach((v) =>
+            lineas.push(`• Vacunación: ${v.enfermedad || "-"} · ${v.cabezas || 0} cabezas${v.acta ? " · acta " + v.acta : ""}`),
+          );
+          return `${encabezado}\n\n${lineas.length ? lineas.join("\n") : `• Sin cambios ${instantaneo ? "recientes" : "registrados hoy"}.`}`;
         }
-
-        return `📋 *Reporte: ${getReporteLabel(tipo)}*\nEmpresa: ${state?.empresa?.nombre || "PampaGanaderia ERP"}\nFecha: ${fecha}\n\n${detalle}`;
+        const preguntas = {
+          gastos: "¿cuánto gasté este mes?",
+          plata: "¿cuánta plata hay en caja y bancos?",
+          sanidad: "¿cómo está la sanidad?",
+        };
+        let r;
+        try {
+          const asistente = asistenteIA();
+          r = preguntas[tipo]
+            ? asistente.responder(preguntas[tipo], { rol: rolDestino })
+            : asistente.ejecutar(tipo, new Date(), { rol: rolDestino });
+        } catch (error) {
+          return `${encabezado}\n\nNo se pudo calcular el reporte: ${error.message}`;
+        }
+        // El título del reporte ya está en el encabezado.
+        const cuerpo = String(r.texto || "").replace(/^\*[^\n]*\*\n\n?/, "");
+        return `${encabezado}\n\n${cuerpo}`;
       }
 
       function actualizarWhatsAppReporteMensaje() {
@@ -6950,19 +7011,24 @@ sanidadEstablecimiento: {},
         const telefonoEl = document.getElementById("waReporteTelefonoDestino");
         const mensajeEl = document.getElementById("waReporteMensaje");
         if (!tipoEl || !rolEl || !telefonoEl || !mensajeEl) return;
-
         const contactos = getWhatsAppRoleContacts();
-        telefonoEl.value = contactos[rolEl.value] || "";
-        mensajeEl.value = buildReporteResumenWhatsApp(tipoEl.value);
+        telefonoEl.value = contactos[rolEl.value] || telefonoEl.value || "";
+        const detalleGrupo = document.getElementById("waReporteDetalleGrupo");
+        if (detalleGrupo) detalleGrupo.style.display = tipoEl.value === "cambiosInstantaneos" ? "" : "none";
+        mensajeEl.value = buildReporteResumenWhatsApp(
+          tipoEl.value,
+          document.getElementById("waReporteDetalle")?.value || "",
+          rolEl.value,
+        );
       }
 
-      function abrirWhatsAppReporteModal() {
+      function abrirWhatsAppReporteModal(initialTipo = "") {
         const roles = Object.keys(rolePermissions || {});
         const reportes = getReporteTypesForWhatsApp();
         const contactos = getWhatsAppRoleContacts();
 
         const defaultRol = roles.find((r) => r !== currentRole) || currentRole;
-        const defaultReporte = "balance";
+        const defaultReporte = getReporteTypesForWhatsApp().some((rep) => rep.value === initialTipo) ? initialTipo : "resumen";
 
         const rolesOptions = roles
           .map((rol) => {
@@ -6979,7 +7045,7 @@ sanidadEstablecimiento: {},
           .join("");
 
         const phoneDefault = contactos[defaultRol] || "";
-        const msgDefault = buildReporteResumenWhatsApp(defaultReporte);
+        const msgDefault = buildReporteResumenWhatsApp(defaultReporte, "", defaultRol);
 
         const modalHTML = `
     <div class="modal-overlay active" id="whatsAppReporteModal" onclick="if(event.target === this) cerrarWhatsAppReporteModal()">
@@ -6993,6 +7059,14 @@ sanidadEstablecimiento: {},
             <label class="form-label">Reporte</label>
             <select class="form-select" id="waReporteTipo" onchange="actualizarWhatsAppReporteMensaje()">${reporteOptions}</select>
           </div>
+          <div class="form-group" id="waReporteDetalleGrupo" style="display:none;">
+            <label class="form-label">Descripción del cambio instantáneo</label>
+            <div style="display:flex;gap:8px;align-items:flex-start;">
+              <input class="form-input" id="waReporteDetalle" type="text" placeholder="Ej.: Nacieron 2 terneros en el potrero 3" oninput="actualizarWhatsAppReporteMensaje()">
+              <button class="btn" type="button" id="waReporteVozBtn" onclick="toggleWhatsAppReporteVoice()" title="Dictar la descripción">🎙️ Dictar</button>
+            </div>
+            <div id="waReporteVozEstado" style="font-size:11px;color:var(--text-dim);margin-top:6px;"></div>
+          </div>
           <div class="form-group">
             <label class="form-label">Rol destino</label>
             <select class="form-select" id="waReporteRolDestino" onchange="actualizarWhatsAppReporteMensaje()">${rolesOptions}</select>
@@ -7004,7 +7078,8 @@ sanidadEstablecimiento: {},
           </div>
           <div class="form-group">
             <label class="form-label">Mensaje</label>
-            <textarea class="form-input" id="waReporteMensaje" rows="9" style="resize:vertical;">${msgDefault}</textarea>
+            <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;">Se calcula con los permisos del rol destino: si no ve un módulo, el reporte no lo incluye.</div>
+            <textarea class="form-input" id="waReporteMensaje" rows="11" style="resize:vertical;">${escapeHtmlRoles(msgDefault)}</textarea>
           </div>
         </div>
         <div class="modal-footer">
@@ -12462,6 +12537,396 @@ safeRender("sanidad", renderSanidad);
           esc(fechaArSan(fechaIsoSan(g.fecha))), esc(g.tipo), esc(g.producto), esc(g.cabezas),
         ], "Sin registros");
       }
+
+      /* === PampaIA: capacidades por versión (asistente-ia.js) === */
+      // Mismo criterio que el menú: el rol tiene el módulo y la versión lo incluye.
+      function puedeVerModulo(rol, modulo) {
+        const permisos = rolePermissions[rol];
+        if (!permisos) return false;
+        return permisos.modulos.includes(modulo) && planTieneModulo(modulo);
+      }
+      let asistenteIACache = null;
+      function planIA() {
+        return typeof getEffectiveLicensePlan === "function" ? getEffectiveLicensePlan() : "basica";
+      }
+      function asistenteIA() {
+        if (!window.PampaAsistenteIA) throw new Error("No se cargó el asistente de PampaIA (asistente-ia.js).");
+        if (!asistenteIACache)
+          asistenteIACache = window.PampaAsistenteIA.crearAsistente({
+            estado: () => state,
+            plan: planIA,
+            rol: () => currentRole,
+            acceso: puedeVerModulo,
+            nombreRol: (rol) => rolePermissions[rol]?.nombre || "",
+            parseMonto,
+            costosDelPeriodo: costosGanaderosDelPeriodo,
+            rangoDePeriodo,
+            costoPorCategoriaVendida,
+            evaluarSanidad,
+            calcularCostoTotalEmpleados,
+          });
+        return asistenteIACache;
+      }
+      function mostrarResultadoIA(r) {
+        const html = window.PampaAsistenteIA.aHtml(r.texto) + (r.nota ? `<br><br><small>${window.PampaAsistenteIA.aHtml(r.nota)}</small>` : "");
+        const respuesta = document.getElementById("pampaIAAnswer");
+        if (respuesta) respuesta.innerHTML = html;
+        return html;
+      }
+      function montarCapacidadesIA() {
+        const panel = document.getElementById("pampaiaPanel");
+        if (!panel || !window.PampaAsistenteIA) return;
+        try {
+          window.PampaAsistenteIA.montarCapacidades(panel, asistenteIA(), mostrarResultadoIA);
+        } catch (error) {
+          console.error("PampaIA: no se pudieron mostrar las capacidades:", error);
+        }
+      }
+      // Lo usa pampaia-source.js (panel del Dashboard) para calcular con los datos de la app.
+      window.PampaIAAdapter = {
+        getState: () => state,
+        getRole: () => currentRole,
+        getPlan: planIA,
+        analizar: (tipo) => asistenteIA().analizar(tipo),
+        responder: (pregunta) => asistenteIA().responder(pregunta),
+        mostrar: mostrarResultadoIA,
+        montarCapacidades: montarCapacidadesIA,
+      };
+
+      /* === Partes y consultas por nota de voz === */
+      const CLAVE_CONFIG_IA = "pampaIA.services";
+      let ultimoReporteConsulta = "";
+      function configIA() {
+        try {
+          return JSON.parse(localStorage.getItem(CLAVE_CONFIG_IA) || "{}");
+        } catch (error) {
+          return {};
+        }
+      }
+      function guardarClaveOpenAIDesdeTarjeta() {
+        const campo = document.getElementById("partesVozClave");
+        const valor = String(campo?.value || "").trim();
+        const config = configIA();
+        config.aiKey = valor;
+        localStorage.setItem(CLAVE_CONFIG_IA, JSON.stringify(config));
+        if (campo) campo.value = "";
+        renderPartesVoz();
+        showToast(valor ? "Clave de OpenAI guardada en este equipo." : "Clave de OpenAI borrada.", "success");
+      }
+      function endpointIA() {
+        return String(configIA().aiUrl || "/api/ia").replace(/\/$/, "");
+      }
+      function blobABase64(blob) {
+        return new Promise((resolve, reject) => {
+          const lector = new FileReader();
+          lector.onload = () => resolve(String(lector.result).split(",")[1] || "");
+          lector.onerror = () => reject(new Error("No se pudo leer el audio."));
+          lector.readAsDataURL(blob);
+        });
+      }
+      function contextoVozIA() {
+        return {
+          categorias: ["Terneros", "Novillos", "Vaquillonas", "Toros", "Vacas"],
+          inventario: (state.inventario || []).map((i) => ({ codigo: i.codigo, producto: i.producto, unidad: i.unidad })),
+          lotes: (state.lotes || []).map((l) => ({ codigo: l.codigo, nombre: l.nombre })),
+          equipos: (state.equipos || []).map((e) => ({ codigo: e.codigo, equipo: e.equipo })),
+        };
+      }
+      async function procesarAudioParte(blob, origen) {
+        const clave = String(configIA().aiKey || "").trim();
+        if (!clave) {
+          showToast("Cargá tu clave de OpenAI en Empresa → Partes y consultas por nota de voz.", "error");
+          return null;
+        }
+        setEl("partesVozEstado", "Procesando la nota de voz…");
+        try {
+          const respuesta = await fetch(`${endpointIA()}/voz`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "x-ai-key": clave },
+            body: JSON.stringify({ audioBase64: await blobABase64(blob), mimeType: blob.type || "audio/ogg", contexto: contextoVozIA() }),
+          });
+          const datos = await respuesta.json().catch(() => null);
+          if (!datos) throw new Error("El servicio de IA no está disponible en esta instalación (funciona en la versión de escritorio o con tu servidor de PampaIA).");
+          if (!respuesta.ok || datos.ok === false) throw new Error(datos.error || `El servicio de IA respondió HTTP ${respuesta.status}.`);
+          const texto = String(datos.texto || "").trim();
+          if (asistenteIA().esConsulta(texto)) {
+            const r = asistenteIA().responder(texto);
+            mostrarReporteConsulta(r.nota ? `${r.texto}\n\n${r.nota}` : r.texto);
+            setEl("partesVozEstado", `Consulta: ${texto}`);
+            return { consulta: r };
+          }
+          const parte = {
+            id: window.crypto?.randomUUID?.() || `voz-${Date.now()}`,
+            origen,
+            recibidoEn: new Date().toISOString(),
+            texto,
+            datos: datos.datos || {},
+            estado: "pendiente",
+          };
+          if (!Array.isArray(state.partesVoz)) state.partesVoz = [];
+          state.partesVoz.unshift(parte);
+          saveState();
+          renderPartesVoz();
+          setEl("partesVozEstado", `Parte recibido: ${texto}`);
+          return parte;
+        } catch (error) {
+          setEl("partesVozEstado", error.message);
+          showToast(error.message, "error");
+          return null;
+        }
+      }
+      function procesarArchivoParteVoz(input) {
+        const archivo = input?.files?.[0];
+        if (input) input.value = "";
+        if (archivo) procesarAudioParte(archivo, "archivo");
+      }
+      function importeDeParte(p) {
+        const d = p.datos || {};
+        return parseMonto(d.importe ?? d.monto ?? d.costo ?? d.total ?? 0);
+      }
+      function renderPartesVoz() {
+        const clave = document.getElementById("partesVozClave");
+        if (clave) clave.placeholder = configIA().aiKey ? "Clave de OpenAI cargada ✓ (escribí otra para cambiarla)" : "Tu clave de OpenAI (sk-...)";
+        const vincular = document.getElementById("waQrVincular");
+        if (vincular) vincular.style.display = esEscritorioWhatsApp() ? "" : "none";
+        const cuerpo = document.getElementById("partesVozBody");
+        if (!cuerpo) return;
+        const esc = escapeHtmlRoles;
+        const pendientes = (state.partesVoz || []).filter((p) => p.estado === "pendiente");
+        setEl("partesVozContador", String(pendientes.length));
+        cuerpo.innerHTML = pendientes.length
+          ? pendientes
+              .map((p) => {
+                const d = p.datos || {};
+                const importe = importeDeParte(p);
+                const resumen = d.resumen || d.descripcion || d.concepto || p.texto || "";
+                return `<tr><td>${esc(String(d.fecha || p.recibidoEn || "").slice(0, 10))}</td><td>${esc(resumen)}<div class="text-muted" style="font-size:11px">${esc(p.texto || "")}</div></td><td>${importe > 0 ? "$ " + Math.round(importe).toLocaleString("es-AR") : "-"}</td><td><button class="topbar-btn primary" type="button" onclick="confirmarParteVoz('${esc(p.id)}')">Confirmar</button> <button class="topbar-btn" type="button" onclick="descartarParteVoz('${esc(p.id)}')">Descartar</button></td></tr>`;
+              })
+              .join("")
+          : '<tr><td colspan="4" style="text-align:center;color:var(--text-dim);padding:12px;">No hay partes por voz pendientes.</td></tr>';
+      }
+      // Confirmar registra el costo (si el parte trae un importe); sin importe solo se marca.
+      function confirmarParteVoz(id) {
+        const parte = (state.partesVoz || []).find((p) => p.id === id);
+        if (!parte) return;
+        const d = parte.datos || {};
+        const importe = importeDeParte(parte);
+        if (importe > 0) {
+          if (!Array.isArray(state.costos)) state.costos = [];
+          state.costos.push({
+            fecha: PampaAsistenteIA.fechaIso(d.fecha) || String(parte.recibidoEn || "").slice(0, 10),
+            categoria: /aliment|racion|balanceado|rollo/i.test(parte.texto) ? "Alimentación" : /vacun|sanid|veterin|remedio/i.test(parte.texto) ? "Sanidad" : "Otro",
+            concepto: d.resumen || d.concepto || String(parte.texto || "").slice(0, 120),
+            importe,
+            rubro: "Ganadero",
+            origen: "Nota de voz",
+            parteVozId: parte.id,
+          });
+          showToast("Costo registrado desde la nota de voz.", "success");
+        } else {
+          showToast("Parte confirmado. No tenía un importe: cargalo en el módulo que corresponda.", "info");
+        }
+        Object.assign(parte, { estado: "confirmado", confirmadoEn: new Date().toISOString() });
+        saveState();
+        renderTables();
+        renderPartesVoz();
+      }
+      function descartarParteVoz(id) {
+        const parte = (state.partesVoz || []).find((p) => p.id === id);
+        if (!parte || !confirm("¿Descartar este parte?")) return;
+        Object.assign(parte, { estado: "descartado", descartadoEn: new Date().toISOString() });
+        saveState();
+        renderPartesVoz();
+      }
+      // Muestra el mismo texto que se manda por WhatsApp (*negrita* y _cursiva_).
+      function mostrarReporteConsulta(mensaje) {
+        ultimoReporteConsulta = mensaje;
+        const caja = document.getElementById("partesVozReporte");
+        if (caja) {
+          caja.innerHTML = window.PampaAsistenteIA.aHtml(mensaje);
+          caja.style.display = "";
+        }
+        const acciones = document.getElementById("partesVozReporteAcciones");
+        if (acciones) acciones.style.display = "";
+      }
+      function enviarReporteConsultaWhatsApp() {
+        if (!ultimoReporteConsulta) return;
+        window.open(`https://wa.me/?text=${encodeURIComponent(ultimoReporteConsulta)}`, "_blank", "noopener,noreferrer");
+      }
+      // "Compartir → PampaGanaderia" desde WhatsApp: el service worker guarda el audio y abre la
+      // app con ?compartido=nota-de-voz (share_target del manifest).
+      async function recibirNotaCompartida() {
+        if (new URLSearchParams(location.search).get("compartido") !== "nota-de-voz") return;
+        history.replaceState(null, "", location.pathname);
+        if (!("caches" in window)) return;
+        const cache = await caches.open("pampaganaderia-compartidos");
+        const respuesta = await cache.match("./__compartido/nota-de-voz");
+        if (!respuesta) {
+          showToast("No llegó el audio compartido. Probá compartirlo de nuevo.", "error");
+          return;
+        }
+        await cache.delete("./__compartido/nota-de-voz");
+        if (typeof switchModule === "function") switchModule("empresa");
+        await procesarAudioParte(await respuesta.blob(), "compartido");
+      }
+      /* --- WhatsApp vinculado por QR (solo escritorio) --- */
+      let sondeoWhatsAppQR = null;
+      function esEscritorioWhatsApp() {
+        return Boolean(window.electronAPI || window.PAMPA_DESKTOP_MODE);
+      }
+      // Teléfonos de Empresa → WhatsApp por Rol, con el rol de cada uno: solo desde esos se aceptan
+      // audios, y cada pregunta se contesta con lo que ese rol puede ver.
+      function telefonosConRolEmpresa() {
+        const empresa = state.empresa || {};
+        return [
+          { telefono: empresa.whatsappPropietario, rol: "propietario" },
+          { telefono: empresa.whatsappAdministracion, rol: "administracion" },
+          { telefono: empresa.whatsappIngeniero, rol: "ingeniero" },
+        ]
+          .map((t) => ({ telefono: String(t.telefono || "").trim(), rol: t.rol }))
+          .filter((t) => t.telefono.replace(/\D/g, "").length >= 8);
+      }
+      async function apiWhatsAppQR(ruta, opciones) {
+        const respuesta = await fetch(`/api/whatsapp-qr${ruta}`, opciones);
+        const datos = await respuesta.json().catch(() => ({}));
+        if (!respuesta.ok || datos.ok === false) throw new Error(datos.error || `HTTP ${respuesta.status}`);
+        return datos;
+      }
+      async function vincularWhatsAppQR(sinPreguntar = false) {
+        if (!esEscritorioWhatsApp()) {
+          showToast("La vinculación por QR está disponible en la app de escritorio.", "info");
+          return;
+        }
+        const clave = String(configIA().aiKey || "").trim();
+        if (!clave) {
+          showToast("Primero cargá tu clave de OpenAI.", "error");
+          return;
+        }
+        const telefonos = telefonosConRolEmpresa();
+        if (!telefonos.length) {
+          showToast("Cargá los WhatsApp de los usuarios en Empresa: solo se aceptan notas de voz de esos teléfonos.", "error");
+          return;
+        }
+        if (
+          !sinPreguntar &&
+          !confirm(
+            "Vincular WhatsApp con QR NO es la integración oficial de WhatsApp:\n\n" +
+              "• WhatsApp puede bloquear el número vinculado.\n" +
+              "• Puede dejar de funcionar si WhatsApp cambia su versión web.\n" +
+              "• La PC tiene que estar encendida con PampaGanaderia abierto.\n\n" +
+              "Usá un número exclusivo para el campo, nunca tu WhatsApp personal.\n\n¿Continuar?",
+          )
+        )
+          return;
+        try {
+          await apiWhatsAppQR("/iniciar", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ clave, telefonos, contexto: contextoVozIA() }),
+          });
+          localStorage.setItem("pampaGanaderiaWhatsAppQRActivo", "1");
+          iniciarSondeoWhatsAppQR();
+        } catch (error) {
+          showToast(error.message, "error");
+        }
+      }
+      async function desvincularWhatsAppQR() {
+        if (!confirm("¿Desvincular el WhatsApp? Para volver a usarlo hay que escanear el QR de nuevo.")) return;
+        localStorage.removeItem("pampaGanaderiaWhatsAppQRActivo");
+        try {
+          await apiWhatsAppQR("/detener", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ cerrarSesion: true }),
+          });
+        } catch (error) {
+          showToast(error.message, "error");
+        }
+        actualizarEstadoWhatsAppQR();
+      }
+      function iniciarSondeoWhatsAppQR() {
+        if (sondeoWhatsAppQR) return;
+        actualizarEstadoWhatsAppQR();
+        sondeoWhatsAppQR = setInterval(actualizarEstadoWhatsAppQR, 4000);
+      }
+      async function actualizarEstadoWhatsAppQR() {
+        try {
+          const e = await apiWhatsAppQR("/estado");
+          const textos = {
+            apagado: "WhatsApp no vinculado.",
+            iniciando: "Iniciando WhatsApp…",
+            qr: "Escaneá el QR desde el WhatsApp del número del campo: Dispositivos vinculados → Vincular un dispositivo.",
+            autenticado: "Vinculando…",
+            listo: `WhatsApp vinculado ✓ · se aceptan notas de voz de ${e.telefonosHabilitados} usuario(s).`,
+            desconectado: "WhatsApp desconectado.",
+            error: `No se pudo vincular WhatsApp: ${e.detalle || "error desconocido"}`,
+          };
+          setEl("waQrEstado", textos[e.estado] || e.estado);
+          const qr = document.getElementById("waQrImagen");
+          // El QR llega como <img src="data:image/..."> generado por el servidor local.
+          if (qr) qr.innerHTML = e.estado === "qr" && /^<img [^>]*src="data:image\/[a-z]+;base64,[A-Za-z0-9+/=]+"[^>]*>$/.test(String(e.qrImg || "")) ? e.qrImg : "";
+          const desvincular = document.getElementById("waQrDesvincular");
+          if (desvincular) desvincular.style.display = e.estado === "apagado" ? "none" : "";
+          if (e.estado === "listo" && e.partesPendientes) await importarPartesWhatsAppQR();
+          if (e.estado === "listo" && e.consultasPendientes) await responderConsultasWhatsAppQR();
+          if (["apagado", "error", "desconectado"].includes(e.estado) && sondeoWhatsAppQR) {
+            clearInterval(sondeoWhatsAppQR);
+            sondeoWhatsAppQR = null;
+          }
+        } catch (error) {
+          setEl("waQrEstado", error.message);
+          if (sondeoWhatsAppQR) clearInterval(sondeoWhatsAppQR);
+          sondeoWhatsAppQR = null;
+        }
+      }
+      // Trae los partes que llegaron por WhatsApp a los datos de la app y los borra del servidor local.
+      async function importarPartesWhatsAppQR() {
+        const { partes } = await apiWhatsAppQR("/partes");
+        if (!partes?.length) return;
+        if (!Array.isArray(state.partesVoz)) state.partesVoz = [];
+        const existentes = new Set(state.partesVoz.map((p) => p.id));
+        partes
+          .filter((p) => p && p.id && !existentes.has(p.id))
+          .forEach((p) => state.partesVoz.unshift({ ...p, datos: p.datos || p.clasificacion || {} }));
+        saveState();
+        renderPartesVoz();
+        await apiWhatsAppQR("/partes/entregados", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids: partes.map((p) => p.id) }),
+        });
+        showToast(`${partes.length} parte(s) nuevo(s) por WhatsApp.`, "success");
+      }
+      // Las preguntas que llegan al WhatsApp vinculado se contestan acá, con los datos de este equipo
+      // y el rol del teléfono que preguntó.
+      async function responderConsultasWhatsAppQR() {
+        const { consultas } = await apiWhatsAppQR("/consultas");
+        for (const consulta of consultas || []) {
+          let mensaje;
+          try {
+            const r = asistenteIA().responder(consulta.texto, { rol: consulta.rol || "" });
+            mensaje = r.nota ? `${r.texto}\n\n${r.nota}` : r.texto;
+          } catch (error) {
+            console.error("No se pudo responder la consulta:", error);
+            mensaje = "⚠️ No pude calcular esa consulta ahora. Probá de nuevo en un rato o revisalo en PampaGanaderia.";
+          }
+          await apiWhatsAppQR(`/consultas/${encodeURIComponent(consulta.id)}/respuesta`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ mensaje }),
+          });
+        }
+      }
+
+      window.addEventListener("load", () => {
+        montarCapacidadesIA();
+        renderPartesVoz();
+        recibirNotaCompartida().catch((error) => showToast(error.message, "error"));
+        // La sesión de WhatsApp queda guardada: si estaba vinculado, se reconecta sin volver a preguntar.
+        if (esEscritorioWhatsApp() && localStorage.getItem("pampaGanaderiaWhatsAppQRActivo") === "1")
+          vincularWhatsAppQR(true);
+      });
+
 /* === ARCA: comprobantes fiscales (débito/crédito IVA) === */
       function abrirComprobanteArca(tipoFiscal, editIndex = null) {
         // Guardamos el _id ANTES de abrir: al guardar, el formulario reemplaza el registro
@@ -16960,7 +17425,17 @@ function costosGanaderosDelPeriodo(desde, hasta) {
         }
       }
 
-      // Service Worker deshabilitado en esta versión local (no hay sw.js en el proyecto).
+      // Service worker de la web (sw.js): app offline y "Compartir → PampaGanaderia" de notas de
+      // voz desde WhatsApp. En el escritorio (Electron) no hace falta.
+      if (
+        "serviceWorker" in navigator &&
+        location.protocol !== "file:" &&
+        !window.electronAPI
+      ) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./sw.js").catch(() => {});
+        });
+      }
 
       // Inicializar Google API (opcional, solo si está configurado)
       async function inicializarGoogleAPI() {
@@ -18322,7 +18797,8 @@ function costosGanaderosDelPeriodo(desde, hasta) {
       }
     </script>
 
-    <script src="pampaia-source.js?v=pampaia-published-6"></script>
+    <script src="asistente-ia.js?v=1"></script>
+    <script src="pampaia-source.js?v=pampaia-published-7"></script>
 
     <script>
       window.PampaCoreSync?.activarSincronizacionAutomatica({
