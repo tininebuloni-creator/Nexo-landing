@@ -114,6 +114,8 @@
       if (opciones && opciones.rol !== undefined) rolConsulta = opciones.rol;
       try { return fn(); } finally { rolConsulta = previo; }
     }
+    // Nombre del equipo (en Mantenimiento y Combustible se guarda el código).
+    const nombreEquipo = (ref) => { const e = (d.estado().equipos || []).find((x) => x.codigo === ref || x.equipo === ref); return (e && (e.equipo || e.codigo)) || ref || 'Equipo'; };
     const resultado = (titulo, lineas, extra = {}) => ({ titulo, lineas, texto: [`*${titulo}*`, '', ...lineas.map((l) => l.texto)].join('\n'), ...extra });
     const linea = (nivel, texto) => ({ nivel, texto });
 
@@ -208,7 +210,7 @@
       }
       if (veDato('services')) {
         const pend = (s.mantenimiento || []).filter((o) => o.estado === 'Pendiente' || o.estado === 'En curso');
-        if (pend.length) lineas.push(linea('warn', `• 🔧 Órdenes de mantenimiento abiertas: ${pend.map((o) => o.equipo || o.numero).join(', ')}`));
+        if (pend.length) lineas.push(linea('warn', `• 🔧 Órdenes de mantenimiento abiertas: ${pend.map((o) => nombreEquipo(o.equipo) || o.numero).join(', ')}`));
       }
       if (lineas.length === informativas) lineas.push(linea('ok', '• Sin vencimientos, faltantes ni alertas pendientes.'));
       return resultado(`📋 Resumen del día · ${fechaCorta(hoy)}`, lineas);
@@ -325,7 +327,7 @@
       const desde = sumarDias(iso(hoyFecha), -365);
       const lineas = [];
       const abiertas = (s.mantenimiento || []).filter((o) => o.estado === 'Pendiente' || o.estado === 'En curso');
-      abiertas.forEach((o) => lineas.push(linea(o.estado === 'Pendiente' ? 'warn' : 'ok', `🔧 *${o.equipo || 'Equipo'}* · ${o.tipo || ''} ${o.descripcion || ''}: ${o.estado.toLowerCase()} (${pesos(numero(o.costo))})`)));
+      abiertas.forEach((o) => lineas.push(linea(o.estado === 'Pendiente' ? 'warn' : 'ok', `🔧 *${nombreEquipo(o.equipo)}* · ${o.tipo || ''} ${o.descripcion || ''}: ${o.estado.toLowerCase()} (${pesos(numero(o.costo))})`)));
       (s.equipos || []).forEach((e) => {
         const es = (r) => r.equipo === e.codigo || r.equipo === e.equipo;
         const gasto = (s.mantenimiento || []).filter((o) => es(o) && o.estado === 'Completado' && fechaIso(o.fecha) >= desde).reduce((t, o) => t + numero(o.costo), 0);
@@ -455,7 +457,7 @@
         const lineas = [
           veDato('hacienda') ? linea('ok', `🐄 ${num(totalCabezas(cab))} cabezas · ${(s.alimentacion || []).length} registros de alimentación · ${(s.eventosSanitarios || []).length} eventos sanitarios`) : null,
           veDato('stock') ? linea(bajos.length ? 'warn' : 'ok', bajos.length ? `Bajo el mínimo: ${bajos.map((b) => b.producto).join(', ')}` : 'Alimentos e insumos sobre el stock mínimo.') : null,
-          veDato('services') ? linea(abiertas.length ? 'warn' : 'ok', abiertas.length ? `Mantenimiento abierto: ${abiertas.map((o) => o.equipo || o.numero).join(', ')}` : 'Sin órdenes de mantenimiento abiertas.') : null,
+          veDato('services') ? linea(abiertas.length ? 'warn' : 'ok', abiertas.length ? `Mantenimiento abierto: ${abiertas.map((o) => nombreEquipo(o.equipo) || o.numero).join(', ')}` : 'Sin órdenes de mantenimiento abiertas.') : null,
         ].filter(Boolean);
         return resultado('🚜 Análisis operativo', lineas.length ? lineas : [linea('warn', 'Tu usuario no tiene acceso a los módulos operativos.')]);
       }

@@ -4785,6 +4785,13 @@
               >
                 <button
                   class="topbar-btn"
+                  onclick="cargarDatosEjemplo()"
+                  title="Carga un establecimiento ganadero ficticio para recorrer la app. Se borra con Limpieza profunda."
+                >
+                  📥 Cargar datos de ejemplo
+                </button>
+                <button
+                  class="topbar-btn"
                   onclick="limpiarDatosPruebaSistema()"
                 >
                   🧹 Limpiar datos (con respaldo)
@@ -5267,8 +5274,11 @@
       /* === ESTADO GLOBAL === */
       const state = {
         campos: [],
+        lotes: [],
+        costos: [],
+        comprobantesArca: [],
         partesVoz: [],
-sanidadEstablecimiento: {},
+        sanidadEstablecimiento: {},
         sanidadCampanas: [],
         sanidadVacunaciones: [],
         sanidadAnalisis: [],
@@ -5390,7 +5400,13 @@ sanidadEstablecimiento: {},
             const savedData = JSON.parse(saved);
 
             // Merge inteligente: preservar datos por defecto si no existen en localStorage
-            Object.keys(state).forEach((key) => {
+            // Todas las claves guardadas, no solo las del estado inicial: lotes, costos y comprobantes
+            // fiscales no estaban en el estado inicial y se perdían al recargar la página.
+            new Set([...Object.keys(state), ...Object.keys(savedData)]).forEach((key) => {
+              if (state[key] === undefined && savedData[key] !== undefined) {
+                state[key] = savedData[key];
+                return;
+              }
               if (savedData[key] !== undefined) {
                 // Si el dato guardado es un array y está vacío, usar el default
                 if (
@@ -6962,30 +6978,33 @@ sanidadEstablecimiento: {},
         if (tipo === "cambiosDiarios" || tipo === "cambiosInstantaneos") {
           if (!puedeVerModulo(rolDestino, "hacienda"))
             return `${encabezado}\n\n🔒 Ese usuario no tiene acceso a Hacienda.`;
-          const hoy = new Date().toISOString().slice(0, 10);
+          // Fecha local (antes UTC: después de las 21 h tomaba el día siguiente). Diario = hoy;
+          // instantáneo = hoy y ayer (antes mandaba todo el historial).
+          const hoyLocal = new Date();
+          const iso = (f) => `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, "0")}-${String(f.getDate()).padStart(2, "0")}`;
+          const hoy = iso(hoyLocal);
+          const ayer = iso(new Date(hoyLocal.getFullYear(), hoyLocal.getMonth(), hoyLocal.getDate() - 1));
           const instantaneo = tipo === "cambiosInstantaneos";
-          const esDelDia = (f) => String(PampaAsistenteIA.fechaIso(f) || "").slice(0, 10) === hoy;
-          const limite = instantaneo ? 20 : Infinity;
-          const recientes = (lista, campoFecha = "fecha") =>
-            (lista || []).filter((x) => instantaneo || esDelDia(x[campoFecha])).slice(-limite);
+          const vale = (f) => {
+            const x = PampaAsistenteIA.fechaIso(f);
+            return x === hoy || (instantaneo && x === ayer);
+          };
+          const eventos = [];
+          const agregar = (lista, campoFecha, texto) =>
+            (lista || []).filter((x) => vale(x[campoFecha])).forEach((x) => eventos.push({ fecha: PampaAsistenteIA.fechaIso(x[campoFecha]), texto: texto(x) }));
+          agregar(state.hacienda, "fecha", (m) => `• ${m.tipo}: ${m.cantidad || 0} ${m.categoria || ""}${m.destino ? " · " + m.destino : ""}${m.detalle ? " · " + m.detalle : ""}`);
+          agregar(state.animalesTrazabilidad, "fechaNacimiento", (x) => `• Alta animal: ${x.idAnimal || "-"} · RFID: ${x.rfidTag || "sin RFID"} · ${x.categoria || ""}`);
+          agregar(state.alimentacion, "fecha", (x) => `• Alimentación: ${x.categoria || ""} · ${x.cabezas || 0} cabezas · ${(parseFloat(x.cantidadTotal) || 0).toLocaleString("es-AR")} kg`);
+          agregar(state.eventosSanitarios, "fecha", (e) => `• Sanidad: ${e.tipoVacunaMedicamento || "-"} · animal ${e.idAnimal || "-"}${e.carenciaDias ? ` · carencia ${e.carenciaDias} días` : ""}`);
+          agregar(state.sanidadVacunaciones, "fecha", (v) => `• Vacunación: ${v.enfermedad || "-"} · ${v.cabezas || 0} cabezas${v.acta ? " · acta " + v.acta : ""}`);
+          agregar(state.mantenimiento, "fecha", (o) => `• Mantenimiento: ${(state.equipos || []).find((e) => e.codigo === o.equipo)?.equipo || o.equipo || "-"} · ${o.descripcion || o.tipo || ""} (${o.estado || ""})`);
           const lineas = [];
           if (instantaneo && detalleInstantaneo) lineas.push(`• Descripción: ${detalleInstantaneo}`);
-          recientes(state.hacienda).forEach((m) =>
-            lineas.push(`• ${m.tipo}: ${m.cantidad || 0} ${m.categoria || ""}${m.destino ? " · " + m.destino : ""}${m.detalle ? " · " + m.detalle : ""}`),
-          );
-          recientes(state.animalesTrazabilidad, "fechaNacimiento").forEach((a) =>
-            lineas.push(`• Alta animal: ${a.idAnimal || "-"} · RFID: ${a.rfidTag || "sin RFID"} · ${a.categoria || ""}`),
-          );
-          recientes(state.alimentacion).forEach((a) =>
-            lineas.push(`• Alimentación: ${a.categoria || ""} · ${a.cabezas || 0} cabezas · ${(parseFloat(a.cantidadTotal) || 0).toLocaleString("es-AR")} kg`),
-          );
-          recientes(state.eventosSanitarios).forEach((e) =>
-            lineas.push(`• Sanidad: ${e.tipoVacunaMedicamento || "-"} · animal ${e.idAnimal || "-"}${e.carenciaDias ? ` · carencia ${e.carenciaDias} días` : ""}`),
-          );
-          recientes(state.sanidadVacunaciones).forEach((v) =>
-            lineas.push(`• Vacunación: ${v.enfermedad || "-"} · ${v.cabezas || 0} cabezas${v.acta ? " · acta " + v.acta : ""}`),
-          );
-          return `${encabezado}\n\n${lineas.length ? lineas.join("\n") : `• Sin cambios ${instantaneo ? "recientes" : "registrados hoy"}.`}`;
+          eventos
+            .sort((x, y) => y.fecha.localeCompare(x.fecha))
+            .slice(0, 25)
+            .forEach((e) => lineas.push(instantaneo && e.fecha === ayer ? `${e.texto} _(ayer)_` : e.texto));
+          return `${encabezado}\n\n${lineas.length ? lineas.join("\n") : `• Sin cambios ${instantaneo ? "de hoy ni de ayer" : "registrados hoy"}.`}`;
         }
         const preguntas = {
           gastos: "¿cuánto gasté este mes?",
@@ -7176,6 +7195,104 @@ sanidadEstablecimiento: {},
         }
       }
 
+      // === Datos de ejemplo ===
+      // data/datosSemillaDemo.json: establecimiento ganadero ficticio (cría y recría) con 12 meses de
+      // movimientos y alertas de SENASA y ARCA activas. Se borra con la Limpieza profunda, que antes
+      // descarga un respaldo.
+      const CATALOGOS_ESTADO = ["tiposCuentaLista", "conceptosBancos", "conceptosCaja", "operadores"];
+
+      // Vacía todos los datos operativos (listas, saldos, sanidad y empresa); conserva los catálogos.
+      function resetearDatosOperativos() {
+        Object.keys(state).forEach((clave) => {
+          if (Array.isArray(state[clave]) && !CATALOGOS_ESTADO.includes(clave)) state[clave] = [];
+        });
+        state.saldosIniciales = {};
+        state.sanidadEstablecimiento = {};
+        state.empresa = getDefaultEmpresaCleanState();
+        delete state.demoCargado;
+      }
+
+      function hayDatosCargados() {
+        return (
+          Object.keys(state).some(
+            (clave) => Array.isArray(state[clave]) && !CATALOGOS_ESTADO.includes(clave) && state[clave].length > 0,
+          ) || Boolean(state.empresa?.cuit)
+        );
+      }
+
+      // Corre las fechas del ejemplo ("AAAA-MM-DD..." y "DD/MM/AAAA" de los cheques) los días indicados,
+      // para que las alertas aparezcan activas el día que se carga.
+      function correrFechasDemo(valor, dias) {
+        if (Array.isArray(valor)) return valor.map((v) => correrFechasDemo(v, dias));
+        if (valor && typeof valor === "object")
+          return Object.fromEntries(Object.entries(valor).map(([clave, v]) => [clave, correrFechasDemo(v, dias)]));
+        if (typeof valor !== "string") return valor;
+        const iso = valor.match(/^(\d{4})-(\d{2})-(\d{2})(.*)$/);
+        const dmy = valor.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+        if (!iso && !dmy) return valor;
+        const fecha = iso ? new Date(Date.UTC(+iso[1], +iso[2] - 1, +iso[3])) : new Date(Date.UTC(+dmy[3], +dmy[2] - 1, +dmy[1]));
+        if (Number.isNaN(fecha.getTime())) return valor;
+        fecha.setUTCDate(fecha.getUTCDate() + dias);
+        const f = fecha.toISOString().slice(0, 10);
+        return iso ? f + iso[4] : f.split("-").reverse().join("/");
+      }
+
+      function diasDesdeFechaReferencia(fechaReferencia, hoy = new Date()) {
+        const [a, m, d] = String(fechaReferencia || "").split("-").map(Number);
+        if (!a || !m || !d) return 0;
+        return Math.round((Date.UTC(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()) - Date.UTC(a, m - 1, d)) / 86400000);
+      }
+
+      async function cargarDatosEjemplo() {
+        let seed;
+        try {
+          const respuesta = await fetch("data/datosSemillaDemo.json", { cache: "no-store" });
+          if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
+          seed = await respuesta.json();
+        } catch (error) {
+          showToast(`No se pudieron leer los datos de ejemplo (${error.message}).`, "error");
+          return;
+        }
+        if (seed?._meta?.tipo !== "pampa-seed-demo" || !seed.estado) {
+          showToast("El archivo de datos de ejemplo no tiene el formato esperado.", "error");
+          return;
+        }
+        if (hayDatosCargados()) {
+          if (!confirm("Ya hay datos cargados. Los datos de ejemplo los reemplazan por completo (antes se descarga un respaldo). ¿Continuar?")) return;
+          try {
+            crearRespaldoPreLimpieza("_pre-datos-ejemplo.json");
+          } catch (error) {
+            if (!confirm("No se pudo descargar el respaldo. ¿Continuar igual?")) return;
+          }
+        }
+        const datos = correrFechasDemo(seed.estado, diasDesdeFechaReferencia(seed._meta.fechaReferencia));
+        resetearDatosOperativos();
+        Object.keys(datos).forEach((clave) => {
+          state[clave] = datos[clave];
+        });
+        // Plan de cuotas de los créditos del ejemplo, con las cuotas ya vencidas como pagadas.
+        (state.creditos || []).forEach((credito) => {
+          if (Array.isArray(credito.cuotas) && credito.cuotas.length) return;
+          credito.cuotas =
+            credito.sistema === "Aleman"
+              ? generarAmortizacionAleman(credito.monto, credito.plazoMeses, credito.tea, credito.fechaInicio)
+              : generarAmortizacionFrances(credito.monto, credito.plazoMeses, credito.tea, credito.fechaInicio);
+          const inicio = new Date(`${credito.fechaInicio}T12:00:00`);
+          const meses = (new Date().getFullYear() - inicio.getFullYear()) * 12 + (new Date().getMonth() - inicio.getMonth());
+          credito.cuotaActual = Math.min(Math.max(meses + 1, 1), credito.plazoMeses);
+        });
+        state.demoCargado = { version: seed._meta.version, cargadoEn: new Date().toISOString(), empresa: datos.empresa?.nombre || "" };
+        saveState();
+        renderTables();
+        alert(
+          `Se cargó el establecimiento de ejemplo "${state.demoCargado.empresa}".\n\n` +
+            "Tiene 12 meses de hacienda (compras, nacimientos, ventas y muertes), alimentación costeada al último precio, sanidad, equipos, finanzas y comprobantes fiscales. Recorré Hacienda, Costos, Rentabilidad y PampaIA.\n\n" +
+            "Incluye alertas de SENASA, vencimientos y desvíos para que veas cómo avisa la app.\n\n" +
+            "Para borrar los datos de ejemplo y cargar los tuyos: Empresa → 🧼 Limpieza profunda. Antes de borrar se descarga un respaldo.",
+        );
+      }
+
+
       function limpiarDatosPruebaSistema() {
         const confirmar = confirm(
           "Se creará un respaldo JSON y luego se eliminarán solo registros de prueba detectados (ej: LTEST, Semilla Test, Arveja de test). ¿Continuar?",
@@ -7299,36 +7416,7 @@ sanidadEstablecimiento: {},
           if (!continuar) return;
         }
 
-        const arrayKeys = [
-          "campos",
-          "campañas",
-          "lotes",
-          "siembra",
-          "aplicaciones",
-          "cosecha",
-          "inventario",
-          "movimientoStock",
-          "maquinarias",
-          "hacienda",
-          "alimentacion",
-          "mantenimiento",
-          "caja",
-          "bancos",
-          "chequesCobrar",
-          "chequesCubrir",
-          "creditos",
-          "empleados",
-          "cuentasBancarias",
-          "flujo",
-          "costos",
-        ];
-
-        arrayKeys.forEach((key) => {
-          if (Array.isArray(state[key])) state[key] = [];
-        });
-
-        state.saldosIniciales = {};
-        state.empresa = getDefaultEmpresaCleanState();
+        resetearDatosOperativos();
 
         saveState();
         renderTables();
@@ -13165,13 +13253,18 @@ safeRender("sanidad", renderSanidad);
         if (cat.includes("sanidad")) return "Sanidad";
         if (cat.includes("mano de obra")) return "Personal";
         if (cat.includes("mantenimiento")) return "Mantenimiento";
+        const concepto = textoSinAcentos(`${c.concepto || ""} ${c.destino || ""}`);
         if (["movimientoStock", "inventario"].includes(c.origenModulo)) {
           const prod = productoDeInventario(c.destino);
           const catProd = textoSinAcentos(prod?.categoria);
           if (catProd.includes("aliment")) return "Alimentación";
           if (catProd.includes("ganader") || /vacun|antiparas|ivermect|medic|sanid/.test(textoSinAcentos(prod?.producto)))
             return "Sanidad";
+          if (catProd.includes("combust")) return "Combustible";
         }
+        if (/veterin|vacun|sanidad|antiparas|ivermect|tuberculin|brucel/.test(concepto)) return "Sanidad";
+        if (/gasoil|combustible|nafta/.test(concepto)) return "Combustible";
+        if (/aliment|balanceado|rollo|maiz|racion|silo|forraj/.test(concepto)) return "Alimentación";
         return "Otros";
       }
 
@@ -14867,7 +14960,7 @@ function costosGanaderosDelPeriodo(desde, hasta) {
               datasets: [
                 {
                   data: [],
-                  backgroundColor: ["#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#ef4444", "#64748b"],
+                  backgroundColor: ["#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#ef4444", "#0ea5e9", "#64748b"],
                   borderWidth: 0,
                 },
               ],
@@ -14896,7 +14989,7 @@ function costosGanaderosDelPeriodo(desde, hasta) {
           ? conVentas.map((f) => Math.round(f.costo / f.cabezas))
           : [0];
         chartCostoCultivo.update();
-        const grupos = ["Alimentación", "Sanidad", "Personal", "Compra de hacienda", "Mantenimiento", "Otros"];
+        const grupos = ["Alimentación", "Sanidad", "Personal", "Compra de hacienda", "Mantenimiento", "Combustible", "Otros"];
         const montos = grupos.map((g) => Math.round(items.filter((i) => i.grupo === g).reduce((a, i) => a + i.importe, 0)));
         const hay = montos.some((m) => m > 0);
         chartDesglose.data.labels = hay ? grupos : ["Sin costos en 12 meses"];
@@ -18773,6 +18866,13 @@ function costosGanaderosDelPeriodo(desde, hasta) {
             actualizarRegistroFiscal();
           }
           if (modulo === "hacienda") renderSanidad();
+          // Lo mismo que hace switchModule al abrir cada módulo (este menú no pasa por ahí):
+          // antes Rentabilidad quedaba en $0 y los mapas de Lotes y Campos no se dibujaban.
+          if (typeof actualizarLayoutDashboard === "function") actualizarLayoutDashboard(modulo);
+          if (modulo === "lotes") setTimeout(() => inicializarMapaLotes(), 100);
+          if (modulo === "campos") setTimeout(() => renderMapaCampos(), 100);
+          if (modulo === "rentabilidad") setTimeout(() => calcularRentabilidad(), 50);
+          if (modulo === "costos") renderCostos();
         },
         true,
       );
@@ -18805,7 +18905,7 @@ function costosGanaderosDelPeriodo(desde, hasta) {
       }
     </script>
 
-    <script src="asistente-ia.js?v=1"></script>
+    <script src="asistente-ia.js?v=2"></script>
     <script src="pampaia-source.js?v=pampaia-published-7"></script>
 
     <script>

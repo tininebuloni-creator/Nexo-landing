@@ -1,0 +1,1330 @@
+{
+  "_meta": {
+    "tipo": "pampa-seed-demo",
+    "version": 1,
+    "app": "PampaGanaderia",
+    "fechaReferencia": "2026-09-29",
+    "descripcion": "Establecimiento ganadero ficticio (General Villegas, Buenos Aires): cría y recría bovina en un campo propio y uno alquilado. CUIT, RENSPA, comprobantes y teléfonos son de prueba (DEMO) y no corresponden a personas o empresas reales.",
+    "fechas": "Las fechas son relativas a fechaReferencia: al cargar el ejemplo se corren al día de hoy para que las alertas aparezcan activas.",
+    "alertasIncluidas": [
+      "SENASA: 2ª campaña de aftosa sin vacunación registrada (bloquea DUT de terneros salvo faena)",
+      "SENASA: novillo con carencia activa por ivermectina",
+      "SENASA: caravana RFID sin los 15 dígitos",
+      "SENASA: DUT validado sin número oficial de SIGSA",
+      "Vencimientos: RENSPA de La Aguada y boleto de marca por vencer",
+      "Desvíos: última venta de novillos por debajo del promedio y mortandad reciente",
+      "Stock: rollos y vacuna antiaftosa bajo el mínimo",
+      "Mantenimiento: orden pendiente de la camioneta"
+    ],
+    "comoBorrar": "Para borrar los datos de ejemplo y cargar los propios: Empresa → 🧼 Limpieza profunda. Antes de borrar se descarga un respaldo."
+  },
+  "estado": {
+    "empresa": {
+      "nombre": "Estancia El Mirador S.A. (DEMO)",
+      "cuit": "30-71999002-5",
+      "condicionIva": "Responsable Inscripto",
+      "inicioActividades": "2014-05-01",
+      "direccion": "Ruta Provincial 65 km 40, General Villegas, Buenos Aires",
+      "telefono": "03388 000000",
+      "email": "demo@estancia-el-mirador.test",
+      "iibr": "901-000000-1",
+      "subtitulo": "Datos de ejemplo — cría y recría bovina",
+      "whatsappPropietario": "5493388000001",
+      "whatsappAdministracion": "5493388000002",
+      "whatsappIngeniero": "5493388000003"
+    },
+    "campos": [
+      {
+        "codigo": "C1",
+        "nombre": "El Mirador",
+        "renspa": "06.123.0.01234/00",
+        "fechaVencimientoRenspa": "2027-03-28",
+        "ubicacion": "General Villegas, Buenos Aires",
+        "superficie": 850,
+        "latitud": -35.03,
+        "longitud": -63.02,
+        "propietario": "Propio",
+        "contrato": "",
+        "valor": ""
+      },
+      {
+        "codigo": "C2",
+        "nombre": "La Aguada (alquilado)",
+        "renspa": "06.123.0.05678/00",
+        "fechaVencimientoRenspa": "2026-10-19",
+        "ubicacion": "General Villegas, Buenos Aires",
+        "superficie": 400,
+        "latitud": -35.11,
+        "longitud": -63.1,
+        "propietario": "Alquiler",
+        "contrato": "Alquiler a 3 años (DEMO)",
+        "valor": ""
+      }
+    ],
+    "lotes": [
+      {
+        "codigo": "P01",
+        "nombre": "Potrero 1 - Pastura",
+        "campo": "C1",
+        "superficie": 300,
+        "tipoSuelo": "Franco arenoso",
+        "ambiente": "Alto",
+        "latitud": -35.03,
+        "longitud": -63.02
+      },
+      {
+        "codigo": "P02",
+        "nombre": "Potrero 2 - Recría",
+        "campo": "C1",
+        "superficie": 250,
+        "tipoSuelo": "Franco",
+        "ambiente": "Medio",
+        "latitud": -35.04,
+        "longitud": -63.03
+      },
+      {
+        "codigo": "P03",
+        "nombre": "Potrero 3 - Campo natural",
+        "campo": "C1",
+        "superficie": 300,
+        "tipoSuelo": "Arenoso",
+        "ambiente": "Bajo",
+        "latitud": -35.05,
+        "longitud": -63.04
+      },
+      {
+        "codigo": "P04",
+        "nombre": "Corral de encierre",
+        "campo": "C2",
+        "superficie": 20,
+        "tipoSuelo": "Franco",
+        "ambiente": "Medio",
+        "latitud": -35.11,
+        "longitud": -63.1
+      }
+    ],
+    "inventario": [
+      {
+        "codigo": "AL-01",
+        "producto": "Balanceado recría 16%",
+        "categoria": "Alimentación",
+        "unidad": "kg",
+        "stockMinimo": 4000,
+        "costoUnit": 305,
+        "stock": 10180,
+        "_id": "INV-DEMO-AL-01"
+      },
+      {
+        "codigo": "AL-02",
+        "producto": "Rollos de alfalfa",
+        "categoria": "Alimentación",
+        "unidad": "unidades",
+        "stockMinimo": 20,
+        "costoUnit": 42000,
+        "stock": 20,
+        "_id": "INV-DEMO-AL-02"
+      },
+      {
+        "codigo": "AL-03",
+        "producto": "Maíz grano",
+        "categoria": "Alimentación",
+        "unidad": "kg",
+        "stockMinimo": 5000,
+        "costoUnit": 175,
+        "stock": 9360,
+        "_id": "INV-DEMO-AL-03"
+      },
+      {
+        "codigo": "GA-01",
+        "producto": "Vacuna antiaftosa",
+        "categoria": "Insumos Ganaderos",
+        "unidad": "dosis",
+        "stockMinimo": 100,
+        "costoUnit": 1800,
+        "stock": 80,
+        "_id": "INV-DEMO-GA-01"
+      },
+      {
+        "codigo": "GA-02",
+        "producto": "Ivermectina 1%",
+        "categoria": "Insumos Ganaderos",
+        "unidad": "litros",
+        "stockMinimo": 2,
+        "costoUnit": 38000,
+        "stock": 5,
+        "_id": "INV-DEMO-GA-02"
+      },
+      {
+        "codigo": "GA-03",
+        "producto": "Vacuna brucelosis cepa 19",
+        "categoria": "Insumos Ganaderos",
+        "unidad": "dosis",
+        "stockMinimo": 20,
+        "costoUnit": 2500,
+        "stock": 15,
+        "_id": "INV-DEMO-GA-03"
+      },
+      {
+        "codigo": "CO-01",
+        "producto": "Gasoil",
+        "categoria": "Combustibles",
+        "unidad": "litros",
+        "stockMinimo": 500,
+        "costoUnit": 1350,
+        "stock": 1800,
+        "_id": "INV-DEMO-CO-01"
+      }
+    ],
+    "movimientoStock": [
+      {
+        "_id": "MS-AL-DEMO-5",
+        "fecha": "2026-09-24",
+        "producto": "AL-03",
+        "tipo": "Salida",
+        "cantidad": 840,
+        "precioUnitario": 175,
+        "valorTotal": 147000,
+        "motivo": "Alimentación",
+        "observaciones": "Alimentación Terneros - 60 cabezas × 2 kg × 7 días",
+        "origenAlimentacionId": "AL-DEMO-5"
+      },
+      {
+        "_id": "MS-DEMO-11",
+        "fecha": "2026-09-19",
+        "producto": "CO-01",
+        "tipo": "Salida",
+        "cantidad": 1200,
+        "precioUnitario": 1350,
+        "valorTotal": 1620000,
+        "motivo": "Consumo",
+        "observaciones": "Carga de equipos (DEMO)"
+      },
+      {
+        "_id": "MS-AL-DEMO-4",
+        "fecha": "2026-09-19",
+        "producto": "AL-02",
+        "tipo": "Salida",
+        "cantidad": 40,
+        "precioUnitario": 42000,
+        "valorTotal": 1680000,
+        "motivo": "Alimentación",
+        "observaciones": "Alimentación Todos - 200 cabezas × 0.02 kg × 10 días",
+        "origenAlimentacionId": "AL-DEMO-4"
+      },
+      {
+        "_id": "MS-AL-DEMO-3",
+        "fecha": "2026-09-14",
+        "producto": "AL-01",
+        "tipo": "Salida",
+        "cantidad": 4620,
+        "precioUnitario": 320,
+        "valorTotal": 1478400,
+        "motivo": "Alimentación",
+        "observaciones": "Alimentación Novillos - 110 cabezas × 3 kg × 14 días",
+        "origenAlimentacionId": "AL-DEMO-3"
+      },
+      {
+        "_id": "MS-DEMO-08",
+        "fecha": "2026-09-09",
+        "producto": "AL-01",
+        "tipo": "Entrada",
+        "cantidad": 10000,
+        "precioUnitario": 320,
+        "valorTotal": 3200000,
+        "motivo": "Compra",
+        "rubro": "Ganadero",
+        "nroComprobante": "A-0005-00004612",
+        "proveedor": "Forrajería Pampa (DEMO)",
+        "iva": 336000,
+        "observaciones": "DEMO"
+      },
+      {
+        "_id": "MS-DEMO-07",
+        "fecha": "2026-09-04",
+        "producto": "CO-01",
+        "tipo": "Entrada",
+        "cantidad": 3000,
+        "precioUnitario": 1350,
+        "valorTotal": 4050000,
+        "motivo": "Compra",
+        "rubro": "Ganadero",
+        "nroComprobante": "A-0010-00120334",
+        "proveedor": "YPF Agro (DEMO)",
+        "iva": 850500,
+        "observaciones": "DEMO"
+      },
+      {
+        "_id": "MS-DEMO-06",
+        "fecha": "2026-08-30",
+        "producto": "GA-02",
+        "tipo": "Entrada",
+        "cantidad": 5,
+        "precioUnitario": 38000,
+        "valorTotal": 190000,
+        "motivo": "Compra",
+        "rubro": "Ganadero",
+        "nroComprobante": "A-0003-00011954",
+        "proveedor": "Veterinaria del Oeste (DEMO)",
+        "iva": 39900,
+        "observaciones": "DEMO"
+      },
+      {
+        "_id": "MS-AL-DEMO-2",
+        "fecha": "2026-08-25",
+        "producto": "AL-03",
+        "tipo": "Salida",
+        "cantidad": 4800,
+        "precioUnitario": 175,
+        "valorTotal": 840000,
+        "motivo": "Alimentación",
+        "observaciones": "Alimentación Vaquillonas - 80 cabezas × 4 kg × 15 días",
+        "origenAlimentacionId": "AL-DEMO-2"
+      },
+      {
+        "_id": "MS-DEMO-05",
+        "fecha": "2026-08-20",
+        "producto": "AL-03",
+        "tipo": "Entrada",
+        "cantidad": 15000,
+        "precioUnitario": 175,
+        "valorTotal": 2625000,
+        "motivo": "Compra",
+        "rubro": "Ganadero",
+        "nroComprobante": "A-0002-00009870",
+        "proveedor": "Acopio Villegas (DEMO)",
+        "iva": 275625,
+        "observaciones": "DEMO"
+      },
+      {
+        "_id": "MS-AL-DEMO-1",
+        "fecha": "2026-08-05",
+        "producto": "AL-01",
+        "tipo": "Salida",
+        "cantidad": 7200,
+        "precioUnitario": 290,
+        "valorTotal": 2088000,
+        "motivo": "Alimentación",
+        "observaciones": "Alimentación Novillos - 120 cabezas × 3 kg × 20 días",
+        "origenAlimentacionId": "AL-DEMO-1"
+      },
+      {
+        "_id": "MS-DEMO-04",
+        "fecha": "2026-07-31",
+        "producto": "AL-02",
+        "tipo": "Entrada",
+        "cantidad": 60,
+        "precioUnitario": 42000,
+        "valorTotal": 2520000,
+        "motivo": "Compra",
+        "rubro": "Ganadero",
+        "nroComprobante": "A-0005-00004490",
+        "proveedor": "Forrajería Pampa (DEMO)",
+        "iva": 264600,
+        "observaciones": "DEMO"
+      },
+      {
+        "_id": "MS-DEMO-03",
+        "fecha": "2026-07-16",
+        "producto": "AL-01",
+        "tipo": "Entrada",
+        "cantidad": 12000,
+        "precioUnitario": 290,
+        "valorTotal": 3480000,
+        "motivo": "Compra",
+        "rubro": "Ganadero",
+        "nroComprobante": "A-0005-00004411",
+        "proveedor": "Forrajería Pampa (DEMO)",
+        "iva": 365400,
+        "observaciones": "DEMO"
+      },
+      {
+        "_id": "MS-DEMO-09",
+        "fecha": "2026-03-23",
+        "producto": "GA-01",
+        "tipo": "Salida",
+        "cantidad": 320,
+        "precioUnitario": 1800,
+        "valorTotal": 576000,
+        "motivo": "Consumo",
+        "observaciones": "1ª campaña antiaftosa (DEMO)"
+      },
+      {
+        "_id": "MS-DEMO-10",
+        "fecha": "2026-03-23",
+        "producto": "GA-03",
+        "tipo": "Salida",
+        "cantidad": 45,
+        "precioUnitario": 2500,
+        "valorTotal": 112500,
+        "motivo": "Consumo",
+        "observaciones": "Brucelosis terneras 3 a 8 meses (DEMO)"
+      },
+      {
+        "_id": "MS-DEMO-01",
+        "fecha": "2026-03-13",
+        "producto": "GA-01",
+        "tipo": "Entrada",
+        "cantidad": 400,
+        "precioUnitario": 1800,
+        "valorTotal": 720000,
+        "motivo": "Compra",
+        "rubro": "Ganadero",
+        "nroComprobante": "A-0003-00011201",
+        "proveedor": "Veterinaria del Oeste (DEMO)",
+        "iva": 75600,
+        "observaciones": "DEMO"
+      },
+      {
+        "_id": "MS-DEMO-02",
+        "fecha": "2026-03-13",
+        "producto": "GA-03",
+        "tipo": "Entrada",
+        "cantidad": 60,
+        "precioUnitario": 2500,
+        "valorTotal": 150000,
+        "motivo": "Compra",
+        "rubro": "Ganadero",
+        "nroComprobante": "A-0003-00011201-B",
+        "proveedor": "Veterinaria del Oeste (DEMO)",
+        "iva": 15750,
+        "observaciones": "DEMO"
+      }
+    ],
+    "alimentacion": [
+      {
+        "_id": "AL-DEMO-1",
+        "fecha": "2026-08-05",
+        "categoria": "Novillos",
+        "producto": "AL-01",
+        "racion": 3,
+        "cabezas": 120,
+        "dias": 20,
+        "cantidadTotal": 7200,
+        "costoUnitario": 290,
+        "costoTotal": 2088000,
+        "observaciones": "DEMO"
+      },
+      {
+        "_id": "AL-DEMO-2",
+        "fecha": "2026-08-25",
+        "categoria": "Vaquillonas",
+        "producto": "AL-03",
+        "racion": 4,
+        "cabezas": 80,
+        "dias": 15,
+        "cantidadTotal": 4800,
+        "costoUnitario": 175,
+        "costoTotal": 840000,
+        "observaciones": "DEMO"
+      },
+      {
+        "_id": "AL-DEMO-3",
+        "fecha": "2026-09-14",
+        "categoria": "Novillos",
+        "producto": "AL-01",
+        "racion": 3,
+        "cabezas": 110,
+        "dias": 14,
+        "cantidadTotal": 4620,
+        "costoUnitario": 320,
+        "costoTotal": 1478400,
+        "observaciones": "DEMO"
+      },
+      {
+        "_id": "AL-DEMO-4",
+        "fecha": "2026-09-19",
+        "categoria": "Todos",
+        "producto": "AL-02",
+        "racion": 0.02,
+        "cabezas": 200,
+        "dias": 10,
+        "cantidadTotal": 40,
+        "costoUnitario": 42000,
+        "costoTotal": 1680000,
+        "observaciones": "DEMO"
+      },
+      {
+        "_id": "AL-DEMO-5",
+        "fecha": "2026-09-24",
+        "categoria": "Terneros",
+        "producto": "AL-03",
+        "racion": 2,
+        "cabezas": 60,
+        "dias": 7,
+        "cantidadTotal": 840,
+        "costoUnitario": 175,
+        "costoTotal": 147000,
+        "observaciones": "DEMO"
+      }
+    ],
+    "hacienda": [
+      {
+        "_id": "HA-DEMO-INI-0",
+        "fecha": "2025-10-04",
+        "tipo": "Compra",
+        "categoria": "Novillos",
+        "cantidad": 220,
+        "detalle": "Existencia inicial del ejercicio (DEMO)",
+        "destino": "El Mirador",
+        "valor": 0
+      },
+      {
+        "_id": "HA-DEMO-INI-1",
+        "fecha": "2025-10-04",
+        "tipo": "Compra",
+        "categoria": "Vaquillonas",
+        "cantidad": 90,
+        "detalle": "Existencia inicial del ejercicio (DEMO)",
+        "destino": "El Mirador",
+        "valor": 0
+      },
+      {
+        "_id": "HA-DEMO-INI-2",
+        "fecha": "2025-10-04",
+        "tipo": "Compra",
+        "categoria": "Vacas",
+        "cantidad": 300,
+        "detalle": "Existencia inicial del ejercicio (DEMO)",
+        "destino": "El Mirador",
+        "valor": 0
+      },
+      {
+        "_id": "HA-DEMO-INI-3",
+        "fecha": "2025-10-04",
+        "tipo": "Compra",
+        "categoria": "Toros",
+        "cantidad": 12,
+        "detalle": "Existencia inicial del ejercicio (DEMO)",
+        "destino": "El Mirador",
+        "valor": 0
+      },
+      {
+        "_id": "HA-DEMO-01",
+        "fecha": "2025-11-03",
+        "tipo": "Compra",
+        "categoria": "Terneros",
+        "cantidad": 150,
+        "detalle": "Remate feria (DEMO)",
+        "destino": "La Aguada",
+        "valor": 72000000
+      },
+      {
+        "_id": "HA-DEMO-02",
+        "fecha": "2026-03-03",
+        "tipo": "Venta",
+        "categoria": "Novillos",
+        "cantidad": 40,
+        "detalle": "Frigorífico (DEMO)",
+        "destino": "Frigorífico Oeste (DEMO)",
+        "valor": 58000000
+      },
+      {
+        "_id": "HA-DEMO-03",
+        "fecha": "2026-03-13",
+        "tipo": "Nacimiento",
+        "categoria": "Terneros",
+        "cantidad": 60,
+        "detalle": "Parición de otoño",
+        "destino": "El Mirador",
+        "valor": 0
+      },
+      {
+        "_id": "HA-DEMO-04",
+        "fecha": "2026-03-13",
+        "tipo": "Vacunación",
+        "categoria": "Vacas",
+        "cantidad": 180,
+        "detalle": "Vacunación reproductiva (DEMO)",
+        "destino": "El Mirador",
+        "valor": 342000
+      },
+      {
+        "_id": "HA-DEMO-05",
+        "fecha": "2026-05-02",
+        "tipo": "Muerte",
+        "categoria": "Terneros",
+        "cantidad": 2,
+        "detalle": "Diarrea neonatal",
+        "destino": "El Mirador",
+        "valor": 0
+      },
+      {
+        "_id": "HA-DEMO-06",
+        "fecha": "2026-06-01",
+        "tipo": "Venta",
+        "categoria": "Novillos",
+        "cantidad": 50,
+        "detalle": "Frigorífico (DEMO)",
+        "destino": "Frigorífico Oeste (DEMO)",
+        "valor": 75000000
+      },
+      {
+        "_id": "HA-DEMO-07",
+        "fecha": "2026-07-01",
+        "tipo": "Venta",
+        "categoria": "Vaquillonas",
+        "cantidad": 30,
+        "detalle": "Remate (DEMO)",
+        "destino": "Consignataria Villegas (DEMO)",
+        "valor": 33000000
+      },
+      {
+        "_id": "HA-DEMO-08",
+        "fecha": "2026-07-31",
+        "tipo": "Venta",
+        "categoria": "Vacas",
+        "cantidad": 20,
+        "detalle": "Vacas de descarte (DEMO)",
+        "destino": "Frigorífico Oeste (DEMO)",
+        "valor": 18000000
+      },
+      {
+        "_id": "HA-DEMO-09",
+        "fecha": "2026-09-09",
+        "tipo": "Nacimiento",
+        "categoria": "Terneros",
+        "cantidad": 25,
+        "detalle": "Parición de primavera",
+        "destino": "El Mirador",
+        "valor": 0
+      },
+      {
+        "_id": "HA-DEMO-10",
+        "fecha": "2026-09-17",
+        "tipo": "Venta",
+        "categoria": "Novillos",
+        "cantidad": 45,
+        "detalle": "Frigorífico (DEMO)",
+        "destino": "Frigorífico Oeste (DEMO)",
+        "valor": 56250000,
+        "nroComprobanteVenta": "LP-0004-00000877",
+        "comprador": "Frigorífico Oeste (DEMO)",
+        "iva": 5906250,
+        "ivaRetenido": 1181250,
+        "gananciasRetenido": 1125000,
+        "iibbRetenido": 0
+      },
+      {
+        "_id": "HA-DEMO-11",
+        "fecha": "2026-09-21",
+        "tipo": "Muerte",
+        "categoria": "Novillos",
+        "cantidad": 3,
+        "detalle": "Neumonía (en estudio)",
+        "destino": "La Aguada",
+        "valor": 0
+      },
+      {
+        "_id": "HA-DEMO-12",
+        "fecha": "2026-09-26",
+        "tipo": "Muerte",
+        "categoria": "Novillos",
+        "cantidad": 2,
+        "detalle": "Neumonía (en estudio)",
+        "destino": "La Aguada",
+        "valor": 0
+      }
+    ],
+    "animalesTrazabilidad": [
+      {
+        "idAnimal": "A-0001",
+        "rfidTag": "032000000100001",
+        "categoria": "Vaca",
+        "raza": "Aberdeen Angus",
+        "fechaNacimiento": "2019-09-10",
+        "predioOrigen": "El Mirador"
+      },
+      {
+        "idAnimal": "A-0002",
+        "rfidTag": "032000000100002",
+        "categoria": "Vaquillona",
+        "raza": "Aberdeen Angus",
+        "fechaNacimiento": "2024-10-02",
+        "predioOrigen": "El Mirador"
+      },
+      {
+        "idAnimal": "A-0003",
+        "rfidTag": "032000000100003",
+        "categoria": "Novillo",
+        "raza": "Hereford",
+        "fechaNacimiento": "2024-08-15",
+        "predioOrigen": "La Aguada"
+      },
+      {
+        "idAnimal": "A-0004",
+        "rfidTag": "032000000100004",
+        "categoria": "Toro",
+        "raza": "Aberdeen Angus",
+        "fechaNacimiento": "2021-07-20",
+        "predioOrigen": "Cabaña (DEMO)"
+      },
+      {
+        "idAnimal": "A-0005",
+        "rfidTag": "032000000100005",
+        "categoria": "Ternero",
+        "raza": "Aberdeen Angus",
+        "fechaNacimiento": "2026-03-13",
+        "predioOrigen": "El Mirador"
+      },
+      {
+        "idAnimal": "A-0006",
+        "rfidTag": "0320000001",
+        "categoria": "Ternero",
+        "raza": "Aberdeen Angus",
+        "fechaNacimiento": "2026-09-09",
+        "predioOrigen": "El Mirador"
+      }
+    ],
+    "eventosSanitarios": [
+      {
+        "idEvento": "EV-0001",
+        "idAnimal": "A-0003",
+        "fecha": "2026-09-24",
+        "tipoVacunaMedicamento": "Ivermectina 1%",
+        "veterinarioResponsable": "Dra. Laura Gómez (DEMO)",
+        "carenciaDias": 35,
+        "costo": 45000,
+        "estado": "Aplicado"
+      },
+      {
+        "idEvento": "EV-0002",
+        "idAnimal": "A-0002",
+        "fecha": "2026-06-21",
+        "tipoVacunaMedicamento": "Oxitetraciclina",
+        "veterinarioResponsable": "Dra. Laura Gómez (DEMO)",
+        "carenciaDias": 21,
+        "costo": 30000,
+        "estado": "Cumplió carencia"
+      }
+    ],
+    "sanidadEstablecimiento": {
+      "tipoExplotacion": "Ciclo completo",
+      "zonaAftosa": "con",
+      "zonaGarrapata": "libre",
+      "estadoGarrapata": "libre",
+      "brucelosisEstatus": "saneamiento",
+      "tuberculosisEstatus": "sin",
+      "veterinario": "Dra. Laura Gómez (DEMO)",
+      "matriculaVeterinario": "MV-DEMO-0000",
+      "enteSanitario": "Fundación Sanitaria Villegas (DEMO)"
+    },
+    "sanidadCampanas": [
+      {
+        "anio": 2026,
+        "campana": "1ª campaña (todas las categorías)",
+        "inicio": "2026-03-02",
+        "fin": "2026-05-02",
+        "observaciones": "Calendario SENASA de la zona (DEMO)"
+      },
+      {
+        "anio": 2026,
+        "campana": "2ª campaña (terneros y terneras, refuerzo)",
+        "inicio": "2026-06-08",
+        "fin": "2026-07-08",
+        "observaciones": "Calendario SENASA de la zona (DEMO)"
+      }
+    ],
+    "sanidadVacunaciones": [
+      {
+        "fecha": "2026-03-23",
+        "enfermedad": "Fiebre aftosa",
+        "acta": "DEMO-AF-2026-017",
+        "cabezas": 700,
+        "categorias": "Todas",
+        "vacunador": "Fundación Sanitaria Villegas (DEMO)",
+        "sigsa": "Sí",
+        "observaciones": ""
+      },
+      {
+        "fecha": "2026-03-23",
+        "enfermedad": "Brucelosis (cepa 19 / RB51) - terneras 3 a 8 meses",
+        "acta": "DEMO-BR-2026-004",
+        "cabezas": 45,
+        "categorias": "Terneras",
+        "vacunador": "Dra. Laura Gómez (DEMO)",
+        "sigsa": "Sí",
+        "observaciones": ""
+      }
+    ],
+    "sanidadAnalisis": [
+      {
+        "fecha": "2026-09-09",
+        "tipo": "Brucelosis - Certificado de Seronegatividad al Movimiento (CSM)",
+        "protocolo": "CSM-DEMO-0045",
+        "cabezas": 25,
+        "resultado": "Negativo",
+        "laboratorio": "Laboratorio Villegas (DEMO)",
+        "veterinario": "Dra. Laura Gómez (DEMO)",
+        "sigsa": "Sí"
+      }
+    ],
+    "sanidadGarrapata": [],
+    "boletosMarca": [
+      {
+        "nroBoleto": "BM-DEMO-001",
+        "tipoGanado": "Bovino",
+        "fechaVencimiento": "2026-10-14",
+        "estado": true
+      }
+    ],
+    "fiscalDutQueue": [
+      {
+        "id": "DUT-DEMO-1",
+        "renspaOrigen": "06.123.0.05678/00",
+        "renspaDestino": "06.321.0.00911/00",
+        "nroBoleto": "BM-DEMO-001",
+        "categoriaId": "Novillo",
+        "motivoMovimiento": "Faena",
+        "cantidadCabezas": "40",
+        "patenteChasis": "DEMO123",
+        "cuitTransportista": "20993004007",
+        "emailTransportista": "transporte@demo.test",
+        "fechaCarga": "2026-09-30",
+        "fechaVencimiento": "2026-10-02T18:00",
+        "arancelMunicipal": "0",
+        "estadoPago": "NO_APLICA",
+        "habilitacionTransporte": "HAB-DEMO-778",
+        "estado": "Listo para SIGSA",
+        "detalle": "Validado (boleto y tasa). SENASA no tiene webservice: emitilo en SIGSA y registrá el número oficial.",
+        "creadoEn": "2026-09-29T09:00:00.000Z"
+      }
+    ],
+    "fiscalDutHistorial": [],
+    "comprobantesArca": [
+      {
+        "fecha": "2026-03-13",
+        "tipo_fiscal": "CREDITO_FISCAL",
+        "comprobante": "A-0003-00011201",
+        "contraparte": "Veterinaria del Oeste (DEMO)",
+        "concepto": "Compra de stock: Vacuna antiaftosa",
+        "neto": 720000,
+        "iva": 75600,
+        "rubro": "Ganadero",
+        "_id": "CA-MS-DEMO-01",
+        "origenMovimientoStockId": "MS-DEMO-01"
+      },
+      {
+        "fecha": "2026-03-13",
+        "tipo_fiscal": "CREDITO_FISCAL",
+        "comprobante": "A-0003-00011201-B",
+        "contraparte": "Veterinaria del Oeste (DEMO)",
+        "concepto": "Compra de stock: Vacuna brucelosis cepa 19",
+        "neto": 150000,
+        "iva": 15750,
+        "rubro": "Ganadero",
+        "_id": "CA-MS-DEMO-02",
+        "origenMovimientoStockId": "MS-DEMO-02"
+      },
+      {
+        "fecha": "2026-07-16",
+        "tipo_fiscal": "CREDITO_FISCAL",
+        "comprobante": "A-0005-00004411",
+        "contraparte": "Forrajería Pampa (DEMO)",
+        "concepto": "Compra de stock: Balanceado recría 16%",
+        "neto": 3480000,
+        "iva": 365400,
+        "rubro": "Ganadero",
+        "_id": "CA-MS-DEMO-03",
+        "origenMovimientoStockId": "MS-DEMO-03"
+      },
+      {
+        "fecha": "2026-07-31",
+        "tipo_fiscal": "CREDITO_FISCAL",
+        "comprobante": "A-0005-00004490",
+        "contraparte": "Forrajería Pampa (DEMO)",
+        "concepto": "Compra de stock: Rollos de alfalfa",
+        "neto": 2520000,
+        "iva": 264600,
+        "rubro": "Ganadero",
+        "_id": "CA-MS-DEMO-04",
+        "origenMovimientoStockId": "MS-DEMO-04"
+      },
+      {
+        "fecha": "2026-08-20",
+        "tipo_fiscal": "CREDITO_FISCAL",
+        "comprobante": "A-0002-00009870",
+        "contraparte": "Acopio Villegas (DEMO)",
+        "concepto": "Compra de stock: Maíz grano",
+        "neto": 2625000,
+        "iva": 275625,
+        "rubro": "Ganadero",
+        "_id": "CA-MS-DEMO-05",
+        "origenMovimientoStockId": "MS-DEMO-05"
+      },
+      {
+        "fecha": "2026-08-30",
+        "tipo_fiscal": "CREDITO_FISCAL",
+        "comprobante": "A-0003-00011954",
+        "contraparte": "Veterinaria del Oeste (DEMO)",
+        "concepto": "Compra de stock: Ivermectina 1%",
+        "neto": 190000,
+        "iva": 39900,
+        "rubro": "Ganadero",
+        "_id": "CA-MS-DEMO-06",
+        "origenMovimientoStockId": "MS-DEMO-06"
+      },
+      {
+        "fecha": "2026-09-04",
+        "tipo_fiscal": "CREDITO_FISCAL",
+        "comprobante": "A-0010-00120334",
+        "contraparte": "YPF Agro (DEMO)",
+        "concepto": "Compra de stock: Gasoil",
+        "neto": 4050000,
+        "iva": 850500,
+        "rubro": "Ganadero",
+        "_id": "CA-MS-DEMO-07",
+        "origenMovimientoStockId": "MS-DEMO-07"
+      },
+      {
+        "fecha": "2026-09-09",
+        "tipo_fiscal": "CREDITO_FISCAL",
+        "comprobante": "A-0005-00004612",
+        "contraparte": "Forrajería Pampa (DEMO)",
+        "concepto": "Compra de stock: Balanceado recría 16%",
+        "neto": 3200000,
+        "iva": 336000,
+        "rubro": "Ganadero",
+        "_id": "CA-MS-DEMO-08",
+        "origenMovimientoStockId": "MS-DEMO-08"
+      },
+      {
+        "fecha": "2026-09-17",
+        "tipo_fiscal": "DEBITO_FISCAL",
+        "comprobante": "LP-0004-00000877",
+        "contraparte": "Frigorífico Oeste (DEMO)",
+        "concepto": "Venta de hacienda: Novillos x45",
+        "neto": 56250000,
+        "iva": 5906250,
+        "ivaRetenido": 1181250,
+        "gananciasRetenido": 1125000,
+        "iibbRetenido": 0,
+        "rubro": "Ganadero",
+        "_id": "CA-HA-DEMO-10",
+        "origenHaciendaId": "HA-DEMO-10"
+      },
+      {
+        "fecha": "2026-09-14",
+        "tipo_fiscal": "CREDITO_FISCAL",
+        "comprobante": "C-0001-00000321",
+        "contraparte": "Dra. Laura Gómez (DEMO)",
+        "concepto": "Honorarios veterinarios septiembre",
+        "neto": 250000,
+        "iva": 52500,
+        "rubro": "Ganadero",
+        "_id": "CA-DEMO-VET"
+      }
+    ],
+    "costos": [
+      {
+        "fecha": "2026-03-13",
+        "categoria": "Compras / Gastos",
+        "concepto": "Ingreso de stock: Vacuna antiaftosa · DEMO",
+        "importe": 720000,
+        "neto": 720000,
+        "iva": 75600,
+        "destino": "Vacuna antiaftosa",
+        "origen": "Inventario · Ingreso de stock",
+        "rubro": "Ganadero",
+        "origenComprobanteId": "MS-DEMO-01",
+        "origenModulo": "movimientoStock"
+      },
+      {
+        "fecha": "2026-03-13",
+        "categoria": "Compras / Gastos",
+        "concepto": "Ingreso de stock: Vacuna brucelosis cepa 19 · DEMO",
+        "importe": 150000,
+        "neto": 150000,
+        "iva": 15750,
+        "destino": "Vacuna brucelosis cepa 19",
+        "origen": "Inventario · Ingreso de stock",
+        "rubro": "Ganadero",
+        "origenComprobanteId": "MS-DEMO-02",
+        "origenModulo": "movimientoStock"
+      },
+      {
+        "fecha": "2026-07-16",
+        "categoria": "Compras / Gastos",
+        "concepto": "Ingreso de stock: Balanceado recría 16% · DEMO",
+        "importe": 3480000,
+        "neto": 3480000,
+        "iva": 365400,
+        "destino": "Balanceado recría 16%",
+        "origen": "Inventario · Ingreso de stock",
+        "rubro": "Ganadero",
+        "origenComprobanteId": "MS-DEMO-03",
+        "origenModulo": "movimientoStock"
+      },
+      {
+        "fecha": "2026-07-31",
+        "categoria": "Compras / Gastos",
+        "concepto": "Ingreso de stock: Rollos de alfalfa · DEMO",
+        "importe": 2520000,
+        "neto": 2520000,
+        "iva": 264600,
+        "destino": "Rollos de alfalfa",
+        "origen": "Inventario · Ingreso de stock",
+        "rubro": "Ganadero",
+        "origenComprobanteId": "MS-DEMO-04",
+        "origenModulo": "movimientoStock"
+      },
+      {
+        "fecha": "2026-08-20",
+        "categoria": "Compras / Gastos",
+        "concepto": "Ingreso de stock: Maíz grano · DEMO",
+        "importe": 2625000,
+        "neto": 2625000,
+        "iva": 275625,
+        "destino": "Maíz grano",
+        "origen": "Inventario · Ingreso de stock",
+        "rubro": "Ganadero",
+        "origenComprobanteId": "MS-DEMO-05",
+        "origenModulo": "movimientoStock"
+      },
+      {
+        "fecha": "2026-08-30",
+        "categoria": "Compras / Gastos",
+        "concepto": "Ingreso de stock: Ivermectina 1% · DEMO",
+        "importe": 190000,
+        "neto": 190000,
+        "iva": 39900,
+        "destino": "Ivermectina 1%",
+        "origen": "Inventario · Ingreso de stock",
+        "rubro": "Ganadero",
+        "origenComprobanteId": "MS-DEMO-06",
+        "origenModulo": "movimientoStock"
+      },
+      {
+        "fecha": "2026-09-04",
+        "categoria": "Compras / Gastos",
+        "concepto": "Ingreso de stock: Gasoil · DEMO",
+        "importe": 4050000,
+        "neto": 4050000,
+        "iva": 850500,
+        "destino": "Gasoil",
+        "origen": "Inventario · Ingreso de stock",
+        "rubro": "Ganadero",
+        "origenComprobanteId": "MS-DEMO-07",
+        "origenModulo": "movimientoStock"
+      },
+      {
+        "fecha": "2026-09-09",
+        "categoria": "Compras / Gastos",
+        "concepto": "Ingreso de stock: Balanceado recría 16% · DEMO",
+        "importe": 3200000,
+        "neto": 3200000,
+        "iva": 336000,
+        "destino": "Balanceado recría 16%",
+        "origen": "Inventario · Ingreso de stock",
+        "rubro": "Ganadero",
+        "origenComprobanteId": "MS-DEMO-08",
+        "origenModulo": "movimientoStock"
+      },
+      {
+        "fecha": "2026-09-14",
+        "categoria": "Compras / Gastos",
+        "concepto": "C-0001-00000321 · Dra. Laura Gómez (DEMO) · Honorarios veterinarios septiembre",
+        "importe": 250000,
+        "neto": 250000,
+        "iva": 52500,
+        "destino": "Dra. Laura Gómez (DEMO)",
+        "origen": "Fiscal · Crédito fiscal IVA",
+        "rubro": "Ganadero",
+        "origenComprobanteId": "CA-DEMO-VET",
+        "origenModulo": "comprobantesArca"
+      },
+      {
+        "fecha": "2026-08-20",
+        "categoria": "Impuestos",
+        "concepto": "Impuesto inmobiliario rural 3ª cuota (DEMO)",
+        "importe": 380000,
+        "destino": "ARBA (DEMO)",
+        "rubro": "Ganadero"
+      },
+      {
+        "fecha": "2026-09-11",
+        "categoria": "Servicios",
+        "concepto": "Honorarios contables (DEMO)",
+        "importe": 150000,
+        "destino": "Estudio contable (DEMO)",
+        "rubro": "Ganadero"
+      },
+      {
+        "fecha": "2026-08-15",
+        "categoria": "Mantenimiento",
+        "concepto": "OT-0012 · EQ-01 · Service 3000 hs (aceite y filtros)",
+        "importe": 420000,
+        "destino": "EQ-01",
+        "origen": "Mantenimiento · Orden de trabajo",
+        "rubro": "Ganadero",
+        "origenComprobanteId": "MT-DEMO-01",
+        "origenModulo": "mantenimiento"
+      },
+      {
+        "fecha": "2026-09-27",
+        "categoria": "Mantenimiento",
+        "concepto": "OT-0013 · EQ-02 · Pastillas y discos de freno",
+        "importe": 180000,
+        "destino": "EQ-02",
+        "origen": "Mantenimiento · Orden de trabajo",
+        "rubro": "Ganadero",
+        "origenComprobanteId": "MT-DEMO-02",
+        "origenModulo": "mantenimiento"
+      }
+    ],
+    "equipos": [
+      {
+        "codigo": "EQ-01",
+        "equipo": "Tractor John Deere 5090E",
+        "marca": "John Deere",
+        "anio": 2018,
+        "patente": "DEMO01",
+        "horas": 3200,
+        "estado": "OK",
+        "costoH": 18000,
+        "valorCompra": 55000000,
+        "valorResidual": 15000000,
+        "vidaUtil": 15,
+        "horasVidaUtil": 12000,
+        "metodoAmort": "Por Horas"
+      },
+      {
+        "codigo": "EQ-02",
+        "equipo": "Camioneta Toyota Hilux",
+        "marca": "Toyota",
+        "anio": 2021,
+        "patente": "DEMO02",
+        "horas": 0,
+        "estado": "Taller",
+        "costoH": 0,
+        "valorCompra": 38000000,
+        "valorResidual": 12000000,
+        "vidaUtil": 10,
+        "horasVidaUtil": 0,
+        "metodoAmort": "Lineal"
+      }
+    ],
+    "mantenimiento": [
+      {
+        "_id": "MT-DEMO-01",
+        "numero": "OT-0012",
+        "equipo": "EQ-01",
+        "tipo": "Service",
+        "descripcion": "Service 3000 hs (aceite y filtros)",
+        "fecha": "2026-08-15",
+        "costo": "420000",
+        "estado": "Completado",
+        "operador": "Juan Pérez (DEMO)",
+        "rubro": "Ganadero"
+      },
+      {
+        "_id": "MT-DEMO-02",
+        "numero": "OT-0013",
+        "equipo": "EQ-02",
+        "tipo": "Correctivo",
+        "descripcion": "Pastillas y discos de freno",
+        "fecha": "2026-09-27",
+        "costo": "180000",
+        "estado": "Pendiente",
+        "operador": "Taller Villegas (DEMO)",
+        "rubro": "Ganadero"
+      }
+    ],
+    "cargacombustible": [
+      {
+        "fecha": "2026-09-09",
+        "equipo": "EQ-01",
+        "tipoCombustible": "Gasoil",
+        "cantidad": 300,
+        "costoUnitario": 1350,
+        "costoTotal": 405000,
+        "operador": "Juan Pérez (DEMO)",
+        "observaciones": "DEMO"
+      },
+      {
+        "fecha": "2026-09-23",
+        "equipo": "EQ-02",
+        "tipoCombustible": "Gasoil",
+        "cantidad": 80,
+        "costoUnitario": 1350,
+        "costoTotal": 108000,
+        "operador": "Mario Díaz (DEMO)",
+        "observaciones": "DEMO"
+      }
+    ],
+    "empleados": [
+      {
+        "legajo": "L-001",
+        "nombre": "Juan Pérez (DEMO)",
+        "cargo": "Encargado",
+        "sector": "Producción Ganadera",
+        "sueldoBruto": 1300000,
+        "fechaIngreso": "2019-03-01",
+        "estado": "Activo"
+      },
+      {
+        "legajo": "L-002",
+        "nombre": "Mario Díaz (DEMO)",
+        "cargo": "Peón general",
+        "sector": "Producción Ganadera",
+        "sueldoBruto": 950000,
+        "fechaIngreso": "2023-06-01",
+        "estado": "Activo"
+      }
+    ],
+    "bancosLista": [
+      {
+        "nombre": "Banco Nación",
+        "tipoCuenta": "Cuenta Corriente",
+        "numero": "DEMO-000123",
+        "cbu": "0110000000000000000000",
+        "saldoInicial": "15000000"
+      }
+    ],
+    "cuentasBancarias": [
+      {
+        "nombre": "Banco Nación",
+        "tipoCuenta": "Cuenta Corriente",
+        "numero": "DEMO-000123",
+        "cbu": "0110000000000000000000",
+        "saldoInicial": "15000000"
+      }
+    ],
+    "saldosIniciales": {
+      "Banco Nación": 15000000
+    },
+    "caja": [
+      {
+        "fecha": "2025-10-04",
+        "concepto": "Saldo inicial de caja (DEMO)",
+        "tipo": "Ingreso",
+        "importe": 3000000,
+        "categoria": "Otros",
+        "referencia": "DEMO"
+      },
+      {
+        "fecha": "2026-08-30",
+        "concepto": "Sueldos agosto",
+        "tipo": "Egreso",
+        "importe": 2250000,
+        "categoria": "Sueldos",
+        "referencia": "DEMO"
+      },
+      {
+        "fecha": "2026-09-09",
+        "concepto": "Gasoil tractor",
+        "tipo": "Egreso",
+        "importe": 405000,
+        "categoria": "Combustible",
+        "referencia": "DEMO"
+      },
+      {
+        "fecha": "2026-09-27",
+        "concepto": "Venta de cueros (DEMO)",
+        "tipo": "Ingreso",
+        "importe": 500000,
+        "categoria": "Ventas",
+        "referencia": "DEMO"
+      }
+    ],
+    "bancos": [
+      {
+        "fecha": "2025-11-03",
+        "banco": "Banco Nación",
+        "concepto": "Compra de terneros - remate",
+        "tipo": "Egreso",
+        "importe": 72000000,
+        "referencia": "DEMO"
+      },
+      {
+        "fecha": "2026-03-03",
+        "banco": "Banco Nación",
+        "concepto": "Cobro venta novillos",
+        "tipo": "Ingreso",
+        "importe": 58000000,
+        "referencia": "DEMO"
+      },
+      {
+        "fecha": "2026-06-01",
+        "banco": "Banco Nación",
+        "concepto": "Cobro venta novillos",
+        "tipo": "Ingreso",
+        "importe": 75000000,
+        "referencia": "DEMO"
+      },
+      {
+        "fecha": "2026-07-01",
+        "banco": "Banco Nación",
+        "concepto": "Cobro remate vaquillonas",
+        "tipo": "Ingreso",
+        "importe": 33000000,
+        "referencia": "DEMO"
+      },
+      {
+        "fecha": "2026-07-16",
+        "banco": "Banco Nación",
+        "concepto": "Pago balanceado",
+        "tipo": "Egreso",
+        "importe": 3845400,
+        "referencia": "DEMO"
+      },
+      {
+        "fecha": "2026-07-31",
+        "banco": "Banco Nación",
+        "concepto": "Cobro vacas de descarte",
+        "tipo": "Ingreso",
+        "importe": 18000000,
+        "referencia": "DEMO"
+      },
+      {
+        "fecha": "2026-08-20",
+        "banco": "Banco Nación",
+        "concepto": "Pago maíz",
+        "tipo": "Egreso",
+        "importe": 2900625,
+        "referencia": "DEMO"
+      },
+      {
+        "fecha": "2026-09-17",
+        "banco": "Banco Nación",
+        "concepto": "Cobro venta novillos (neto de retenciones)",
+        "tipo": "Ingreso",
+        "importe": 59850000,
+        "referencia": "DEMO"
+      }
+    ],
+    "chequesCobrar": [
+      {
+        "numero": "00012345",
+        "banco": "Banco Galicia",
+        "origen": "Consignataria Villegas (DEMO)",
+        "importe": "$ 12.500.000",
+        "fechaEmision": "17/09/2026",
+        "vencimiento": "24/10/2026",
+        "estado": "En cartera"
+      }
+    ],
+    "chequesCubrir": [
+      {
+        "numero": "00077001",
+        "banco": "Banco Nación",
+        "destino": "Forrajería Pampa (DEMO)",
+        "importe": "$ 4.800.000",
+        "fechaEmision": "09/09/2026",
+        "vencimiento": "04/10/2026",
+        "estado": "Emitido"
+      }
+    ],
+    "creditos": [
+      {
+        "numero": "CR-DEMO-01",
+        "entidad": "Banco Nación",
+        "destino": "Compra de vaquillonas de reposición",
+        "monto": 20000000,
+        "plazoMeses": 24,
+        "tea": 38,
+        "sistema": "Frances",
+        "fechaInicio": "2026-05-02"
+      }
+    ]
+  }
+}
