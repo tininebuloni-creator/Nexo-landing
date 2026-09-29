@@ -1493,6 +1493,72 @@
       }
     </style>
     <style>
+      /* Empresa y configuración rápida: siempre a la par y proporcionales al ancho. Antes el cartel
+         tenía 430 px de ancho mínimo y por debajo de 768 px quedaban uno debajo del otro, ocupando
+         casi toda la pantalla del celular. */
+      .dashboard-top {
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+        gap: clamp(8px, 1.2vw, 14px);
+        width: 100%;
+      }
+      .empresa-hero {
+        width: auto;
+        max-width: none;
+        min-width: 0;
+        min-height: 0;
+        margin-bottom: 0;
+        padding: clamp(10px, 2vw, 22px);
+      }
+      .empresa-hero-main {
+        gap: clamp(6px, 1vw, 12px);
+      }
+      .empresa-hero-logo {
+        width: clamp(52px, 10vw, 136px);
+        height: clamp(52px, 10vw, 136px);
+      }
+      .empresa-hero-title {
+        font-size: clamp(14px, 2.4vw, 27px);
+        overflow-wrap: anywhere;
+      }
+      .empresa-hero-sub {
+        font-size: clamp(10px, 1.1vw, 13px);
+      }
+      .empresa-hero-meta {
+        gap: clamp(4px, 0.8vw, 8px);
+      }
+      .empresa-chip {
+        font-size: clamp(10px, 1vw, 12px);
+        padding: clamp(3px, 0.5vw, 6px) clamp(6px, 0.9vw, 10px);
+      }
+      .dashboard-actions {
+        width: auto;
+        min-width: 0;
+        max-width: none;
+        padding: clamp(8px, 1.2vw, 12px);
+        gap: clamp(6px, 1vw, 10px);
+      }
+      .dashboard-actions .btn,
+      .dashboard-actions #roleSelector {
+        min-width: 0;
+        font-size: clamp(10px, 1vw, 13px);
+        padding: clamp(5px, 0.7vw, 8px) clamp(6px, 1vw, 12px);
+        white-space: normal;
+      }
+      .dashboard-actions #licenseStatus {
+        font-size: clamp(10px, 1vw, 12px);
+      }
+      @media (max-width: 640px) {
+        .dashboard-top {
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+          gap: 8px;
+        }
+        .empresa-hero-meta {
+          display: grid;
+          grid-template-columns: 1fr;
+        }
+      }
+
       @media print {
         .sidebar,
         .dashboard-actions,

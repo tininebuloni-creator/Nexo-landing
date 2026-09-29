@@ -517,16 +517,70 @@
       .dashboard-action-btn.whatsapp-action {
         min-height: clamp(38px, 3.6vw, 46px);
       }
+      /* Panel PampaIA: las columnas no se ensanchan por su contenido (en celular se salía de la pantalla). */
+      #pampaiaPanel .pampaia-grid {
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+      }
+      #pampaiaPanel .pampaia-grid > * {
+        min-width: 0;
+      }
+      @media (max-width: 900px) {
+        #pampaiaPanel .pampaia-grid {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
       @media (max-width: 640px) {
+        /* Celular: siguen lado a lado; el panel pasa a una columna de botones. */
         .dashboard-hero {
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+          gap: 8px;
+        }
+        .dashboard-top-actions-grid {
           grid-template-columns: 1fr;
         }
         .empresa-portada {
           min-height: 0;
+          padding: 8px;
+        }
+        .empresa-portada::after {
+          font-size: 70px;
         }
         .empresa-portada-logo {
           width: 100%;
-          height: clamp(70px, 26vw, 140px);
+          height: clamp(52px, 17vw, 110px);
+        }
+        .empresa-portada-nombre {
+          font-size: clamp(13px, 4vw, 18px);
+        }
+        .empresa-portada-sub,
+        .empresa-portada-datos {
+          font-size: 10px;
+        }
+        .empresa-portada-datos {
+          flex-direction: column;
+          gap: 4px;
+        }
+        .portada-market-tools {
+          gap: 6px;
+        }
+        .empresa-portada-tool-btn {
+          width: 100%;
+          min-height: 32px;
+          padding: 5px 6px;
+          font-size: 10px;
+        }
+        .dashboard-top-actions {
+          padding: 8px;
+          gap: 6px;
+        }
+        .dashboard-top-actions-title,
+        .dashboard-date-chip {
+          font-size: 10px;
+        }
+        .dashboard-action-btn,
+        .dashboard-role-select {
+          padding: 6px 8px;
+          font-size: 11px;
         }
       }
 
