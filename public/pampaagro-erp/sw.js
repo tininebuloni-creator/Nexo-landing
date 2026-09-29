@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pampaagro-erp-v3-pampaia';
+const CACHE_NAME = 'pampaagro-erp-v4-separada';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './logo2.png'];
 
 // Caché aparte y ESTABLE para las imágenes del mapa (tiles). No se borra cuando
@@ -21,8 +21,9 @@ self.addEventListener('install', (event) => {
 const SHARE_CACHE_NAME = 'pampaagro-compartidos';
 const SHARE_KEY = './__compartido/nota-de-voz';
 
+// Las apps web comparten dominio (y las cachés son del dominio): cada una borra solo las suyas.
 self.addEventListener('activate', (event) => {
-  event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME && key !== TILES_CACHE_NAME && key !== SHARE_CACHE_NAME).map((key) => caches.delete(key)))));
+  event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((key) => key.startsWith('pampaagro-') && key !== CACHE_NAME && key !== TILES_CACHE_NAME && key !== SHARE_CACHE_NAME).map((key) => caches.delete(key)))));
   self.clients.claim();
 });
 

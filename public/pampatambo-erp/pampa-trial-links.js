@@ -27,7 +27,7 @@
   }
   function showTrialBanner() {
     if (document.getElementById('trialBlueBanner')) return;
-    const raw = localStorage.getItem('nexoAgroLicense') || localStorage.getItem('tambo_license') || localStorage.getItem('PampaPorcinosLicense');
+    const raw = (window.PAMPA_LICENSE_STORAGE_KEY ? localStorage.getItem(window.PAMPA_LICENSE_STORAGE_KEY) : (localStorage.getItem('nexoAgroLicense') || localStorage.getItem('tambo_license') || localStorage.getItem('PampaPorcinosLicense')));
     if (!raw) return;
     try {
       const license = JSON.parse(raw);

@@ -5,7 +5,7 @@
   const API_URL = 'https://solucioneseningenieria.com.ar';
   const product = document.currentScript?.dataset?.product || '';
   const storageKey = `pampaSeatControl:${product}`;
-  const licenseKeys = ['nexoAgroLicense', 'PampaPorcinosLicense', 'tambo_license', 'pampa-license-cache'];
+  const licenseKeys = (window.PAMPA_LICENSE_STORAGE_KEY ? [window.PAMPA_LICENSE_STORAGE_KEY] : ['nexoAgroLicense', 'PampaPorcinosLicense', 'tambo_license', 'pampa-license-cache']);
 
   function readLicense() {
     for (const key of licenseKeys) {

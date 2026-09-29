@@ -2,7 +2,7 @@
   'use strict';
 
   var WHATSAPP = '5492364719731';
-  var LICENSE_KEYS = ['nexoAgroLicense', 'pampa-license-cache', 'tambo_license', 'PampaPorcinosLicense'];
+  var LICENSE_KEYS = (window.PAMPA_LICENSE_STORAGE_KEY ? [window.PAMPA_LICENSE_STORAGE_KEY] : ['nexoAgroLicense', 'pampa-license-cache', 'tambo_license', 'PampaPorcinosLicense']);
 
   function readExpiredLicense() {
     for (var index = 0; index < LICENSE_KEYS.length; index += 1) {

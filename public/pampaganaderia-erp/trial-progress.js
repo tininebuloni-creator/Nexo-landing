@@ -1,6 +1,9 @@
 (function () {
   const TRIAL_DAYS = 10;
-  const INIT_KEY = 'pampa_trial_init';
+  // Cada app publicada tiene su propia cuenta: todas comparten dominio y antes usaban la misma
+  // clave, así que la primera app que se abría fijaba el inicio de todas.
+  const APP_ID = (location.pathname.split('/').filter(Boolean)[0] || 'app').toLowerCase();
+  const INIT_KEY = 'pampa_trial_init:' + APP_ID;
   const PANEL_ID = 'pampaTrialControlPanel';
   const FILE_INPUT_ID = 'pampaTrialImportInput';
 
@@ -15,11 +18,31 @@
     // sobreviva a cerrar el navegador — si no, cada reapertura reiniciaba la cuenta de días.
     let start = localStorage.getItem(INIT_KEY);
     if (!start) {
-      // Compatibilidad: si venía de una sesión vieja guardada en sessionStorage, la migramos.
-      start = sessionStorage.getItem(INIT_KEY) || new Date().toISOString();
+      start = new Date().toISOString();
       localStorage.setItem(INIT_KEY, start);
     }
     return start;
+  }
+
+  // El inicio solo puede ir hacia atrás: ni un respaldo ni otra fuente alargan la prueba.
+  function setTrialStart(value) {
+    const nueva = new Date(value);
+    if (Number.isNaN(nueva.getTime())) return getTrialStart();
+    const actual = new Date(getTrialStart());
+    const elegida = nueva < actual ? nueva : actual;
+    localStorage.setItem(INIT_KEY, elegida.toISOString());
+    return elegida.toISOString();
+  }
+
+  // El servidor (pampa-trial-guard.js) recuerda el primer inicio aunque se borren los datos.
+  function sincronizarConServidor() {
+    const guard = window.PampaTrialGuard;
+    if (!guard || typeof guard.estado !== 'function') return;
+    guard.estado().then((estado) => {
+      if (!estado || !estado.disponible) return;
+      if (estado.activatedAt) setTrialStart(estado.activatedAt);
+      renderPanel(estado.agotado ? 0 : getDaysLeft(getTrialStart()));
+    }).catch(() => {});
   }
 
   function getDaysLeft(startValue) {
@@ -178,6 +201,7 @@
       fecha_exportacion: new Date().toISOString(),
       dias_restantes: getDaysLeft(start),
       app: document.title || location.pathname,
+      app_id: APP_ID,
       datos_usuario: getAppState()
     };
     const date = new Date().toISOString().slice(0, 10);
@@ -194,9 +218,15 @@
           alert('El archivo seleccionado no corresponde a un respaldo válido de trial Pampa.');
           return;
         }
-        sessionStorage.setItem(INIT_KEY, payload.fecha_inicio_trial); // compat con versiones viejas
-        localStorage.setItem(INIT_KEY, payload.fecha_inicio_trial);
-        const daysLeft = getDaysLeft(payload.fecha_inicio_trial);
+        // Un respaldo de otra app no se carga acá (tienen datos distintos).
+        const appDelRespaldo = payload.app_id || '';
+        const tituloOtraApp = !appDelRespaldo && payload.app && document.title && payload.app !== document.title;
+        if ((appDelRespaldo && appDelRespaldo !== APP_ID) || tituloOtraApp) {
+          alert('Este respaldo es de otra aplicación de Pampa N. Importalo en la aplicación con la que lo guardaste.');
+          return;
+        }
+        // El inicio del respaldo solo cuenta si es anterior: no sirve para alargar la prueba.
+        const daysLeft = getDaysLeft(setTrialStart(payload.fecha_inicio_trial));
         await restoreAppState(payload.datos_usuario);
         renderPanel(daysLeft);
         alert(daysLeft > 0 ? 'Progreso de prueba importado correctamente.' : 'Progreso importado, pero el período de prueba ya venció.');
@@ -214,5 +244,6 @@
   window.addEventListener('DOMContentLoaded', () => {
     injectStyles();
     renderPanel(getDaysLeft(getTrialStart()));
+    sincronizarConServidor();
   });
 }());

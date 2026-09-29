@@ -1,5 +1,5 @@
 // v2: el index.html de v1 quedó cacheado con el guard de escritorio (bloqueaba el trial web)
-const CACHE_NAME = 'pampatopografia-pwa-v2';
+const CACHE_NAME = 'pampatopografia-pwa-v3-separada';
 const APP_SHELL = [
   './',
   './index.html',
@@ -19,12 +19,13 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
+// Las apps web comparten dominio (y las cachés son del dominio): cada una borra solo las suyas.
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
         keys.map((key) => {
-          if (key !== CACHE_NAME) return caches.delete(key);
+          if (key.startsWith('pampatopografia-') && key !== CACHE_NAME) return caches.delete(key);
         })
       )
     )

@@ -13,7 +13,7 @@
   }, 0);
 
   function getStoredLicense() {
-    const keys = ['nexoAgroLicense', 'tambo_license', 'PampaPorcinosLicense', 'pampa-license-cache'];
+    const keys = (window.PAMPA_LICENSE_STORAGE_KEY ? [window.PAMPA_LICENSE_STORAGE_KEY] : ['nexoAgroLicense', 'tambo_license', 'PampaPorcinosLicense', 'pampa-license-cache']);
     for (const key of keys) {
       try {
         const stored = JSON.parse(localStorage.getItem(key) || 'null');

@@ -3,6 +3,42 @@
   <head>
 <script id="pampa-web-trial-guard">(function(){try{const url=new URL(window.location.href);if(url.searchParams.get('trial')==='auto'){window.__pampaTrialAutoRequested=true;url.searchParams.delete('trial');window.history.replaceState({},document.title,url.pathname+url.search+url.hash);}}catch(error){}}());</script>
     <script src="pampa-trial-guard.js"></script>
+    <script id="pampa-ganaderia-claves">
+      // Claves propias de PampaGanadería. En la web publicada comparte dominio con PampaAgro y
+      // antes usaban las mismas claves: los datos, roles y licencia de una app pisaban los de la
+      // otra. La primera vez se copian a las claves nuevas los datos que sean de Ganadería: en
+      // escritorio siempre (ahí no se comparte nada); en la web solo si lo guardado tiene forma de
+      // datos de Ganadería (si es de Agro, queda para Agro y Ganadería arranca limpia). Las claves
+      // viejas no se borran: pueden ser de Agro.
+      window.PAMPA_LICENSE_STORAGE_KEY = "pampaGanaderiaLicense";
+      (function () {
+        var MARCA = "pampaGanaderiaClavesPropias";
+        try {
+          if (localStorage.getItem(MARCA)) return;
+          var CLAVES = {"nexoAgroERP":"pampaGanaderiaERP","nexoAgroLicense":"pampaGanaderiaLicense","nexoAgroInstalledRoles":"pampaGanaderiaInstalledRoles","nexoAgroRoleInstance":"pampaGanaderiaRoleInstance","nexoAgroRole":"pampaGanaderiaRole","nexoAgroWhatsAppContacts":"pampaGanaderiaWhatsAppContacts","lastSyncTime":"pampaGanaderiaLastSyncTime","fiscalUltimaAlerta":"pampaGanaderiaFiscalUltimaAlerta"};
+          var escritorio = Boolean(window.electronAPI || window.PAMPA_DESKTOP_MODE || /\bElectron\//.test(navigator.userAgent));
+          var leer = function (k) { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } };
+          var datos = leer("nexoAgroERP");
+          // Datos de Ganadería: tienen "equipos" y no los módulos agrícolas de Agro.
+          var sonDeGanaderia = escritorio || Boolean(datos && typeof datos === "object" && "equipos" in datos && !("siembra" in datos) && !("ventasCereal" in datos));
+          Object.keys(CLAVES).forEach(function (vieja) {
+            var nueva = CLAVES[vieja];
+            var valor = localStorage.getItem(vieja);
+            if (valor === null || localStorage.getItem(nueva) !== null) return;
+            if (vieja === "nexoAgroLicense") {
+              var lic = leer(vieja) || {};
+              var esPrueba = lic.type === "trial";
+              var copiar = esPrueba ? lic.app === "ganaderia" || (!lic.app && lic.key === "TRIAL-7DIAS") : sonDeGanaderia;
+              if (!copiar) return;
+            } else if (!sonDeGanaderia) return;
+            localStorage.setItem(nueva, valor);
+          });
+          localStorage.setItem(MARCA, new Date().toISOString());
+        } catch (e) {
+          console.warn("[ganaderia] no se pudieron migrar las claves del navegador:", e);
+        }
+      })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PampaGanaderia ERP - Gestión Agropecuaria Integral</title>
@@ -5013,7 +5049,7 @@
 
       // Cargar desde localStorage si existe
       function loadState() {
-        const saved = localStorage.getItem("nexoAgroERP");
+        const saved = localStorage.getItem("pampaGanaderiaERP");
         if (saved) {
           try {
             const savedData = JSON.parse(saved);
@@ -5090,7 +5126,7 @@
 
       // Guardar en localStorage
       function saveState() {
-        localStorage.setItem("nexoAgroERP", JSON.stringify(state));
+        localStorage.setItem("pampaGanaderiaERP", JSON.stringify(state));
       }
 
       // Elimina un registro de cualquier array de state por índice y re-renderiza.
@@ -5196,7 +5232,7 @@
             });
 
             if (result?.ok) {
-              localStorage.setItem("lastSyncTime", new Date().toISOString());
+              localStorage.setItem("pampaGanaderiaLastSyncTime", new Date().toISOString());
             }
           } catch (error) {
             console.error("Auto sync export error:", error);
@@ -5643,7 +5679,7 @@
       function getInstalledRoles() {
         let roles = [];
         try {
-          const raw = localStorage.getItem("nexoAgroInstalledRoles");
+          const raw = localStorage.getItem("pampaGanaderiaInstalledRoles");
           if (raw) {
             const parsed = JSON.parse(raw);
             if (Array.isArray(parsed)) {
@@ -5665,7 +5701,7 @@
 
         if (!roles.length) {
           roles = getDefaultInstalledRoles();
-          localStorage.setItem("nexoAgroInstalledRoles", JSON.stringify(roles));
+          localStorage.setItem("pampaGanaderiaInstalledRoles", JSON.stringify(roles));
         } else {
           const defaults = getDefaultInstalledRoles();
           defaults.forEach((d) => {
@@ -5683,7 +5719,7 @@
       }
 
       function saveInstalledRoles(roles) {
-        localStorage.setItem("nexoAgroInstalledRoles", JSON.stringify(roles));
+        localStorage.setItem("pampaGanaderiaInstalledRoles", JSON.stringify(roles));
       }
 
       function renderRoleSelectors() {
@@ -5904,11 +5940,11 @@
         if (currentRoleInstanceId === roleId) {
           currentRoleInstanceId = next[0]?.id || null;
           localStorage.setItem(
-            "nexoAgroRoleInstance",
+            "pampaGanaderiaRoleInstance",
             currentRoleInstanceId || "",
           );
           currentRole = next[0]?.roleKey || DEFAULT_ROLE;
-          localStorage.setItem("nexoAgroRole", currentRole);
+          localStorage.setItem("pampaGanaderiaRole", currentRole);
         }
 
         renderRoleSelectors();
@@ -5969,15 +6005,15 @@
         if (roleInstance) {
           currentRoleInstanceId = roleInstance.id;
           currentRole = roleInstance.roleKey;
-          localStorage.setItem("nexoAgroRoleInstance", currentRoleInstanceId);
+          localStorage.setItem("pampaGanaderiaRoleInstance", currentRoleInstanceId);
         } else {
           if (!rolePermissions[rol]) return;
           currentRoleInstanceId = null;
           currentRole = rol;
-          localStorage.removeItem("nexoAgroRoleInstance");
+          localStorage.removeItem("pampaGanaderiaRoleInstance");
         }
 
-        localStorage.setItem("nexoAgroRole", currentRole);
+        localStorage.setItem("pampaGanaderiaRole", currentRole);
         actualizarPermisos();
         const label = roleInstance
           ? roleInstance.name
@@ -6063,7 +6099,7 @@
         const configuredRole = window.electronAPI?.getAppRole
           ? window.electronAPI.getAppRole()
           : DEFAULT_ROLE;
-        const savedInstance = localStorage.getItem("nexoAgroRoleInstance");
+        const savedInstance = localStorage.getItem("pampaGanaderiaRoleInstance");
 
         let selected = roles.find((r) => r.id === savedInstance);
         if (!selected) {
@@ -6074,9 +6110,9 @@
         currentRoleInstanceId = selected?.id || null;
         currentRole = selected?.roleKey || DEFAULT_ROLE;
         if (currentRoleInstanceId) {
-          localStorage.setItem("nexoAgroRoleInstance", currentRoleInstanceId);
+          localStorage.setItem("pampaGanaderiaRoleInstance", currentRoleInstanceId);
         }
-        localStorage.setItem("nexoAgroRole", currentRole);
+        localStorage.setItem("pampaGanaderiaRole", currentRole);
         actualizarPermisos();
       }
 
@@ -6311,7 +6347,7 @@
         if (hasEmpresaContacts) return empresaContacts;
 
         try {
-          const saved = localStorage.getItem("nexoAgroWhatsAppContacts");
+          const saved = localStorage.getItem("pampaGanaderiaWhatsAppContacts");
           return saved ? JSON.parse(saved) : {};
         } catch (e) {
           return {};
@@ -6335,7 +6371,7 @@
         } catch (e) {}
 
         localStorage.setItem(
-          "nexoAgroWhatsAppContacts",
+          "pampaGanaderiaWhatsAppContacts",
           JSON.stringify(contacts || {}),
         );
       }
@@ -13087,7 +13123,7 @@
           }
 
           state.trazabilidadSyncQueue = [];
-          localStorage.setItem("lastSyncTime", new Date().toISOString());
+          localStorage.setItem("pampaGanaderiaLastSyncTime", new Date().toISOString());
           saveState();
           renderTables();
           showToast("Sincronización de trazabilidad completada", "success");
@@ -14393,7 +14429,7 @@
       }
 
       function getLicenseData() {
-        const licenseStr = localStorage.getItem("nexoAgroLicense");
+        const licenseStr = localStorage.getItem("pampaGanaderiaLicense");
         if (!licenseStr) return getPackDefaultLicense();
 
         try {
@@ -14970,7 +15006,7 @@
           errorMsg.textContent = error.message;
           return;
         }
-        localStorage.setItem("nexoAgroLicense", JSON.stringify(license));
+        localStorage.setItem("pampaGanaderiaLicense", JSON.stringify(license));
 
         // Ocultar pantalla de activación
         document.getElementById("activationOverlay").style.display = "none";
@@ -14998,7 +15034,7 @@
       }
       function marcarTrialAgotado() {
         localStorage.setItem("pampa_trial_exhausted_ganaderia", "1");
-        localStorage.removeItem("nexoAgroLicense");
+        localStorage.removeItem("pampaGanaderiaLicense");
         window.PampaTrialGuard?.mostrarAgotado?.();
       }
       // Crea la licencia de prueba con el inicio y vencimiento del servidor. false = ya se usó.
@@ -15029,7 +15065,7 @@
           marcarTrialAgotado();
           return false;
         }
-        localStorage.setItem("nexoAgroLicense", JSON.stringify(licencia));
+        localStorage.setItem("pampaGanaderiaLicense", JSON.stringify(licencia));
         return true;
       }
 
@@ -15105,7 +15141,7 @@
             }),
           }).catch(() => {});
         }
-        localStorage.removeItem("nexoAgroLicense");
+        localStorage.removeItem("pampaGanaderiaLicense");
         closeLicenseModal();
 
         // Mostrar pantalla de activación
@@ -15138,7 +15174,7 @@
           if (servidor.disponible && servidor.expiresAt) {
             if (servidor.agotado || new Date(servidor.expiresAt) < new Date(license.expiresAt)) {
               license.expiresAt = servidor.expiresAt;
-              localStorage.setItem("nexoAgroLicense", JSON.stringify(license));
+              localStorage.setItem("pampaGanaderiaLicense", JSON.stringify(license));
             }
           }
           const remaining = getTrialRemainingDays(license);
@@ -15163,13 +15199,13 @@
         }
 
         if (!verified) {
-          localStorage.removeItem("nexoAgroLicense");
+          localStorage.removeItem("pampaGanaderiaLicense");
           return false;
         }
 
         license.plan = limitarPlanPorPack(verified.plan);
         license.maxUsers = verified.maxUsers;
-        localStorage.setItem("nexoAgroLicense", JSON.stringify(license));
+        localStorage.setItem("pampaGanaderiaLicense", JSON.stringify(license));
         return true;
       }
 
@@ -15368,7 +15404,7 @@
       // === FIN SISTEMA DE LICENCIAMIENTO ===
 
       // === SISTEMA DE ALMACENAMIENTO INDEXEDDB ===
-      const DB_NAME = "NexoAgroERP";
+      const DB_NAME = "PampaGanaderiaERP"; // propia: en la web Agro usa "NexoAgroERP" en el mismo dominio
       const DB_VERSION = 1;
       const STORE_NAME = "data";
       let db = null;
@@ -15592,7 +15628,7 @@
             );
           }
 
-          localStorage.setItem("lastSyncTime", new Date().toISOString());
+          localStorage.setItem("pampaGanaderiaLastSyncTime", new Date().toISOString());
           await actualizarEstadoSincronizacion();
           showToast(
             navigator.onLine
@@ -15841,7 +15877,7 @@
         disconnectBtn.style.display = "none";
 
         // Última sincronización
-        const lastSync = localStorage.getItem("lastSyncTime");
+        const lastSync = localStorage.getItem("pampaGanaderiaLastSyncTime");
         if (lastSync) {
           const date = new Date(lastSync);
           lastTimeEl.textContent = date.toLocaleString("es-AR");
@@ -16572,11 +16608,11 @@
           Notification.permission === "granted"
         ) {
           const firma = alertas.map((alerta) => alerta.texto).join("|");
-          if (localStorage.getItem("fiscalUltimaAlerta") !== firma) {
+          if (localStorage.getItem("pampaGanaderiaFiscalUltimaAlerta") !== firma) {
             new Notification("PampaGanaderia: alerta DUT", {
               body: alertas[0].texto,
             });
-            localStorage.setItem("fiscalUltimaAlerta", firma);
+            localStorage.setItem("pampaGanaderiaFiscalUltimaAlerta", firma);
           }
         }
       }

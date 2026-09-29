@@ -3,6 +3,21 @@
   <head>
 <script id="pampa-web-trial-guard">(function(){try{const url=new URL(window.location.href);if(url.searchParams.get('trial')==='auto'){window.__pampaTrialAutoRequested=true;url.searchParams.delete('trial');window.history.replaceState({},document.title,url.pathname+url.search+url.hash);}}catch(error){}}());</script>
     <script src="pampa-trial-guard.js"></script>
+    <script>window.PAMPA_LICENSE_STORAGE_KEY = "nexoAgroLicense"; // licencia de esta app (las apps web comparten dominio)</script>
+    <script id="pampa-agro-datos-ajenos">
+      // En la web, PampaGanadería guardaba sus datos en esta misma clave (mismo dominio). Si lo que
+      // hay tiene forma de datos de Ganadería ("equipos" y sin módulos agrícolas), no es de Agro:
+      // se pasa a la clave propia de Ganadería (si todavía no tiene) en vez de cargarlo y pisarlo.
+      (function () {
+        try {
+          var datos = JSON.parse(localStorage.getItem("nexoAgroERP") || "null");
+          if (datos && typeof datos === "object" && "equipos" in datos && !("siembra" in datos) && !("ventasCereal" in datos)) {
+            if (localStorage.getItem("pampaGanaderiaERP") === null) localStorage.setItem("pampaGanaderiaERP", JSON.stringify(datos));
+            localStorage.removeItem("nexoAgroERP");
+          }
+        } catch (e) { /* sin almacenamiento */ }
+      })();
+    </script>
     <meta charset="UTF-8" />
     <title>PampaAgropecuario</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

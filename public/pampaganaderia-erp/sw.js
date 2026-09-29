@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pampaganaderia-erp-v2-mobile-nav';
+const CACHE_NAME = 'pampaganaderia-erp-v3-separada';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -13,10 +13,11 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
+// Las apps web comparten dominio (y las cachés son del dominio): cada una borra solo las suyas.
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => Promise.all(keys
-      .filter((key) => key !== CACHE_NAME)
+      .filter((key) => key.startsWith('pampaganaderia-') && key !== CACHE_NAME)
       .map((key) => caches.delete(key))))
   );
   self.clients.claim();

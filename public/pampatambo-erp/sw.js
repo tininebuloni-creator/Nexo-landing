@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pampatambo-pwa-v6-mobile-final';
+const CACHE_NAME = 'pampatambo-pwa-v7-separada';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './logo.png', './pampaia-source.js', './pampa-report-voice.js', './pampa-sync-envelope.js'];
 
 self.addEventListener('install', (event) => {
@@ -6,8 +6,9 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
+// Las apps web comparten dominio (y las cachés son del dominio): cada una borra solo las suyas.
 self.addEventListener('activate', (event) => {
-  event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))));
+  event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((key) => key.startsWith('pampatambo-') && key !== CACHE_NAME).map((key) => caches.delete(key)))));
   self.clients.claim();
 });
 
