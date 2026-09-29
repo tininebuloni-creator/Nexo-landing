@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pampaganaderia-erp-v3-separada';
+const CACHE_NAME = 'pampaganaderia-erp-v4-sanidad';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

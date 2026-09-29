@@ -76,6 +76,7 @@
     />
     <script src="vendor/chart.umd.min.js"></script>
     <script src="vendor/jspdf.umd.min.js"></script>
+    <script src="vendor/qrcode.js"></script>
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css" />
     <link rel="stylesheet" href="pampa-brand.css" />
     <script src="vendor/leaflet/leaflet.js"></script>
@@ -1648,6 +1649,8 @@
         if (!overlay || !titulo || !cuerpo) return;
         const esEdicion = Number.isInteger(editIndex);
         const previo = esEdicion ? state.hacienda[editIndex] || {} : {};
+        const v = (campo) =>
+          String(previo[campo] ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
         titulo.textContent = esEdicion
           ? "Editar Movimiento Ganadero"
           : "Nuevo Movimiento Ganadero";
@@ -1655,22 +1658,22 @@
           '<div class="form-group"><label class="form-label">Fecha</label><input class="form-input" name="fecha" type="date" value="' +
           (previo.fecha || new Date().toISOString().slice(0, 10)) +
           '"></div><div class="form-group"><label class="form-label">Tipo de movimiento</label><select class="form-select" name="tipo" id="haciendaTipoSelect"><option>Nacimiento</option><option>Compra</option><option>Venta</option><option>Muerte</option><option>Vacunación</option><option>Traslado</option><option>Cambio Categoría</option></select></div><div class="form-group"><label class="form-label">Categoría</label><select class="form-select" name="categoria"><option>Terneros</option><option>Novillos</option><option>Vaquillonas</option><option>Toros</option><option>Vacas</option></select></div><div class="form-group"><label class="form-label">Cantidad</label><input class="form-input" name="cantidad" type="number" min="1" value="' +
-          (previo.cantidad || "") +
+          v("cantidad") +
           '" required></div><div class="form-group"><label class="form-label">Precio / Valor ($)</label><input class="form-input" name="valor" type="number" min="0" step="0.01" value="' +
-          (previo.valor || "") +
+          v("valor") +
           '" placeholder="Precio total del movimiento"></div><div class="form-group"><label class="form-label">Detalle</label><input class="form-input" name="detalle" value="' +
-          (previo.detalle || "") +
+          v("detalle") +
           '" placeholder="Detalle del movimiento"></div><div class="form-group"><label class="form-label">Destino / Origen</label><input class="form-input" name="destino" value="' +
-          (previo.destino || "") +
+          v("destino") +
           '" placeholder="Campo, lote o establecimiento"></div><div class="form-group" id="haciendaCartaPorteGroup" style="display:none;"><label class="form-label">Nº Carta de Porte Electrónica (DT-e / DUT)</label><input class="form-input" name="nroCartaPorte" value="' +
-          (previo.nroCartaPorte || "") +
-          '" placeholder="Se emite en Fiscal ganadero &gt; DUT"><div style="font-size:11px;color:var(--text-dim);margin-top:4px;">⚠️ Toda venta de hacienda con traslado requiere Carta de Porte Electrónica (DT-e/DUT) de SENASA antes del despacho. <a href="#" onclick="event.preventDefault(); window.cerrarModalGanadero(); switchModule(\'fiscal\'); setTimeout(() => document.getElementById(\'fiscalFormDut\')?.scrollIntoView({behavior:\'smooth\'}), 150);">Emitir DUT ahora →</a></div></div><div class="form-group" id="haciendaFiscalGroup" style="display:none;"><label class="form-label">Datos fiscales de la venta (factura)</label><input class="form-input" name="nroComprobanteVenta" value="' +
-          (previo.nroComprobanteVenta || "") +
+          v("nroCartaPorte") +
+          '" placeholder="Se emite en Fiscal ganadero &gt; DUT"><div style="font-size:11px;color:var(--text-dim);margin-top:4px;">⚠️ Toda venta de hacienda con traslado requiere Carta de Porte Electrónica (DT-e/DUT) de SENASA antes del despacho. <a href="#" onclick="event.preventDefault(); window.cerrarModalGanadero(); switchModule(\'fiscal\'); setTimeout(() => document.getElementById(\'fiscalFormDut\')?.scrollIntoView({behavior:\'smooth\'}), 150);">Emitir DUT ahora →</a></div></div><div class="form-group" id="haciendaFiscalGroup" style="display:none;"><label class="form-label" id="haciendaFiscalLabel">Datos fiscales de la venta (factura)</label><input class="form-input" name="nroComprobanteVenta" value="' +
+          v("nroComprobanteVenta") +
           '" placeholder="N° de factura" style="margin-bottom:8px;"><input class="form-input" name="comprador" value="' +
-          (previo.comprador || "") +
-          '" placeholder="Comprador / Cliente" style="margin-bottom:8px;"><input class="form-input" name="iva" type="number" min="0" step="0.01" value="' +
-          (previo.iva || "") +
-          '" placeholder="IVA ($)"><div style="font-size:11px;color:var(--text-dim);margin-top:4px;">🧾 Si completás esto, esta misma venta genera sola el Débito Fiscal en Fiscal ganadero (un solo lugar, sin cargarla dos veces).</div></div>';
+          v("comprador") +
+          '" id="haciendaContraparte" placeholder="Comprador / Cliente" style="margin-bottom:8px;"><input class="form-input" name="iva" type="number" min="0" step="0.01" value="' +
+          v("iva") +
+          '" placeholder="IVA ($)"><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;"><input class="form-input" name="ivaRetenido" type="number" min="0" step="0.01" value="' + v("ivaRetenido") + '" placeholder="Ret./perc. IVA ($)"><input class="form-input" name="gananciasRetenido" type="number" min="0" step="0.01" value="' + v("gananciasRetenido") + '" placeholder="Ret. Ganancias ($)"><input class="form-input" name="iibbRetenido" type="number" min="0" step="0.01" value="' + v("iibbRetenido") + '" placeholder="Ret./perc. IIBB ($)"></div><div style="font-size:11px;color:var(--text-dim);margin-top:4px;" id="haciendaFiscalAyuda">🧾 Si completás esto, esta misma venta genera sola el Débito Fiscal en Fiscal ganadero (un solo lugar, sin cargarla dos veces).</div></div>';
         if (esEdicion) {
           cuerpo.querySelector('[name="tipo"]').value =
             previo.tipo || "Nacimiento";
@@ -1684,9 +1687,24 @@
         const fiscalGroup = document.getElementById("haciendaFiscalGroup");
         const actualizarCartaPorte = () => {
           const esVenta = tipoSelect.value === "Venta";
+          const esCompra = tipoSelect.value === "Compra";
           if (cartaPorteGroup)
             cartaPorteGroup.style.display = esVenta ? "" : "none";
-          if (fiscalGroup) fiscalGroup.style.display = esVenta ? "" : "none";
+          if (fiscalGroup)
+            fiscalGroup.style.display = esVenta || esCompra ? "" : "none";
+          const label = document.getElementById("haciendaFiscalLabel");
+          const contraparte = document.getElementById("haciendaContraparte");
+          const ayuda = document.getElementById("haciendaFiscalAyuda");
+          if (label)
+            label.textContent = esCompra
+              ? "Datos fiscales de la compra (factura del vendedor)"
+              : "Datos fiscales de la venta (factura)";
+          if (contraparte)
+            contraparte.placeholder = esCompra ? "Vendedor / Consignatario" : "Comprador / Cliente";
+          if (ayuda)
+            ayuda.textContent = esCompra
+              ? "🧾 Si completás esto, esta misma compra genera sola el Crédito Fiscal en Fiscal ganadero. No la cargues de nuevo en Fiscal: se contaría dos veces en Costos."
+              : "🧾 Si completás esto, esta misma venta genera sola el Débito Fiscal en Fiscal ganadero (un solo lugar, sin cargarla dos veces).";
         };
         tipoSelect?.addEventListener("change", actualizarCartaPorte);
         actualizarCartaPorte();
@@ -1718,23 +1736,32 @@
           state.comprobantesArca = state.comprobantesArca.filter(
             (c) => c.origenHaciendaId !== datos._id,
           );
-          const ivaVenta = parseFloat(datos.iva) || 0;
-          const tieneDatosFiscalesVenta =
-            datos.tipo === "Venta" &&
-            (datos.nroComprobanteVenta || datos.comprador || ivaVenta > 0);
-          if (tieneDatosFiscalesVenta) {
+          const ivaHacienda = parseMonto(datos.iva);
+          const esCompra = datos.tipo === "Compra";
+          const tieneDatosFiscales =
+            (datos.tipo === "Venta" || esCompra) &&
+            (datos.nroComprobanteVenta ||
+              datos.comprador ||
+              ivaHacienda > 0 ||
+              parseMonto(datos.ivaRetenido) > 0 ||
+              parseMonto(datos.gananciasRetenido) > 0 ||
+              parseMonto(datos.iibbRetenido) > 0);
+          if (tieneDatosFiscales) {
             state.comprobantesArca.push({
               fecha: datos.fecha,
-              tipo_fiscal: "DEBITO_FISCAL",
+              tipo_fiscal: esCompra ? "CREDITO_FISCAL" : "DEBITO_FISCAL",
               comprobante: datos.nroComprobanteVenta || "",
               contraparte: datos.comprador || "",
               concepto:
-                "Venta de hacienda: " +
+                (esCompra ? "Compra de hacienda: " : "Venta de hacienda: ") +
                 (datos.categoria || "") +
                 " x" +
                 (datos.cantidad || ""),
-              neto: parseFloat(datos.valor) || 0,
-              iva: ivaVenta,
+              neto: parseMonto(datos.valor),
+              iva: ivaHacienda,
+              ivaRetenido: parseMonto(datos.ivaRetenido),
+              gananciasRetenido: parseMonto(datos.gananciasRetenido),
+              iibbRetenido: parseMonto(datos.iibbRetenido),
               rubro: "Ganadero",
               _id: "CA-" + datos._id,
               origenHaciendaId: datos._id,
@@ -1848,6 +1875,7 @@
             <div class="nav-item" data-module="hacienda">
               <span class="nav-icon">🐄</span> Hacienda
             </div>
+
             <div class="nav-item" data-module="alimentacion">
               <span class="nav-icon">🌾</span> Alimentación
             </div>
@@ -2585,6 +2613,100 @@
               </div>
             </div>
 
+            <details class="card" id="haciendaControlSanitario" style="margin-bottom: 16px">
+              <summary style="cursor: pointer; list-style: none">
+                <div class="card-header" style="margin: 0">
+                  <div>
+                    <div class="card-title">🩺 Control sanitario SENASA</div>
+                    <div class="text-muted" style="font-size: 12px" id="sanResumen">Campañas, estatus, análisis y garrapata</div>
+                  </div>
+                  <span class="topbar-btn">Ver / cargar ▾</span>
+                </div>
+              </summary>
+              <div class="text-muted" style="font-size: 12px; padding: 0 16px 8px">
+                Las alertas aparecen en "Sanidad y Carencia" y en el Dashboard. El RENSPA y su vencimiento se cargan en Campos; boletos de marca y DUT, en Fiscal ganadero.
+              </div>
+              <form id="sanidadEstablecimientoForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px 14px; padding: 0 16px 16px" onsubmit="event.preventDefault(); guardarEstablecimientoSanitario();">
+                <label class="form-group"><span class="form-label">Tipo de explotación</span><select class="form-select" name="tipoExplotacion"><option value="">-- Seleccionar --</option><option>Cría</option><option>Recría / invernada</option><option>Ciclo completo</option><option>Tambo</option><option>Cabaña / centro genético</option><option>Feedlot</option></select></label>
+                <label class="form-group"><span class="form-label">Zona de fiebre aftosa</span><select class="form-select" name="zonaAftosa"><option value="con">Libre con vacunación (se vacuna)</option><option value="sin">Libre sin vacunación (Patagonia)</option></select></label>
+                <label class="form-group"><span class="form-label">Zona de garrapata</span><select class="form-select" name="zonaGarrapata"><option value="libre">Zona libre</option><option value="control">Zona de control / lucha</option><option value="erradicacion">Zona de erradicación</option></select></label>
+                <label class="form-group"><span class="form-label">Situación del establecimiento (garrapata)</span><select class="form-select" name="estadoGarrapata"><option value="libre">Libre</option><option value="infestado">Infestado</option><option value="saneamiento">En saneamiento</option><option value="limpio">Oficialmente limpio</option></select></label>
+                <label class="form-group"><span class="form-label">Estatus de brucelosis</span><select class="form-select" name="brucelosisEstatus"><option value="sin">Sin estatus</option><option value="saneamiento">En saneamiento</option><option value="libre">Libre (certificado vigente)</option></select></label>
+                <label class="form-group"><span class="form-label">Vence certificado libre de brucelosis</span><input class="form-input" name="brucelosisVence" type="date" /></label>
+                <label class="form-group"><span class="form-label">Estatus de tuberculosis</span><select class="form-select" name="tuberculosisEstatus"><option value="sin">Sin estatus</option><option value="saneamiento">En saneamiento</option><option value="libre">Libre (certificado vigente)</option></select></label>
+                <label class="form-group"><span class="form-label">Vence certificado libre de tuberculosis</span><input class="form-input" name="tuberculosisVence" type="date" /></label>
+                <label class="form-group"><span class="form-label">Veterinario acreditado</span><input class="form-input" name="veterinario" placeholder="Nombre y apellido" /></label>
+                <label class="form-group"><span class="form-label">Matrícula / acreditación SENASA</span><input class="form-input" name="matriculaVeterinario" /></label>
+                <label class="form-group"><span class="form-label">Ente sanitario / fundación</span><input class="form-input" name="enteSanitario" /></label>
+                <div style="grid-column: 1 / -1; display: flex; gap: 8px; align-items: center">
+                  <button class="topbar-btn primary" type="submit">💾 Guardar datos sanitarios</button>
+                  <span class="text-muted" id="sanidadEstablecimientoEstado" style="font-size: 12px"></span>
+                </div>
+              </form>
+              <div class="grid-2" style="padding: 0 16px 16px">
+                <div>
+                  <div class="card-header" style="padding-left: 0; padding-right: 0">
+                    <div class="card-title">📅 Campañas de aftosa y brucelosis</div>
+                    <button class="topbar-btn primary" type="button" onclick="openModal('sanidadCampanas')">+ Campaña</button>
+                  </div>
+                  <div class="text-muted" style="font-size: 12px; padding-bottom: 8px">
+                    Fechas del calendario oficial SENASA de tu zona. 1ª campaña: todas las categorías. 2ª: refuerzo de terneros y terneras. La brucelosis de terneras de 3 a 8 meses se vacuna junto con la aftosa.
+                  </div>
+                  <div style="overflow-x: auto">
+                    <table class="data-table">
+                      <thead><tr><th>Año</th><th>Campaña</th><th>Período</th><th>Estado</th><th></th></tr></thead>
+                      <tbody id="sanidadCampanasBody"></tbody>
+                    </table>
+                  </div>
+                </div>
+                <div>
+                  <div class="card-header" style="padding-left: 0; padding-right: 0">
+                    <div class="card-title">🪲 Garrapata: baños y tratamientos</div>
+                    <button class="topbar-btn primary" type="button" onclick="openModal('sanidadGarrapata')">+ Registro</button>
+                  </div>
+                  <div style="overflow-x: auto">
+                    <table class="data-table">
+                      <thead><tr><th>Fecha</th><th>Tipo</th><th>Producto</th><th>Cabezas</th><th></th></tr></thead>
+                      <tbody id="sanidadGarrapataBody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <div style="padding: 0 16px 16px">
+                <div class="card-header" style="padding-left: 0; padding-right: 0">
+                  <div class="card-title">💉 Vacunaciones oficiales (actas)</div>
+                  <button class="topbar-btn primary" type="button" onclick="openModal('sanidadVacunaciones')">+ Vacunación</button>
+                </div>
+                <div class="text-muted" style="font-size: 12px; padding-bottom: 8px">Vacunaciones del rodeo con acta (aftosa, brucelosis). Los tratamientos por animal y sus carencias se cargan en Eventos Sanitarios.</div>
+                <div style="overflow-x: auto">
+                  <table class="data-table">
+                    <thead><tr><th>Fecha</th><th>Vacuna</th><th>Acta</th><th>Cabezas</th><th>Categorías</th><th>SIGSA</th><th></th></tr></thead>
+                    <tbody id="sanidadVacunacionesBody"></tbody>
+                  </table>
+                </div>
+              </div>
+              <div style="padding: 0 16px 16px">
+                <div class="card-header" style="padding-left: 0; padding-right: 0">
+                  <div class="card-title">🧪 Análisis: CSM de brucelosis y tuberculina</div>
+                  <button class="topbar-btn primary" type="button" onclick="openModal('sanidadAnalisis')">+ Análisis</button>
+                </div>
+                <div style="overflow-x: auto">
+                  <table class="data-table">
+                    <thead><tr><th>Toma de muestra</th><th>Análisis</th><th>Protocolo / CSM</th><th>Cabezas</th><th>Resultado</th><th>Vigencia</th><th></th></tr></thead>
+                    <tbody id="sanidadAnalisisBody"></tbody>
+                  </table>
+                </div>
+              </div>
+              <ul class="text-muted" style="font-size: 12px; line-height: 1.6; padding: 0 16px 16px 32px">
+                <li><b>Fiebre aftosa</b> (Res. 1259/2023 y Disp. DNSA 21/2026): sin vacunación registrada solo se mueve a faena; en la 1ª campaña, hacia campo vacunado o remate hace falta vacunación estratégica de egreso.</li>
+                <li><b>Brucelosis</b> (Res. 67/2019): terneras de 3 a 8 meses vacunadas; desde el 1/1/2026, vacas, toros y toritos a tambo, cría, ciclo completo o cabaña con CSM (60 días), salvo origen libre.</li>
+                <li><b>Tuberculosis</b> (Res. 128/2012): plan obligatorio en tambos y cabañas.</li>
+                <li><b>Garrapata</b> (Res. 655/2026): de zona de control a zona libre o de erradicación, baño precautorio antes de la carga.</li>
+                <li><b>Identificación</b> (Res. 530/2025 y 841/2025): caravana visual + RFID oficial de 15 dígitos para moverse o quedar en el campo después del destete.</li>
+                <li><b>Transporte</b> (Res. 723/2025 y 806/2025): camión habilitado, chofer con tarjeta sanitaria, limpieza y desinfección.</li>
+              </ul>
+            </details>
+
             <div class="kpi-grid">
               <div class="kpi green">
                 <div class="kpi-label">🆔 Animales Trazados</div>
@@ -2959,7 +3081,9 @@
                     <th>Cabezas</th>
                     <th>Días</th>
                     <th>Cantidad Total</th>
+                    <th>Costo</th>
                     <th>Observaciones</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody id="alimentacionBody"></tbody>
@@ -3246,12 +3370,36 @@
                   placeholder="Boleto de marca"
                   required
                 />
-                <select class="form-select" name="categoriaId">
-                  <option value="1">Novillo</option>
-                  <option value="2">Vaquillona</option>
-                  <option value="3">Ternero</option>
-                  <option value="4">Porcinos capón</option>
+                <select class="form-select" name="categoriaId" title="Categoría de la tropa">
+                  <option>Ternero</option>
+                  <option>Ternera</option>
+                  <option>Novillito</option>
+                  <option>Novillo</option>
+                  <option>Vaquillona</option>
+                  <option>Vaca</option>
+                  <option>Toro</option>
+                  <option>Torito</option>
                 </select>
+                <select class="form-select" name="motivoMovimiento" title="Destino / motivo del movimiento" required>
+                  <option value="">-- Destino del movimiento --</option>
+                  <option>Faena</option>
+                  <option>Invernada / recría</option>
+                  <option>Cría</option>
+                  <option>Ciclo completo</option>
+                  <option>Tambo</option>
+                  <option>Cabaña / centro genético</option>
+                  <option>Remate / concentración</option>
+                  <option>Exposición</option>
+                </select>
+                <select class="form-select" name="zonaGarrapataDestino" title="Zona de garrapata del destino">
+                  <option value="">Garrapata: destino en la misma zona</option>
+                  <option value="libre">Destino en zona libre de garrapata</option>
+                  <option value="erradicacion">Destino en zona de erradicación</option>
+                  <option value="control">Destino en zona de control</option>
+                </select>
+                <input class="form-input" name="csmNumero" placeholder="N° de CSM de brucelosis (si corresponde)" />
+                <input class="form-input" name="habilitacionTransporte" placeholder="N° habilitación SENASA del camión (Res. 723/2025)" />
+                <div id="fiscalDutChequeoSanitario" style="grid-column: 1 / -1"></div>
                 <input
                   class="form-input"
                   name="cantidadCabezas"
@@ -3493,14 +3641,19 @@
                 <div class="kpi" id="kpiIvaSaldoMesCard">
                   <div class="kpi-label">Saldo IVA del mes</div>
                   <div class="kpi-value" id="kpiIvaSaldoMes">$0</div>
-                  <div class="kpi-sub">Débito - Crédito</div>
+                  <div class="kpi-sub" id="kpiIvaSaldoMesSub">Débito − Crédito − retenciones/percepciones de IVA</div>
                 </div>
                 <div class="kpi" id="kpiIvaSaldoAcumCard">
                   <div class="kpi-label">Saldo técnico acumulado</div>
                   <div class="kpi-value" id="kpiIvaSaldoAcum">$0</div>
-                  <div class="kpi-sub">
+                  <div class="kpi-sub" id="kpiIvaSaldoAcumSub">
                     A favor se arrastra al próximo período
                   </div>
+                </div>
+                <div class="kpi orange">
+                  <div class="kpi-label">Retenciones y percepciones (mes)</div>
+                  <div class="kpi-value" id="kpiRetencionesMes">$0</div>
+                  <div class="kpi-sub" id="kpiRetencionesMesSub">IVA · Ganancias · Ingresos Brutos</div>
                 </div>
               </div>
               <p
@@ -4352,7 +4505,7 @@
             <div class="grid-2">
               <div class="card">
                 <div class="card-header">
-                  <div class="card-title">🐄 Costo por Categoría Ganadera</div>
+                  <div class="card-title">🐄 Costo por cabeza vendida (últimos 12 meses)</div>
                 </div>
                 <div class="chart-container" style="height: 250px">
                   <canvas id="chartCostoCultivo"></canvas>
@@ -4360,7 +4513,7 @@
               </div>
               <div class="card">
                 <div class="card-header">
-                  <div class="card-title">📊 Desglose de Costo por Animal</div>
+                  <div class="card-title">📊 Desglose del costo ganadero (últimos 12 meses)</div>
                 </div>
                 <div class="chart-container" style="height: 250px">
                   <canvas id="chartDesglose"></canvas>
@@ -4410,6 +4563,18 @@
                 <div class="card-title">
                   🐄 Análisis de Rentabilidad Ganadera
                 </div>
+                <select
+                  id="rentPeriodo"
+                  class="form-select"
+                  style="width: auto; min-width: 170px"
+                  onchange="calcularRentabilidad()"
+                  aria-label="Período de la rentabilidad"
+                >
+                  <option value="mes">Este mes</option>
+                  <option value="anio">Este año</option>
+                  <option value="12m">Últimos 12 meses</option>
+                  <option value="todo" selected>Todo el historial</option>
+                </select>
               </div>
             </div>
 
@@ -4447,7 +4612,7 @@
                     <th>Categoría</th>
                     <th>Cabezas Vendidas</th>
                     <th>Ingreso Venta</th>
-                    <th>Costo Alim.</th>
+                    <th>Costo asignado</th>
                     <th>Margen</th>
                   </tr>
                 </thead>
@@ -5066,6 +5231,11 @@
       /* === ESTADO GLOBAL === */
       const state = {
         campos: [],
+sanidadEstablecimiento: {},
+        sanidadCampanas: [],
+        sanidadVacunaciones: [],
+        sanidadAnalisis: [],
+        sanidadGarrapata: [],
         boletosMarca: [],
         fiscalDutHistorial: [],
         fiscalNotificaciones: [],
@@ -5261,11 +5431,24 @@
       // No existía (los botones 🗑️ de Cargas de Combustible y Costos Operativos llamaban
       // a esta función sin que estuviera definida en ningún lado).
       function deleteRecord(modulo, index) {
+        if (sanidadSoloLectura(modulo)) {
+          showToast("Sanidad y vacunaciones: el Operario de Campo tiene acceso de solo lectura.", "info");
+          return;
+        }
         if (!Array.isArray(state[modulo])) return;
         if (index < 0 || index >= state[modulo].length) return;
         if (!confirm("¿Eliminar este registro?")) return;
         const registroEliminado = state[modulo][index];
         state[modulo].splice(index, 1);
+        if (modulo === "alimentacion" && registroEliminado) {
+          const cantidad = parseFloat(registroEliminado.cantidadTotal) || 0;
+          const producto = (state.inventario || []).find((p) => p.codigo === registroEliminado.producto);
+          if (producto && cantidad > 0) producto.stock = (parseFloat(producto.stock) || 0) + cantidad;
+          if (registroEliminado._id)
+            state.movimientoStock = (state.movimientoStock || []).filter(
+              (m) => m.origenAlimentacionId !== registroEliminado._id,
+            );
+        }
         if (
           modulo === "hacienda" &&
           registroEliminado?._id &&
@@ -5608,6 +5791,11 @@
         "documentos",
       ];
       const moduleNames = {
+
+        sanidadCampanas: "Campaña de vacunación",
+        sanidadVacunaciones: "Vacunación",
+        sanidadAnalisis: "Análisis sanitario",
+        sanidadGarrapata: "Baño / tratamiento garrapata",
         dashboard: "Dashboard",
         campos: "Campos",
         lotes: "Lotes",
@@ -7427,6 +7615,21 @@
             { name: "neto", label: "Neto ($)", type: "number", required: true },
             { name: "iva", label: "IVA ($)", type: "number", required: true },
             {
+              name: "ivaRetenido",
+              label: "Retención / percepción de IVA sufrida ($)",
+              type: "number",
+            },
+            {
+              name: "gananciasRetenido",
+              label: "Retención de Ganancias sufrida ($)",
+              type: "number",
+            },
+            {
+              name: "iibbRetenido",
+              label: "Retención / percepción de Ingresos Brutos sufrida ($)",
+              type: "number",
+            },
+            {
               name: "rubro",
               label: "Rubro",
               type: "select",
@@ -7434,7 +7637,88 @@
             },
           ],
         },
-        costos: {
+        sanidadCampanas: {
+          title: "Campaña oficial de vacunación",
+          fields: [
+            { name: "anio", label: "Año", type: "number", required: true },
+            {
+              name: "campana",
+              label: "Campaña",
+              type: "select",
+              options: ["1ª campaña (todas las categorías)", "2ª campaña (terneros y terneras, refuerzo)"],
+              required: true,
+            },
+            { name: "inicio", label: "Inicio (según calendario SENASA de tu zona)", type: "date", required: true },
+            { name: "fin", label: "Fin", type: "date", required: true },
+            { name: "observaciones", label: "Observaciones", type: "text" },
+          ],
+        },
+        sanidadVacunaciones: {
+          title: "Vacunación oficial",
+          fields: [
+            { name: "fecha", label: "Fecha de vacunación", type: "date", required: true },
+            {
+              name: "enfermedad",
+              label: "Vacuna",
+              type: "select",
+              options: [
+                "Fiebre aftosa",
+                "Fiebre aftosa - vacunación estratégica de egreso",
+                "Brucelosis (cepa 19 / RB51) - terneras 3 a 8 meses",
+                "Carbunclo",
+                "Clostridiales / mancha",
+                "Otra",
+              ],
+              required: true,
+            },
+            { name: "acta", label: "N° de acta de vacunación", type: "text" },
+            { name: "cabezas", label: "Cabezas vacunadas", type: "number", required: true },
+            { name: "categorias", label: "Categorías (ej: todas / terneros y terneras)", type: "text" },
+            { name: "vacunador", label: "Vacunador / Ente sanitario", type: "text" },
+            { name: "sigsa", label: "¿Registrada en SIGSA?", type: "select", options: ["Sí", "No", "No sé"] },
+            { name: "observaciones", label: "Observaciones", type: "text" },
+          ],
+        },
+        sanidadAnalisis: {
+          title: "Análisis sanitario",
+          fields: [
+            { name: "fecha", label: "Fecha de toma de muestra", type: "date", required: true },
+            {
+              name: "tipo",
+              label: "Análisis",
+              type: "select",
+              options: [
+                "Brucelosis - Certificado de Seronegatividad al Movimiento (CSM)",
+                "Brucelosis - saneamiento / control",
+                "Tuberculosis - tuberculinización",
+              ],
+              required: true,
+            },
+            { name: "protocolo", label: "N° de protocolo / CSM", type: "text" },
+            { name: "cabezas", label: "Cabezas analizadas", type: "number" },
+            { name: "resultado", label: "Resultado", type: "select", options: ["Negativo", "Positivo", "Pendiente"], required: true },
+            { name: "laboratorio", label: "Laboratorio", type: "text" },
+            { name: "veterinario", label: "Veterinario acreditado", type: "text" },
+            { name: "sigsa", label: "¿Cargado en SIGSA?", type: "select", options: ["Sí", "No"] },
+          ],
+        },
+        sanidadGarrapata: {
+          title: "Baño / tratamiento garrapaticida",
+          fields: [
+            { name: "fecha", label: "Fecha", type: "date", required: true },
+            {
+              name: "tipo",
+              label: "Tipo",
+              type: "select",
+              options: ["Baño precautorio antes de la carga", "Tratamiento del plan de saneamiento", "Inspección"],
+              required: true,
+            },
+            { name: "producto", label: "Producto aprobado", type: "text" },
+            { name: "cabezas", label: "Cabezas", type: "number" },
+            { name: "resultado", label: "Resultado / observaciones", type: "text" },
+          ],
+        },
+costos: {
           title: "Nuevo Costo Manual",
           fields: [
             { name: "fecha", label: "Fecha", type: "date", required: true },
@@ -8322,6 +8606,10 @@
 
       function openModal(module, editIndex = null) {
         const config = formConfigs[module];
+        if (sanidadSoloLectura(module)) {
+          showToast("Sanidad y vacunaciones: el Operario de Campo tiene acceso de solo lectura.", "info");
+          return;
+        }
         if (!config) {
           showToast("Formulario no disponible: " + module, "error");
           return;
@@ -8823,6 +9111,13 @@
         }
 
         const moduloActual = currentModal.module;
+        if (moduloActual === "animalesTrazabilidad" && String(data.rfidTag || "").trim()) {
+          data.rfidTag = String(data.rfidTag).replace(/\s+/g, "");
+          if (!/^\d{15}$/.test(data.rfidTag)) {
+            showToast("El chip RFID tiene que tener exactamente 15 dígitos numéricos (Res. SENASA 530/2025).", "error");
+            return;
+          }
+        }
         const esModuloTrazabilidad = [
           "animalesTrazabilidad",
           "historialMovimientos",
@@ -8916,7 +9211,13 @@
             : null;
 
         if (currentModal.editIndex !== null) {
-          // Editar registro existente
+          // Editar registro existente: se conservan los campos internos que el formulario no
+          // muestra (_id, vínculos con costos/comprobantes generados, referencias de origen).
+          if (registroAnterior && typeof registroAnterior === "object") {
+            Object.keys(registroAnterior).forEach((clave) => {
+              if (!(clave in data)) data[clave] = registroAnterior[clave];
+            });
+          }
           state[currentModal.module][currentModal.editIndex] = data;
           showToast("Registro actualizado", "success");
         } else {
@@ -9333,7 +9634,8 @@
           // ya se cargó desde ahí — no lo duplicamos generándolo también acá.
           if (
             data.tipo_fiscal === "CREDITO_FISCAL" &&
-            !data.origenMovimientoStockId
+            !data.origenMovimientoStockId &&
+            !data.origenHaciendaId
           ) {
             const neto = parseFloat(data.neto) || 0;
             const iva = parseFloat(data.iva) || 0;
@@ -9343,7 +9645,9 @@
               concepto: [data.comprobante, data.contraparte, data.concepto]
                 .filter(Boolean)
                 .join(" · "),
-              importe: neto + iva,
+              importe: neto + (ivaEsCosto() ? iva : 0),
+              neto,
+              iva,
               destino: data.contraparte || "",
               origen: "Fiscal · Crédito fiscal IVA",
               rubro: data.rubro || "Ganadero",
@@ -9368,7 +9672,7 @@
                 ),
             );
           }
-          if (costoOrden > 0) {
+          if (costoOrden > 0 && data.estado !== "Pendiente") {
             if (!data._id)
               data._id =
                 "MT-" + Date.now() + "-" + Math.floor(Math.random() * 100000);
@@ -9578,7 +9882,12 @@
                   "Ingreso de stock: " +
                   (producto.producto || producto.codigo || data.producto) +
                   (data.observaciones ? " · " + data.observaciones : ""),
-                importe: Math.round((data.valorTotal + ivaMonto) * 100) / 100,
+                importe:
+                  Math.round(
+                    (data.valorTotal + (ivaEsCosto() ? ivaMonto : 0)) * 100,
+                  ) / 100,
+                neto: data.valorTotal,
+                iva: ivaMonto,
                 destino: producto.producto || producto.codigo || "",
                 origen: "Inventario · Ingreso de stock",
                 rubro: data.rubro || "Ganadero",
@@ -9706,7 +10015,18 @@
                 "warning",
               );
             producto.stock = Math.max(0, stockDisp - cantidadTotal);
-            const precioUnitario = parseFloat(producto.costoUnit) || 0;
+            // Costo del consumo al último precio de compra disponible a esa fecha.
+            const precioUnitario =
+              ultimoPrecioAlimento(producto.codigo, data.fecha) ||
+              parseFloat(producto.costoUnit) ||
+              0;
+            if (!data._id)
+              data._id =
+                "AL-" + Date.now() + "-" + Math.floor(Math.random() * 100000);
+            // Una sola salida de stock por registro de alimentación (antes cada edición sumaba otra).
+            state.movimientoStock = state.movimientoStock.filter(
+              (m) => m.origenAlimentacionId !== data._id,
+            );
             if (state.alimentacion && state.alimentacion[idx]) {
               state.alimentacion[idx].costoUnitario = precioUnitario;
               state.alimentacion[idx].costoTotal =
@@ -9721,6 +10041,7 @@
               valorTotal:
                 Math.round(cantidadTotal * precioUnitario * 100) / 100,
               motivo: "Alimentación",
+              origenAlimentacionId: data._id,
               observaciones: `Alimentación ${data.categoria} - ${data.cabezas} cabezas × ${data.racion} kg × ${data.dias} días`,
             });
           }
@@ -10873,7 +11194,9 @@
           ),
         );
         try {
-          const respuesta = await fetch("/api/boletos-marca");
+          const respuesta = window.PAMPA_DESKTOP_MODE
+            ? await fetch("/api/boletos-marca")
+            : { ok: false };
           if (respuesta.ok) {
             const datos = await respuesta.json();
             (datos.boletos || []).forEach((boleto) =>
@@ -10919,6 +11242,22 @@
       function mostrarAlertasGenerales() {
         const alertas = [];
         const hoy = new Date();
+
+        // Alertas del control sanitario SENASA en el Dashboard (campañas, CSM, estatus, RFID, carencias).
+        if (typeof evaluarSanidad === "function") {
+          try {
+            evaluarSanidad().alertas.forEach((a) =>
+              alertas.push({
+                clase: a.nivel === "rojo" ? "critical" : "",
+                icono: "💉",
+                texto: escapeHtmlRoles(`SENASA: ${a.texto}`),
+                tiempo: escapeHtmlRoles(a.norma || "Control sanitario"),
+              }),
+            );
+          } catch (error) {
+            console.error("Alertas sanitarias:", error);
+          }
+        }
 
         // Alertas de cheques por cobrar
         if (state.chequesCobrar) {
@@ -11311,7 +11650,9 @@
           <td>${a.cabezas}</td>
           <td>${a.dias}</td>
           <td><strong>${(a.cantidadTotal || 0).toLocaleString("es-AR")} kg</strong></td>
-          <td>${a.observaciones || "-"}</td>
+          <td>${typeof costoDeAlimentacion === "function" ? "$" + Math.round(costoDeAlimentacion(a)).toLocaleString("es-AR") : "-"}</td>
+          <td>${escapeHtmlRoles(a.observaciones || "-")}</td>
+          <td><button class="btn-delete" onclick="event.stopPropagation(); deleteRecord('alimentacion', ${i});" title="Borrar (devuelve el alimento al stock)">🗑️</button></td>
         </tr>
       `;
             })
@@ -11581,6 +11922,7 @@
 
         // Costos (KPIs + tabla): función dedicada, ver renderCostos()
         safeRender("costos", renderCostos);
+safeRender("sanidad", renderSanidad);
 
         // Empleados
         const empleadosBody = document.querySelector(
@@ -11688,11 +12030,11 @@
         <td>${item.codigo}</td>
         <td>${item.producto}</td>
         <td><span class="tag blue">${item.categoria}</span></td>
-        <td><strong>${item.stock.toLocaleString()}</strong></td>
+        <td><strong>${(Number(item.stock) || 0).toLocaleString("es-AR")}</strong></td>
         <td>${item.unidad}</td>
-        <td>$${item.costoUnit.toLocaleString()}</td>
+        <td>$${(Number(item.costoUnit) || 0).toLocaleString("es-AR")}</td>
         <td>$${valorTotal.toLocaleString()}</td>
-        <td>${item.stockMinimo.toLocaleString()}</td>
+        <td>${(Number(item.stockMinimo) || 0).toLocaleString("es-AR")}</td>
         <td>${estadoTag}</td>
         <td>
           <button onclick="event.stopPropagation(); openMovimientoStock('${item.codigo}')" class="topbar-btn" style="padding:4px 8px;font-size:11px;">📦 Movimiento</button>
@@ -11790,7 +12132,337 @@
         }, 100);
       }
 
-      /* === ARCA: comprobantes fiscales (débito/crédito IVA) === */
+      /* === CONTROL SANITARIO SENASA === */
+      // Matriz de roles: sanidad, diagnósticos y vacunaciones → Operario de Campo solo lectura.
+      function sanidadSoloLectura(modulo) {
+        return (
+          typeof currentRole !== "undefined" &&
+          currentRole === "ingeniero" &&
+          /^(sanidad|eventosSanitarios$)/.test(String(modulo || ""))
+        );
+      }
+      const DIA_MS = 86400000;
+      function fechaIsoSan(f) {
+        if (!f) return "";
+        const t = String(f).trim();
+        const dmy = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+        if (dmy) return `${dmy[3]}-${dmy[2].padStart(2, "0")}-${dmy[1].padStart(2, "0")}`;
+        return t.slice(0, 10);
+      }
+      function hoyIsoSan() {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      }
+      function sumarDiasIso(iso, dias) {
+        const [y, m, d] = iso.split("-").map(Number);
+        const f = new Date(y, m - 1, d + dias);
+        return `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, "0")}-${String(f.getDate()).padStart(2, "0")}`;
+      }
+      function diasEntre(desdeIso, hastaIso) {
+        const a = new Date(desdeIso + "T00:00:00"), b = new Date(hastaIso + "T00:00:00");
+        return Math.round((b - a) / DIA_MS);
+      }
+      function fechaArSan(iso) {
+        return iso ? iso.split("-").reverse().join("/") : "";
+      }
+      function establecimientoSanitario() {
+        const campo = (state.campos || []).find((c) => String(c.renspa || "").trim()) || {};
+        const guardado = state.sanidadEstablecimiento || {};
+        return {
+          zonaAftosa: "con",
+          zonaGarrapata: "libre",
+          estadoGarrapata: "libre",
+          brucelosisEstatus: "sin",
+          tuberculosisEstatus: "sin",
+          ...Object.fromEntries(Object.entries(guardado).filter(([, v]) => v !== "" && v != null)),
+          // RENSPA: una sola fuente, Campos (ahí se carga y el Dashboard avisa su vencimiento).
+          renspa: campo.renspa || "",
+          renspaVence: campo.fechaVencimientoRenspa || "",
+        };
+      }
+      function esVacunaAftosa(v) {
+        return /aftosa/i.test(v.enfermedad || "");
+      }
+      function esEgresoAftosa(v) {
+        return /egreso/i.test(v.enfermedad || "");
+      }
+      function esSegundaCampana(c) {
+        return /^2/.test(c.campana || "");
+      }
+      // Vacunación de aftosa registrada dentro de la campaña (la estratégica de egreso no cuenta
+      // como vacunación de campaña: solo habilita ese movimiento puntual).
+      function campanaVacunada(c) {
+        const ini = fechaIsoSan(c.inicio), fin = fechaIsoSan(c.fin);
+        return (state.sanidadVacunaciones || []).some((v) => {
+          const f = fechaIsoSan(v.fecha);
+          return esVacunaAftosa(v) && !esEgresoAftosa(v) && f >= ini && f <= fin;
+        });
+      }
+      function brucelosisVacunadaEn(c) {
+        const ini = fechaIsoSan(c.inicio), fin = fechaIsoSan(c.fin);
+        return (state.sanidadVacunaciones || []).some((v) => {
+          const f = fechaIsoSan(v.fecha);
+          return /brucelosis/i.test(v.enfermedad || "") && f >= ini && f <= fin;
+        });
+      }
+      function campanasOrdenadas() {
+        return (state.sanidadCampanas || [])
+          .filter((c) => fechaIsoSan(c.inicio) && fechaIsoSan(c.fin))
+          .slice()
+          .sort((a, b) => fechaIsoSan(a.inicio).localeCompare(fechaIsoSan(b.inicio)));
+      }
+      function animalesEnCarencia(fechaRef = hoyIsoSan()) {
+        return (state.eventosSanitarios || [])
+          .map((e) => {
+            const dias = parseInt(e.carenciaDias, 10) || 0;
+            const f = fechaIsoSan(e.fecha);
+            if (!dias || !f || e.estado === "Cumplió carencia") return null;
+            const hasta = sumarDiasIso(f, dias);
+            return hasta > fechaRef ? { animal: e.idAnimal || "(sin ID)", producto: e.tipoVacunaMedicamento || "", hasta } : null;
+          })
+          .filter(Boolean);
+      }
+      // Res. 530/2025 y 841/2025: binomio caravana visual + RFID oficial de 15 dígitos numéricos.
+      function rfidValido(tag) {
+        return /^\d{15}$/.test(String(tag || "").replace(/\s+/g, ""));
+      }
+      function animalesSinRfid() {
+        return (state.animalesTrazabilidad || []).filter((a) => !String(a.rfidTag || "").trim());
+      }
+      function animalesRfidInvalido() {
+        return (state.animalesTrazabilidad || []).filter((a) => String(a.rfidTag || "").trim() && !rfidValido(a.rfidTag));
+      }
+      function csmVigentes(fechaRef = hoyIsoSan()) {
+        return (state.sanidadAnalisis || []).filter((a) => {
+          const f = fechaIsoSan(a.fecha);
+          return /CSM/i.test(a.tipo || "") && a.resultado === "Negativo" && f && f <= fechaRef && diasEntre(f, fechaRef) <= 60;
+        });
+      }
+      function estatusLibreVigente(tipo, fechaRef = hoyIsoSan()) {
+        const est = establecimientoSanitario();
+        const vence = fechaIsoSan(est[`${tipo}Vence`]);
+        return est[`${tipo}Estatus`] === "libre" && (!vence || vence >= fechaRef);
+      }
+
+      // Alertas del establecimiento. nivel: "rojo" (incumplimiento) | "amarillo" (vence o falta cargar).
+      function evaluarSanidad(fechaRef = hoyIsoSan()) {
+        const est = establecimientoSanitario();
+        const alertas = [];
+        const agregar = (nivel, texto, norma = "") => alertas.push({ nivel, texto, norma });
+        const aviso = (vence, nombre, dias = 30, norma = "") => {
+          if (!vence) return;
+          const d = diasEntre(fechaRef, vence);
+          if (d < 0) agregar("rojo", `${nombre} venció el ${fechaArSan(vence)}.`, norma);
+          else if (d <= dias) agregar("amarillo", `${nombre} vence el ${fechaArSan(vence)} (en ${d} días).`, norma);
+        };
+        // RENSPA y veterinario
+        // El vencimiento del RENSPA ya lo avisa "Documentación vencida" del Dashboard (desde Campos).
+        if (!String(est.renspa || "").trim()) agregar("amarillo", "Cargá el RENSPA en Campos: sin RENSPA no hay DT-e.", "RENSPA · Res. 423/2014");
+        if (!String(est.veterinario || "").trim()) agregar("amarillo", "Cargá el veterinario acreditado: firma vacunaciones, CSM y tuberculinas.");
+        // Aftosa y brucelosis por campaña
+        if (est.zonaAftosa !== "sin") {
+          const campanas = campanasOrdenadas();
+          if (!campanas.length) agregar("amarillo", "Cargá las fechas de las campañas de aftosa de este año (calendario oficial SENASA de tu zona).", "Aftosa");
+          campanas.forEach((c) => {
+            const ini = fechaIsoSan(c.inicio), fin = fechaIsoSan(c.fin);
+            if (ini > fechaRef || fechaRef.slice(0, 4) !== ini.slice(0, 4)) return;
+            const nombre = `${esSegundaCampana(c) ? "2ª" : "1ª"} campaña de aftosa ${c.anio || ini.slice(0, 4)}`;
+            if (!campanaVacunada(c)) {
+              if (fechaRef <= fin)
+                agregar("amarillo", `${nombre} en curso hasta el ${fechaArSan(fin)}: falta registrar la vacunación${esSegundaCampana(c) ? " de terneros y terneras" : " de todo el rodeo"}.`, "Aftosa");
+              else
+                agregar("rojo", `${nombre} terminó el ${fechaArSan(fin)} sin vacunación registrada: solo se puede mover hacienda a faena.`, "Aftosa · Disp. 21/2026");
+            }
+            if (fechaRef > fin && !brucelosisVacunadaEn(c))
+              agregar("amarillo", `${nombre}: no hay vacunación de brucelosis registrada. Si tenés terneras de 3 a 8 meses, es obligatoria (cepa 19).`, "Brucelosis · Res. 67/2019");
+          });
+          (state.sanidadVacunaciones || [])
+            .filter((v) => (esVacunaAftosa(v) || /brucelosis/i.test(v.enfermedad || "")) && v.sigsa !== "Sí" && diasEntre(fechaIsoSan(v.fecha), fechaRef) <= 120)
+            .forEach((v) => agregar("amarillo", `Vacunación del ${fechaArSan(fechaIsoSan(v.fecha))} (${v.enfermedad}) sin confirmar en SIGSA: verificá que el ente la haya cargado.`, "SIGSA"));
+        }
+        // Estatus
+        if (est.brucelosisEstatus === "libre") aviso(fechaIsoSan(est.brucelosisVence), "El certificado libre de brucelosis", 30, "Brucelosis");
+        if (est.tuberculosisEstatus === "libre") aviso(fechaIsoSan(est.tuberculosisVence), "El certificado libre de tuberculosis", 30, "Tuberculosis");
+        if (["Tambo", "Cabaña / centro genético"].includes(est.tipoExplotacion)) {
+          if (!estatusLibreVigente("tuberculosis", fechaRef))
+            agregar("amarillo", `${est.tipoExplotacion}: el plan de tuberculosis es obligatorio. Programá la tuberculinización con el veterinario acreditado.`, "Tuberculosis · Res. 128/2012");
+          if (!estatusLibreVigente("brucelosis", fechaRef))
+            agregar("amarillo", `${est.tipoExplotacion} sin estatus libre de brucelosis vigente: cada traslado de reproductores necesita CSM.`, "Brucelosis · Res. 67/2019");
+        }
+        // CSM por vencer
+        csmVigentes(fechaRef).forEach((a) => {
+          const vence = sumarDiasIso(fechaIsoSan(a.fecha), 60);
+          if (diasEntre(fechaRef, vence) <= 7) agregar("amarillo", `CSM ${a.protocolo || ""} vence el ${fechaArSan(vence)}.`, "Brucelosis");
+        });
+        (state.sanidadAnalisis || []).filter((a) => a.resultado === "Positivo").forEach((a) =>
+          agregar("rojo", `${a.tipo} con resultado POSITIVO (${fechaArSan(fechaIsoSan(a.fecha))}): avisá al veterinario acreditado y a SENASA; el rodeo entra en saneamiento.`, "SENASA"),
+        );
+        // Garrapata
+        if (est.zonaGarrapata !== "libre" && ["infestado", "saneamiento"].includes(est.estadoGarrapata)) {
+          const ultimo = (state.sanidadGarrapata || []).map((g) => fechaIsoSan(g.fecha)).sort().pop();
+          agregar("amarillo", `Establecimiento ${est.estadoGarrapata === "infestado" ? "infestado" : "en saneamiento"} de garrapata: plan de saneamiento aprobado y tratamientos obligatorios${ultimo ? ` (último registro: ${fechaArSan(ultimo)})` : " (sin tratamientos registrados)"}.`, "Garrapata · Res. 655/2026");
+        }
+        // Carencias e identificación
+        const carencias = animalesEnCarencia(fechaRef);
+        if (carencias.length)
+          agregar("amarillo", `${carencias.length} animal(es) en carencia: ${carencias.slice(0, 5).map((c) => `${c.animal} hasta ${fechaArSan(c.hasta)}`).join(", ")}${carencias.length > 5 ? "…" : ""}. No enviar a faena.`, "Carencias");
+        const sinRfid = animalesSinRfid();
+        if (sinRfid.length && fechaRef >= "2026-01-01")
+          agregar("rojo", `${sinRfid.length} animal(es) sin identificador electrónico (RFID): no se pueden mover ni quedar en el campo después del destete.`, "Res. SENASA 841/2025");
+        const rfidMal = animalesRfidInvalido();
+        if (rfidMal.length)
+          agregar("rojo", `${rfidMal.length} caravana(s) RFID sin los 15 dígitos numéricos obligatorios: ${rfidMal.slice(0, 3).map((a) => a.idAnimal || a.rfidTag).join(", ")}${rfidMal.length > 3 ? "…" : ""}.`, "Res. SENASA 530/2025");
+        return { alertas, carencias, sinRfid, establecimiento: est };
+      }
+
+      // Chequeo sanitario de un DUT. bloqueos: SENASA no permite el movimiento; advertencias: hay que confirmar.
+      function evaluarDutSanitario(datos) {
+        const est = establecimientoSanitario();
+        const fecha = fechaIsoSan(datos.fechaCarga) || hoyIsoSan();
+        const motivo = String(datos.motivoMovimiento || "");
+        const faena = motivo === "Faena";
+        const categoriaMap = { 1: "Novillo", 2: "Vaquillona", 3: "Ternero" };
+        const categoria = categoriaMap[datos.categoriaId] || String(datos.categoriaId || "");
+        const bloqueos = [], advertencias = [];
+        const bloquear = (texto, norma) => bloqueos.push({ texto, norma });
+        const advertir = (texto, norma) => advertencias.push({ texto, norma });
+        if (!motivo) advertir("Indicá el destino del movimiento para controlar los requisitos de SENASA.", "");
+        const renspaVence = fechaIsoSan(est.renspaVence);
+        if (renspaVence && renspaVence < fecha) bloquear(`El RENSPA venció el ${fechaArSan(renspaVence)}.`, "RENSPA");
+        // Aftosa
+        if (est.zonaAftosa !== "sin") {
+          const campanas = campanasOrdenadas().filter((c) => fechaIsoSan(c.inicio) <= fecha);
+          const actual = campanas.find((c) => fecha <= fechaIsoSan(c.fin));
+          const previa = campanas.filter((c) => fechaIsoSan(c.fin) < fecha && fechaIsoSan(c.inicio).slice(0, 4) === fecha.slice(0, 4)).pop();
+          const esTernero = /^tern/i.test(categoria);
+          const alcanza = (c) => !esSegundaCampana(c) || esTernero;
+          const egreso = (c) =>
+            (state.sanidadVacunaciones || []).some((v) => esEgresoAftosa(v) && fechaIsoSan(v.fecha) >= fechaIsoSan(c.inicio) && fechaIsoSan(v.fecha) <= fecha);
+          if (previa && alcanza(previa) && !campanaVacunada(previa)) {
+            if (faena) advertir("La última campaña de aftosa no tiene vacunación registrada: solo se permite este movimiento porque va a faena.", "Aftosa");
+            else bloquear(`La ${esSegundaCampana(previa) ? "2ª" : "1ª"} campaña de aftosa terminó sin vacunación registrada: solo se puede mover a faena.`, "Aftosa · Disp. 21/2026");
+          }
+          if (actual && alcanza(actual) && !campanaVacunada(actual) && !faena) {
+            if (esSegundaCampana(actual))
+              bloquear("2ª campaña de aftosa en curso: los terneros tienen que estar vacunados antes de moverse (solo en la 1ª campaña se permite mover sin vacunar).", "Aftosa · Disp. 21/2026");
+            else if (!egreso(actual))
+              advertir("1ª campaña de aftosa en curso y el rodeo sin vacunar: hacia un campo ya vacunado o a remate hace falta vacunación estratégica de egreso en origen (registrala en Vacunaciones). Entre campos sin vacunar se permite en los primeros 15 días.", "Aftosa · Disp. 21/2026");
+          }
+        }
+        // Brucelosis: CSM para reproductores a tambo, cría, ciclo completo o cabaña
+        const reproductor = /^(vaca|toro|torito)s?$/i.test(categoria);
+        if (reproductor && ["Tambo", "Cría", "Ciclo completo", "Cabaña / centro genético"].includes(motivo) && !estatusLibreVigente("brucelosis", fecha)) {
+          const numero = String(datos.csmNumero || "").trim();
+          const csm = csmVigentes(fecha).find((a) => !numero || String(a.protocolo || "").trim() === numero);
+          if (!numero) bloquear("Traslado de vacas, toros o toritos a " + motivo.toLowerCase() + ": hace falta el CSM de brucelosis asociado al DT-e.", "Brucelosis · Res. 67/2019");
+          else if (!csm) bloquear(`El CSM ${numero} no está registrado como negativo y vigente (60 días desde la toma de muestra).`, "Brucelosis · Res. 67/2019");
+        }
+        if (reproductor && ["Remate / concentración", "Exposición"].includes(motivo) && !estatusLibreVigente("brucelosis", fecha))
+          advertir("Venta de reproductores en remate o exposición: serología de brucelosis de hembras de más de 18 meses y machos de más de 6 meses.", "Brucelosis · Res. 67/2019");
+        if (reproductor && ["Tambo", "Cabaña / centro genético"].includes(motivo) && !estatusLibreVigente("tuberculosis", fecha))
+          advertir("Reproductores con destino a tambo o cabaña desde un campo sin estatus libre de tuberculosis: consultá con el veterinario si el destino exige tuberculina.", "Tuberculosis · Res. 128/2012");
+        // Garrapata
+        const destino = datos.zonaGarrapataDestino || "";
+        if (est.zonaGarrapata === "control" && ["libre", "erradicacion"].includes(destino)) {
+          const bano = (state.sanidadGarrapata || []).some((g) => /precautorio/i.test(g.tipo || "") && fechaIsoSan(g.fecha) <= fecha && diasEntre(fechaIsoSan(g.fecha), fecha) <= 3);
+          if (!bano) {
+            if (faena) advertir("Sale de zona de control de garrapata: revisá las condiciones para faena inmediata con SENASA.", "Garrapata · Res. 655/2026");
+            else bloquear("De zona de control de garrapata a zona libre o de erradicación: registrá el baño precautorio con producto aprobado antes de la carga.", "Garrapata · Res. 655/2026");
+          }
+        }
+        // Carencias e identificación
+        if (faena && animalesEnCarencia(fecha).length)
+          advertir(`Hay ${animalesEnCarencia(fecha).length} animal(es) en carencia: confirmá que no van en esta tropa a faena.`, "Carencias");
+        if (animalesSinRfid().length || animalesRfidInvalido().length)
+          advertir("Hay animales sin RFID oficial de 15 dígitos cargado: todos los de la tropa tienen que tener caravana visual + RFID.", "Res. SENASA 530/2025 y 841/2025");
+        if (!String(datos.habilitacionTransporte || "").trim())
+          advertir("Cargá la habilitación sanitaria del camión: el transporte tiene que estar habilitado, el chofer con tarjeta sanitaria y la jaula lavada y desinfectada.", "Res. SENASA 723/2025 y 806/2025");
+        return { bloqueos, advertencias };
+      }
+
+      function renderChequeoDut(chequeo) {
+        const cont = document.getElementById("fiscalDutChequeoSanitario");
+        if (!cont) return;
+        const esc = escapeHtmlRoles;
+        const fila = (i, clase) => `<div class="alert-item"><span>${esc(i.texto)}</span><span class="tag ${clase}">${esc(i.norma || "SENASA")}</span></div>`;
+        cont.innerHTML =
+          !chequeo.bloqueos.length && !chequeo.advertencias.length
+            ? '<div class="alert-item"><span>Control sanitario SENASA: sin observaciones para este movimiento.</span><span class="tag green">OK</span></div>'
+            : chequeo.bloqueos.map((b) => fila(b, "red")).join("") + chequeo.advertencias.map((a) => fila(a, "orange")).join("");
+      }
+
+      function guardarEstablecimientoSanitario() {
+        if (sanidadSoloLectura("sanidadEstablecimiento")) {
+          showToast("Sanidad y vacunaciones: el Operario de Campo tiene acceso de solo lectura.", "info");
+          return;
+        }
+        const form = document.getElementById("sanidadEstablecimientoForm");
+        if (!form) return;
+        state.sanidadEstablecimiento = {
+          ...(state.sanidadEstablecimiento || {}),
+          ...Object.fromEntries(new FormData(form).entries()),
+          actualizado: new Date().toISOString(),
+        };
+        saveState();
+        renderSanidad();
+        showToast("Datos sanitarios del establecimiento guardados.", "success");
+      }
+
+      function renderSanidad() {
+        const esc = escapeHtmlRoles;
+        const hoy = hoyIsoSan();
+        const { alertas, establecimiento: est } = evaluarSanidad(hoy);
+        const rojasResumen = alertas.filter((a) => a.nivel === "rojo").length;
+        setEl(
+          "sanResumen",
+          alertas.length
+            ? `${rojasResumen ? `🔴 ${rojasResumen} incumplimiento(s) · ` : ""}${alertas.length} alerta(s): mirá "Sanidad y Carencia"`
+            : "Campañas, estatus, análisis y garrapata al día",
+        );
+        if (typeof renderAlertasSanitariasHacienda === "function") renderAlertasSanitariasHacienda();
+        const form = document.getElementById("sanidadEstablecimientoForm");
+        if (form && document.activeElement?.form !== form) {
+          [...form.elements].forEach((c) => {
+            if (c.name && est[c.name] !== undefined) c.value = est[c.name];
+          });
+          setEl("sanidadEstablecimientoEstado", est.actualizado ? `Guardado el ${new Date(est.actualizado).toLocaleString("es-AR")}` : "Sin guardar todavía");
+        }
+        const tabla = (id, lista, modulo, columnas, vacio) => {
+          const body = document.getElementById(id);
+          if (!body) return;
+          body.innerHTML = lista.length
+            ? lista
+                .map((r, i) => ({ r, i }))
+                .sort((a, b) => fechaIsoSan(b.r.fecha || b.r.inicio).localeCompare(fechaIsoSan(a.r.fecha || a.r.inicio)))
+                .map(({ r, i }) => `<tr onclick="openModal('${modulo}', ${i})" style="cursor:pointer;">${columnas(r).map((c) => `<td>${c}</td>`).join("")}<td><button class="btn-delete" onclick="event.stopPropagation(); deleteRecord('${modulo}', ${i});">🗑️</button></td></tr>`)
+                .join("")
+            : `<tr><td colspan="${columnas({}).length + 1}" style="text-align:center;color:var(--text-dim);">${vacio}</td></tr>`;
+        };
+        tabla("sanidadCampanasBody", state.sanidadCampanas || [], "sanidadCampanas", (c) => [
+          esc(c.anio),
+          esc(c.campana),
+          c.inicio ? `${fechaArSan(fechaIsoSan(c.inicio))} al ${fechaArSan(fechaIsoSan(c.fin))}` : "",
+          c.inicio ? (campanaVacunada(c) ? '<span class="tag green">Vacunada</span>' : hoy < fechaIsoSan(c.inicio) ? '<span class="tag">Próxima</span>' : hoy <= fechaIsoSan(c.fin) ? '<span class="tag orange">En curso</span>' : '<span class="tag red">Sin vacunación</span>') : "",
+        ], "Sin campañas cargadas");
+        tabla("sanidadVacunacionesBody", state.sanidadVacunaciones || [], "sanidadVacunaciones", (v) => [
+          esc(fechaArSan(fechaIsoSan(v.fecha))), esc(v.enfermedad), esc(v.acta), esc(v.cabezas), esc(v.categorias),
+          v.sigsa ? `<span class="tag ${v.sigsa === "Sí" ? "green" : "orange"}">${esc(v.sigsa)}</span>` : "",
+        ], "Sin vacunaciones registradas");
+        tabla("sanidadAnalisisBody", state.sanidadAnalisis || [], "sanidadAnalisis", (a) => {
+          const f = fechaIsoSan(a.fecha);
+          const esCsm = /CSM/i.test(a.tipo || "");
+          const vence = f && esCsm ? sumarDiasIso(f, 60) : "";
+          return [
+            esc(fechaArSan(f)), esc(a.tipo), esc(a.protocolo), esc(a.cabezas),
+            a.resultado ? `<span class="tag ${a.resultado === "Negativo" ? "green" : a.resultado === "Positivo" ? "red" : "orange"}">${esc(a.resultado)}</span>` : "",
+            vence ? (vence >= hoy ? `Hasta ${fechaArSan(vence)}` : `<span class="tag red">Vencido ${fechaArSan(vence)}</span>`) : "",
+          ];
+        }, "Sin análisis registrados");
+        tabla("sanidadGarrapataBody", state.sanidadGarrapata || [], "sanidadGarrapata", (g) => [
+          esc(fechaArSan(fechaIsoSan(g.fecha))), esc(g.tipo), esc(g.producto), esc(g.cabezas),
+        ], "Sin registros");
+      }
+/* === ARCA: comprobantes fiscales (débito/crédito IVA) === */
       function abrirComprobanteArca(tipoFiscal, editIndex = null) {
         // Guardamos el _id ANTES de abrir: al guardar, el formulario reemplaza el registro
         // completo y perdería el vínculo con el costo que ya generó en Costos.
@@ -11814,6 +12486,28 @@
 
       function renderComprobantesArca() {
         const registros = state.comprobantesArca || [];
+        // El mismo comprobante (tipo + número + contraparte) cargado dos veces duplica el IVA.
+        const claveComp = (r) =>
+          [r.tipo_fiscal, String(r.comprobante || "").replace(/\s+/g, "").toUpperCase(), String(r.contraparte || "").trim().toUpperCase()].join("|");
+        const vecesClave = {};
+        registros.forEach((r) => {
+          if (String(r.comprobante || "").trim()) vecesClave[claveComp(r)] = (vecesClave[claveComp(r)] || 0) + 1;
+        });
+        const marcaDuplicado = (r) =>
+          vecesClave[claveComp(r)] > 1
+            ? ' <span class="tag orange" title="Hay otro comprobante con el mismo número y contraparte: revisá que no esté cargado dos veces">⚠ repetido</span>'
+            : "";
+        const esc = escapeHtmlRoles;
+        const retencionesDe = (r) => {
+          const partes = [
+            ["IVA", r.ivaRetenido],
+            ["Gan.", r.gananciasRetenido],
+            ["IIBB", r.iibbRetenido],
+          ].filter(([, v]) => parseMonto(v) > 0);
+          return partes.length
+            ? `<div style="font-size:11px;color:var(--text-dim);">Ret./perc.: ${partes.map(([n, v]) => `${n} ${fmt(parseMonto(v))}`).join(" · ")}</div>`
+            : "";
+        };
         const fmt = (v) => "$" + Math.round(v || 0).toLocaleString("es-AR");
         const parseFechaLocal = (f) => {
           if (!f) return null;
@@ -11843,21 +12537,42 @@
         );
 
         const totalIva = (lista) =>
-          lista.reduce((acc, r) => acc + (parseFloat(r.iva) || 0), 0);
+          lista.reduce((acc, r) => acc + parseMonto(r.iva), 0);
         const creditoMes = totalIva(credito.filter(esDelMes));
         const debitoMes = totalIva(debito.filter(esDelMes));
         const creditoAcum = totalIva(credito);
         const debitoAcum = totalIva(debito);
+        // Retenciones y percepciones sufridas: son pagos a cuenta. Las de IVA bajan el saldo a pagar;
+        // las de Ganancias e Ingresos Brutos quedan a favor en esos impuestos.
+        const sumaCampo = (lista, campo) => lista.reduce((acc, r) => acc + parseMonto(r[campo]), 0);
+        const delMes = registros.filter(esDelMes);
+        const retIvaMes = sumaCampo(delMes, "ivaRetenido");
+        const retGananciasMes = sumaCampo(delMes, "gananciasRetenido");
+        const retIibbMes = sumaCampo(delMes, "iibbRetenido");
+        const retIvaAcum = sumaCampo(registros, "ivaRetenido");
 
         setEl("kpiIvaDebitoMes", fmt(debitoMes));
         setEl("kpiIvaCreditoMes", fmt(creditoMes));
-        const saldoMes = debitoMes - creditoMes;
+        const saldoMes = debitoMes - creditoMes - retIvaMes;
+        setEl("kpiRetencionesMes", fmt(retIvaMes + retGananciasMes + retIibbMes));
+        setEl(
+          "kpiRetencionesMesSub",
+          `IVA: ${fmt(retIvaMes)} · Ganancias: ${fmt(retGananciasMes)} · IIBB: ${fmt(retIibbMes)}`,
+        );
+        setEl(
+          "kpiIvaSaldoMesSub",
+          `Débito ${fmt(debitoMes)} − Crédito ${fmt(creditoMes)} − Ret./perc. IVA ${fmt(retIvaMes)}`,
+        );
         setEl(
           "kpiIvaSaldoMes",
           fmt(Math.abs(saldoMes)) +
             (saldoMes >= 0 ? " (a pagar)" : " (a favor)"),
         );
-        const saldoAcum = debitoAcum - creditoAcum;
+        const saldoAcum = debitoAcum - creditoAcum - retIvaAcum;
+        setEl(
+          "kpiIvaSaldoAcumSub",
+          `Técnico: ${fmt(debitoAcum - creditoAcum)} · Ret./perc. IVA: ${fmt(retIvaAcum)}. A favor se arrastra al próximo período`,
+        );
         setEl(
           "kpiIvaSaldoAcum",
           fmt(Math.abs(saldoAcum)) +
@@ -11871,8 +12586,8 @@
                 .map((r) => {
                   const idx = registros.indexOf(r);
                   const total =
-                    (parseFloat(r.neto) || 0) + (parseFloat(r.iva) || 0);
-                  return `<tr onclick="abrirComprobanteArca('CREDITO_FISCAL', ${idx})" style="cursor:pointer;"><td>${r.fecha || ""}</td><td>${r.comprobante || ""}</td><td>${r.contraparte || ""}</td><td>${r.concepto || ""}</td><td>${fmt(r.neto)}</td><td>${fmt(r.iva)}</td><td>${fmt(total)}</td></tr>`;
+                    parseMonto(r.neto) + parseMonto(r.iva);
+                  return `<tr onclick="abrirComprobanteArca('CREDITO_FISCAL', ${idx})" style="cursor:pointer;"><td>${esc(r.fecha)}</td><td>${esc(r.comprobante)}${marcaDuplicado(r)}</td><td>${esc(r.contraparte)}</td><td>${esc(r.concepto)}</td><td>${fmt(r.neto)}</td><td>${fmt(r.iva)}${retencionesDe(r)}</td><td>${fmt(total)}</td></tr>`;
                 })
                 .join("")
             : '<tr><td colspan="7" style="text-align:center;color:var(--text-dim);">Sin comprobantes de compra cargados</td></tr>';
@@ -11885,8 +12600,8 @@
                 .map((r) => {
                   const idx = registros.indexOf(r);
                   const total =
-                    (parseFloat(r.neto) || 0) + (parseFloat(r.iva) || 0);
-                  return `<tr onclick="abrirComprobanteArca('DEBITO_FISCAL', ${idx})" style="cursor:pointer;"><td>${r.fecha || ""}</td><td>${r.comprobante || ""}</td><td>${r.contraparte || ""}</td><td>${r.concepto || ""}</td><td>${fmt(r.neto)}</td><td>${fmt(r.iva)}</td><td>${fmt(total)}</td></tr>`;
+                    parseMonto(r.neto) + parseMonto(r.iva);
+                  return `<tr onclick="abrirComprobanteArca('DEBITO_FISCAL', ${idx})" style="cursor:pointer;"><td>${esc(r.fecha)}</td><td>${esc(r.comprobante)}${marcaDuplicado(r)}</td><td>${esc(r.contraparte)}</td><td>${esc(r.concepto)}</td><td>${fmt(r.neto)}</td><td>${fmt(r.iva)}${retencionesDe(r)}</td><td>${fmt(total)}</td></tr>`;
                 })
                 .join("")
             : '<tr><td colspan="7" style="text-align:center;color:var(--text-dim);">Sin comprobantes de venta cargados</td></tr>';
@@ -11910,55 +12625,303 @@
         );
       }
 
-      function obtenerCostosGanaderos() {
-        const grupos = {};
-        const agregar = (concepto, importe, origen) => {
-          const costo = parseMonto(importe || 0);
-          if (!costo) return;
-          const clave =
-            String(concepto || "Costo ganadero").trim() || "Costo ganadero";
-          if (!grupos[clave])
-            grupos[clave] = { concepto: clave, registros: 0, costo: 0, origen };
-          grupos[clave].registros += 1;
-          grupos[clave].costo += costo;
+      // IVA de compras: para un Responsable Inscripto es crédito fiscal (se recupera en la DDJJ),
+      // no costo. Para Monotributo / Exento sí es parte del costo.
+      function ivaEsCosto() {
+        const condicion = String(state.empresa?.condicionIva || "Responsable Inscripto");
+        return !/responsable\s+inscripto/i.test(condicion);
+      }
+
+      // Importe real de un registro de Costos. Los generados solos desde Fiscal o Inventario
+      // guardan neto e IVA por separado; los viejos (que sumaban el IVA siempre) se recalculan
+      // desde su comprobante o movimiento de origen.
+      function importeDeCosto(c) {
+        let neto = c.neto,
+          iva = c.iva;
+        if (neto == null && c.origenComprobanteId) {
+          if ((c.origenModulo || "comprobantesArca") === "comprobantesArca") {
+            const comp = (state.comprobantesArca || []).find((r) => r._id === c.origenComprobanteId);
+            if (comp) {
+              neto = parseMonto(comp.neto);
+              iva = parseMonto(comp.iva);
+            }
+          } else if (c.origenModulo === "movimientoStock") {
+            const mov = (state.movimientoStock || []).find((r) => r._id === c.origenComprobanteId);
+            if (mov && mov.valorTotal != null) {
+              neto = parseMonto(mov.valorTotal);
+              iva = parseMonto(mov.iva);
+            }
+          }
+        }
+        if (neto == null) return parseMonto(c.importe ?? c.monto ?? c.costo);
+        return parseMonto(neto) + (ivaEsCosto() ? parseMonto(iva) : 0);
+      }
+
+      function fechaDeRegistro(f) {
+        if (!f) return "";
+        const t = String(f).trim();
+        const dmy = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+        if (dmy) return `${dmy[3]}-${dmy[2].padStart(2, "0")}-${dmy[1].padStart(2, "0")}`;
+        return t.slice(0, 10);
+      }
+
+      function textoSinAcentos(t) {
+        return String(t || "")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase();
+      }
+
+      // Categoría de hacienda normalizada ("Novillos", "novillo" → "Novillos").
+      const CATEGORIAS_HACIENDA = ["Terneros", "Novillos", "Vaquillonas", "Toros", "Vacas"];
+      function categoriaHacienda(cat) {
+        const t = textoSinAcentos(cat);
+        return (
+          CATEGORIAS_HACIENDA.find((c) => t && textoSinAcentos(c).startsWith(t.replace(/s$/, "").slice(0, 5))) ||
+          (cat ? String(cat) : "")
+        );
+      }
+
+      function productoDeInventario(ref) {
+        const t = textoSinAcentos(ref);
+        if (!t) return null;
+        return (
+          (state.inventario || []).find(
+            (p) => textoSinAcentos(p.codigo) === t || textoSinAcentos(p.producto) === t,
+          ) || null
+        );
+      }
+
+      // Grupo del desglose: Alimentación, Sanidad, Personal, Compra de hacienda, Mantenimiento, Otros.
+      function grupoDeCosto(c) {
+        const cat = textoSinAcentos(c.categoria);
+        if (cat.includes("aliment")) return "Alimentación";
+        if (cat.includes("sanidad")) return "Sanidad";
+        if (cat.includes("mano de obra")) return "Personal";
+        if (cat.includes("mantenimiento")) return "Mantenimiento";
+        if (["movimientoStock", "inventario"].includes(c.origenModulo)) {
+          const prod = productoDeInventario(c.destino);
+          const catProd = textoSinAcentos(prod?.categoria);
+          if (catProd.includes("aliment")) return "Alimentación";
+          if (catProd.includes("ganader") || /vacun|antiparas|ivermect|medic|sanid/.test(textoSinAcentos(prod?.producto)))
+            return "Sanidad";
+        }
+        return "Otros";
+      }
+
+      // Empleado con sueldo en la fecha (ingresó antes y no está de baja a esa fecha).
+      function empleadoActivoEnFecha(emp, fechaRef) {
+        const ref = fechaRef || new Date().toISOString().slice(0, 10);
+        if (emp.fechaIngreso && fechaDeRegistro(emp.fechaIngreso) > ref) return false;
+        if (emp.estado === "Baja") return emp.fechaBaja ? fechaDeRegistro(emp.fechaBaja) > ref : false;
+        return true;
+      }
+
+      function mesesDelPeriodo(desde, hasta) {
+        const meses = [];
+        let [y, m] = desde.slice(0, 7).split("-").map(Number);
+        const [yh, mh] = hasta.slice(0, 7).split("-").map(Number);
+        while (y < yh || (y === yh && m <= mh)) {
+          meses.push(`${y}-${String(m).padStart(2, "0")}`);
+          m++;
+          if (m > 12) {
+            m = 1;
+            y++;
+          }
+        }
+        return meses;
+      }
+
+      // Período: "mes" (mes en curso), "anio" (año calendario), "12m" (últimos 12 meses) o "todo".
+      function rangoDePeriodo(periodo) {
+        const hoy = new Date();
+        const iso = (d) =>
+          `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        const hasta = iso(hoy);
+        if (periodo === "mes") return { desde: hasta.slice(0, 8) + "01", hasta };
+        if (periodo === "anio") return { desde: hasta.slice(0, 4) + "-01-01", hasta };
+        if (periodo === "12m") {
+          const d = new Date(hoy.getFullYear(), hoy.getMonth() - 11, 1);
+          return { desde: iso(d), hasta };
+        }
+        // Todo: desde el primer registro con fecha (ventas, costos, hacienda o sanidad).
+        const fechas = [
+          ...(state.costos || []),
+          ...(state.hacienda || []),
+          ...(state.eventosSanitarios || []),
+        ]
+          .map((r) => fechaDeRegistro(r.fecha))
+          .filter((f) => /^\d{4}-\d{2}-\d{2}$/.test(f) && f <= hasta)
+          .sort();
+        return { desde: fechas[0] || hasta.slice(0, 8) + "01", hasta };
+      }
+
+      // TODOS los costos de un período, una sola vez cada uno:
+      // - Costos (manuales, de Fiscal, de Inventario y de Mantenimiento), sin los consumos de
+      //   stock (el costo nace en la compra) y sin órdenes de mantenimiento todavía pendientes.
+      // - Compra y vacunación de hacienda, y eventos sanitarios con costo.
+      // - Sueldos + cargas sociales de cada mes del período (empleados activos ese mes).
+      // La alimentación suma lo consumido al último precio; la compra de alimento es stock.
+      
+      // Último precio de compra del alimento (ingreso de stock con precio) a esa fecha; si no hay
+      // compras registradas, el costo actual del producto en Inventario.
+      function ultimoPrecioAlimento(ref, fecha) {
+        const prod = productoDeInventario(ref);
+        if (!prod) return 0;
+        const tope = fechaDeRegistro(fecha) || "9999-12-31";
+        const compra = (state.movimientoStock || [])
+          .filter((mv) => mv.tipo === "Entrada" && (mv.producto === prod.codigo || mv.producto === prod.producto) && parseFloat(mv.precioUnitario) > 0 && fechaDeRegistro(mv.fecha) <= tope)
+          .sort((a, b) => fechaDeRegistro(b.fecha).localeCompare(fechaDeRegistro(a.fecha)))[0];
+        return compra ? parseFloat(compra.precioUnitario) : parseFloat(prod.costoUnit) || 0;
+      }
+      function costoDeAlimentacion(a) {
+        const kg =
+          parseFloat(a.cantidadTotal) ||
+          (parseFloat(a.racion) || 0) * (parseFloat(a.cabezas) || 0) * (parseFloat(a.dias) || 0);
+        const guardado = parseFloat(a.costoTotal);
+        return guardado > 0 ? guardado : Math.round(kg * ultimoPrecioAlimento(a.producto, a.fecha) * 100) / 100;
+      }
+      // Compra o alta de un alimento: es stock, no costo (el costo se toma al consumirlo).
+      function esCompraDeAlimento(c) {
+        if (!["movimientoStock", "inventario"].includes(c.origenModulo)) return false;
+        const origen = (state[c.origenModulo] || []).find((r) => r._id === c.origenComprobanteId);
+        const prod = c.origenModulo === "inventario" ? origen : productoDeInventario(origen?.producto || c.destino);
+        return /aliment/i.test(prod?.categoria || "");
+      }
+function costosGanaderosDelPeriodo(desde, hasta) {
+        const items = [];
+        const dentro = (f) => {
+          const d = fechaDeRegistro(f);
+          return d && d >= desde && d <= hasta;
         };
-        costosSinConsumoDeStock().forEach((item) => {
-          if ((item.rubro || "Ganadero") === "Ganadero")
-            agregar(
-              item.categoria || item.concepto || "Costo ganadero",
-              item.importe ?? item.monto ?? item.costo,
-              "Costos",
-            );
+        costosSinConsumoDeStock().forEach((c) => {
+          if (!dentro(c.fecha) || esCompraDeAlimento(c)) return;
+          if (c.origenModulo === "mantenimiento") {
+            const orden = (state.mantenimiento || []).find((m) => m._id === c.origenComprobanteId);
+            if (orden && orden.estado === "Pendiente") return;
+          }
+          const importe = importeDeCosto(c);
+          if (!importe) return;
+          items.push({
+            fecha: fechaDeRegistro(c.fecha),
+            rubro: c.rubro || "Ganadero",
+            grupo: grupoDeCosto(c),
+            concepto: c.categoria || c.concepto || "Costo",
+            categoriaHacienda: "",
+            importe,
+            origen: "Costos",
+          });
         });
-        (state.hacienda || []).forEach((item) => {
-          if (item.tipo === "Compra")
-            agregar("Compra de hacienda", item.valor, "Hacienda");
-          else if (item.tipo === "Vacunación")
-            agregar("Sanidad ganadera", item.valor, "Hacienda");
+        (state.hacienda || []).forEach((h) => {
+          if (!["Compra", "Vacunación"].includes(h.tipo) || !dentro(h.fecha)) return;
+          const importe = parseMonto(h.valor);
+          if (!importe) return;
+          items.push({
+            fecha: fechaDeRegistro(h.fecha),
+            rubro: "Ganadero",
+            grupo: h.tipo === "Compra" ? "Compra de hacienda" : "Sanidad",
+            concepto: h.tipo === "Compra" ? "Compra de hacienda" : "Sanidad ganadera",
+            categoriaHacienda: h.tipo === "Compra" ? categoriaHacienda(h.categoria) : "",
+            importe,
+            origen: "Hacienda",
+          });
         });
-        (state.alimentacion || []).forEach((item) => {
-          const producto = (state.inventario || []).find(
-            (p) => p.codigo === item.producto || p.producto === item.producto,
-          );
-          const kilos = Number(
-            item.cantidadTotal ||
-              Number(item.racion || 0) *
-                Number(item.cabezas || 0) *
-                Number(item.dias || 0),
-          );
-          agregar(
-            "Alimentación ganadera",
-            0,
-            /* consumo: ya incluido en la compra */ "Alimentación",
-          );
+        (state.alimentacion || []).forEach((a) => {
+          if (!dentro(a.fecha)) return;
+          const importe = costoDeAlimentacion(a);
+          if (!importe) return;
+          items.push({
+            fecha: fechaDeRegistro(a.fecha),
+            rubro: "Ganadero",
+            grupo: "Alimentación",
+            concepto: "Alimentación (consumo)",
+            categoriaHacienda: categoriaHacienda(a.categoria),
+            importe,
+            origen: "Alimentación",
+          });
         });
-        (state.eventosSanitarios || []).forEach((item) => {
-          agregar(
-            item.tipoVacunaMedicamento || "Evento sanitario",
-            item.costo,
-            "Eventos Sanitarios",
-          );
+        (state.eventosSanitarios || []).forEach((e) => {
+          const importe = parseMonto(e.costo);
+          if (!importe || !dentro(e.fecha)) return;
+          items.push({
+            fecha: fechaDeRegistro(e.fecha),
+            rubro: "Ganadero",
+            grupo: "Sanidad",
+            concepto: e.tipoVacunaMedicamento || "Evento sanitario",
+            categoriaHacienda: "",
+            importe,
+            origen: "Eventos Sanitarios",
+          });
         });
+        mesesDelPeriodo(desde, hasta).forEach((mes) => {
+          const finDeMes = new Date(Number(mes.slice(0, 4)), Number(mes.slice(5, 7)), 0);
+          const ref = `${mes}-${String(finDeMes.getDate()).padStart(2, "0")}`;
+          const importe = calcularCostoTotalEmpleados(ref < hasta ? ref : hasta);
+          if (!importe) return;
+          items.push({
+            fecha: mes + "-01",
+            rubro: "Ganadero",
+            grupo: "Personal",
+            concepto: "Sueldos y cargas sociales",
+            categoriaHacienda: "",
+            importe,
+            origen: "RRHH",
+          });
+        });
+        return items;
+      }
+
+      // Reparte el costo ganadero del período entre las categorías vendidas:
+      // - la compra de hacienda va directo a su categoría (si esa categoría se vendió);
+      // - la alimentación consumida por cada categoría, directo a ella ("Todos", por cabezas);
+      // - el resto (sanidad, personal, mantenimiento, otros), según las cabezas vendidas.
+      // La suma de las categorías da exactamente el costo ganadero total del período.
+      function costoPorCategoriaVendida(desde, hasta, items = costosGanaderosDelPeriodo(desde, hasta)) {
+        const dentro = (f) => {
+          const d = fechaDeRegistro(f);
+          return d && d >= desde && d <= hasta;
+        };
+        const ventas = {};
+        (state.hacienda || []).forEach((h) => {
+          if (h.tipo !== "Venta" || !dentro(h.fecha)) return;
+          const cat = categoriaHacienda(h.categoria) || "Sin categoría";
+          if (!ventas[cat]) ventas[cat] = { cat, cabezas: 0, ventas: 0, costo: 0 };
+          ventas[cat].cabezas += parseFloat(h.cantidad) || 0;
+          ventas[cat].ventas += parseMonto(h.valor);
+        });
+        const cats = Object.keys(ventas);
+        const cabezasTotal = cats.reduce((a, c) => a + ventas[c].cabezas, 0);
+        const ganaderos = items.filter((i) => i.rubro !== "Agrícola");
+        const total = ganaderos.reduce((a, i) => a + i.importe, 0);
+        if (!cats.length) return { filas: [], total, cabezasTotal: 0 };
+        const porCabezas = (monto) =>
+          cats.forEach((c) => {
+            ventas[c].costo += cabezasTotal > 0 ? (monto * ventas[c].cabezas) / cabezasTotal : monto / cats.length;
+          });
+        ganaderos.forEach((i) => {
+          const directo =
+            (i.grupo === "Compra de hacienda" || i.grupo === "Alimentación") &&
+            ventas[i.categoriaHacienda];
+          if (directo) ventas[i.categoriaHacienda].costo += i.importe;
+          else porCabezas(i.importe);
+        });
+        const filas = cats
+          .map((c) => ({ ...ventas[c], margen: ventas[c].ventas - ventas[c].costo }))
+          .sort((a, b) => b.ventas - a.ventas);
+        return { filas, total, cabezasTotal };
+      }
+
+      // Compatibilidad: costo ganadero de todo el historial agrupado por concepto.
+      function obtenerCostosGanaderos() {
+        const { desde, hasta } = rangoDePeriodo("todo");
+        const grupos = {};
+        costosGanaderosDelPeriodo(desde, hasta)
+          .filter((i) => i.rubro !== "Agrícola")
+          .forEach((i) => {
+            if (!grupos[i.concepto]) grupos[i.concepto] = { concepto: i.concepto, registros: 0, costo: 0, origen: i.origen };
+            grupos[i.concepto].registros += 1;
+            grupos[i.concepto].costo += i.importe;
+          });
         return Object.values(grupos).sort((a, b) => b.costo - a.costo);
       }
 
@@ -11966,177 +12929,88 @@
       function renderCostos() {
         const registros = state.costos || [];
         const fmt = (v) => "$" + Math.round(v || 0).toLocaleString("es-AR");
-        const parseFechaLocal = (f) => {
-          if (!f) return null;
-          const partes = String(f).includes("/")
-            ? String(f).split("/").reverse()
-            : String(f).split("-");
-          return partes.length === 3
-            ? new Date(partes[0], partes[1] - 1, partes[2])
-            : null;
-        };
+        const esc = escapeHtmlRoles;
 
         const tbody = document.getElementById("costosBody");
         if (tbody) {
-          tbody.innerHTML = registros.length
-            ? registros
-                .map((c, i) => {
-                  const importeNum =
-                    typeof c.importe === "number"
-                      ? c.importe
-                      : parseMonto(c.importe) || 0;
-                  const origenModulo = c.origenComprobanteId
-                    ? c.origenModulo || "comprobantesArca"
-                    : null;
+          const filas = (registros.length || (state.alimentacion || []).length ? registros : [])
+            .map((c, i) => ({ c, i }))
+            .sort((a, b) => fechaDeRegistro(b.c.fecha).localeCompare(fechaDeRegistro(a.c.fecha)));
+          tbody.innerHTML = filas.length || (state.alimentacion || []).some((a) => costoDeAlimentacion(a) > 0)
+            ? filas
+                .map(({ c, i }) => {
+                  const origenModulo = c.origenComprobanteId ? c.origenModulo || "comprobantesArca" : null;
                   let accionClick = "";
                   if (origenModulo === "comprobantesArca") {
-                    const idx = (state.comprobantesArca || []).findIndex(
-                      (r) => r._id === c.origenComprobanteId,
-                    );
-                    if (idx >= 0)
-                      accionClick = `abrirComprobanteArca('CREDITO_FISCAL', ${idx})`;
-                  } else if (
-                    origenModulo === "movimientoStock" ||
-                    origenModulo === "inventario" ||
-                    origenModulo === "mantenimiento"
-                  ) {
-                    const idx = (state[origenModulo] || []).findIndex(
-                      (r) => r._id === c.origenComprobanteId,
-                    );
-                    if (idx >= 0)
-                      accionClick = `openModal('${origenModulo}', ${idx})`;
+                    const idx = (state.comprobantesArca || []).findIndex((r) => r._id === c.origenComprobanteId);
+                    if (idx >= 0) accionClick = `abrirComprobanteArca('CREDITO_FISCAL', ${idx})`;
+                  } else if (["movimientoStock", "inventario", "mantenimiento"].includes(origenModulo)) {
+                    const idx = (state[origenModulo] || []).findIndex((r) => r._id === c.origenComprobanteId);
+                    if (idx >= 0) accionClick = `openModal('${origenModulo}', ${idx})`;
                   } else if (!c.origenComprobanteId) {
                     accionClick = `openModal('costos', ${i})`;
                   }
                   const rubro = c.rubro || "Ganadero";
-                  return `<tr onclick="${accionClick}" style="cursor:${accionClick ? "pointer" : "default"};"><td>${c.fecha || ""}</td><td>${c.categoria || ""}</td><td>${c.concepto || ""}</td><td>${fmt(importeNum)}</td><td>${c.destino || ""}</td><td><span class="tag ${rubro === "Agrícola" ? "orange" : "green"}">${rubro}</span></td><td>${c.origen || (c.origenComprobanteId ? "Fiscal · Crédito fiscal IVA" : "Manual")}</td></tr>`;
+                  const esConsumo = c.origenModulo === "movimientoStock" && /^(Consumo|Merma|Ajuste) de stock/.test(c.concepto || "");
+                  const esAlimento = esCompraDeAlimento(c);
+                  const orden =
+                    c.origenModulo === "mantenimiento"
+                      ? (state.mantenimiento || []).find((m) => m._id === c.origenComprobanteId)
+                      : null;
+                  const nota = esAlimento
+                    ? " (compra de alimento: va a Inventario, suma al consumirse)"
+                    : esConsumo
+                    ? " (consumo: no suma, se contó en la compra)"
+                    : orden?.estado === "Pendiente"
+                      ? " (orden pendiente: todavía no suma)"
+                      : c.neto != null && parseMonto(c.iva) > 0 && !ivaEsCosto()
+                        ? " (sin IVA: es crédito fiscal)"
+                        : "";
+                  return `<tr onclick="${accionClick}" style="cursor:${accionClick ? "pointer" : "default"};"><td>${esc(c.fecha || "")}</td><td>${esc(c.categoria || "")}</td><td>${esc(c.concepto || "")}</td><td>${fmt(importeDeCosto(c))}<span style="font-size:11px;color:var(--text-dim);">${nota}</span></td><td>${esc(c.destino || "")}</td><td><span class="tag ${rubro === "Agrícola" ? "orange" : "green"}">${esc(rubro)}</span></td><td>${esc(c.origen || (c.origenComprobanteId ? "Fiscal · Crédito fiscal IVA" : "Manual"))}</td></tr>`;
+                })
+                .join("") +
+              (state.alimentacion || [])
+                .map((a, i) => ({ a, i, importe: costoDeAlimentacion(a) }))
+                .filter((x) => x.importe > 0)
+                .sort((x, y) => fechaDeRegistro(y.a.fecha).localeCompare(fechaDeRegistro(x.a.fecha)))
+                .map(({ a, i, importe }) => {
+                  const prod = productoDeInventario(a.producto);
+                  return `<tr onclick="openModal('alimentacion', ${i})" style="cursor:pointer;"><td>${esc(a.fecha || "")}</td><td>Alimentación</td><td>${esc(`Consumo ${a.categoria || ""}: ${(parseFloat(a.cantidadTotal) || 0).toLocaleString("es-AR")} kg de ${prod?.producto || a.producto || ""}`)}</td><td>${fmt(importe)}</td><td>${esc(prod?.producto || "")}</td><td><span class="tag green">Ganadero</span></td><td>Alimentación · consumo al último precio</td></tr>`;
                 })
                 .join("")
             : '<tr><td colspan="7" style="text-align:center;color:var(--text-dim);">Sin costos cargados. Se completan solos con los comprobantes de Crédito fiscal en Fiscal, los ingresos de stock en Inventario y las altas de productos.</td></tr>';
         }
 
-        const hoy = new Date();
-        const esDelMes = (c) => {
-          const d = parseFechaLocal(c.fecha);
-          return (
-            d &&
-            d.getFullYear() === hoy.getFullYear() &&
-            d.getMonth() === hoy.getMonth()
-          );
-        };
-        const importeDe = (c) =>
-          typeof c.importe === "number"
-            ? c.importe
-            : parseMonto(c.importe) || 0;
-        const registrosMes = costosSinConsumoDeStock().filter(esDelMes);
-        const totalMesManual = registrosMes.reduce(
-          (acc, c) => acc + importeDe(c),
-          0,
-        );
-        const rubroDe = (c) => c.rubro || "Ganadero";
-        const totalGanaderoMesManual = registrosMes
-          .filter((c) => rubroDe(c) === "Ganadero")
-          .reduce((acc, c) => acc + importeDe(c), 0);
-        const totalAgricolaMes = registrosMes
-          .filter((c) => rubroDe(c) === "Agrícola")
-          .reduce((acc, c) => acc + importeDe(c), 0);
-
-        // Antes este KPI solo miraba lo cargado a mano (o por Fiscal) en el módulo Costos, así que
-        // alimentación, compra/vacunación de hacienda, eventos sanitarios con costo y RRHH quedaban
-        // afuera del total del mes aunque fueran costos reales ya registrados en sus propios módulos.
-        const alimentacionMes = (state.alimentacion || [])
-          .filter(esDelMes)
-          .reduce((acc, a) => {
-            const producto = (state.inventario || []).find(
-              (p) => p.codigo === a.producto || p.producto === a.producto,
-            );
-            const kilos = Number(
-              a.cantidadTotal ||
-                Number(a.racion || 0) *
-                  Number(a.cabezas || 0) *
-                  Number(a.dias || 0),
-            );
-            return acc + kilos * Number(producto?.costoUnit || 0);
-          }, 0);
-        const haciendaCostoMes = (state.hacienda || [])
-          .filter(
-            (h) => ["Compra", "Vacunación"].includes(h.tipo) && esDelMes(h),
-          )
-          .reduce((acc, h) => acc + parseMonto(h.valor || 0), 0);
-        const sanitariosCostoMes = (state.eventosSanitarios || [])
-          .filter(esDelMes)
-          .reduce((acc, e) => acc + parseMonto(e.costo || 0), 0);
-        const rrhhTotal =
-          typeof calcularCostoTotalEmpleados === "function"
-            ? calcularCostoTotalEmpleados()
-            : 0;
-
-        const totalGanaderoMes =
-          totalGanaderoMesManual + haciendaCostoMes + sanitariosCostoMes;
-        const totalMes =
-          totalMesManual + haciendaCostoMes + sanitariosCostoMes + rrhhTotal;
-
-        setEl("costoKpiOperativoMes", fmt(totalMes));
+        const { desde, hasta } = rangoDePeriodo("mes");
+        const items = costosGanaderosDelPeriodo(desde, hasta);
+        const suma = (lista) => lista.reduce((a, i) => a + i.importe, 0);
+        const agricola = items.filter((i) => i.rubro === "Agrícola");
+        const ganadero = items.filter((i) => i.rubro !== "Agrícola");
+        const deOrigen = (o) => suma(ganadero.filter((i) => i.origen === o));
+        setEl("costoKpiOperativoMes", fmt(suma(items)));
         setEl(
           "costoKpiOperativoMesSub",
-          `Manual/fiscal: ${fmt(totalMesManual)} | Consumo de alimento (ya incluido en compras): ${fmt(alimentacionMes)} | Hacienda: ${fmt(haciendaCostoMes)} | Sanidad: ${fmt(sanitariosCostoMes)} | RRHH: ${fmt(rrhhTotal)}`,
+          `Costos: ${fmt(deOrigen("Costos"))} | Alimentación: ${fmt(deOrigen("Alimentación"))} | Hacienda: ${fmt(deOrigen("Hacienda"))} | Sanidad: ${fmt(deOrigen("Eventos Sanitarios"))} | RRHH: ${fmt(deOrigen("RRHH"))} | Agrícola: ${fmt(suma(agricola))}` +
+            (ivaEsCosto() ? "" : " · netos de IVA"),
         );
-        setEl("costoKpiGanaderoMes", fmt(totalGanaderoMes));
-        setEl("costoKpiAgricolaMes", fmt(totalAgricolaMes));
+        setEl("costoKpiGanaderoMes", fmt(suma(ganadero)));
+        setEl("costoKpiAgricolaMes", fmt(suma(agricola)));
 
-        // Costo/cabeza por categoría: costo ganadero completo del mes ÷ cabezas vendidas en Hacienda
-        // ese mes (antes se dividía por totalMes viejo, que era solo lo manual/fiscal).
-        const ventasDelMes = (state.hacienda || []).filter(
-          (h) => h.tipo === "Venta" && esDelMes(h),
-        );
-        const cabezasPorCategoria = (cat) =>
-          ventasDelMes
-            .filter((h) => (h.categoria || "").toLowerCase().includes(cat))
-            .reduce((acc, h) => acc + (parseFloat(h.cantidad) || 0), 0);
-
-        const cabezasNovillo = cabezasPorCategoria("novillo");
-        const cabezasVaquillona = cabezasPorCategoria("vaquillona");
-        setEl(
-          "costoKpiCabezaNovillo",
-          cabezasNovillo > 0 ? fmt(totalGanaderoMes / cabezasNovillo) : "$0",
-        );
-        setEl(
-          "costoKpiCabezaNovilloSub",
-          cabezasNovillo > 0
-            ? `${cabezasNovillo} cabeza(s) vendidas este mes`
-            : "Sin ventas de Novillos este mes",
-        );
-        setEl(
-          "costoKpiCabezaVaquillona",
-          cabezasVaquillona > 0
-            ? fmt(totalGanaderoMes / cabezasVaquillona)
-            : "$0",
-        );
-        setEl(
-          "costoKpiCabezaVaquillonaSub",
-          cabezasVaquillona > 0
-            ? `${cabezasVaquillona} cabeza(s) vendidas este mes`
-            : "Sin ventas de Vaquillonas este mes",
-        );
-
-        // Antes esta tarjeta decía "Costo/Kg Carne" pero no tenía id: nunca se actualizaba, siempre
-        // mostraba $0. No hay carga de peso (kg) por venta en este formulario (Hacienda solo tiene
-        // "Cantidad" en cabezas), así que en vez de inventar un cálculo por kg se repurpuso como
-        // costo por cabeza total (todas las categorías), que sí se puede calcular con los datos reales.
-        const cabezasTotalMes = ventasDelMes.reduce(
-          (acc, h) => acc + (parseFloat(h.cantidad) || 0),
-          0,
-        );
-        setEl(
-          "costoKpiCabezaTotal",
-          cabezasTotalMes > 0 ? fmt(totalGanaderoMes / cabezasTotalMes) : "$0",
-        );
+        // Costo por cabeza vendida en el mes, con el costo del mes repartido por categoría.
+        const { filas, cabezasTotal } = costoPorCategoriaVendida(desde, hasta, items);
+        const kpiCategoria = (cat, idValor, idSub, nombre) => {
+          const f = filas.find((x) => x.cat === cat);
+          setEl(idValor, f && f.cabezas > 0 ? fmt(f.costo / f.cabezas) : "$0");
+          setEl(idSub, f && f.cabezas > 0 ? `${f.cabezas} cabeza(s) vendidas este mes` : `Sin ventas de ${nombre} este mes`);
+        };
+        kpiCategoria("Novillos", "costoKpiCabezaNovillo", "costoKpiCabezaNovilloSub", "Novillos");
+        kpiCategoria("Vaquillonas", "costoKpiCabezaVaquillona", "costoKpiCabezaVaquillonaSub", "Vaquillonas");
+        setEl("costoKpiCabezaTotal", cabezasTotal > 0 ? fmt(suma(ganadero) / cabezasTotal) : "$0");
         setEl(
           "costoKpiCabezaTotalSub",
-          cabezasTotalMes > 0
-            ? `${cabezasTotalMes} cabeza(s) vendidas este mes (todas las categorías)`
-            : "Sin ventas este mes",
+          cabezasTotal > 0 ? `${cabezasTotal} cabeza(s) vendidas este mes (todas las categorías)` : "Sin ventas este mes",
         );
+        if (typeof actualizarCostosCharts === "function") actualizarCostosCharts();
       }
 
       function renderCheques() {
@@ -12586,12 +13460,12 @@
       // empleados en estado "Baja" para no inflar el costo con gente que ya no está — no hay campo
       // de fecha de baja en este formulario (a diferencia de pampaagro), así que el corte es por
       // estado actual solamente, no por período exacto.
-      function calcularCostoTotalEmpleados() {
+      function calcularCostoTotalEmpleados(fechaRef) {
         return (state.empleados || [])
-          .filter((emp) => emp.estado !== "Baja")
+          .filter((emp) => empleadoActivoEnFecha(emp, fechaRef))
           .reduce((total, emp) => {
-            const cargas = calcularCargasSociales(Number(emp.sueldoBruto) || 0);
-            return total + (Number(emp.sueldoBruto) || 0) + cargas.total;
+            const sueldo = parseMonto(emp.sueldoBruto);
+            return total + sueldo + calcularCargasSociales(sueldo).total;
           }, 0);
       }
 
@@ -13102,9 +13976,22 @@
         const eventos = Array.isArray(state.eventosSanitarios)
           ? state.eventosSanitarios
           : [];
+        // Alertas SENASA (campañas, CSM, estatus, garrapata, RFID) arriba de los eventos.
+        const alertasSenasa = typeof evaluarSanidad === "function"
+          ? evaluarSanidad().alertas.filter((a) => a.norma !== "Carencias")
+          : [];
+        const htmlSenasa = alertasSenasa
+          .map(
+            (a) => `
+        <div class="alert-item ${a.nivel === "rojo" ? "critical" : ""}">
+          <span class="alert-icon">${a.nivel === "rojo" ? "🔴" : "🟡"}</span>
+          <span class="alert-text">${escapeHtmlRoles(a.texto)}</span>
+          <span class="alert-time">${escapeHtmlRoles(a.norma || "SENASA")}</span>
+        </div>`,
+          )
+          .join("");
         if (!eventos.length) {
-          container.innerHTML =
-            '<div class="alert-item"><span class="alert-icon">✅</span><span class="alert-text">Sin alertas sanitarias activas</span><span class="alert-time">Hoy</span></div>';
+          container.innerHTML = htmlSenasa || '<div class="alert-item"><span class="alert-icon">✅</span><span class="alert-text">Sin alertas sanitarias activas</span><span class="alert-time">Hoy</span></div>';
           return;
         }
 
@@ -13125,14 +14012,14 @@
             return `
         <div class="alert-item ${css}">
           <span class="alert-icon">💉</span>
-          <span class="alert-text">${e.tipoVacunaMedicamento || "Evento sanitario"} · ${e.idAnimal || "-"}</span>
+          <span class="alert-text">${escapeHtmlRoles(e.tipoVacunaMedicamento || "Evento sanitario")} · ${escapeHtmlRoles(e.idAnimal || "-")}</span>
           <span class="alert-time">${estado}</span>
         </div>
       `;
           })
           .join("");
 
-        container.innerHTML = items;
+        container.innerHTML = htmlSenasa + items;
       }
 
       function buscarFichaRFID() {
@@ -13482,12 +14369,12 @@
           chartCostoCultivo = new Chart(ctx1, {
             type: "bar",
             data: {
-              labels: ["Novillo", "Vaquillona", "Ternero", "Vaca"],
+              labels: [],
               datasets: [
                 {
-                  label: "Costo/Cabeza",
-                  data: [185000, 162000, 98000, 210000],
-                  backgroundColor: ["#10b981", "#3b82f6", "#f59e0b", "#8b5cf6"],
+                  label: "Costo por cabeza vendida",
+                  data: [],
+                  backgroundColor: ["#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#ef4444", "#64748b"],
                   borderRadius: 6,
                 },
               ],
@@ -13499,10 +14386,7 @@
               scales: {
                 x: { ticks: { color: "#64748b" }, grid: { display: false } },
                 y: {
-                  ticks: {
-                    color: "#64748b",
-                    callback: (v) => "$" + v / 1000 + "k",
-                  },
+                  ticks: { color: "#64748b", callback: (v) => "$" + Math.round(v / 1000) + "k" },
                   grid: { color: "rgba(45,53,72,0.3)" },
                 },
               },
@@ -13513,25 +14397,11 @@
           chartDesglose = new Chart(ctx2, {
             type: "doughnut",
             data: {
-              labels: [
-                "Alimentación",
-                "Sanidad",
-                "Personal",
-                "Transporte",
-                "Instalaciones",
-                "Otros",
-              ],
+              labels: [],
               datasets: [
                 {
-                  data: [0, 0, 0, 0, 0, 0],
-                  backgroundColor: [
-                    "#10b981",
-                    "#3b82f6",
-                    "#f59e0b",
-                    "#8b5cf6",
-                    "#ef4444",
-                    "#64748b",
-                  ],
+                  data: [],
+                  backgroundColor: ["#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#ef4444", "#64748b"],
                   borderWidth: 0,
                 },
               ],
@@ -13540,14 +14410,32 @@
               responsive: true,
               maintainAspectRatio: false,
               plugins: {
-                legend: {
-                  position: "right",
-                  labels: { color: "#94a3b8", padding: 10, font: { size: 11 } },
-                },
+                legend: { position: "right", labels: { color: "#94a3b8", padding: 10, font: { size: 11 } } },
               },
             },
           });
         }
+        actualizarCostosCharts();
+      }
+
+      // Últimos 12 meses: costo por cabeza vendida por categoría y desglose del costo ganadero.
+      function actualizarCostosCharts() {
+        if (!chartCostoCultivo || !chartDesglose) return;
+        const { desde, hasta } = rangoDePeriodo("12m");
+        const items = costosGanaderosDelPeriodo(desde, hasta).filter((i) => i.rubro !== "Agrícola");
+        const { filas } = costoPorCategoriaVendida(desde, hasta, items);
+        const conVentas = filas.filter((f) => f.cabezas > 0);
+        chartCostoCultivo.data.labels = conVentas.length ? conVentas.map((f) => f.cat) : ["Sin ventas en 12 meses"];
+        chartCostoCultivo.data.datasets[0].data = conVentas.length
+          ? conVentas.map((f) => Math.round(f.costo / f.cabezas))
+          : [0];
+        chartCostoCultivo.update();
+        const grupos = ["Alimentación", "Sanidad", "Personal", "Compra de hacienda", "Mantenimiento", "Otros"];
+        const montos = grupos.map((g) => Math.round(items.filter((i) => i.grupo === g).reduce((a, i) => a + i.importe, 0)));
+        const hay = montos.some((m) => m > 0);
+        chartDesglose.data.labels = hay ? grupos : ["Sin costos en 12 meses"];
+        chartDesglose.data.datasets[0].data = hay ? montos : [1];
+        chartDesglose.update();
       }
 
       // Observar cambios de módulo
@@ -14656,7 +15544,14 @@
       const ALWAYS_PLAN_MODULES = ["dashboard", "empresa", "reportes"];
       const PLAN_MODULE_GROUPS = {
         campos: ["campos", "lotes"],
-        hacienda: ["hacienda", "eventosSanitarios"],
+        hacienda: [
+          "hacienda",
+          "eventosSanitarios",
+          "sanidadCampanas",
+          "sanidadVacunaciones",
+          "sanidadAnalisis",
+          "sanidadGarrapata",
+        ],
         alimentacion: ["alimentacion"],
         inventario: ["inventario", "movimientoStock"],
         finanzas: [
@@ -16273,129 +17168,52 @@
       }
 
       function calcularRentabilidad() {
-        const ganPorCategoria = {};
-        (state.hacienda || [])
-          .filter((h) => h.tipo === "Venta")
-          .forEach((h) => {
-            const cat = h.categoria || "Sin categoría";
-            if (!ganPorCategoria[cat])
-              ganPorCategoria[cat] = { ventas: 0, cabezas: 0 };
-            ganPorCategoria[cat].ventas += parseMonto(h.valor || 0);
-            ganPorCategoria[cat].cabezas += parseFloat(h.cantidad || 0);
-          });
-        // Costos de alimentación
-        const alimentCosto = {};
-        (state.alimentacion || []).forEach((a) => {
-          const cat = a.categoria || "Todos";
-          if (!alimentCosto[cat]) alimentCosto[cat] = 0;
-          const prod = (state.inventario || []).find(
-            (i) => i.producto === a.producto || i.codigo === a.producto,
-          );
-          const costoUnit = parseFloat(prod?.costoUnit || 0);
-          const kg =
-            parseFloat(a.racion || 0) *
-            parseFloat(a.cabezas || 0) *
-            parseFloat(a.dias || 0);
-          alimentCosto[cat] =
-            (alimentCosto[cat] || 0) +
-            (a.costoTotal != null ? Number(a.costoTotal) : kg * costoUnit);
-        });
-
-        let ingresoGan = 0;
-        const filasGan = Object.entries(ganPorCategoria).map(([cat, datos]) => {
-          const costo = alimentCosto[cat] || alimentCosto["Todos"] || 0;
-          const margen = datos.ventas - costo;
-          ingresoGan += datos.ventas;
-          return {
-            cat,
-            cabezas: datos.cabezas,
-            ventas: datos.ventas,
-            costo,
-            margen,
-          };
-        });
-
-        // Antes el costo ganadero del KPI global era SOLO alimentación (alimentCosto), ignorando
-        // compra y vacunación de hacienda, eventos sanitarios con costo y RRHH — igual que se corrigió
-        // en pampaagro, ahora usa obtenerCostosGanaderos() (el mismo total que alimenta "Costo
-        // Ganadero" en la pestaña Costos) más RRHH, sin duplicar.
-        const costoGanaderoTotal = obtenerCostosGanaderos().reduce(
-          (sum, fila) => sum + fila.costo,
-          0,
-        );
-        const rrhhTotal =
-          typeof calcularCostoTotalEmpleados === "function"
-            ? calcularCostoTotalEmpleados()
-            : 0;
-        const cosTotal = costoGanaderoTotal + rrhhTotal;
-        const margenTotal = ingresoGan - cosTotal;
-        const pct =
-          ingresoGan > 0 ? ((margenTotal / ingresoGan) * 100).toFixed(1) : 0;
-
+        const periodo = document.getElementById("rentPeriodo")?.value || "todo";
+        const { desde, hasta } = rangoDePeriodo(periodo);
+        const items = costosGanaderosDelPeriodo(desde, hasta).filter((i) => i.rubro !== "Agrícola");
+        const { filas, total } = costoPorCategoriaVendida(desde, hasta, items);
+        const ingresoGan = filas.reduce((a, f) => a + f.ventas, 0);
+        const rrhh = items.filter((i) => i.origen === "RRHH").reduce((a, i) => a + i.importe, 0);
+        const margenTotal = ingresoGan - total;
+        const pct = ingresoGan > 0 ? ((margenTotal / ingresoGan) * 100).toFixed(1) : 0;
         const fmt = (v) => "$" + Math.round(v).toLocaleString("es-AR");
+        const fechaAr = (f) => f.split("-").reverse().join("/");
+        const rango = `${fechaAr(desde)} al ${fechaAr(hasta)}`;
 
         setEl("rentKpiIngreso", fmt(ingresoGan));
-        setEl("rentKpiIngresoSub", "Ventas registradas en Hacienda");
-        setEl("rentKpiCosto", fmt(cosTotal));
-        setEl(
-          "rentKpiCostoSub",
-          `Alimentación, compras y sanidad: ${fmt(costoGanaderoTotal)} | RRHH: ${fmt(rrhhTotal)}`,
-        );
+        setEl("rentKpiIngresoSub", `Ventas en Hacienda · ${rango}`);
+        setEl("rentKpiCosto", fmt(total));
+        setEl("rentKpiCostoSub", `Compras, alimento, sanidad y otros: ${fmt(total - rrhh)} | RRHH: ${fmt(rrhh)}`);
         setEl("rentKpiMargen", fmt(margenTotal));
-        const margenEl = document
-          .getElementById("rentKpiMargen")
-          ?.closest(".kpi");
-        if (margenEl) {
-          margenEl.className = "kpi " + (margenTotal >= 0 ? "green" : "red");
-        }
+        const margenEl = document.getElementById("rentKpiMargen")?.closest(".kpi");
+        if (margenEl) margenEl.className = "kpi " + (margenTotal >= 0 ? "green" : "red");
         setEl("rentKpiMargenSub", `${pct >= 0 ? "+" : ""}${pct}% del ingreso`);
         setEl("rentKpiPct", `${pct}%`);
         setEl("rentKpiPctSub", margenTotal >= 0 ? "✅ Rentable" : "⚠️ Pérdida");
 
         const tbodyGan = document.getElementById("rentTablaGanaderaBody");
-        if (tbodyGan) {
-          if (filasGan.length === 0) {
-            tbodyGan.innerHTML =
-              '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);">Sin ventas ganaderas registradas (Tipo: Venta en Hacienda)</td></tr>';
-          } else {
-            // Esta tabla reparte el costo por categoría usando solo Alimentación (no hay forma de
-            // atribuir compra de hacienda, sanidad o RRHH a una categoría vendida en particular sin
-            // inventar un criterio). El KPI "Costo Ganadero Total" de arriba sí incluye todo eso, así
-            // que puede quedar por encima de la suma de esta tabla — se agrega una fila de
-            // reconciliación para que la diferencia quede a la vista en vez de escondida.
-            const costoAlimentTabla = filasGan.reduce(
-              (sum, f) => sum + f.costo,
-              0,
-            );
-            const otrosCostosGanaderos = Math.max(
-              0,
-              cosTotal - costoAlimentTabla,
-            );
-            tbodyGan.innerHTML =
-              filasGan
-                .map(
-                  (f) => `
+        if (!tbodyGan) return;
+        if (!filas.length) {
+          tbodyGan.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-dim);">Sin ventas ganaderas en el período (${rango}). Costo del período: ${fmt(total)}</td></tr>`;
+          return;
+        }
+        tbodyGan.innerHTML =
+          filas
+            .map(
+              (f) => `
         <tr>
-          <td>${f.cat}</td>
+          <td>${escapeHtmlRoles(f.cat)}</td>
           <td>${f.cabezas}</td>
           <td>${fmt(f.ventas)}</td>
           <td>${fmt(f.costo)}</td>
           <td style="color:${f.margen >= 0 ? "var(--green)" : "var(--red)"};font-weight:600;">${fmt(f.margen)}</td>
-        </tr>
-      `,
-                )
-                .join("") +
-              (otrosCostosGanaderos > 0
-                ? `
-        <tr style="color:var(--text-dim);font-style:italic;">
-          <td colspan="3">Compras (hacienda, alimento e insumos), sanidad y RRHH no atribuibles a una categoría puntual</td>
-          <td>${fmt(otrosCostosGanaderos)}</td>
-          <td>—</td>
-        </tr>
-      `
-                : "");
-          }
-        }
+        </tr>`,
+            )
+            .join("") +
+          `
+        <tr style="color:var(--text-dim);font-size:11px;">
+          <td colspan="5">Costo asignado: la compra de hacienda va a su categoría, el alimento según los kilos que consumió cada una y el resto (sanidad, personal, mantenimiento, otros) según las cabezas vendidas.</td>
+        </tr>`;
       }
 
       function parseMonto(v) {
@@ -16437,21 +17255,47 @@
       // === MÓDULO FISCAL GANADERO ===
       // =====================================================
       async function fiscalJson(url, options) {
-        const respuesta = await fetch(url, options);
-        const datos = await respuesta.json();
-        if (!respuesta.ok)
-          throw new Error(datos.message || "La operación no pudo completarse.");
+        let respuesta;
+        try {
+          respuesta = await fetch(url, options);
+        } catch (errorRed) {
+          const error = new Error(`Sin conexión con el servidor fiscal (${errorRed.message}).`);
+          error.red = true;
+          throw error;
+        }
+        const datos = await respuesta.json().catch(() => null);
+        if (!respuesta.ok || !datos) {
+          const error = new Error(
+            datos?.message ||
+              (respuesta.status === 404 || !datos
+                ? "El servidor fiscal no está disponible en esta instalación (funciona en la versión de escritorio)."
+                : "La operación no pudo completarse."),
+          );
+          error.status = respuesta.ok ? 404 : respuesta.status;
+          error.codigo = datos?.codigo || (!datos ? "SIN_SERVIDOR_FISCAL" : "");
+          error.datos = datos || {};
+          throw error;
+        }
         return datos;
       }
 
+      // "transitorio": se puede reintentar tal cual (sin señal o servidor caído).
+      // "senasaManual": SENASA no tiene webservice; el DUT se emite a mano en SIGSA.
+      // "negocio": rechazo por datos o reglas (tasa impaga, boleto vencido); se corrige, no se reintenta solo.
+      function clasificarErrorFiscal(error) {
+        if (error?.codigo === "SENASA_NO_DISPONIBLE") return "senasaManual";
+        if (error?.codigo === "SIN_SERVIDOR_FISCAL") return "transitorio";
+        if (error?.red || !error?.status) return "transitorio";
+        if ([500, 502, 503, 504].includes(error.status)) return "transitorio";
+        return "negocio";
+      }
+
       function pagoMunicipalPuedeContinuar(datos) {
-        const importe = Number(datos.arancelMunicipal || 0);
+        const importe = parseMonto(datos.arancelMunicipal);
         const estado = String(datos.estadoPago || "NO_APLICA").toUpperCase();
         return (
           importe <= 0 ||
-          ["PAGADO", "VEP", "TRANSFERENCIA", "CUENTA_CORRIENTE"].includes(
-            estado,
-          )
+          ["PAGADO", "ACREDITADO", "VEP", "TRANSFERENCIA", "CUENTA_CORRIENTE"].includes(estado)
         );
       }
 
@@ -16599,7 +17443,7 @@
                     boleto.estado !== false &&
                     (!boleto.fechaVencimiento ||
                       new Date(boleto.fechaVencimiento) >= hoy);
-                  return `<tr><td>${boleto.nroBoleto || ""}</td><td>${boleto.tipoGanado || ""}</td><td>${boleto.fechaVencimiento || ""}</td><td><span class="tag ${vigente ? "green" : ""}">${vigente ? "Vigente" : "Vencido/inactivo"}</span></td></tr>`;
+                  return `<tr><td>${escapeHtmlRoles(boleto.nroBoleto)}</td><td>${escapeHtmlRoles(boleto.tipoGanado)}</td><td>${escapeHtmlRoles(boleto.fechaVencimiento)}</td><td><span class="tag ${vigente ? "green" : ""}">${vigente ? "Vigente" : "Vencido/inactivo"}</span></td></tr>`;
                 })
                 .join("")
             : '<tr><td colspan="4" style="text-align:center;color:var(--text-dim);padding:16px;">No hay boletos registrados</td></tr>';
@@ -16614,7 +17458,7 @@
                 .reverse()
                 .map(
                   (item) =>
-                    `<tr><td>${item.fecha || ""}</td><td>${item.operacion || "DUT"}</td><td>${item.identificador || ""}</td><td><span class="tag ${item.estado === "Confirmado" ? "green" : ""}">${item.estado || "Pendiente"}</span></td><td>${item.detalle || ""}</td></tr>`,
+                    `<tr><td>${escapeHtmlRoles(item.fecha)}</td><td>${escapeHtmlRoles(item.operacion || "DUT")}</td><td>${escapeHtmlRoles(item.identificador)}</td><td><span class="tag ${item.estado === "Confirmado" || String(item.estado || "").startsWith("Emitido") ? "green" : ""}">${escapeHtmlRoles(item.estado || "Pendiente")}</span></td><td>${escapeHtmlRoles(item.detalle)}</td></tr>`,
                 )
                 .join("")
             : '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:16px;">No hay operaciones fiscales registradas</td></tr>';
@@ -16622,15 +17466,13 @@
 
         const checklist = document.getElementById("fiscalChecklist");
         if (checklist) {
-          const afipActivo =
-            document.getElementById("fiscalTokenAfip")?.textContent &&
-            !document
-              .getElementById("fiscalTokenAfip")
-              .textContent.includes("Requiere");
+          const afipActivo = /Token activo/.test(
+            document.getElementById("fiscalTokenAfip")?.textContent || "",
+          );
           checklist.innerHTML = `
       <div class="alert-item"><span>Estado de credenciales ARCA/SENASA</span><span class="tag ${afipActivo ? "green" : ""}">${afipActivo ? "Disponible" : "Requiere credenciales"}</span></div>
       <div class="alert-item"><span>Boletos de marca vigentes</span><span class="tag ${vigentes.length ? "green" : ""}">${vigentes.length} vigentes</span></div>
-      <div class="alert-item"><span>RENSPA de origen y destino</span><span class="tag">Validar antes de emitir</span></div>
+      ${(() => { const san = evaluarSanidad(); const rojas = san.alertas.filter((a) => a.nivel === "rojo").length; return `<div class="alert-item"><span>Control sanitario SENASA (aftosa, brucelosis, garrapata, RFID)</span><span class="tag ${rojas ? "red" : san.alertas.length ? "orange" : "green"}">${rojas ? rojas + " incumplimiento(s)" : san.alertas.length ? san.alertas.length + " pendiente(s)" : "Al día"}</span></div>`; })()}
       <div class="alert-item"><span>Documentación del transporte</span><span class="tag">Revisar antes de emitir</span></div>`;
         }
       }
@@ -16669,27 +17511,92 @@
         renderFiscalPanel(state.boletosMarca || []);
       }
 
+      // Un DUT marcado "Emitido" con el número local (id o boleto) nunca fue oficial: vuelve a
+      // "Listo para SIGSA" para que se emita en SIGSA y se registre el número real.
+      function migrarDutSimulados() {
+        let cambio = false;
+        (state.fiscalDutQueue || []).forEach((item) => {
+          if (item.estado !== "Emitido" || item.oficial) return;
+          const numero = String(item.dteNumero || "");
+          if (numero && numero !== item.id && numero !== item.nroBoleto) {
+            item.estado = "Emitido (oficial)";
+            item.oficial = true;
+          } else {
+            item.estado = "Listo para SIGSA";
+            item.numeroSimulado = numero;
+            delete item.dteNumero;
+            delete item.qrCodeData;
+            delete item.comprobanteUrl;
+            item.detalle = "El número no era oficial: emitilo en SIGSA y registrá el número que te asignen.";
+          }
+          cambio = true;
+        });
+        if (cambio) saveState();
+      }
+
+      // Estados: Pendiente (espera señal o pago) → Listo para SIGSA (validado, falta emitirlo a
+      // mano en SIGSA) → Emitido (oficial) → Cerrado local. Rechazado: se corrige y se reenvía.
       function renderFiscalDutQueue() {
         const body = document.getElementById("fiscalDutQueueBody");
         if (!body) return;
-        const queue = Array.isArray(state.fiscalDutQueue)
-          ? state.fiscalDutQueue
-          : [];
+        migrarDutSimulados();
+        const esc = escapeHtmlRoles;
+        const queue = Array.isArray(state.fiscalDutQueue) ? state.fiscalDutQueue : [];
+        const editables = ["Pendiente", "Rechazado", "Listo para SIGSA"];
         body.innerHTML = queue.length
           ? queue
-              .map(
-                (item, index) => `
+              .map((item, index) => {
+                const estado = item.estado || "Pendiente";
+                const emitido = estado.startsWith("Emitido");
+                const acciones = [
+                  editables.includes(estado)
+                    ? `<button class="topbar-btn primary" type="button" onclick="completarFormularioDut(${index})">↻ Completar DUT</button><button class="topbar-btn" type="button" onclick="imprimirPreDut(${index})">🖨️ Imprimir orden</button>`
+                    : "",
+                  estado === "Listo para SIGSA"
+                    ? `<button class="topbar-btn" type="button" onclick="registrarNumeroSigsa(${index})">Registrar nº SIGSA</button>`
+                    : "",
+                  item.qrCodeData
+                    ? `<button class="topbar-btn primary" type="button" onclick="mostrarComprobanteDut(${index})">📄 Ver DUT oficial</button>`
+                    : "",
+                  emitido
+                    ? `<button class="topbar-btn" type="button" onclick="imprimirDutOficial(${index})">🖨️ Imprimir DUT</button><button class="topbar-btn" type="button" onclick="cerrarDutLocal(${index})">Preparar cierre</button>`
+                    : "",
+                ].join("");
+                return `
     <tr>
-      <td>${item.dteNumero || item.nroBoleto || item.id}</td>
-      <td>${item.fechaCarga || ""} / ${item.fechaVencimiento || ""}</td>
-      <td>${item.estadoPago || "NO_APLICA"}${item.estadoPago === "PENDIENTE" ? ` <button class="topbar-btn" type="button" onclick="marcarPagoMunicipal(${index})">Marcar acreditado</button>` : ""}</td>
-      <td><span class="tag ${item.estado === "Emitido" ? "green" : ""}">${item.estado || "Pendiente"}</span></td>
-      <td>${item.estado === "Pendiente" ? `<button class="topbar-btn primary" type="button" onclick="completarFormularioDut(${index})">↻ Completar DUT</button><button class="topbar-btn" type="button" onclick="imprimirPreDut(${index})">🖨️ Imprimir orden</button>` : ""}${item.qrCodeData ? `<button class="topbar-btn primary" type="button" onclick="mostrarComprobanteDut(${index})">📄 Ver DUT oficial</button>` : ""}${item.estado === "Emitido" ? ` <button class="topbar-btn" type="button" onclick="imprimirDutOficial(${index})">🖨️ Imprimir DUT</button><button class="topbar-btn" type="button" onclick="cerrarDutLocal(${index})">Preparar cierre</button>` : ""}</td>
-    </tr>`,
-              )
+      <td>${esc(item.dteNumero || item.nroBoleto || item.id)}</td>
+      <td>${esc(item.fechaCarga)} / ${esc(item.fechaVencimiento)}</td>
+      <td>${esc(item.estadoPago || "NO_APLICA")}${item.estadoPago === "PENDIENTE" ? ` <button class="topbar-btn" type="button" onclick="marcarPagoMunicipal(${index})">Marcar acreditado</button>` : ""}</td>
+      <td><span class="tag ${emitido ? "green" : estado === "Rechazado" ? "" : "orange"}">${esc(estado)}</span>${item.detalle && !emitido ? `<div class="text-muted" style="font-size:11px;margin-top:4px;">${esc(item.detalle)}</div>` : ""}</td>
+      <td>${acciones}</td>
+    </tr>`;
+              })
               .join("")
           : '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:16px;">No hay DUT pendientes</td></tr>';
         renderFiscalAlertas();
+      }
+
+      function registrarNumeroSigsa(index) {
+        const item = state.fiscalDutQueue?.[index];
+        if (!item) return;
+        const numero = String(prompt("Número de DUT/DT-e que asignó SENASA en SIGSA:", "") || "").trim();
+        if (!numero) return;
+        if (!/^[A-Za-z0-9-]{4,30}$/.test(numero)) {
+          showToast("El número no tiene un formato válido (solo letras, números y guiones).", "error");
+          return;
+        }
+        if ((state.fiscalDutQueue || []).some((otro, i) => i !== index && otro.dteNumero === numero)) {
+          showToast(`El número ${numero} ya está registrado en otro DUT.`, "error");
+          return;
+        }
+        item.estado = "Emitido (oficial)";
+        item.oficial = true;
+        item.dteNumero = numero;
+        item.emitidoEn = new Date().toISOString();
+        item.detalle = "Número oficial cargado desde SIGSA.";
+        saveState();
+        renderFiscalDutQueue();
+        guardarOperacionFiscal("DUT", numero, item.estado, "Número oficial registrado a mano desde SIGSA.");
       }
 
       function renderFiscalAlertas() {
@@ -16702,7 +17609,14 @@
           const vencimiento = new Date(item.fechaVencimiento || "").getTime();
           const identificador = item.dteNumero || item.id;
           const resultado = [];
-          if (item.estado === "Emitido")
+          if (
+            item.estado === "Listo para SIGSA"
+          )
+            resultado.push({
+              texto: `DUT ${identificador} sin número oficial: emitilo en SIGSA y registrá el número.`,
+              clase: "",
+            });
+          if (String(item.estado || "").startsWith("Emitido"))
             resultado.push({
               texto: `DUT ${identificador} sigue abierto: confirmar cierre en destino.`,
               clase: "",
@@ -16726,7 +17640,7 @@
           ? alertas
               .map(
                 (alerta) =>
-                  `<div class="alert-item"><span>${alerta.texto}</span><span class="tag">Revisar</span></div>`,
+                  `<div class="alert-item"><span>${escapeHtmlRoles(alerta.texto)}</span><span class="tag">Revisar</span></div>`,
               )
               .join("")
           : '<div class="alert-item"><span>No hay vencimientos ni DUT abiertos.</span><span class="tag green">OK</span></div>';
@@ -16745,40 +17659,52 @@
         }
       }
 
-      function encolarDutOffline(datos, motivo = "Sin conexión") {
+      function guardarDutEnCola(datos, cambios) {
         if (!Array.isArray(state.fiscalDutQueue)) state.fiscalDutQueue = [];
-        const item = {
-          ...datos,
-          id: `DUT-${Date.now()}`,
-          estado: "Pendiente",
-          detalle: motivo,
-          creadoEn: new Date().toISOString(),
-        };
+        const formulario = document.getElementById("fiscalFormDut");
+        const origenId = formulario?.dataset.origenColaId || "";
+        let item = origenId
+          ? state.fiscalDutQueue.find((d) => d.id === origenId && !String(d.estado || "").startsWith("Emitido"))
+          : null;
+        if (item) {
+          Object.assign(item, datos, cambios, { actualizadoEn: new Date().toISOString() });
+        } else {
+          item = { ...datos, id: `DUT-${Date.now()}`, creadoEn: new Date().toISOString(), ...cambios };
+          state.fiscalDutQueue.push(item);
+        }
         item.preDutQrData = generarQrPreDut(item);
-        state.fiscalDutQueue.push(item);
+        if (formulario) delete formulario.dataset.origenColaId;
         saveState();
         renderFiscalDutQueue();
-        guardarOperacionFiscal("DUT", item.id, "Pendiente", motivo);
+        guardarOperacionFiscal("DUT", item.id, item.estado, item.detalle || "");
         return item;
+      }
+
+      function encolarDutOffline(datos, motivo = "Sin conexión") {
+        return guardarDutEnCola(datos, { estado: "Pendiente", detalle: motivo });
+      }
+
+      function cambiosListoParaSigsa() {
+        return {
+          estado: "Listo para SIGSA",
+          detalle: "Validado (boleto y tasa). SENASA no tiene webservice: emitilo en SIGSA y registrá el número oficial.",
+        };
       }
 
       function completarFormularioDut(index) {
         const item = state.fiscalDutQueue?.[index];
         const formulario = document.getElementById("fiscalFormDut");
         if (!item || !formulario) return;
-
         Object.entries(item).forEach(([nombre, valor]) => {
           const campo = formulario.elements.namedItem(nombre);
           if (campo && typeof valor !== "object") campo.value = valor ?? "";
         });
+        formulario.dataset.origenColaId = item.id;
         formulario.scrollIntoView({ behavior: "smooth", block: "start" });
         document.getElementById("fiscalResultadoDut").textContent =
-          `DUT completado desde ${item.id}. Revisá la tasa y confirmá la emisión.`;
+          `Editando ${item.id}: al confirmar se actualiza ese mismo DUT (no se crea otro). Revisá la tasa y confirmá.`;
         document.getElementById("fiscalResultadoDut").className = "tag";
-        showToast(
-          `Datos del ${item.id} cargados en el formulario DUT.`,
-          "success",
-        );
+        showToast(`Datos del ${item.id} cargados en el formulario DUT.`, "success");
       }
 
       function generarQrPreDut(item) {
@@ -16893,62 +17819,107 @@
         );
       }
 
+      // Motivos por los que un DUT de la cola ya no se puede enviar (vacío = OK). Si se corta la
+      // conexión al consultar, lanza el error para que no se envíe nada.
+      async function revalidarDutParaEnvio(item) {
+        const motivos = [];
+        const vencimientoMs = new Date(item.fechaVencimiento || "").getTime();
+        if (!Number.isFinite(vencimientoMs) || vencimientoMs <= Date.now())
+          motivos.push("El DUT está vencido o no tiene un vencimiento válido.");
+        if (!(Number(item.cantidadCabezas) > 0)) motivos.push("El DUT no tiene cantidad de cabezas.");
+        motivos.push(...evaluarDutSanitario(item).bloqueos.map((b) => b.texto));
+        try {
+          await fiscalJson("/api/fiscal/tasa-municipal/validar", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(item),
+          });
+        } catch (error) {
+          if (clasificarErrorFiscal(error) === "transitorio") throw error;
+          motivos.push(error.message);
+        }
+        const boleto = String(item.nroBoleto || "").trim();
+        if (!boleto) motivos.push("Falta el número de boleto de marca.");
+        else {
+          try {
+            await fiscalJson(`/api/boletos-marca/${encodeURIComponent(boleto)}`);
+          } catch (error) {
+            if (clasificarErrorFiscal(error) === "transitorio") throw error;
+            motivos.push(error.message);
+          }
+        }
+        return motivos;
+      }
+
       async function sincronizarDutPendientes() {
         if (!navigator.onLine) {
-          showToast(
-            "Sin conexión: los DUT quedan preparados localmente.",
-            "info",
-          );
+          showToast("Sin conexión: los DUT quedan preparados localmente.", "info");
           return;
         }
         const pendientes = (state.fiscalDutQueue || []).filter(
-          (item) =>
-            item.estado === "Pendiente" && pagoMunicipalPuedeContinuar(item),
+          (item) => item.estado === "Pendiente" && pagoMunicipalPuedeContinuar(item),
         );
         if (!pendientes.length) {
-          showToast(
-            "No hay DUT listos para sincronizar. Revisá pagos pendientes.",
-            "info",
-          );
+          showToast("No hay DUT listos para sincronizar. Revisá pagos pendientes.", "info");
           renderFiscalDutQueue();
           return;
         }
+        const listos = [];
         try {
-          const respuesta = await fiscalJson("/api/logistica/emitir-dut-lote", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ duts: pendientes }),
-          });
-          (respuesta.resultados || []).forEach((resultado) => {
-            const item = pendientes.find(
-              (pendiente) => pendiente.id === resultado.id,
-            );
-            if (!item) return;
-            if (resultado.success) {
-              item.estado = "Emitido";
-              item.dteNumero =
-                resultado.dteGenerado || resultado.data?.dteNumero || item.id;
-              item.qrCodeData =
-                resultado.data?.qrCodeData ||
-                resultado.data?.qr ||
-                item.dteNumero;
-              item.comprobanteUrl =
-                resultado.data?.comprobanteUrl || resultado.data?.pdfUrl || "";
-              guardarOperacionFiscal(
-                "DUT",
-                item.dteNumero,
-                "Confirmado",
-                "Emitido en sincronización por lote.",
-              );
-            } else {
-              item.detalle = resultado.message || "No se pudo emitir el DUT.";
-            }
-          });
+          for (const item of pendientes) {
+            const motivos = await revalidarDutParaEnvio(item);
+            if (motivos.length) {
+              item.estado = "Rechazado";
+              item.detalle = `No se envió: ${motivos.join(" ")}`;
+            } else listos.push(item);
+          }
         } catch (error) {
           pendientes.forEach((item) => {
-            item.detalle = error.message;
+            if (item.estado === "Pendiente") item.detalle = error.message;
           });
+          listos.length = 0;
         }
+        if (listos.length) {
+          try {
+            const respuesta = await fiscalJson("/api/logistica/emitir-dut-lote", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ duts: listos }),
+            });
+            (respuesta.resultados || []).forEach((resultado) => {
+              const item = listos.find((listo) => listo.id === resultado.id);
+              if (!item) return;
+              // Solo cuenta como emitido si vuelve un número oficial (hoy no hay webservice SENASA).
+              if (resultado.success && resultado.oficial && resultado.dteNumero) {
+                item.estado = "Emitido (oficial)";
+                item.oficial = true;
+                item.dteNumero = resultado.dteNumero;
+                item.qrCodeData = resultado.data?.qrCodeData || resultado.data?.qr || "";
+                item.comprobanteUrl = resultado.data?.comprobanteUrl || resultado.data?.pdfUrl || "";
+                item.emitidoEn = new Date().toISOString();
+                item.detalle = "";
+              } else if (resultado.codigo === "SENASA_NO_DISPONIBLE") {
+                Object.assign(item, cambiosListoParaSigsa());
+              } else {
+                item.detalle = resultado.message || "No se pudo emitir el DUT.";
+              }
+            });
+          } catch (error) {
+            const tipo = clasificarErrorFiscal(error);
+            const porId = new Map((error.datos?.resultados || []).map((r) => [r.id, r]));
+            listos.forEach((item) => {
+              if (tipo === "senasaManual" || porId.get(item.id)?.codigo === "SENASA_NO_DISPONIBLE")
+                Object.assign(item, cambiosListoParaSigsa());
+              else if (tipo === "negocio") {
+                item.estado = "Rechazado";
+                item.detalle = error.message;
+              } else item.detalle = error.message;
+            });
+          }
+        }
+        pendientes
+          .filter((item) => item.estado !== "Pendiente")
+          .forEach((item) => guardarOperacionFiscal("DUT", item.dteNumero || item.id, item.estado, item.detalle || ""));
         saveState();
         renderFiscalDutQueue();
       }
@@ -17030,7 +18001,26 @@
             resultado.className = "tag";
             return;
           }
-          if (!navigator.onLine) {
+          const chequeo = evaluarDutSanitario(datos);
+            renderChequeoDut(chequeo);
+            if (chequeo.bloqueos.length) {
+              resultado.textContent = `DUT bloqueado por SENASA: ${chequeo.bloqueos.map((b) => b.texto).join(" ")}`;
+              resultado.className = "tag";
+              return;
+            }
+            if (
+              chequeo.advertencias.length &&
+              !confirm(
+                "Control sanitario SENASA:\n\n" +
+                  chequeo.advertencias.map((a) => "• " + a.texto).join("\n") +
+                  "\n\n¿Confirmás que se cumplen y seguís con el DUT?",
+              )
+            ) {
+              resultado.textContent = "DUT sin enviar: revisá el control sanitario.";
+              resultado.className = "tag";
+              return;
+            }
+            if (!navigator.onLine) {
             encolarDutOffline(
               datos,
               pagoMunicipalPuedeContinuar(datos)
@@ -17044,50 +18034,58 @@
             return;
           }
           try {
-            const tasa = await fiscalJson(
-              "/api/fiscal/tasa-municipal/validar",
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(datos),
-              },
-            );
-            await fiscalJson(
-              `/api/boletos-marca/${encodeURIComponent(datos.nroBoleto)}`,
-            );
+            const tasa = await fiscalJson("/api/fiscal/tasa-municipal/validar", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(datos),
+            });
+            await fiscalJson(`/api/boletos-marca/${encodeURIComponent(datos.nroBoleto)}`);
             const respuesta = await fiscalJson("/api/logistica/emitir-dut", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(datos),
             });
-            resultado.textContent = `${respuesta.message || `DUT emitido: ${respuesta.dteGenerado || "confirmado"}.`} Tasa: ${tasa.cotizacion?.importeTotal || 0}.`;
-            resultado.className = "tag green";
-            guardarOperacionFiscal(
-              "DUT",
-              respuesta.dteGenerado || datos.nroBoleto,
-              "Confirmado",
-              respuesta.message || "DUT emitido",
-            );
-            if (!Array.isArray(state.fiscalDutQueue)) state.fiscalDutQueue = [];
-            state.fiscalDutQueue.push({
-              ...datos,
-              estado: "Emitido",
-              dteNumero: respuesta.dteGenerado || datos.nroBoleto,
-              qrCodeData:
-                respuesta.data?.qrCodeData ||
-                respuesta.data?.qr ||
-                respuesta.dteGenerado ||
-                datos.nroBoleto,
-              comprobanteUrl:
-                respuesta.data?.comprobanteUrl || respuesta.data?.pdfUrl || "",
+            // Solo cuenta como emitido si vuelve un número oficial (hoy no hay webservice SENASA).
+            if (!respuesta.oficial || !respuesta.dteNumero) {
+              const sinNumero = new Error(respuesta.message || "El servidor no devolvió un número oficial de DUT.");
+              sinNumero.codigo = "SENASA_NO_DISPONIBLE";
+              throw sinNumero;
+            }
+            guardarDutEnCola(datos, {
+              estado: "Emitido (oficial)",
+              oficial: true,
+              dteNumero: respuesta.dteNumero,
+              qrCodeData: respuesta.data?.qrCodeData || respuesta.data?.qr || "",
+              comprobanteUrl: respuesta.data?.comprobanteUrl || respuesta.data?.pdfUrl || "",
+              emitidoEn: new Date().toISOString(),
+              detalle: "",
             });
-            saveState();
-            renderFiscalDutQueue();
+            resultado.textContent = `DUT ${respuesta.dteNumero} emitido. Tasa: ${tasa.cotizacion?.importeTotal || 0}.`;
+            resultado.className = "tag green";
           } catch (error) {
-            resultado.textContent = error.message;
-            resultado.className = "tag";
-            encolarDutOffline(datos, error.message);
+            const tipo = clasificarErrorFiscal(error);
+            if (tipo === "senasaManual") {
+              guardarDutEnCola(datos, cambiosListoParaSigsa());
+              resultado.textContent = "DUT validado. Emitilo en SIGSA y después usá «Registrar nº SIGSA» en la cola.";
+              resultado.className = "tag orange";
+            } else if (tipo === "transitorio") {
+              encolarDutOffline(datos, error.message);
+              resultado.textContent = `${error.message} El DUT quedó pendiente para reintentar.`;
+              resultado.className = "tag";
+            } else {
+              // Un rechazo (tasa impaga, boleto inválido) no se encola: se corrige y se vuelve a enviar.
+              if (formulario.dataset.origenColaId)
+                guardarDutEnCola(datos, { estado: "Rechazado", detalle: error.message });
+              resultado.textContent = `DUT rechazado: ${error.message}`;
+              resultado.className = "tag";
+            }
           }
+        });
+
+      document
+        .getElementById("fiscalFormDut")
+        ?.addEventListener("reset", (evento) => {
+          delete evento.currentTarget.dataset.origenColaId;
         });
 
       document
@@ -17128,8 +18126,7 @@
         ?.addEventListener("click", async () => {
           try {
             const peso =
-              Number(document.getElementById("fiscalPesoActual").textContent) ||
-              0;
+              parseFloat(document.getElementById("fiscalPesoActual").textContent) || 0;
             const caravana = document
               .getElementById("fiscalCaravanaInput")
               .value.trim();
@@ -17153,7 +18150,7 @@
         ?.addEventListener("click", async () => {
           const resultado = document.getElementById("fiscalResultadoBalanza");
           try {
-            const origen = Number(prompt("Peso de origen (kg):", "18450"));
+            const origen = parseMonto(prompt("Peso de origen (kg) según la balanza de carga:", "") || 0);
             const destino = Number(
               document.getElementById("fiscalPesoDestino").value,
             );
@@ -17288,15 +18285,32 @@
           const titulo = document.getElementById("topbarTitle");
           if (titulo)
             titulo.textContent = moduleNames[modulo] || item.textContent.trim();
-          if (modulo === "fiscal") actualizarFiscalGanadero();
+          if (modulo === "fiscal") {
+            actualizarFiscalGanadero();
+            actualizarRegistroFiscal();
+          }
+          if (modulo === "hacienda") renderSanidad();
         },
         true,
       );
 
-      actualizarFiscalGanadero();
-      actualizarRegistroFiscal();
+      document.getElementById("fiscalFormDut")?.addEventListener("input", (evento) => {
+        renderChequeoDut(evaluarDutSanitario(Object.fromEntries(new FormData(evento.currentTarget).entries())));
+      });
+      document.getElementById("fiscalFormDut")?.addEventListener("change", (evento) => {
+        renderChequeoDut(evaluarDutSanitario(Object.fromEntries(new FormData(evento.currentTarget).entries())));
+      });
       renderFiscalDutQueue();
-      setInterval(actualizarFiscalGanadero, 5000);
+      const fiscalVisible = () =>
+        document.getElementById("mod-fiscal")?.classList.contains("active") &&
+        document.visibilityState === "visible";
+      if (fiscalVisible()) {
+        actualizarFiscalGanadero();
+        actualizarRegistroFiscal();
+      }
+      setInterval(() => {
+        if (fiscalVisible()) actualizarFiscalGanadero();
+      }, 5000);
     </script>
 
     <script>
