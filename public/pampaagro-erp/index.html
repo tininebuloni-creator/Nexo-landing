@@ -456,6 +456,49 @@
         }
       }
 
+/* AgroENSO: enlace con cartel emergente (al pasar el mouse o con el foco del teclado). El
+         cartel se ubica sobre toda la fila de enlaces para no salirse de la pantalla. */
+      .portada-market-tools {
+        position: relative;
+      }
+      .agroenso-tip {
+        display: inline-flex;
+      }
+      .agroenso-tip-texto {
+        position: absolute;
+        left: 0;
+        bottom: calc(100% + 10px);
+        width: min(340px, calc(100vw - 32px));
+        padding: 12px 14px;
+        border: 1px solid rgba(34, 197, 94, 0.5);
+        border-radius: 10px;
+        background: #0f1f17;
+        color: #e7f3ec;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+        font-size: 12px;
+        font-weight: 400;
+        line-height: 1.5;
+        text-align: left;
+        white-space: normal;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(4px);
+        transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+        pointer-events: none;
+        z-index: 60;
+      }
+      .agroenso-tip-texto strong {
+        display: block;
+        margin-bottom: 6px;
+        color: #86efac;
+      }
+      .agroenso-tip:hover .agroenso-tip-texto,
+      .agroenso-tip:focus-within .agroenso-tip-texto {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+
       /* Portada y Accesos Rápidos: escala proporcional con el ancho de la pantalla. Antes el logo
          medía 480×280 fijo, el cartel tenía 420 px de alto mínimo y todo cambiaba de golpe recién a
          los 640 px: en pantallas medianas el cartel verde no se achicaba y apretaba al panel. */
@@ -2693,6 +2736,19 @@
                   >
                     🧪 Precio Insumos
                   </button>
+                  <span class="agroenso-tip">
+                    <button
+                      class="empresa-portada-tool-btn"
+                      type="button"
+                      aria-describedby="agroensoInfo"
+                      onclick="window.open('https://agroenso.netlify.app/', '_blank', 'noopener,noreferrer')"
+                    >
+                      🌱 AgroENSO
+                    </button>
+                    <span class="agroenso-tip-texto" id="agroensoInfo" role="tooltip"
+                      ><strong>🌱 AgroENSO · El Niño en tu zona</strong>Podés consultar cómo va a pegar El Niño en los cultivos de tu zona. Analiza las últimas 35 campañas agrícolas para entender cómo reacciona el suelo y el rendimiento de cultivos frente a los cambios del clima. Gráficos sencillos de los rindes históricos reales. Es clave para que el campo tome mejores decisiones, administre los riesgos y aproveche al máximo el agua disponible.</span
+                    >
+                  </span>
                 </div>
               </div>
 
@@ -2738,20 +2794,6 @@
                     onclick="mostrarModalSincronizacion()"
                   >
                     <span class="dashboard-sync-inline">⚡ Conectividad</span>
-                  </button>
-                  <button
-                    class="dashboard-action-btn"
-                    type="button"
-                    onclick="
-                      window.open(
-                        'https://agroenso.netlify.app/',
-                        '_blank',
-                        'noopener,noreferrer',
-                      )
-                    "
-                    title="Abrir AgroENSO"
-                  >
-                    🌱 AgroENSO
                   </button>
                   <button
                     class="dashboard-action-btn"
