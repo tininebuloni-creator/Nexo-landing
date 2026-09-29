@@ -5,3 +5,14 @@ node_modules/
 **/.env
 **/.env.*
 !**/.env.example
+
+# Estado local de wrangler (cache, KV local, builds temporales)
+.wrangler/
+
+# Logs, diagnósticos y herramientas sueltas de trabajo (quedan en disco)
+desktop.ini
+*-log.txt
+diagnostico-git-log.txt
+Claude outputs/
+check-braces.js
+convert-*.js

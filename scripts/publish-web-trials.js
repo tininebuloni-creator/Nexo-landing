@@ -46,8 +46,9 @@ const ignored = new Set(['node_modules', '.git', '.wrangler', 'data', 'services'
 // '~$': archivos de bloqueo que crea Office mientras un documento está abierto (ej: ~$Planilla_...xlsx)
 // 'electron-builder': configs del instalador de escritorio (ej: electron-builder-premium.json)
 const ignoredPrefixes = ['dist-', 'release-', '~$', 'electron-builder'];
-// Scripts de desarrollo que no tienen que llegar a la web (ej: aplicar_parche.py)
-const ignoredExtensions = ['.env', '.key', '.crt', '.bat', '.py', '.sh', '.ps1'];
+// Scripts de desarrollo que no tienen que llegar a la web (ej: aplicar_parche.py) y notas .txt
+// internas (versiones, roles, LEEME): quedaban publicadas y descargables por cualquiera.
+const ignoredExtensions = ['.env', '.key', '.crt', '.bat', '.py', '.sh', '.ps1', '.txt'];
 const privacyPopup = path.join(projectsRoot, 'PAMPA N-ecosystem', 'packages', 'pampa-privacy-popup.js');
 const trialProgress = path.join(landingRoot, 'trial-progress.js');
 // OJO: pampatambo-erp tenía acá un override que pisaba el index.html publicado con el
