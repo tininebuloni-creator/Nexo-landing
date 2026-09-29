@@ -441,6 +441,80 @@
         }
       }
 
+      /* Portada y Accesos Rápidos: escala proporcional con el ancho de la pantalla. Antes el logo
+         medía 480×280 fijo, el cartel tenía 420 px de alto mínimo y todo cambiaba de golpe recién a
+         los 640 px: en pantallas medianas el cartel verde no se achicaba y apretaba al panel. */
+      .dashboard-hero {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: clamp(10px, 1.4vw, 16px);
+      }
+      .dashboard-empresa-col,
+      .dashboard-top-actions,
+      .empresa-portada-info {
+        min-width: 0;
+      }
+      .empresa-portada {
+        min-height: clamp(240px, 30vw, 420px);
+        padding: clamp(10px, 1.2vw, 12px) clamp(12px, 2vw, 20px) clamp(14px, 2.4vw, 24px);
+      }
+      .empresa-portada::after {
+        font-size: clamp(80px, 12vw, 160px);
+      }
+      .empresa-portada-content {
+        gap: clamp(8px, 1.2vw, 12px);
+      }
+      .empresa-portada-logo {
+        width: min(480px, 100%);
+        height: clamp(80px, 18vw, 280px);
+      }
+      .empresa-portada-nombre {
+        font-size: clamp(18px, 2.3vw, 28px);
+        overflow-wrap: anywhere;
+      }
+      .empresa-portada-sub {
+        font-size: clamp(10px, 1vw, 12px);
+      }
+      .empresa-portada-datos {
+        gap: clamp(8px, 1.4vw, 18px);
+        font-size: clamp(10px, 0.95vw, 11px);
+      }
+      .portada-market-tools {
+        gap: clamp(6px, 0.9vw, 10px);
+      }
+      .empresa-portada-tool-btn {
+        padding: clamp(6px, 0.7vw, 8px) clamp(8px, 1vw, 12px);
+        min-height: clamp(34px, 3vw, 40px);
+        font-size: clamp(11px, 1vw, 12px);
+      }
+      .dashboard-top-actions {
+        padding: clamp(10px, 1.6vw, 18px);
+        gap: clamp(8px, 1vw, 12px);
+      }
+      .dashboard-top-actions-grid {
+        gap: clamp(6px, 0.8vw, 10px);
+      }
+      .dashboard-action-btn,
+      .dashboard-role-select {
+        min-width: 0;
+        padding: clamp(7px, 0.9vw, 10px) clamp(8px, 1vw, 12px);
+        font-size: clamp(11px, 1vw, 12px);
+      }
+      .dashboard-action-btn.whatsapp-action {
+        min-height: clamp(38px, 3.6vw, 46px);
+      }
+      @media (max-width: 640px) {
+        .dashboard-hero {
+          grid-template-columns: 1fr;
+        }
+        .empresa-portada {
+          min-height: 0;
+        }
+        .empresa-portada-logo {
+          width: 100%;
+          height: clamp(70px, 26vw, 140px);
+        }
+      }
+
       .sidebar-nav {
         flex: 1;
         padding: 16px 12px;
@@ -22609,6 +22683,7 @@
         return {
           type: "trial",
           key: "TRIAL-10DIAS",
+          app: "agro",
           activatedAt: inicio.toISOString(),
           expiresAt: fin.toISOString(),
           deviceId: generateDeviceId(),
@@ -24775,7 +24850,13 @@
         if (!licenseStr) return null;
 
         try {
-          return JSON.parse(licenseStr);
+          const license = JSON.parse(licenseStr);
+          // En la web, Agro y Ganadería comparten dominio y esta clave: una prueba de Ganadería
+          // (app "ganaderia", o las viejas "TRIAL-7DIAS") no es de Agro: se ignora y Agro
+          // la vuelve a pedir al servidor con sus propias fechas.
+          if (license?.type === "trial" && (license.app ? license.app !== "agro" : license.key === "TRIAL-7DIAS"))
+            return null;
+          return license;
         } catch (e) {
           return null;
         }

@@ -14397,7 +14397,12 @@
         if (!licenseStr) return getPackDefaultLicense();
 
         try {
-          return JSON.parse(licenseStr);
+          const license = JSON.parse(licenseStr);
+          // En la web, Agro y Ganadería comparten dominio y esta clave: una prueba de Agro (app
+          // "agro", o las viejas "TRIAL-10DIAS" sin app, que Ganadería no creaba) no es de acá.
+          if (license?.type === "trial" && (license.app ? license.app !== "ganaderia" : license.key === "TRIAL-10DIAS"))
+            return getPackDefaultLicense();
+          return license;
         } catch (e) {
           return getPackDefaultLicense();
         }
@@ -15015,6 +15020,7 @@
         const licencia = {
           type: "trial",
           key: "TRIAL-10DIAS",
+          app: "ganaderia",
           activatedAt: inicio.toISOString(),
           expiresAt: fin.toISOString(),
           deviceId: generateDeviceId(),
