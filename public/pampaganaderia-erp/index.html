@@ -4950,7 +4950,7 @@
               Activar Licencia
             </button>
             <button class="activation-btn-secondary" onclick="activateTrial()">
-              Iniciar Prueba Gratis (7 días)
+              Iniciar Prueba Gratis (10 días)
             </button>
             <button
               class="activation-btn-secondary"
@@ -4967,7 +4967,7 @@
             software.<br />
             Guarde este token en un lugar seguro: será necesario si cambia de
             equipo o reinstala Windows.<br />
-            O inicie una prueba gratis por 7 días para evaluar el sistema.<br />
+            O inicie una prueba gratis por 10 días para evaluar el sistema.<br />
             También puede compartir un enlace de trial por WhatsApp para
             activación automática.
           </div>
@@ -5962,7 +5962,8 @@ sanidadEstablecimiento: {},
       const PLAN_ROLE_LIMITS = {
         basica: 4,
         profesional: 10,
-        premium: 20,
+        // Premium: roles ilimitados (catálogo de versiones).
+        premium: Number.POSITIVE_INFINITY,
         trial: Number.POSITIVE_INFINITY,
       };
 
@@ -15975,6 +15976,7 @@ function costosGanaderosDelPeriodo(desde, hasta) {
       // Catálogo comercial: cada módulo agrupa las pantallas y submódulos que lo componen.
       const PLAN_MODULES = {
         basica: ["campos", "hacienda", "alimentacion", "finanzas"],
+        // Profesional = Básica + Inventario, Equipos (mantenimiento, costos operativos) y Créditos.
         profesional: [
           "campos",
           "hacienda",
@@ -15982,7 +15984,9 @@ function costosGanaderosDelPeriodo(desde, hasta) {
           "finanzas",
           "inventario",
           "equipos",
+          "creditos",
         ],
+        // Premium = todo, con Flujo de fondos.
         premium: [
           "campos",
           "hacienda",
@@ -15990,18 +15994,20 @@ function costosGanaderosDelPeriodo(desde, hasta) {
           "finanzas",
           "inventario",
           "equipos",
+          "creditos",
           "fiscal",
           "empleados",
           "rentabilidad",
           "documentos",
+          "flujo",
         ],
         trial: null,
       };
 
       const PLAN_MODULE_LIMITS = {
         basica: 4,
-        profesional: 6,
-        premium: 10,
+        profesional: 7,
+        premium: 12,
         trial: Number.POSITIVE_INFINITY,
       };
 
@@ -16026,10 +16032,10 @@ function costosGanaderosDelPeriodo(desde, hasta) {
           "cheques",
           "chequesCobrar",
           "chequesCubrir",
-          "creditos",
-          "flujo",
           "costos",
         ],
+        creditos: ["creditos"],
+        flujo: ["flujo"],
         rentabilidad: ["rentabilidad"],
         fiscal: ["fiscal"],
         equipos: [
@@ -16048,6 +16054,8 @@ function costosGanaderosDelPeriodo(desde, hasta) {
         { id: "hacienda", label: "Hacienda" },
         { id: "alimentacion", label: "Alimentación" },
         { id: "finanzas", label: "Finanzas" },
+        { id: "creditos", label: "Créditos" },
+        { id: "flujo", label: "Flujo de fondos" },
         { id: "sanidad", label: "Sanidad y Veterinaria" },
         { id: "inventario", label: "Inventario" },
         { id: "equipos", label: "Equipos y Maquinaria" },
