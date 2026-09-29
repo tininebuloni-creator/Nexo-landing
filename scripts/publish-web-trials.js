@@ -87,6 +87,13 @@ for (const [folderName, source] of Object.entries(sources)) {
         && !ignoredExtensions.some(ext => name.toLowerCase().endsWith(ext));
     }
   });
+  // La carpeta data/ no se publica (puede tener datos del servidor), pero los datos de ejemplo de
+  // la demo sí: sin ellos, "Cargar datos de ejemplo" recibía la página del catálogo y fallaba.
+  const datosDemo = path.join(source, 'data', 'datosSemillaDemo.json');
+  if (fs.existsSync(datosDemo)) {
+    fs.mkdirSync(path.join(destination, 'data'), { recursive: true });
+    fs.copyFileSync(datosDemo, path.join(destination, 'data', 'datosSemillaDemo.json'));
+  }
   fs.copyFileSync(privacyPopup, path.join(destination, 'pampa-privacy-popup.js'));
   if (fs.existsSync(trialProgress)) fs.copyFileSync(trialProgress, path.join(destination, 'trial-progress.js'));
   const entryPoint = path.join(destination, 'index.html');

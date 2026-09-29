@@ -1,0 +1,1101 @@
+{
+  "_meta": {
+    "tipo": "pampa-seed-demo",
+    "version": 1,
+    "app": "PampaAgropecuario",
+    "fechaReferencia": "2026-09-28",
+    "descripcion": "Establecimiento mixto ficticio (Venado Tuerto, Santa Fe): soja y maíz, recría e invernada bovina, un campo propio y uno alquilado de uso mixto. CUIT, RENSPA y comprobantes son de prueba (DEMO) y no corresponden a personas o empresas reales.",
+    "fechas": "Las fechas son relativas a fechaReferencia: al cargar el ejemplo se corren al día de hoy para que las alertas (DUT por vencer, carencias, DOES vencido) aparezcan activas.",
+    "alertasIncluidas": [
+      "SENASA: DOES de brucelosis vencido en El Ombú (bloquea DUT desde ese RENSPA)",
+      "SENASA: DUT validado sin número oficial de SIGSA que vence mañana",
+      "SENASA: animales con carencia activa por ivermectina",
+      "SENASA: boleto de marca BM-DEMO-002 vencido",
+      "ARCA: CPE sin respuesta de ARCA, marcada para verificar",
+      "ARCA: retención RG830 del alquiler pendiente de depositar",
+      "ARCA: factura pendiente de enviar en la cola local"
+    ],
+    "cuits": {
+      "empresa": "30-71999001-7",
+      "duenoCampo": "20-99100200-7",
+      "acopio": "30-71999320-2",
+      "frigorifico": "30-71999541-8",
+      "consignataria": "30-71999760-7",
+      "transportista": "20-99300400-7",
+      "contratista": "20-99500600-7"
+    },
+    "renspas": {
+      "laEsperanza": "20.077.0.01234/00",
+      "elOmbu": "20.077.0.05678/00",
+      "destinoFrigorifico": "21.084.0.00911/00"
+    },
+    "comoBorrar": "Para borrar los datos de ejemplo y cargar los propios: Seguridad → Limpieza Profunda (o Empresa → 🧼 Limpieza profunda). Antes de borrar se descarga un respaldo."
+  },
+  "estado": {
+    "empresa": {
+      "nombre": "Establecimiento La Esperanza S.A. (DEMO)",
+      "cuit": "30-71999001-7",
+      "condicionIva": "Responsable Inscripto",
+      "inicioActividades": "2012-03-01",
+      "direccion": "Ruta Nacional 8 km 370, Venado Tuerto, Santa Fe",
+      "telefono": "03462 000000",
+      "email": "demo@establecimiento-la-esperanza.test",
+      "iibr": "921-000000-0",
+      "subtitulo": "Datos de ejemplo — agricultura y ganadería en carriles separados",
+      "whatsappPropietario": "",
+      "whatsappAdministracion": "",
+      "whatsappIngeniero": ""
+    },
+    "prorrateoEstructura": null,
+    "campos": [
+      {
+        "codigo": "C01",
+        "nombre": "La Esperanza",
+        "ubicacion": "Venado Tuerto, Santa Fe",
+        "superficie": 260,
+        "propietario": "Establecimiento La Esperanza S.A.",
+        "contrato": "Propio",
+        "numeroPlantaSisa": "",
+        "valor": ""
+      },
+      {
+        "codigo": "C02",
+        "nombre": "El Ombú",
+        "ubicacion": "Murphy, Santa Fe",
+        "superficie": 120,
+        "propietario": "Juan Carlos Ombú (DEMO)",
+        "contrato": "Alquiler",
+        "cuitDueno": "20-99100200-7",
+        "contratoModalidad": "Fijo en pesos",
+        "codigoContratoSisa": "DEMO-SISA-0001",
+        "valor": ""
+      }
+    ],
+    "campañas": [
+      {
+        "campana": "2025/26",
+        "cultivo": "Soja",
+        "inicio": "2025-11-05",
+        "cierre": "2026-04-20",
+        "ha": 120,
+        "costoTotal": "",
+        "margen": "",
+        "estado": "Cosechado"
+      },
+      {
+        "campana": "2025/26",
+        "cultivo": "Maíz",
+        "inicio": "2025-09-25",
+        "cierre": "2026-05-15",
+        "ha": 130,
+        "costoTotal": "",
+        "margen": "",
+        "estado": "Cosechado"
+      }
+    ],
+    "lotes": [
+      {
+        "codigo": "L01",
+        "nombre": "Lote 1 - Soja",
+        "campo": "C01",
+        "uso": "Agrícola",
+        "superficie": 120,
+        "tipoSuelo": "Argiudol típico",
+        "ambiente": "Alto",
+        "campana": "2025/26",
+        "latitud": "-33.741200",
+        "longitud": "-61.951800"
+      },
+      {
+        "codigo": "L02",
+        "nombre": "Lote 2 - Maíz",
+        "campo": "C01",
+        "uso": "Agrícola",
+        "superficie": 80,
+        "tipoSuelo": "Argiudol típico",
+        "ambiente": "Medio",
+        "campana": "2025/26",
+        "latitud": "-33.748900",
+        "longitud": "-61.940300"
+      },
+      {
+        "codigo": "L03",
+        "nombre": "Potrero 3 - Pastura de alfalfa",
+        "campo": "C01",
+        "uso": "Ganadero",
+        "superficie": 60,
+        "capacidadCabezas": 120,
+        "ultimoPastoreo": "2026-09-20",
+        "tipoSuelo": "Hapludol",
+        "ambiente": "Medio",
+        "latitud": "-33.755600",
+        "longitud": "-61.962100"
+      },
+      {
+        "codigo": "L04",
+        "nombre": "Lote 4 - Maíz con pastoreo de rastrojo",
+        "campo": "C02",
+        "uso": "Mixto",
+        "porcentajeGanadero": 40,
+        "superficie": 50,
+        "capacidadCabezas": 60,
+        "ultimoPastoreo": "2026-07-15",
+        "tipoSuelo": "Argiudol ácuico",
+        "ambiente": "Medio",
+        "campana": "2025/26",
+        "latitud": "-33.642500",
+        "longitud": "-61.858700"
+      },
+      {
+        "codigo": "L05",
+        "nombre": "Potrero 5 - Campo natural",
+        "campo": "C02",
+        "uso": "Ganadero",
+        "superficie": 70,
+        "capacidadCabezas": 90,
+        "ultimoPastoreo": "2026-09-25",
+        "tipoSuelo": "Natracualf",
+        "ambiente": "Bajo",
+        "latitud": "-33.651300",
+        "longitud": "-61.871900"
+      }
+    ],
+    "contratosArrendamiento": [
+      {
+        "campo": "C02",
+        "porcentajeGanadero": 75,
+        "tipoAcuerdo": "Arrendamiento",
+        "cuitDueno": "20-99100200-7",
+        "inscriptoGanancias": "Sí",
+        "esPersonaJuridica": "No",
+        "destinoAgropecuarioExplicitado": "Sí",
+        "modalidad": "Fijo en pesos",
+        "importeMensual": 2000000,
+        "codigoContratoSisa": "DEMO-SISA-0001",
+        "fechaInicio": "2025-07-01",
+        "fechaFin": "2028-06-30",
+        "estado": "Aprobado"
+      }
+    ],
+    "ordenesPago": [
+      {
+        "tipo": "Arrendamiento en pesos",
+        "campo": "C02",
+        "cuitDueno": "20-99100200-7",
+        "importe": 2000000,
+        "retencionGanancias": 114000,
+        "netoAPagar": 1886000,
+        "ivaExento": true,
+        "medioPago": "Transferencia / efectivo",
+        "estado": "Pagado",
+        "fecha": "2026-09-01"
+      }
+    ],
+    "retencionesPendientesDepositar": [
+      {
+        "fecha": "2026-09-01",
+        "concepto": "Retención Ganancias RG830 - Alquiler Campo C02",
+        "campo": "C02",
+        "cuitDueno": "20-99100200-7",
+        "importe": 114000,
+        "referencia": "OP-DEMO-0001-RET",
+        "depositada": false
+      }
+    ],
+    "maquinarias": [
+      {
+        "codigo": "MAQ-01",
+        "equipo": "Tractor 180 HP",
+        "marca": "Genérica",
+        "anio": 2019,
+        "patente": "DEMO-01",
+        "horas": 5200,
+        "estado": "OK",
+        "tipoAplicador": "No aplicador",
+        "costoH": 38000,
+        "metodoAmort": "Lineal"
+      },
+      {
+        "codigo": "MAQ-02",
+        "equipo": "Pulverizadora autopropulsada 28 m",
+        "marca": "Genérica",
+        "anio": 2021,
+        "patente": "DEMO-02",
+        "horas": 2100,
+        "estado": "OK",
+        "tipoAplicador": "Pulverizadora terrestre",
+        "registroAplicador": "DEMO-APL-123",
+        "habilitacionAplicador": "HABILITADA",
+        "costoH": 52000,
+        "metodoAmort": "Por Horas",
+        "fechaCompra": "2021-03-15",
+        "vtoVto": "2026-03-10"
+      }
+    ],
+    "siembra": [
+      {
+        "fecha": "2025-11-05",
+        "lote": "L01",
+        "cultivo": "Soja",
+        "variedad": "Grupo IV",
+        "producto": "AGR-002",
+        "dosis": "70 kg/ha",
+        "cantidadUsada": 210,
+        "ha": 120,
+        "costo": 14280000,
+        "operador": "Operario de campo"
+      },
+      {
+        "fecha": "2025-09-25",
+        "lote": "L02",
+        "cultivo": "Maíz",
+        "variedad": "Híbrido tardío",
+        "producto": "AGR-005",
+        "dosis": "75.000 sem/ha",
+        "cantidadUsada": 75,
+        "ha": 80,
+        "costo": 23250000,
+        "operador": "Operario de campo"
+      },
+      {
+        "fecha": "2025-12-10",
+        "lote": "L04",
+        "cultivo": "Maíz",
+        "variedad": "Híbrido tardío",
+        "producto": "AGR-005",
+        "dosis": "70.000 sem/ha",
+        "cantidadUsada": 44,
+        "ha": 50,
+        "costo": 13640000,
+        "operador": "Operario de campo"
+      }
+    ],
+    "aplicaciones": [
+      {
+        "fecha": "2025-10-20",
+        "agronomo": "Ing. Agr. Laura Gómez (DEMO)",
+        "matricula": "DEMO-1234",
+        "provinciaEmisora": "Santa Fe",
+        "campaña": "2025/26",
+        "lote": "L01",
+        "hectareas": 120,
+        "tipo": "Herbicida",
+        "operario": "Juan Pérez",
+        "contratistaExterno": "No",
+        "equipo": "MAQ-02",
+        "estado": "Realizada",
+        "observaciones": "Barbecho químico previo a soja",
+        "productos": [
+          {
+            "producto": "AGR-001",
+            "deposito": "Depósito central",
+            "dosis": "2 L/ha",
+            "cantidad": "240"
+          }
+        ],
+        "costo": 2352000
+      },
+      {
+        "fecha": "2026-08-28",
+        "agronomo": "Ing. Agr. Laura Gómez (DEMO)",
+        "matricula": "DEMO-1234",
+        "provinciaEmisora": "Santa Fe",
+        "campaña": "2025/26",
+        "lote": "L03",
+        "hectareas": 60,
+        "tipo": "Fertilización",
+        "operario": "Mario García",
+        "contratistaExterno": "No",
+        "equipo": "MAQ-01",
+        "estado": "Realizada",
+        "observaciones": "Refertilización de pastura (costo ganadero por el uso del lote)",
+        "productos": [
+          {
+            "producto": "AGR-003",
+            "deposito": "Depósito central",
+            "dosis": "100 kg/ha",
+            "cantidad": "6000"
+          }
+        ],
+        "costo": 4320000
+      }
+    ],
+    "cosecha": [
+      {
+        "fecha": "2026-04-15",
+        "lote": "L01",
+        "cultivo": "Soja",
+        "rendimiento": 3300,
+        "totalKg": 396000,
+        "humedad": 13,
+        "producto": "PT-001",
+        "destino": "Acopio",
+        "costo": 6930000,
+        "operador": "Contratista"
+      },
+      {
+        "fecha": "2026-05-10",
+        "lote": "L02",
+        "cultivo": "Maíz",
+        "rendimiento": 9000,
+        "totalKg": 720000,
+        "humedad": 15,
+        "producto": "PT-002",
+        "destino": "Silo bolsa",
+        "costo": 8640000,
+        "operador": "Contratista"
+      },
+      {
+        "fecha": "2026-05-20",
+        "lote": "L04",
+        "cultivo": "Maíz",
+        "rendimiento": 8000,
+        "totalKg": 400000,
+        "humedad": 16,
+        "producto": "PT-002",
+        "destino": "Silo bolsa",
+        "costo": 4800000,
+        "operador": "Contratista"
+      }
+    ],
+    "ventasCereal": [
+      {
+        "fecha": "2026-09-15",
+        "lote": "L01",
+        "cultivo": "Soja",
+        "cantidadKg": 300000,
+        "precioKg": 410,
+        "comprador": "Acopio del Sur S.A. (DEMO) - CUIT 30-71999320-2",
+        "cartaPorteNumero": "CPE-DEMO-0001",
+        "cartaPorteOrigen": "La Esperanza (C01)",
+        "cartaPorteDestino": "Planta Acopio del Sur",
+        "cartaPorteTransportista": "20-99300400-7",
+        "cartaPorteVehiculo": "AB123CD"
+      }
+    ],
+    "inventario": [
+      {
+        "codigo": "AGR-001",
+        "producto": "Glifosato 66,2% sal potásica",
+        "categoria": "Insumos Agrícolas",
+        "ambito": "Agrícola",
+        "stock": 760,
+        "unidad": "litros",
+        "costoUnit": 9800,
+        "stockMinimo": 200,
+        "capacidadEnvase": "20 L",
+        "enDepositoTercero": "No"
+      },
+      {
+        "codigo": "AGR-002",
+        "producto": "Semilla de soja grupo IV (bolsa 40 kg)",
+        "categoria": "Insumos Agrícolas",
+        "ambito": "Agrícola",
+        "stock": 20,
+        "unidad": "unidades",
+        "costoUnit": 68000,
+        "stockMinimo": 10,
+        "enDepositoTercero": "No"
+      },
+      {
+        "codigo": "AGR-003",
+        "producto": "Urea granulada 46-0-0",
+        "categoria": "Insumos Agrícolas",
+        "ambito": "Agrícola",
+        "stock": 4000,
+        "unidad": "kg",
+        "costoUnit": 720,
+        "stockMinimo": 1000,
+        "enDepositoTercero": "No",
+        "capacidadEnvase": "50 kg (bolsa)"
+      },
+      {
+        "codigo": "AGR-004",
+        "producto": "Fosfato monoamónico (MAP) 11-52-0",
+        "categoria": "Insumos Agrícolas",
+        "ambito": "Agrícola",
+        "stock": 2500,
+        "unidad": "kg",
+        "costoUnit": 980,
+        "stockMinimo": 800,
+        "enDepositoTercero": "No",
+        "capacidadEnvase": "1000 kg (big bag)"
+      },
+      {
+        "codigo": "AGR-005",
+        "producto": "Semilla de maíz híbrido (bolsa 80.000 semillas)",
+        "categoria": "Insumos Agrícolas",
+        "ambito": "Agrícola",
+        "stock": 12,
+        "unidad": "unidades",
+        "costoUnit": 310000,
+        "stockMinimo": 5,
+        "enDepositoTercero": "No"
+      },
+      {
+        "codigo": "GAN-001",
+        "producto": "Ivermectina 1% inyectable",
+        "categoria": "Insumos Ganaderos",
+        "ambito": "Ganadero",
+        "stock": 180,
+        "unidad": "dosis",
+        "costoUnit": 1450,
+        "stockMinimo": 50,
+        "enDepositoTercero": "No"
+      },
+      {
+        "codigo": "GAN-002",
+        "producto": "Vacuna antiaftosa (campaña SENASA)",
+        "categoria": "Insumos Ganaderos",
+        "ambito": "Ganadero",
+        "stock": 0,
+        "unidad": "dosis",
+        "costoUnit": 1900,
+        "stockMinimo": 0,
+        "enDepositoTercero": "No"
+      },
+      {
+        "codigo": "GAN-003",
+        "producto": "Vacuna brucelosis cepa 19",
+        "categoria": "Insumos Ganaderos",
+        "ambito": "Ganadero",
+        "stock": 40,
+        "unidad": "dosis",
+        "costoUnit": 2600,
+        "stockMinimo": 20,
+        "enDepositoTercero": "No"
+      },
+      {
+        "codigo": "ALI-001",
+        "producto": "Balanceado recría 16% proteína",
+        "categoria": "Alimentación",
+        "ambito": "Ganadero",
+        "stock": 6000,
+        "unidad": "kg",
+        "costoUnit": 390,
+        "stockMinimo": 2000,
+        "enDepositoTercero": "No",
+        "capacidadEnvase": "25 kg (bolsa)"
+      },
+      {
+        "codigo": "ALI-002",
+        "producto": "Rollo de alfalfa (500 kg)",
+        "categoria": "Alimentación",
+        "ambito": "Ganadero",
+        "stock": 35,
+        "unidad": "unidades",
+        "costoUnit": 42000,
+        "stockMinimo": 10,
+        "enDepositoTercero": "No"
+      },
+      {
+        "codigo": "COM-001",
+        "producto": "Gasoil grado 2",
+        "categoria": "Combustibles",
+        "ambito": "Compartido",
+        "stock": 3200,
+        "unidad": "litros",
+        "costoUnit": 1250,
+        "stockMinimo": 1000,
+        "capacidadEnvase": "200 L",
+        "enDepositoTercero": "No"
+      },
+      {
+        "codigo": "PT-001",
+        "producto": "Soja cosechada",
+        "categoria": "Productos Terminados",
+        "ambito": "Agrícola",
+        "stock": 96000,
+        "unidad": "kg",
+        "costoUnit": 0,
+        "stockMinimo": 0,
+        "campana": "2025/26",
+        "enDepositoTercero": "No"
+      },
+      {
+        "codigo": "PT-002",
+        "producto": "Maíz cosechado",
+        "categoria": "Productos Terminados",
+        "ambito": "Agrícola",
+        "stock": 1120000,
+        "unidad": "kg",
+        "costoUnit": 0,
+        "stockMinimo": 0,
+        "campana": "2025/26",
+        "enDepositoTercero": "No"
+      }
+    ],
+    "movimientoStock": [
+      {
+        "fecha": "2026-08-20",
+        "producto": "ALI-001",
+        "tipo": "Entrada",
+        "cantidad": 10000,
+        "motivo": "Compra",
+        "observaciones": "Remito 0003-00012345 (balanceado)"
+      },
+      {
+        "fecha": "2026-09-10",
+        "producto": "GAN-001",
+        "tipo": "Salida",
+        "cantidad": 60,
+        "motivo": "Consumo",
+        "actividadDestino": "Ganadera",
+        "actividad": "Ganadera",
+        "observaciones": "Desparasitación terneros de recría (Potrero 3)"
+      },
+      {
+        "fecha": "2026-09-12",
+        "producto": "AGR-004",
+        "tipo": "Salida",
+        "cantidad": 1500,
+        "motivo": "Consumo",
+        "actividadDestino": "Agrícola",
+        "actividad": "Agrícola",
+        "observaciones": "Fertilización de base para trigo (depósito central)"
+      }
+    ],
+    "cargacombustible": [
+      {
+        "fecha": "2026-09-08",
+        "equipo": "MAQ-01",
+        "tipoCombustible": "Gasoil",
+        "cantidad": 800,
+        "costoUnitario": 1250,
+        "costoTotal": 1000000,
+        "operador": "Mario García",
+        "observaciones": "Carga general (estructura)"
+      }
+    ],
+    "costosOperativos": [
+      {
+        "fecha": "2026-09-03",
+        "equipo": "MAQ-01",
+        "tipoCosto": "Filtro Aceite",
+        "descripcion": "Service 250 h",
+        "costo": 185000,
+        "iva": 0,
+        "observaciones": "Sin lote: costo de estructura"
+      }
+    ],
+    "mantenimiento": [
+      {
+        "numero": "OT-0001",
+        "equipo": "MAQ-02",
+        "tipo": "Service",
+        "descripcion": "Service anual pulverizadora",
+        "fecha": "2026-09-02",
+        "costo": 420000,
+        "estado": "Completado",
+        "operador": "Taller"
+      },
+      {
+        "numero": "OT-0002",
+        "equipo": "Alambrado",
+        "tipo": "Correctivo",
+        "descripcion": "Reparación de alambrado perimetral",
+        "fecha": "2026-09-18",
+        "costo": 260000,
+        "estado": "Completado",
+        "operador": "Contratista",
+        "lote": "L03"
+      }
+    ],
+    "empleados": [
+      {
+        "legajo": "E-001",
+        "nombre": "Ana Rodríguez (DEMO)",
+        "cargo": "Administrativa",
+        "sector": "Administración",
+        "sueldoBruto": 1350000,
+        "fechaIngreso": "2020-02-01",
+        "estado": "Activo"
+      },
+      {
+        "legajo": "E-002",
+        "nombre": "Mario García (DEMO)",
+        "cargo": "Operario general",
+        "sector": "Operarios",
+        "sueldoBruto": 1150000,
+        "fechaIngreso": "2018-06-15",
+        "estado": "Activo"
+      }
+    ],
+    "animalesTrazabilidad": [
+      {
+        "idAnimal": "A-0001",
+        "rfidTag": "032000000100001",
+        "categoria": "Ternero",
+        "sexo": "Macho",
+        "raza": "Aberdeen Angus",
+        "fechaNacimiento": "2025-09-01",
+        "pesoInicialKg": 182,
+        "renspa": "20.077.0.01234/00",
+        "predioOrigen": "L03"
+      },
+      {
+        "idAnimal": "A-0002",
+        "rfidTag": "032000000100002",
+        "categoria": "Ternero",
+        "sexo": "Hembra",
+        "raza": "Aberdeen Angus",
+        "fechaNacimiento": "2025-09-04",
+        "pesoInicialKg": 175,
+        "renspa": "20.077.0.01234/00",
+        "predioOrigen": "L03"
+      },
+      {
+        "idAnimal": "A-0003",
+        "rfidTag": "032000000100003",
+        "categoria": "Novillo",
+        "sexo": "Macho",
+        "raza": "Hereford",
+        "fechaNacimiento": "2024-08-20",
+        "pesoInicialKg": 438,
+        "renspa": "20.077.0.05678/00",
+        "predioOrigen": "L05"
+      },
+      {
+        "idAnimal": "A-0004",
+        "rfidTag": "032000000100004",
+        "categoria": "Vaca",
+        "sexo": "Hembra",
+        "raza": "Aberdeen Angus",
+        "fechaNacimiento": "2020-10-10",
+        "pesoInicialKg": 465,
+        "renspa": "20.077.0.05678/00",
+        "predioOrigen": "L05"
+      }
+    ],
+    "hacienda": [
+      {
+        "fecha": "2026-08-15",
+        "tipo": "Compra",
+        "categoria": "Terneros",
+        "cantidad": 50,
+        "pesoTotalKg": 9100,
+        "detalle": "Remate feria (DEMO) - consignataria CUIT 30-71999760-7",
+        "destino": "L03",
+        "valor": 31850000
+      },
+      {
+        "fecha": "2026-09-01",
+        "tipo": "Nacimiento",
+        "categoria": "Terneros",
+        "cantidad": 12,
+        "pesoTotalKg": 420,
+        "detalle": "Parición de otoño",
+        "destino": "L05",
+        "valor": 0
+      },
+      {
+        "fecha": "2026-09-14",
+        "tipo": "Vacunación",
+        "categoria": "Vacas",
+        "cantidad": 80,
+        "pesoTotalKg": "",
+        "detalle": "Campaña antiaftosa SENASA (acta DEMO-AF-2026-17)",
+        "destino": "L05",
+        "valor": 152000
+      }
+    ],
+    "ventasHacienda": [
+      {
+        "fecha": "2026-09-16",
+        "categoria": "Novillos",
+        "cantidad": 40,
+        "pesoTotalKg": 18200,
+        "caravana": "032000000100003",
+        "comprador": "Frigorífico Pampa (DEMO) - CUIT 30-71999541-8",
+        "valor": 50960000,
+        "cartaPorteNumero": "DUT-DEMO-EMITIDO",
+        "cartaPorteOrigen": "El Ombú (C02)",
+        "cartaPorteDestino": "Frigorífico Pampa",
+        "cartaPorteTransportista": "20-99300400-7",
+        "cartaPorteVehiculo": "AC456EF"
+      }
+    ],
+    "alimentacion": [
+      {
+        "fecha": "2026-09-05",
+        "categoria": "Terneros",
+        "producto": "ALI-001",
+        "racion": "3",
+        "cabezas": "50",
+        "dias": "30",
+        "cantidadTotal": 4500,
+        "costoUnitAplicado": 390,
+        "observaciones": "Recría en Potrero 3 (encierre a corral)"
+      }
+    ],
+    "eventosSanitarios": [
+      {
+        "idEvento": "EV-0001",
+        "idAnimal": "A-0001",
+        "fecha": "2026-09-10",
+        "tipoVacunaMedicamento": "Ivermectina 1% inyectable",
+        "veterinarioResponsable": "M.V. Pablo Díaz (DEMO)",
+        "carenciaDias": 35,
+        "costo": 0,
+        "estado": "En observación"
+      },
+      {
+        "idEvento": "EV-0002",
+        "idAnimal": "A-0002",
+        "fecha": "2026-09-10",
+        "tipoVacunaMedicamento": "Ivermectina 1% inyectable",
+        "veterinarioResponsable": "M.V. Pablo Díaz (DEMO)",
+        "carenciaDias": 35,
+        "costo": 0,
+        "estado": "En observación"
+      }
+    ],
+    "controlesSanitariosBovinos": [
+      {
+        "renspa": "20.077.0.01234/00",
+        "zonaAftosa": "VACUNACION",
+        "aftosaEstado": "VIGENTE",
+        "aftosaActa": "DEMO-AF-2026-17",
+        "aftosaVence": "2027-03-14",
+        "doesRequerido": "SI",
+        "doesEstado": "LIBRE",
+        "doesVence": "2027-01-30",
+        "notificacion": "SIN_ALERTA",
+        "tuberculosis": "VIGENTE",
+        "garrapata": "SIN_DETECCION",
+        "veterinario": "M.V. Pablo Díaz (DEMO)",
+        "registradoEn": "2026-09-14T12:00:00.000Z"
+      },
+      {
+        "renspa": "20.077.0.05678/00",
+        "zonaAftosa": "VACUNACION",
+        "aftosaEstado": "VIGENTE",
+        "aftosaActa": "DEMO-AF-2026-18",
+        "aftosaVence": "2027-03-14",
+        "doesRequerido": "SI",
+        "doesEstado": "LIBRE",
+        "doesVence": "2026-09-01",
+        "notificacion": "SIN_ALERTA",
+        "tuberculosis": "VIGENTE",
+        "garrapata": "SIN_DETECCION",
+        "veterinario": "M.V. Pablo Díaz (DEMO)",
+        "registradoEn": "2026-09-14T12:00:00.000Z"
+      }
+    ],
+    "boletosMarca": [
+      {
+        "nroBoleto": "BM-DEMO-001",
+        "tipoGanado": "Bovino",
+        "fechaVencimiento": "2028-12-31",
+        "estado": true,
+        "registradoEn": "2026-01-10T12:00:00.000Z"
+      },
+      {
+        "nroBoleto": "BM-DEMO-002",
+        "tipoGanado": "Bovino",
+        "fechaVencimiento": "2026-08-31",
+        "estado": true,
+        "registradoEn": "2021-08-31T12:00:00.000Z"
+      }
+    ],
+    "fiscalDutQueue": [
+      {
+        "id": "DUT-DEMO-EMITIDO",
+        "renspaOrigen": "20.077.0.01234/00",
+        "renspaDestino": "21.084.0.00911/00",
+        "nroBoleto": "BM-DEMO-001",
+        "categoriaId": "NOVILLO",
+        "cantidadCabezas": "40",
+        "detalleTropa": [
+          {
+            "categoria": "NOVILLO",
+            "cantidad": 40
+          }
+        ],
+        "fechaCarga": "2026-09-16T06:00",
+        "fechaVencimiento": "2026-09-17T06:00",
+        "estadoPago": "PAGADO",
+        "arancelMunicipal": "45000",
+        "comprobantePagoMunicipal": "VEP-DEMO-7781",
+        "cuitTransportista": "20-99300400-7",
+        "patenteChasis": "AC456EF",
+        "estado": "Emitido (oficial)",
+        "dteNumero": "DTE-DEMO-445566",
+        "emitidoEn": "2026-09-16T05:40:00.000Z",
+        "pagoTasaRegistradoEn": "2026-09-16T05:30:00.000Z",
+        "creadoEn": "2026-09-15T18:00:00.000Z",
+        "detalle": "Número oficial cargado desde SIGSA."
+      },
+      {
+        "id": "DUT-DEMO-PENDIENTE",
+        "renspaOrigen": "20.077.0.01234/00",
+        "renspaDestino": "21.084.0.00911/00",
+        "nroBoleto": "BM-DEMO-001",
+        "categoriaId": "TERNERO",
+        "cantidadCabezas": "25",
+        "detalleTropa": [
+          {
+            "categoria": "TERNERO",
+            "cantidad": 25
+          }
+        ],
+        "fechaCarga": "2026-09-28T06:00",
+        "fechaVencimiento": "2026-09-29T18:00",
+        "estadoPago": "CUENTA_CORRIENTE",
+        "arancelMunicipal": "0",
+        "cuitTransportista": "20-99300400-7",
+        "patenteChasis": "AC456EF",
+        "estado": "Listo para SIGSA",
+        "creadoEn": "2026-09-27T20:00:00.000Z",
+        "detalle": "Validado (sanidad, boleto y tasa). SENASA no tiene webservice: emitilo en SIGSA y registrá el número oficial."
+      }
+    ],
+    "fiscalDutHistorial": [
+      {
+        "fecha": "2026-09-16",
+        "operacion": "DUT",
+        "identificador": "DTE-DEMO-445566",
+        "estado": "Emitido (oficial)",
+        "detalle": "Número oficial registrado a mano desde SIGSA."
+      }
+    ],
+    "agricolaCpeQueue": [
+      {
+        "id": "demo-cpe-0001",
+        "estado": "Verificar en ARCA",
+        "payload": {
+          "campo": {
+            "codigo": "C01",
+            "nombre": "La Esperanza"
+          },
+          "kilosTotales": 30000,
+          "patente": "AB123CD",
+          "tipoCPE": 74,
+          "sucursal": 1,
+          "cuitCliente": "30-71999320-2"
+        },
+        "creadoEn": "2026-09-27T15:00:00.000Z",
+        "detalle": "ARCA no respondió y la CPE puede haberse autorizado igual. Verificá en el portal de ARCA antes de reintentar."
+      }
+    ],
+    "arcaOperaciones": [
+      {
+        "id": "demo-arca-0001",
+        "fecha": "2026-09-26",
+        "tipo": "Factura Electrónica",
+        "actividad": "Ganadera",
+        "referencia": "FC A 0003-00000123 (DEMO)",
+        "destinatario": "Frigorífico Pampa (DEMO) - 30-71999541-8",
+        "importe": 1250000,
+        "cuitEmisor": "30719990017",
+        "estado": "Pendiente de enviar"
+      }
+    ],
+    "costos": [
+      {
+        "fecha": "2026-09-10",
+        "concepto": "Consumo de inventario: Ivermectina 1% inyectable (Consumo)",
+        "monto": 87000,
+        "categoria": "Inventario",
+        "actividad": "Ganadera",
+        "producto": "GAN-001"
+      },
+      {
+        "fecha": "2026-09-12",
+        "concepto": "Consumo de inventario: Fosfato monoamónico (MAP) 11-52-0 (Consumo)",
+        "monto": 1470000,
+        "categoria": "Inventario",
+        "actividad": "Agrícola",
+        "producto": "AGR-004"
+      },
+      {
+        "fecha": "2026-09-01",
+        "campo": "C02",
+        "concepto": "Alquiler rural (25% agrícola)",
+        "monto": 500000,
+        "categoria": "Arrendamiento",
+        "actividad": "Agrícola",
+        "iva": 0
+      },
+      {
+        "fecha": "2026-09-01",
+        "campo": "C02",
+        "concepto": "Alquiler rural (75% ganadera)",
+        "monto": 1500000,
+        "categoria": "Arrendamiento",
+        "actividad": "Ganadera",
+        "iva": 0
+      },
+      {
+        "fecha": "2026-09-16",
+        "concepto": "Tasa municipal DUT DTE-DEMO-445566",
+        "monto": 45000,
+        "categoria": "Tasas municipales",
+        "actividad": "Ganadera",
+        "referencia": "VEP-DEMO-7781"
+      },
+      {
+        "fecha": "2026-09-20",
+        "concepto": "Honorarios estudio contable",
+        "monto": 350000,
+        "categoria": "Servicios",
+        "actividad": "Estructura",
+        "referencia": "FC-DEMO-0456"
+      }
+    ],
+    "bancosLista": [
+      {
+        "nombre": "Banco Nación",
+        "tipoCuenta": "Cuenta Corriente",
+        "numero": "DEMO-0001",
+        "cbu": "",
+        "saldoInicial": 25000000
+      }
+    ],
+    "cuentasBancarias": [
+      {
+        "nombre": "Banco Nación",
+        "tipoCuenta": "Cuenta Corriente",
+        "numero": "DEMO-0001",
+        "cbu": "",
+        "saldoInicial": 25000000
+      }
+    ],
+    "saldosIniciales": {
+      "Banco Nación": 25000000
+    },
+    "caja": [
+      {
+        "fecha": "2026-09-15",
+        "concepto": "Venta de soja 300 t (CPE-DEMO-0001)",
+        "tipo": "Ingreso",
+        "importe": "123000000",
+        "categoria": "Ventas",
+        "actividad": "Agrícola",
+        "cobroDeVentaRegistrada": "No",
+        "pagoDeCostoRegistrado": "No",
+        "referencia": "LPG-DEMO-0001"
+      },
+      {
+        "fecha": "2026-09-16",
+        "concepto": "Venta de 40 novillos (DTE-DEMO-445566)",
+        "tipo": "Ingreso",
+        "importe": "50960000",
+        "categoria": "Ventas",
+        "actividad": "Ganadera",
+        "cobroDeVentaRegistrada": "No",
+        "pagoDeCostoRegistrado": "No",
+        "referencia": "LSP-DEMO-0001"
+      },
+      {
+        "fecha": "2026-09-02",
+        "concepto": "Pago compra de 50 terneros",
+        "tipo": "Egreso",
+        "importe": "31850000",
+        "categoria": "Otros",
+        "actividad": "Ganadera",
+        "pagoDeCostoRegistrado": "Sí",
+        "cobroDeVentaRegistrada": "No",
+        "referencia": "LIQ-FERIA-DEMO"
+      },
+      {
+        "fecha": "2026-09-18",
+        "concepto": "Honorarios veterinarios (revisación de toros)",
+        "tipo": "Egreso",
+        "importe": "280000",
+        "categoria": "Servicios",
+        "actividad": "Ganadera",
+        "pagoDeCostoRegistrado": "No",
+        "cobroDeVentaRegistrada": "No",
+        "referencia": "FC-VET-DEMO"
+      },
+      {
+        "fecha": "2026-09-01",
+        "concepto": "Alquiler rural - Campo C02 (CUIT 20-99100200-7) - 25% agrícola",
+        "tipo": "Egreso",
+        "importe": "471500",
+        "categoria": "Arrendamiento",
+        "actividad": "Agrícola",
+        "pagoDeCostoRegistrado": "Sí",
+        "cobroDeVentaRegistrada": "No",
+        "referencia": "OP-DEMO-0001"
+      },
+      {
+        "fecha": "2026-09-01",
+        "concepto": "Alquiler rural - Campo C02 (CUIT 20-99100200-7) - 75% ganadera",
+        "tipo": "Egreso",
+        "importe": "1414500",
+        "categoria": "Arrendamiento",
+        "actividad": "Ganadera",
+        "pagoDeCostoRegistrado": "Sí",
+        "cobroDeVentaRegistrada": "No",
+        "referencia": "OP-DEMO-0001"
+      },
+      {
+        "fecha": "2026-09-16",
+        "concepto": "Tasa municipal DUT DTE-DEMO-445566",
+        "tipo": "Egreso",
+        "importe": "45000",
+        "categoria": "Impuestos",
+        "actividad": "Ganadera",
+        "pagoDeCostoRegistrado": "Sí",
+        "cobroDeVentaRegistrada": "No",
+        "referencia": "VEP-DEMO-7781"
+      },
+      {
+        "fecha": "2026-09-20",
+        "concepto": "Honorarios estudio contable",
+        "tipo": "Egreso",
+        "importe": "350000",
+        "categoria": "Servicios",
+        "actividad": "Estructura",
+        "pagoDeCostoRegistrado": "Sí",
+        "cobroDeVentaRegistrada": "No",
+        "referencia": "FC-DEMO-0456"
+      },
+      {
+        "fecha": "2026-09-25",
+        "concepto": "Sueldos septiembre",
+        "tipo": "Egreso",
+        "importe": "2500000",
+        "categoria": "Sueldos",
+        "actividad": "Estructura",
+        "pagoDeCostoRegistrado": "Sí",
+        "cobroDeVentaRegistrada": "No",
+        "referencia": "REC-SUELDOS-09"
+      }
+    ],
+    "bancos": [
+      {
+        "fecha": "2026-09-22",
+        "banco": "Banco Nación",
+        "concepto": "Cobro factura",
+        "tipo": "Ingreso",
+        "importe": "123000000",
+        "actividad": "Agrícola",
+        "cobroDeVentaRegistrada": "Sí",
+        "referencia": "LPG-DEMO-0001"
+      },
+      {
+        "fecha": "2026-09-23",
+        "banco": "Banco Nación",
+        "concepto": "Transferencia enviada",
+        "tipo": "Transferencia",
+        "importe": "5000000",
+        "actividad": "Estructura",
+        "cobroDeVentaRegistrada": "No",
+        "referencia": "Fondo caja chica"
+      },
+      {
+        "fecha": "2026-09-24",
+        "banco": "Banco Nación",
+        "concepto": "Comisión bancaria",
+        "tipo": "Egreso",
+        "importe": "18500",
+        "actividad": "Estructura",
+        "cobroDeVentaRegistrada": "No",
+        "referencia": "Resumen 09/2026"
+      }
+    ]
+  }
+}
