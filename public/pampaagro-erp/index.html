@@ -5343,12 +5343,15 @@
               <div class="kpi orange">
                 <div class="kpi-label">📊 Cargas Sociales</div>
                 <div class="kpi-value" id="cargasSociales">$0</div>
-                <div class="kpi-sub">Costo patronal</div>
+                <div class="kpi-sub">Costo patronal:
+                  <input id="cargasSocialesPctInput" type="number" min="0" max="100" step="0.1"
+                    style="width: 64px; padding: 2px 4px" title="Cargas sociales patronales, % del sueldo (editable)"
+                    onchange="guardarCargasSocialesPct(this.value)" /> % del sueldo</div>
               </div>
               <div class="kpi red">
                 <div class="kpi-label">💵 Costo Total Mensual</div>
                 <div class="kpi-value" id="costoTotalEmpleados">$0</div>
-                <div class="kpi-sub">Sueldos + cargas</div>
+                <div class="kpi-sub">Sueldo + SAC (1/12) + cargas</div>
               </div>
             </div>
 
@@ -8284,6 +8287,17 @@
 
       // F6: costos de estructura (no son de un cultivo ni de la hacienda). Antes se sumaban enteros
       // al costo agrícola "Sin cultivo asignado" y el margen ganadero quedaba inflado.
+      // Meses del año en curso hasta el actual: [["YYYY-MM", "YYYY-MM-último día"], ...].
+      function mesesDelAnioHastaHoy() {
+        const hoy = new Date();
+        const meses = [];
+        for (let m = 0; m <= hoy.getMonth(); m++) {
+          const mes = `${hoy.getFullYear()}-${String(m + 1).padStart(2, "0")}`;
+          meses.push([mes, `${mes}-${String(new Date(hoy.getFullYear(), m + 1, 0).getDate()).padStart(2, "0")}`]);
+        }
+        return meses;
+      }
+
       function obtenerCostosEstructura() {
         const detalle = {};
         const sumar = (rubro, valor) => {
@@ -8291,8 +8305,11 @@
           if (monto) detalle[rubro] = (detalle[rubro] || 0) + monto;
         };
         (state.cargacombustible || []).forEach((c) => sumar("Combustible", c.costoTotal));
+        // Sueldos y amortizaciones en el mismo período: año en curso, mes a mes hasta hoy (antes los
+        // sueldos eran de un solo mes y las amortizaciones del año entero).
+        const mesesEstructura = mesesDelAnioHastaHoy();
         if (typeof calcularCostoTotalEmpleados === "function")
-          sumar("Empleados", calcularCostoTotalEmpleados());
+          mesesEstructura.forEach(([, finDeMes]) => sumar("Empleados", calcularCostoTotalEmpleados(finDeMes)));
         (state.bancos || []).forEach((m) => {
           if (esCostoBancario(m)) sumar("Gastos bancarios", m.importe);
         });
@@ -8306,6 +8323,10 @@
           if (actividadDeRegistro(c) === "Estructura")
             sumar(c.categoria || "Otros de estructura", c.monto ?? c.importe ?? c.costo);
         });
+        // Amortización de maquinarias (compartidas: van a estructura y se reparten), mismos meses.
+        (state.maquinarias || []).forEach((eq) =>
+          mesesEstructura.forEach(([mes]) => sumar("Amortizaciones", amortizacionDelMes(eq, mes))),
+        );
         return {
           detalle,
           total: Object.values(detalle).reduce((suma, v) => suma + v, 0),
@@ -21410,6 +21431,28 @@
 
       // === FUNCIONES DE EMPLEADOS ===
 
+      // Porcentaje total de cargas sociales patronales sobre el sueldo. Editable por cualquier usuario
+      // en Empleados (depende del convenio, la ART y el régimen); por defecto 36,5%.
+      const CARGAS_SOCIALES_PCT_DEFECTO = 36.5;
+      function cargasSocialesPct() {
+        const v = state.empresa?.cargasSocialesPct;
+        const n = Number(v);
+        return v !== undefined && v !== null && v !== "" && n >= 0 && n <= 100 ? n : CARGAS_SOCIALES_PCT_DEFECTO;
+      }
+      function guardarCargasSocialesPct(valor) {
+        const texto = String(valor ?? "").trim().replace(",", ".");
+        const n = Number(texto);
+        if (texto !== "" && !(n >= 0 && n <= 100)) {
+          showToast("Ingresá un porcentaje entre 0 y 100.", "error");
+          return;
+        }
+        if (!state.empresa || typeof state.empresa !== "object") state.empresa = {};
+        state.empresa.cargasSocialesPct = texto === "" ? null : n;
+        saveState();
+        renderTables();
+        showToast(`Cargas sociales: ${cargasSocialesPct()}% del sueldo.`, "success");
+      }
+
       // Calcular cargas sociales (porcentajes patronales en Argentina)
       function calcularCargasSociales(sueldoBruto) {
         const cargas = {
@@ -21421,6 +21464,9 @@
           asignacionesFamil: sueldoBruto * 0.01, // 1% asignaciones familiares (aprox)
           leyRiesgosTrabajo: sueldoBruto * 0.008, // 0.8% ley riesgos de trabajo
         };
+        // Se reparten los porcentajes de siempre en proporción al total elegido.
+        const factorPct = cargasSocialesPct() / CARGAS_SOCIALES_PCT_DEFECTO;
+        Object.keys(cargas).forEach((k) => (cargas[k] *= factorPct));
 
         const totalCargas = Object.values(cargas).reduce(
           (sum, val) => sum + val,
@@ -21453,17 +21499,25 @@
         return true;
       }
 
+      // Costo mensual de un empleado: sueldo + aguinaldo devengado (1/12) + cargas sociales sobre ambos.
+      function costoMensualEmpleado(sueldoBruto) {
+        const conSac = Number(sueldoBruto || 0) * (1 + 1 / 12);
+        return conSac + calcularCargasSociales(conSac).total;
+      }
+
       function calcularCostoTotalEmpleados(fechaRef) {
         return (state.empleados || [])
           .filter((emp) => empleadoActivoEnFecha(emp, fechaRef))
           .reduce((suma, emp) => {
             const sueldo = Number(emp.sueldoBruto || 0);
-            return suma + sueldo + calcularCargasSociales(sueldo).total;
+            return suma + costoMensualEmpleado(sueldo);
           }, 0);
       }
 
       // Renderizar tabla de empleados
       function renderEmpleados() {
+        const inputCargas = document.getElementById("cargasSocialesPctInput");
+        if (inputCargas && document.activeElement !== inputCargas) inputCargas.value = cargasSocialesPct();
         const empleadosBody = document.getElementById("empleadosBody");
         if (!empleadosBody || !state.empleados) return;
 
@@ -21473,8 +21527,9 @@
 
         empleadosBody.innerHTML = state.empleados
           .map((emp, idx) => {
-            const cargas = calcularCargasSociales(emp.sueldoBruto);
-            const costoTotalEmp = emp.sueldoBruto + cargas.total;
+            // Cargas sobre sueldo + SAC; costo = sueldo + SAC + cargas (igual que en Costos).
+            const cargas = calcularCargasSociales(emp.sueldoBruto * (1 + 1 / 12));
+            const costoTotalEmp = costoMensualEmpleado(emp.sueldoBruto);
 
             // Los KPIs (masa salarial, cargas, costo total) solo suman empleados activos hoy, igual
             // que calcularCostoTotalEmpleados() — antes sumaban a todos, incluyendo los dados de Baja,
@@ -22936,7 +22991,7 @@
         setEl("costosKpiEstructura", fmt(estructura.total));
         setEl(
           "costosKpiEstructuraSub",
-          `Agrícola ${reparto.pctAgricola}% · Ganadera ${Math.round((100 - reparto.pctAgricola) * 10) / 10}% (${reparto.criterio})`,
+          `Agrícola ${reparto.pctAgricola}% · Ganadera ${Math.round((100 - reparto.pctAgricola) * 10) / 10}% (${reparto.criterio}) · sueldos y amortizaciones: año en curso a la fecha`,
         );
         setEl("costosKpiConsolidado", fmt(total + totalGanadero + estructura.total));
         setEl("costosKpiConsolidadoSub", "Agrícola + Ganadero + Estructura, sin duplicar");
@@ -23002,14 +23057,12 @@
         ).forEach((item) =>
           sumarCosto(item.fecha, parseMonto(item.costoTotal ?? 0)),
         );
-        // Empleados es un costo mensual recurrente (sueldos + cargas sociales), sin una fecha propia
-        // de "transacción" como los demás — se imputa al mes en curso.
-        const costoEmpleadosMes =
-          typeof calcularCostoTotalEmpleados === "function"
-            ? calcularCostoTotalEmpleados()
-            : 0;
-        if (costoEmpleadosMes)
-          sumarCosto(new Date().toISOString(), costoEmpleadosMes);
+        // Sueldos (sueldo + SAC + cargas) y amortizaciones: costo de cada mes del año en curso hasta
+        // hoy, igual que en Estructura (antes los sueldos entraban solo en el mes actual).
+        mesesDelAnioHastaHoy().forEach(([mes, finDeMes]) => {
+          if (typeof calcularCostoTotalEmpleados === "function") sumarCosto(finDeMes, calcularCostoTotalEmpleados(finDeMes));
+          (state.maquinarias || []).forEach((eq) => sumarCosto(finDeMes, amortizacionDelMes(eq, mes)));
+        });
         // Gastos bancarios reales (comisiones, intereses, impuestos, débitos automáticos, mantenimiento
         // de cuenta) — antes quedaban solo cargados en Bancos, sin pasar por el Resumen Contable.
         (Array.isArray(state.bancos) ? state.bancos : []).forEach((item) => {
@@ -27130,6 +27183,19 @@
       // =====================================================
       // === MÓDULO MAQUINARIAS + AMORTIZACIÓN ===
       // =====================================================
+
+      // Amortización de un equipo para un mes ("YYYY-MM"): desde su año de compra y, en el método
+      // lineal, solo durante la vida útil. Es costo (no se paga: consume el valor del equipo).
+      function amortizacionDelMes(equipo, mes) {
+        const a = calcularAmortizacion(equipo);
+        if (!(a.amortMensual > 0)) return 0;
+        const anioCompra = parseInt(equipo.anio);
+        const anio = Number(String(mes).slice(0, 4));
+        if (anioCompra && anio < anioCompra) return 0;
+        if (a.metodo === "Lineal" && anioCompra && a.vidaUtil > 0 && anio >= anioCompra + a.vidaUtil) return 0;
+        if (a.metodo === "Por Horas" && a.valorLibro <= parseFloat(equipo.valorResidual || 0) + 0.01) return 0;
+        return a.amortMensual;
+      }
 
       function calcularAmortizacion(m) {
         const valorCompra = parseFloat(m.valorCompra || 0);

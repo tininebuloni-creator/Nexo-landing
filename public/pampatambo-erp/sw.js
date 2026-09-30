@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pampatambo-pwa-v7-separada';
+const CACHE_NAME = 'pampatambo-pwa-v13-retenciones';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './logo.png', './pampaia-source.js', './pampa-report-voice.js', './pampa-sync-envelope.js'];
 
 self.addEventListener('install', (event) => {

@@ -4365,12 +4365,15 @@
               <div class="kpi orange">
                 <div class="kpi-label">📊 Cargas Sociales</div>
                 <div class="kpi-value" id="cargasSociales">$0</div>
-                <div class="kpi-sub">Costo patronal</div>
+                <div class="kpi-sub">Costo patronal:
+                  <input id="cargasSocialesPctInput" type="number" min="0" max="100" step="0.1"
+                    style="width: 64px; padding: 2px 4px" title="Cargas sociales patronales, % del sueldo (editable)"
+                    onchange="guardarCargasSocialesPct(this.value)" /> % del sueldo</div>
               </div>
               <div class="kpi red">
                 <div class="kpi-label">💵 Costo Total Mensual</div>
                 <div class="kpi-value" id="costoTotalEmpleados">$0</div>
-                <div class="kpi-sub">Sueldos + cargas</div>
+                <div class="kpi-sub">Sueldo + SAC (1/12) + cargas</div>
               </div>
             </div>
 
@@ -13816,6 +13819,22 @@ function costosGanaderosDelPeriodo(desde, hasta) {
             origen: "RRHH",
           });
         });
+        // Amortización de equipos: costo del mes aunque no se pague.
+        mesesDelPeriodo(desde, hasta).forEach((mes) => {
+          listaEquipos().forEach((eq) => {
+            const importe = amortizacionDelMes(eq, mes);
+            if (!importe) return;
+            items.push({
+              fecha: mes + "-01",
+              rubro: "Ganadero",
+              grupo: "Amortizaciones",
+              concepto: "Amortización " + (eq.equipo || eq.codigo || "equipo"),
+              categoriaHacienda: "",
+              importe,
+              origen: "Amortizaciones",
+            });
+          });
+        });
         return items;
       }
 
@@ -13943,7 +13962,7 @@ function costosGanaderosDelPeriodo(desde, hasta) {
         setEl("costoKpiOperativoMes", fmt(suma(items)));
         setEl(
           "costoKpiOperativoMesSub",
-          `Costos: ${fmt(deOrigen("Costos") + deOrigen("Costos operativos"))} | Alimentación: ${fmt(deOrigen("Alimentación"))} | Hacienda: ${fmt(deOrigen("Hacienda"))} | Sanidad: ${fmt(deOrigen("Eventos Sanitarios"))} | RRHH: ${fmt(deOrigen("RRHH"))} | Agrícola: ${fmt(suma(agricola))}` +
+          `Costos: ${fmt(deOrigen("Costos") + deOrigen("Costos operativos"))} | Alimentación: ${fmt(deOrigen("Alimentación"))} | Hacienda: ${fmt(deOrigen("Hacienda"))} | Sanidad: ${fmt(deOrigen("Eventos Sanitarios"))} | RRHH: ${fmt(deOrigen("RRHH"))} | Amortizaciones: ${fmt(deOrigen("Amortizaciones"))} | Agrícola: ${fmt(suma(agricola))}` +
             (ivaEsCosto() ? "" : " · netos de IVA"),
         );
         setEl("costoKpiGanaderoMes", fmt(suma(ganadero)));
@@ -14385,6 +14404,28 @@ function costosGanaderosDelPeriodo(desde, hasta) {
 
       // === FUNCIONES DE EMPLEADOS ===
 
+      // Porcentaje total de cargas sociales patronales sobre el sueldo. Editable por cualquier usuario
+      // en Empleados (depende del convenio, la ART y el régimen); por defecto 36,5%.
+      const CARGAS_SOCIALES_PCT_DEFECTO = 36.5;
+      function cargasSocialesPct() {
+        const v = state.empresa?.cargasSocialesPct;
+        const n = Number(v);
+        return v !== undefined && v !== null && v !== "" && n >= 0 && n <= 100 ? n : CARGAS_SOCIALES_PCT_DEFECTO;
+      }
+      function guardarCargasSocialesPct(valor) {
+        const texto = String(valor ?? "").trim().replace(",", ".");
+        const n = Number(texto);
+        if (texto !== "" && !(n >= 0 && n <= 100)) {
+          showToast("Ingresá un porcentaje entre 0 y 100.", "error");
+          return;
+        }
+        if (!state.empresa || typeof state.empresa !== "object") state.empresa = {};
+        state.empresa.cargasSocialesPct = texto === "" ? null : n;
+        saveState();
+        renderTables();
+        showToast(`Cargas sociales: ${cargasSocialesPct()}% del sueldo.`, "success");
+      }
+
       // Calcular cargas sociales (porcentajes patronales en Argentina)
       function calcularCargasSociales(sueldoBruto) {
         const cargas = {
@@ -14396,6 +14437,9 @@ function costosGanaderosDelPeriodo(desde, hasta) {
           asignacionesFamil: sueldoBruto * 0.01, // 1% asignaciones familiares (aprox)
           leyRiesgosTrabajo: sueldoBruto * 0.008, // 0.8% ley riesgos de trabajo
         };
+        // Se reparten los porcentajes de siempre en proporción al total elegido.
+        const factorPct = cargasSocialesPct() / CARGAS_SOCIALES_PCT_DEFECTO;
+        Object.keys(cargas).forEach((k) => (cargas[k] *= factorPct));
 
         const totalCargas = Object.values(cargas).reduce(
           (sum, val) => sum + val,
@@ -14413,17 +14457,25 @@ function costosGanaderosDelPeriodo(desde, hasta) {
       // empleados en estado "Baja" para no inflar el costo con gente que ya no está — no hay campo
       // de fecha de baja en este formulario (a diferencia de pampaagro), así que el corte es por
       // estado actual solamente, no por período exacto.
+      // Costo mensual de un empleado: sueldo + aguinaldo devengado (1/12) + cargas sociales sobre ambos.
+      function costoMensualEmpleado(sueldoBruto) {
+        const conSac = Number(sueldoBruto || 0) * (1 + 1 / 12);
+        return conSac + calcularCargasSociales(conSac).total;
+      }
+
       function calcularCostoTotalEmpleados(fechaRef) {
         return (state.empleados || [])
           .filter((emp) => empleadoActivoEnFecha(emp, fechaRef))
           .reduce((total, emp) => {
             const sueldo = parseMonto(emp.sueldoBruto);
-            return total + sueldo + calcularCargasSociales(sueldo).total;
+            return total + costoMensualEmpleado(sueldo);
           }, 0);
       }
 
       // Renderizar tabla de empleados
       function renderEmpleados() {
+        const inputCargas = document.getElementById("cargasSocialesPctInput");
+        if (inputCargas && document.activeElement !== inputCargas) inputCargas.value = cargasSocialesPct();
         const empleadosBody = document.getElementById("empleadosBody");
         if (!empleadosBody || !state.empleados) return;
 
@@ -14434,8 +14486,9 @@ function costosGanaderosDelPeriodo(desde, hasta) {
         empleadosBody.innerHTML = state.empleados
           .map((emp, idx) => {
             emp.sueldoBruto = Number(emp.sueldoBruto) || 0;
-            const cargas = calcularCargasSociales(emp.sueldoBruto);
-            const costoTotalEmp = emp.sueldoBruto + cargas.total;
+            // Cargas sobre sueldo + SAC; costo = sueldo + SAC + cargas (igual que en Costos).
+            const cargas = calcularCargasSociales(emp.sueldoBruto * (1 + 1 / 12));
+            const costoTotalEmp = costoMensualEmpleado(emp.sueldoBruto);
 
             // Los KPIs de esta pantalla (masa salarial, cargas, costo total) antes sumaban TODOS los
             // empleados sin mirar el estado, así que alguien dado de Baja seguía inflando el total.
@@ -15383,7 +15436,7 @@ function costosGanaderosDelPeriodo(desde, hasta) {
           ? conVentas.map((f) => Math.round(f.costo / f.cabezas))
           : [0];
         chartCostoCultivo.update();
-        const grupos = ["Alimentación", "Sanidad", "Personal", "Compra de hacienda", "Mantenimiento", "Combustible", "Otros"];
+        const grupos = ["Alimentación", "Sanidad", "Personal", "Compra de hacienda", "Mantenimiento", "Combustible", "Amortizaciones", "Otros"];
         const montos = grupos.map((g) => Math.round(items.filter((i) => i.grupo === g).reduce((a, i) => a + i.importe, 0)));
         const hay = montos.some((m) => m > 0);
         chartDesglose.data.labels = hay ? grupos : ["Sin costos en 12 meses"];
@@ -17977,6 +18030,19 @@ function costosGanaderosDelPeriodo(desde, hasta) {
       // =====================================================
       // === MÓDULO MAQUINARIAS + AMORTIZACIÓN ===
       // =====================================================
+
+      // Amortización de un equipo para un mes ("YYYY-MM"): desde su año de compra y, en el método
+      // lineal, solo durante la vida útil. Es costo (no se paga: consume el valor del equipo).
+      function amortizacionDelMes(equipo, mes) {
+        const a = calcularAmortizacion(equipo);
+        if (!(a.amortMensual > 0)) return 0;
+        const anioCompra = parseInt(equipo.anio);
+        const anio = Number(String(mes).slice(0, 4));
+        if (anioCompra && anio < anioCompra) return 0;
+        if (a.metodo === "Lineal" && anioCompra && a.vidaUtil > 0 && anio >= anioCompra + a.vidaUtil) return 0;
+        if (a.metodo === "Por Horas" && a.valorLibro <= parseFloat(equipo.valorResidual || 0) + 0.01) return 0;
+        return a.amortMensual;
+      }
 
       function calcularAmortizacion(m) {
         const valorCompra = parseFloat(m.valorCompra || 0);

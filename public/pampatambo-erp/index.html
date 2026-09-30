@@ -1682,6 +1682,13 @@
             </div>
             <div
               class="nav-subitem"
+              data-submodule="arca-retenciones"
+              onclick="openArcaSection('arca-retenciones')"
+            >
+              • Retenciones sufridas
+            </div>
+            <div
+              class="nav-subitem"
               data-submodule="arca-cobros-pagos"
               onclick="openArcaSection('arca-cobros-pagos')"
             >
@@ -2723,6 +2730,34 @@
                     </tr>
                   </thead>
                   <tbody id="tbodyAlimentos"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">🥣 Consumo de alimentos</div>
+                <button class="btn primary" id="btnNuevoConsumoAlimento">
+                  + Registrar consumo
+                </button>
+              </div>
+              <div class="muted" style="padding: 0 16px 8px">
+                El costo de alimentación es lo consumido × el último precio de compra (Compras de
+                insumos o carga de silo). Lo comprado queda en stock hasta que se consume.
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Alimento</th>
+                      <th>Cantidad</th>
+                      <th>Destino</th>
+                      <th>Precio unit.</th>
+                      <th>Costo</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbodyConsumosAlimento"></tbody>
                 </table>
               </div>
             </div>
@@ -4275,6 +4310,20 @@
                     >
                   </div>
                   <div class="field">
+                    <label for="arcaConfigCondicionIva">Condición frente al IVA</label
+                    ><select id="arcaConfigCondicionIva">
+                      <option value="RESPONSABLE_INSCRIPTO">Responsable Inscripto</option>
+                      <option value="MONOTRIBUTO">Monotributo</option>
+                      <option value="EXENTO">Exento</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="arcaConfigIvaAnual"
+                      ><input id="arcaConfigIvaAnual" type="checkbox" /> Opto por liquidar y pagar el IVA en forma anual
+                      (actividad agropecuaria)</label
+                    >
+                  </div>
+                  <div class="field">
                     <label for="arcaConfigFormaJuridica"
                       >Forma jurídica del productor</label
                     ><select id="arcaConfigFormaJuridica">
@@ -4303,6 +4352,10 @@
                       id="senasaConfigRenspa"
                       placeholder="00.000.0.00000/00"
                     />
+                  </div>
+                  <div class="field">
+                    <label for="senasaConfigRenspaVence">Vencimiento del RENSPA</label
+                    ><input id="senasaConfigRenspaVence" type="date" />
                   </div>
                   <div class="field">
                     <label for="senasaConfigCodigoTambo">Código de tambo</label
@@ -4756,7 +4809,7 @@
                   <div class="sub" id="kpiIvaSaldoMesSub">Débito - Crédito</div>
                 </div>
                 <div class="kpi" id="kpiIvaSaldoAcumCard">
-                  <div class="label">Saldo técnico acumulado</div>
+                  <div class="label">Saldo a favor para el mes siguiente</div>
                   <div class="value" id="kpiIvaSaldoAcum">$0</div>
                   <div class="sub" id="kpiIvaSaldoAcumSub">
                     Histórico: a favor se arrastra al próximo período
@@ -4832,6 +4885,47 @@
                     </tr>
                   </thead>
                   <tbody id="tbodyDebitoFiscal"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="card arca-section" id="arca-retenciones">
+              <div class="card-header">
+                <div class="card-title">🧾 Retenciones sufridas</div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center">
+                  <select id="retencionesPeriodo" onchange="renderReporteRetenciones()">
+                    <option value="mes">Este mes</option>
+                    <option value="anio">Este año</option>
+                    <option value="todo">Todo</option>
+                  </select>
+                  <button class="btn" type="button" onclick="descargarReporteRetenciones()">
+                    ⬇️ Descargar CSV (Excel)
+                  </button>
+                </div>
+              </div>
+              <div class="muted" style="padding: 0 16px 8px">
+                Retenciones de IVA, Ganancias e IIBB que te hicieron la usina y los compradores de hacienda.
+                Controlalas contra "Mis Retenciones" de ARCA antes de presentar el IVA: cada una tiene que
+                tener su certificado F. 2005.
+              </div>
+              <div id="retencionesResumen" style="padding: 0 16px 8px"></div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Origen</th>
+                      <th>Agente de retención</th>
+                      <th>Comprobante</th>
+                      <th>Base</th>
+                      <th>Ret. IVA</th>
+                      <th>Ret. Ganancias</th>
+                      <th>Ret. IIBB</th>
+                      <th>Certificado F. 2005</th>
+                      <th>Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbodyRetenciones"></tbody>
                 </table>
               </div>
             </div>
@@ -5056,7 +5150,10 @@
               <div class="kpi blue">
                 <div class="label">Nómina Mensual</div>
                 <div class="value" id="kpiRrhhNomina">$0</div>
-                <div class="sub">Sueldos base estimados</div>
+                <div class="sub">Sueldo + SAC + cargas
+                  <input id="cargasSocialesPctInput" type="number" min="0" max="100" step="0.1"
+                    style="width: 64px; padding: 2px 4px" title="Cargas sociales patronales, % del sueldo (editable)"
+                    onchange="guardarCargasSocialesPct(this.value)" />%</div>
               </div>
             </div>
 
@@ -5551,6 +5648,7 @@
         guachera: [],
         recria: [],
         alimentos: [],
+        consumosAlimento: [],
         ordenes: [],
         reproduccion: [],
         sanidad: [],
@@ -5600,6 +5698,7 @@
       const TOROS_STORAGE_KEY = "tambo_toros_records";
       const GUACHERA_STORAGE_KEY = "tambo_guachera_records";
       const RECRIA_STORAGE_KEY = "tambo_recria_records";
+      const CONSUMOS_ALIMENTO_STORAGE_KEY = "tambo_consumos_alimento";
       const ARCA_STORAGE_KEY = "tambo_arca_records";
       const ARCA_SENASA_CONFIG_KEY = "pampatambo_arca_senasa_config";
       const OFFLINE_STATE_KEY = "tambo_offline_state";
@@ -5652,6 +5751,7 @@
         "liquidacionesMediero",
         "silos",
         "siloMovimientos",
+        "consumosAlimento",
       ];
 
       const ROLE_PERMISSIONS = {
@@ -6448,6 +6548,24 @@
           { key: "stock", label: "Stock", type: "number", required: true },
           { key: "unidad", label: "Unidad", type: "text" },
         ],
+        consumosAlimento: [
+          { key: "fecha", label: "Fecha", type: "date", required: true },
+          {
+            key: "alimento",
+            label: "Alimento (se descuenta del stock)",
+            type: "select",
+            required: true,
+            source: "alimentosNombre",
+          },
+          { key: "cantidad", label: "Cantidad consumida (en la unidad del alimento)", type: "number", required: true },
+          { key: "destino", label: "Destino (rodeo / lote / mixer)", type: "text" },
+          {
+            key: "observaciones",
+            label: "Observaciones",
+            type: "textarea",
+            full: true,
+          },
+        ],
         silos: [
           { key: "nombre", label: "Nombre", type: "text", required: true },
           {
@@ -6578,6 +6696,12 @@
             required: true,
           },
           { key: "concepto", label: "Concepto", type: "text", required: true },
+          {
+            key: "pago_de_costo",
+            label: "¿Paga algo ya cargado como costo (compra, gasto, sueldo)?",
+            type: "select",
+            options: ["NO", "SI"],
+          },
           { key: "monto", label: "Monto", type: "number", required: true },
           {
             key: "medio_pago",
@@ -6598,6 +6722,12 @@
           { key: "fecha", label: "Fecha", type: "date", required: true },
           { key: "tipo", label: "Tipo", type: "text", required: true },
           { key: "concepto", label: "Concepto", type: "text", required: true },
+          {
+            key: "pago_de_costo",
+            label: "¿Paga algo ya cargado como costo (compra, gasto, sueldo)?",
+            type: "select",
+            options: ["NO", "SI"],
+          },
           { key: "monto", label: "Monto", type: "number", required: true },
           { key: "medio", label: "Medio", type: "text" },
           { key: "estado", label: "Estado", type: "text" },
@@ -6615,6 +6745,12 @@
           { key: "cuenta", label: "Cuenta", type: "text", required: true },
           { key: "tipo", label: "Tipo", type: "text", required: true },
           { key: "concepto", label: "Concepto", type: "text", required: true },
+          {
+            key: "pago_de_costo",
+            label: "¿Paga algo ya cargado como costo (compra, gasto, sueldo)?",
+            type: "select",
+            options: ["NO", "SI"],
+          },
           { key: "monto", label: "Monto", type: "number", required: true },
           { key: "referencia", label: "Referencia", type: "text" },
           { key: "estado", label: "Estado", type: "text" },
@@ -6893,6 +7029,12 @@
           },
           { key: "fecha_cobro", label: "Fecha cobro", type: "date" },
           {
+            key: "certificado_f2005",
+            label: "N° certificado de retención F. 2005 (lo emite la usina por SIRE)",
+            type: "text",
+            hint: "Sin el certificado, ARCA puede no aceptar la retención como pago a cuenta de tu IVA.",
+          },
+          {
             key: "porcentaje_tambero",
             label: "% tambero asociado",
             type: "number",
@@ -6917,7 +7059,8 @@
           },
           {
             key: "estado_sisa",
-            label: "Estado SISA",
+            label:
+              "Categoría RG 1428 (retención de IVA de la usina): 1 = Responsable Inscripto regular (1%) · 2, 3 o INACTIVO = no categorizado o con irregularidades (12,70%) · MONOTRIBUTO",
             type: "select",
             options: ["1", "2", "3", "INACTIVO", "MONOTRIBUTO"],
             required: true,
@@ -7089,7 +7232,11 @@
           },
           { key: "kg_vivo", label: "Kg vivo", type: "number" },
           { key: "precio_kg", label: "Precio/kg", type: "number" },
-          { key: "importe", label: "Importe", type: "number", required: true },
+          { key: "importe", label: "Importe neto (sin IVA)", type: "number", required: true },
+          { key: "iva", label: "IVA de la venta ($, débito fiscal)", type: "number" },
+          { key: "iva_retenido", label: "Retención / percepción de IVA sufrida ($)", type: "number" },
+          { key: "ganancias_retenido", label: "Retención de Ganancias sufrida ($)", type: "number" },
+          { key: "certificado_f2005", label: "N° certificado de retención F. 2005", type: "text" },
           { key: "comprobante", label: "Documento/Comprobante", type: "text" },
           {
             key: "carta_porte_numero",
@@ -7151,11 +7298,12 @@
           { key: "unidad", label: "Unidad", type: "text", required: true },
           {
             key: "precio_unitario",
-            label: "Precio unitario",
+            label: "Precio unitario (sin IVA)",
             type: "number",
             required: true,
           },
-          { key: "total", label: "Total", type: "number", required: true },
+          { key: "total", label: "Total neto (sin IVA)", type: "number", required: true },
+          { key: "iva", label: "IVA de la factura ($, genera el crédito fiscal)", type: "number" },
           { key: "factura", label: "Factura", type: "text" },
           { key: "vencimiento", label: "Vencimiento", type: "date" },
           {
@@ -7188,7 +7336,8 @@
           },
           { key: "proveedor", label: "Proveedor", type: "text" },
           { key: "comprobante", label: "Comprobante", type: "text" },
-          { key: "importe", label: "Importe", type: "number", required: true },
+          { key: "importe", label: "Importe neto (sin IVA)", type: "number", required: true },
+          { key: "iva", label: "IVA de la factura ($, genera el crédito fiscal)", type: "number" },
           { key: "medio_pago", label: "Medio de pago", type: "text" },
           { key: "vencimiento", label: "Vencimiento", type: "date" },
           {
@@ -7437,14 +7586,15 @@
           { key: "fecha", label: "Fecha", type: "date", required: true },
           {
             key: "vaca",
-            label: "Vaca",
+            label: "Animal (o RODEO para todo el rodeo)",
             type: "select",
             required: true,
             source: "animalesCaravana",
           },
           { key: "tipo", label: "Tipo", type: "text", required: true },
           { key: "producto", label: "Producto", type: "text", required: true },
-          { key: "dias_retiro", label: "Dias retiro", type: "number" },
+          { key: "dias_retiro", label: "Días de retiro de LECHE (se descarta en el ordeñe)", type: "number" },
+          { key: "dias_retiro_carne", label: "Días de retiro de CARNE (no se puede vender a faena)", type: "number" },
           { key: "responsable", label: "Responsable", type: "text" },
           {
             key: "observaciones",
@@ -8318,15 +8468,15 @@
           "rcs",
           "ufc",
         ],
-        ventasHacienda: ["kg_vivo", "precio_kg", "importe"],
-        comprasInsumos: ["cantidad", "precio_unitario", "total"],
-        gastosArca: ["importe"],
+        ventasHacienda: ["kg_vivo", "precio_kg", "importe", "iva", "iva_retenido", "ganancias_retenido"],
+        comprasInsumos: ["cantidad", "precio_unitario", "total", "iva"],
+        gastosArca: ["importe", "iva"],
         comprobantesArca: ["neto", "iva", "total"],
         cobrosPagos: ["importe"],
         empleados: ["sueldo_base"],
         asistencias: ["horas"],
         reproduccion: ["dias_para_parto", "dias_gestacion"],
-        sanidad: ["dias_retiro"],
+        sanidad: ["dias_retiro", "dias_retiro_carne"],
         maquinas: ["stock_repuestos"],
         insumosSanidad: ["stock", "dias_retiro"],
         campos: ["superficie_ha", "latitud", "longitud"],
@@ -8650,6 +8800,7 @@
           reglasRetencion: "Regla de Retención Fiscal",
           ventasHacienda: "Venta de Hacienda",
           comprasInsumos: "Compra de Insumos",
+          consumosAlimento: "Consumo de alimento",
           gastosArca: "Gasto",
           comprobantesArca: "Comprobante ARCA",
           cobrosPagos: "Movimiento de Cobro/Pago",
@@ -8706,9 +8857,24 @@
           return deduped;
         }
 
+        if (field.source === "alimentosNombre") {
+          const actual = normalizeCatalogValue(row?.[field.key]);
+          const opciones = (state.alimentos || [])
+            .filter((a) => normalizeCatalogValue(a?.nombre))
+            .map((a) => ({
+              value: normalizeCatalogValue(a.nombre),
+              label: `${normalizeCatalogValue(a.nombre)} (stock ${Number(a.stock || 0)} ${a.unidad || "kg"})`,
+            }));
+          if (actual && !opciones.some((o) => o.value === actual)) opciones.unshift({ value: actual, label: actual });
+          return opciones;
+        }
+
         if (field.source === "animalesCaravana") {
-          const fromAnimales = (state.animales || [])
+          const opcionRodeo =
+            type === "sanidad" ? [{ value: "RODEO", label: "RODEO · todo el rodeo (vacunación o tratamiento general)" }] : [];
+          const fromAnimales = [...opcionRodeo, ...(state.animales || [])
             .map((a) => {
+              if (a?.value === "RODEO") return a;
               const value = normalizeCatalogValue(a?.caravana);
               const nombre = normalizeCatalogValue(a?.nombre);
               return {
@@ -8716,7 +8882,8 @@
                 label: nombre ? `${value} - ${nombre}` : value,
               };
             })
-            .filter((x) => x.value !== "");
+            .filter((x) => x.value !== "")
+            ];
           const current = normalizeCatalogValue(row?.[field.key]);
           const merged = current
             ? [{ value: current, label: current }, ...fromAnimales]
@@ -9874,6 +10041,7 @@
       }
 
       function collectionToModule(type) {
+        if (type === "consumosAlimento") return "alimentos";
         if (type === "lotes") return "campos";
         if (type === "maquinas" || type === "insumosSanidad")
           return "inventario";
@@ -9969,6 +10137,24 @@
         );
       }
 
+      // Consumos de alimento: viven en el equipo (como Recría) y en la copia local.
+      function loadConsumosAlimentoLocal() {
+        try {
+          const lista = JSON.parse(localStorage.getItem(CONSUMOS_ALIMENTO_STORAGE_KEY) || "[]");
+          return Array.isArray(lista) ? lista : [];
+        } catch {
+          return [];
+        }
+      }
+
+      function saveConsumosAlimentoLocal() {
+        try {
+          localStorage.setItem(CONSUMOS_ALIMENTO_STORAGE_KEY, JSON.stringify(state.consumosAlimento || []));
+        } catch {
+          /* sin almacenamiento: queda en memoria hasta recargar */
+        }
+      }
+
       function saveRecriaLocal() {
         localStorage.setItem(
           RECRIA_STORAGE_KEY,
@@ -10060,12 +10246,16 @@
             ),
             formaJuridica:
               byId("arcaConfigFormaJuridica")?.value || "PERSONA_HUMANA",
+            condicionIva:
+              byId("arcaConfigCondicionIva")?.value || "RESPONSABLE_INSCRIPTO",
+            ivaAnual: Boolean(byId("arcaConfigIvaAnual")?.checked),
             facturacionAnualPromedio:
               Number(byId("arcaConfigFacturacionAnualPromedio")?.value || 0) ||
               null,
           },
           senasa: {
             renspa: (byId("senasaConfigRenspa")?.value || "").trim(),
+            renspaVence: byId("senasaConfigRenspaVence")?.value || "",
             codigoTambo: (byId("senasaConfigCodigoTambo")?.value || "").trim(),
             does: byId("senasaConfigDoes")?.value || "PENDIENTE",
             veterinario: (byId("senasaConfigVeterinario")?.value || "").trim(),
@@ -10121,11 +10311,16 @@
         if (byId("arcaConfigFormaJuridica"))
           byId("arcaConfigFormaJuridica").value =
             arca.formaJuridica || "PERSONA_HUMANA";
+        if (byId("arcaConfigCondicionIva"))
+          byId("arcaConfigCondicionIva").value = arca.condicionIva || "RESPONSABLE_INSCRIPTO";
+        if (byId("arcaConfigIvaAnual")) byId("arcaConfigIvaAnual").checked = Boolean(arca.ivaAnual);
         if (byId("arcaConfigFacturacionAnualPromedio"))
           byId("arcaConfigFacturacionAnualPromedio").value =
             arca.facturacionAnualPromedio || "";
         if (byId("senasaConfigRenspa"))
           byId("senasaConfigRenspa").value = senasa.renspa || "";
+        if (byId("senasaConfigRenspaVence"))
+          byId("senasaConfigRenspaVence").value = senasa.renspaVence || "";
         if (byId("senasaConfigCodigoTambo"))
           byId("senasaConfigCodigoTambo").value =
             senasa.codigoTambo || state.empresa?.codigo_tambo || "";
@@ -10335,6 +10530,10 @@
         );
         setVisible(
           "btnNuevoAlimento",
+          canWrite && cfg.modules.includes("alimentos"),
+        );
+        setVisible(
+          "btnNuevoConsumoAlimento",
           canWrite && cfg.modules.includes("alimentos"),
         );
         setVisible("btnNuevoSilo", canWrite && cfg.modules.includes("silos"));
@@ -10593,6 +10792,7 @@
             guachera: state.guachera,
             recria: state.recria,
             alimentos: state.alimentos,
+            consumosAlimento: state.consumosAlimento,
             ordenes: state.ordenes,
             reproduccion: state.reproduccion,
             sanidad: state.sanidad,
@@ -10987,6 +11187,7 @@
               direccion: `${parsed.direccion || ""}`.trim(),
               telefono: `${parsed.telefono || ""}`.trim(),
               email: `${parsed.email || ""}`.trim(),
+              cargasSocialesPct: parsed.cargasSocialesPct ?? null,
               whatsappRoles: {
                 ...state.empresa.whatsappRoles,
                 ...(parsed.whatsappRoles &&
@@ -12084,6 +12285,7 @@
         state.liquidacionesMediero = liquidacionesMediero;
         state.silos = silos;
         state.siloMovimientos = siloMovimientos;
+        state.consumosAlimento = loadConsumosAlimentoLocal();
         saveArcaLocalState();
         saveOfflineSnapshot();
         renderConnectivityStatus();
@@ -12143,7 +12345,7 @@
         let activo = null;
         (state.sanidad || []).forEach((row) => {
           const rowVaca = normalizeCatalogValue(row?.vaca).toUpperCase();
-          if (rowVaca !== vaca) return;
+          if (rowVaca !== vaca && rowVaca !== "RODEO") return;
           const retiro = Number(row?.dias_retiro || 0);
           if (retiro <= 0) return;
           const fecha = parseFlexibleDate(row?.fecha);
@@ -12164,6 +12366,36 @@
           }
         });
         return activo;
+      }
+
+      // Retiro de CARNE (carencia): mientras dure no se puede enviar el animal a faena. Si el registro
+      // no tiene retiro de carne cargado, no bloquea (el de leche suele ser más corto y distinto).
+      function getRetiroCarneActivo(vacaValue, referenceDate = todayStart()) {
+        const vaca = normalizeCatalogValue(vacaValue).toUpperCase();
+        if (!vaca) return null;
+        let activo = null;
+        (state.sanidad || []).forEach((row) => {
+          const rowVaca = normalizeCatalogValue(row?.vaca).toUpperCase();
+          if (rowVaca !== vaca && rowVaca !== "RODEO") return;
+          const retiro = Number(row?.dias_retiro_carne || 0);
+          const fecha = parseFlexibleDate(row?.fecha);
+          if (!(retiro > 0) || !fecha) return;
+          const finRetiro = new Date(fecha);
+          finRetiro.setDate(finRetiro.getDate() + retiro);
+          const diasRestantes = Math.ceil((finRetiro - referenceDate) / (1000 * 60 * 60 * 24));
+          if (diasRestantes < 0) return;
+          if (!activo || diasRestantes > activo.diasRestantes)
+            activo = { diasRestantes, producto: row?.producto || row?.tipo || "Tratamiento sanitario", fecha: row?.fecha, finRetiro };
+        });
+        return activo;
+      }
+
+      // RENSPA: vencimiento cargado en Configuración ARCA/SENASA.
+      function renspaEstadoTambo() {
+        const vence = parseFlexibleDate(loadArcaSenasaConfig()?.senasa?.renspaVence);
+        if (!vence) return null;
+        const dias = Math.ceil((vence - todayStart()) / (1000 * 60 * 60 * 24));
+        return { vence, dias, estado: dias < 0 ? "VENCIDO" : dias <= 30 ? "POR_VENCER" : "VIGENTE" };
       }
 
       // DOES (Determinacion Obligatoria de Estatus Sanitario): certificacion anual de Tuberculosis y Brucelosis.
@@ -12261,7 +12493,7 @@
 
         const vacunadosDesde = new Set(
           (state.sanidad || [])
-            .filter((r) => normalizeSignal(r?.tipo) === "AFTOSA")
+            .filter((r) => /AFTOSA/.test(normalizeSignal(r?.tipo)))
             .filter((r) => {
               const f = parseFlexibleDate(r?.fecha);
               return f && f >= inicio;
@@ -12270,6 +12502,8 @@
             .filter(Boolean),
         );
 
+        if (vacunadosDesde.has("RODEO"))
+          animales.forEach((a) => vacunadosDesde.add(normalizeCatalogValue(a?.caravana || "").toUpperCase()));
         const totalGeneral = animales.length;
         const totalTerneros = animales.filter(esTernero).length;
         const cubiertosGeneral = animales.filter((a) =>
@@ -13209,6 +13443,31 @@
       `,
           )
           .join("");
+        const tbodyConsumos = byId("tbodyConsumosAlimento");
+        if (tbodyConsumos) {
+          const esc = (v) => escapeHtml(String(v ?? ""));
+          const filas = [...(state.consumosAlimento || [])].sort((x, y) => String(y.fecha || "").localeCompare(String(x.fecha || "")));
+          tbodyConsumos.innerHTML = filas.length
+            ? filas
+                .map((row) => {
+                  const precio = ultimoPrecioAlimentoTambo(row.alimento, row.fecha);
+                  const unidad = alimentoPorNombreTambo(row.alimento)?.unidad || "kg";
+                  return `<tr>
+          <td>${esc(row.fecha)}</td>
+          <td><strong>${esc(row.alimento)}</strong></td>
+          <td>${esc(row.cantidad)} ${esc(unidad)}</td>
+          <td>${esc(row.destino)}</td>
+          <td>${precio === null ? '<span class="pill warn">sin precio de compra</span>' : formatMoney(precio) + " / " + esc(unidad)}</td>
+          <td>${precio === null ? "-" : formatMoney(montoTambo(row.cantidad) * precio)}</td>
+          <td>
+            <button class="btn" onclick="editRow('consumosAlimento','${esc(row.id)}')">Editar</button>
+            <button class="btn" onclick="deleteRow('consumosAlimento','${esc(row.id)}')">Borrar</button>
+          </td>
+        </tr>`;
+                })
+                .join("")
+            : '<tr><td colspan="7" class="muted">Sin consumos registrados.</td></tr>';
+        }
       }
 
       // Volumen cilindro + cono convertido a toneladas, mismo cálculo que hace el backend (services/siloStock.service.js).
@@ -13565,60 +13824,378 @@
         byId("kpiCopPend").textContent = pendientes;
       }
 
+      // ── Resultado económico del tambo ────────────────────────────────────────────────────────────
+      // Una sola cuenta para Costos y Rentabilidad. Antes Rentabilidad sumaba los egresos de caja,
+      // bancos y finanzas MÁS los costos: una compra pagada se contaba dos veces (el costo y su pago),
+      // un crédito tomado entraba como ingreso y los cheques como egresos; la composición por rubro
+      // sumaba las compras de insumos dos veces y el sueldo no entraba en el margen.
+      // Regla: el costo se cuenta donde nace (costos, compras, gastos ARCA, costos operativos,
+      // mantenimiento, tambero mediero, sueldos). Un egreso de caja/bancos/finanzas solo es costo si
+      // no paga algo ya cargado. Créditos, cheques y cobros son financiación o cobranza, no resultado.
+      const GRUPOS_COSTO_TAMBO = ["Alimentación", "Sanidad", "Personal", "Tambero mediero", "Mantenimiento", "Amortizaciones", "Otros"];
+
+      // Cargas sociales patronales: % del sueldo editable por cualquier usuario en RRHH (depende del
+      // convenio, la ART y el régimen); por defecto 36,5%, igual que Agro y Ganadería. SAC = 1/12.
+      const CARGAS_SOCIALES_PCT_DEFECTO = 36.5;
+      function cargasSocialesPct() {
+        const v = state.empresa?.cargasSocialesPct;
+        const n = Number(v);
+        return v !== undefined && v !== null && v !== "" && n >= 0 && n <= 100 ? n : CARGAS_SOCIALES_PCT_DEFECTO;
+      }
+      function guardarCargasSocialesPct(valor) {
+        const texto = String(valor ?? "").trim().replace(",", ".");
+        const n = Number(texto);
+        if (texto !== "" && !(n >= 0 && n <= 100)) {
+          showToast("Ingresá un porcentaje entre 0 y 100.", "error");
+          return;
+        }
+        state.empresa = { ...(state.empresa || {}), cargasSocialesPct: texto === "" ? null : n };
+        saveEmpresaData();
+        renderAll();
+        showToast(`Cargas sociales: ${cargasSocialesPct()}% del sueldo.`, "success");
+      }
+      function cargasSocialesTambo(sueldo) {
+        return Number(sueldo || 0) * (cargasSocialesPct() / 100);
+      }
+      function costoMensualEmpleadoTambo(sueldo) {
+        const conSac = Number(sueldo || 0) * (1 + 1 / 12);
+        return conSac + cargasSocialesTambo(conSac);
+      }
+
+      function alimentoPorNombreTambo(nombre) {
+        const n = normalizeSignal(nombre);
+        return n ? (state.alimentos || []).find((a) => normalizeSignal(a?.nombre) === n) || null : null;
+      }
+
+      // kg ↔ toneladas; otras unidades se toman iguales.
+      function factorUnidadTambo(desde, hacia) {
+        const aKg = (u) => {
+          const t = normalizeSignal(u).replace(/\./g, "");
+          if (["TN", "T", "TON", "TONELADA", "TONELADAS"].includes(t)) return 1000;
+          if (["KG", "KGS", "KILO", "KILOS", ""].includes(t)) return 1;
+          if (["G", "GR", "GRAMOS"].includes(t)) return 0.001;
+          return null;
+        };
+        const a = aKg(desde);
+        const b = aKg(hacia);
+        return a && b ? a / b : 1;
+      }
+
+      function esCompraAlimentoTambo(compra) {
+        if (!compra) return false;
+        if (normalizeSignal(compra.tipo) === "MEDICAMENTOS") return false;
+        return grupoCostoTambo(`${compra.tipo || ""} ${compra.producto || ""}`) === "Alimentación" || Boolean(alimentoPorNombreTambo(compra.producto));
+      }
+
+      function cantidadEnUnidadDelAlimento(compra) {
+        const alimento = alimentoPorNombreTambo(compra.producto);
+        return Number(compra.cantidad || 0) * factorUnidadTambo(compra.unidad, alimento?.unidad || compra.unidad);
+      }
+
+      // Último precio de compra del alimento a esa fecha (en la unidad del alimento): Compras de
+      // insumos y cargas de silo. Si no hubo compra antes de esa fecha, el primer precio posterior.
+      function ultimoPrecioAlimentoTambo(nombre, fecha) {
+        const n = normalizeSignal(nombre);
+        if (!n) return null;
+        const unidad = alimentoPorNombreTambo(nombre)?.unidad || "kg";
+        const precios = [];
+        (state.comprasInsumos || []).forEach((c) => {
+          if (normalizeSignal(c.producto) !== n) return;
+          const cant = Number(c.cantidad || 0);
+          const ivaUnit = ivaEsCostoTambo() && cant > 0 ? Number(c.iva || 0) / cant : 0;
+          const unit = (Number(c.precio_unitario || 0) || (cant > 0 ? Number(c.total || 0) / cant : 0)) + ivaUnit;
+          if (unit > 0) precios.push({ fecha: fechaTambo(c.fecha), precio: unit / factorUnidadTambo(c.unidad, unidad) });
+        });
+        (state.siloMovimientos || []).forEach((m) => {
+          if (normalizeSignal(m.tipo) !== "CARGA" || normalizeSignal(m.tipo_grano) !== n || !(Number(m.precio_tonelada) > 0)) return;
+          precios.push({ fecha: fechaTambo(m.fecha), precio: Number(m.precio_tonelada) / factorUnidadTambo("tn", unidad) });
+        });
+        if (!precios.length) return null;
+        const f = fechaTambo(fecha) || "9999-12-31";
+        const previos = precios.filter((p) => p.fecha <= f).sort((a, b) => a.fecha.localeCompare(b.fecha));
+        if (previos.length) return previos[previos.length - 1].precio;
+        return precios.sort((a, b) => a.fecha.localeCompare(b.fecha))[0].precio;
+      }
+
+      // Precio por tonelada de lo que se extrae de un silo: la última carga con precio de ESE silo.
+      function precioTnSiloTambo(siloId, fecha, tipoGrano) {
+        const f = fechaTambo(fecha) || "9999-12-31";
+        const cargas = (state.siloMovimientos || [])
+          .filter((m) => `${m.silo_id}` === `${siloId}` && normalizeSignal(m.tipo) === "CARGA" && Number(m.precio_tonelada) > 0)
+          .sort((a, b) => fechaTambo(a.fecha).localeCompare(fechaTambo(b.fecha)));
+        const previas = cargas.filter((m) => fechaTambo(m.fecha) <= f);
+        const carga = previas[previas.length - 1] || cargas[0];
+        if (carga) return Number(carga.precio_tonelada);
+        const porKg = ultimoPrecioAlimentoTambo(tipoGrano, fecha);
+        return porKg === null ? null : porKg * factorUnidadTambo("tn", alimentoPorNombreTambo(tipoGrano)?.unidad || "kg");
+      }
+
+      function grupoCostoTambo(texto) {
+        const t = String(texto || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+        // Repuestos de la máquina de ordeñe antes que sanidad ("pezonera" no es sellador de pezones).
+        if (/pezonera|ordenadora|ordeñadora|equipo de frio|repuesto|reparac/.test(t)) return "Mantenimiento";
+        if (/aliment|balancead|forraj|silo|rollo|fardo|heno|maiz|sorgo|expeller|pellet|afrechillo|burlanda|racion|pastura|verdeo|sustituto|leche en polvo|nucleo|sales? mineral/.test(t)) return "Alimentación";
+        if (/sanidad|veterinari|medic|vacun|antibiot|antiparasit|sellador|dipping|mastitis|secado|insemin|semen|analisis|brucel|tubercul|laboratorio|farmac/.test(t)) return "Sanidad";
+        if (/sueldo|jornal|haberes|personal|cargas sociales|aguinaldo|sac\b/.test(t)) return "Personal";
+        if (/mediero|tambero/.test(t)) return "Tambero mediero";
+        if (/manten|repuesto|reparac|service|taller|lubric|filtro|pezonera|ordenadora|equipo de frio/.test(t)) return "Mantenimiento";
+        return "Otros";
+      }
+
+      function fechaTambo(f) {
+        const t = String(f || "").trim();
+        const dmy = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+        return dmy ? dmy[3] + "-" + dmy[2].padStart(2, "0") + "-" + dmy[1].padStart(2, "0") : t.slice(0, 10);
+      }
+
+      function montoTambo(v) {
+        if (typeof v === "number") return Number.isFinite(v) ? v : 0;
+        const t = String(v ?? "").trim();
+        if (!t) return 0;
+        // "1.234.567,89" (es-AR) o "1234567.89"
+        const n = /,\d{1,2}$/.test(t) || /\.\d{3}(\.|$)/.test(t) ? Number(t.replace(/\./g, "").replace(",", ".")) : Number(t.replace(/[^0-9.-]/g, ""));
+        return Number.isFinite(n) ? n : 0;
+      }
+
+      function esEgresoTambo(tipo) {
+        return ["EGRESO", "PAGO", "PAGADO", "DEBITO", "DEBITO BANCARIO"].includes(normalizeSignal(tipo || "EGRESO"));
+      }
+      function esIngresoTambo(tipo) {
+        return ["INGRESO", "COBRO", "COBRADO", "ACREDITACION", "CREDITO BANCARIO"].includes(normalizeSignal(tipo));
+      }
+
+      // desde/hasta: "YYYY-MM-DD" inclusive.
+      function resultadoEconomicoTambo(desde, hasta) {
+        const dentro = (f) => {
+          const d = fechaTambo(f);
+          return /^\d{4}-\d{2}-\d{2}$/.test(d) && d >= desde && d <= hasta;
+        };
+        const costos = [];
+        const ingresos = [];
+        const costo = (fecha, grupo, origen, concepto, importe) => {
+          if (importe && dentro(fecha)) costos.push({ fecha: fechaTambo(fecha), grupo, origen, concepto, importe });
+        };
+        const ingreso = (fecha, origen, concepto, importe) => {
+          if (importe && dentro(fecha)) ingresos.push({ fecha: fechaTambo(fecha), origen, concepto, importe });
+        };
+
+        // Movimientos de caja/bancos/finanzas generados por otro registro (compras, gastos, cobros y
+        // pagos, LUME, ventas, mediero): ya están contados en su origen.
+        const autoIds = new Set();
+        ["comprasInsumos", "gastosArca", "cobrosPagos", "liquidacionesLeche", "ventasHacienda", "liquidacionesMediero"].forEach((k) =>
+          (state[k] || []).forEach((r) => {
+            ["auto_finanza_id", "auto_caja_id"].forEach((c) => r?.[c] && autoIds.add(String(r[c])));
+          }),
+        );
+
+        // Costos cargados a mano. Los que generan Compras, Gastos ARCA y cargas de silo se cuentan
+        // desde su origen (abajo): el costo automático puede faltar en Costos si se recargó del servidor.
+        const autoCostoIds = new Set();
+        ["comprasInsumos", "gastosArca", "siloMovimientos"].forEach((k) =>
+          (state[k] || []).forEach((r) => r?.auto_costo_id && autoCostoIds.add(String(r.auto_costo_id))),
+        );
+        (state.costos || []).forEach((r) => {
+          if (autoCostoIds.has(String(r.id))) return;
+          costo(r.fecha, grupoCostoTambo(r.categoria + " " + r.concepto), "Costos", r.concepto || r.categoria || "Costo", montoTambo(r.monto));
+        });
+        (state.comprasInsumos || []).forEach((c) => {
+          if (esCompraAlimentoTambo(c)) return; // va a stock: es costo cuando se consume
+          const importe =
+            (montoTambo(c.total) || montoTambo(c.cantidad) * montoTambo(c.precio_unitario)) + (ivaEsCostoTambo() ? montoTambo(c.iva) : 0);
+          const grupo = normalizeSignal(c.tipo) === "MEDICAMENTOS" ? "Sanidad" : grupoCostoTambo(c.tipo + " " + c.producto);
+          costo(c.fecha, grupo, "Compras de insumos", c.producto || c.tipo || "Compra", importe);
+        });
+        (state.gastosArca || []).forEach((g) =>
+          costo(g.fecha, grupoCostoTambo(g.categoria + " " + g.concepto), "Gastos ARCA", g.concepto || g.categoria || "Gasto", montoTambo(g.importe) + (ivaEsCostoTambo() ? montoTambo(g.iva) : 0)),
+        );
+
+        // Alimentación por consumo: cantidad × último precio de compra a esa fecha.
+        const sinPrecio = [];
+        (state.consumosAlimento || []).forEach((c) => {
+          if (!dentro(c.fecha)) return;
+          const precio = ultimoPrecioAlimentoTambo(c.alimento, c.fecha);
+          if (precio === null) return sinPrecio.push(c.alimento);
+          costo(c.fecha, "Alimentación", "Consumo de alimentos", c.alimento + (c.destino ? " · " + c.destino : ""), montoTambo(c.cantidad) * precio);
+        });
+        (state.siloMovimientos || []).forEach((m) => {
+          if (normalizeSignal(m.tipo) !== "CONSUMO" || !dentro(m.fecha)) return;
+          const precio = precioTnSiloTambo(m.silo_id, m.fecha, m.tipo_grano);
+          if (precio === null) return sinPrecio.push(m.tipo_grano || "silo " + m.silo_id);
+          costo(m.fecha, "Alimentación", "Consumo de silos", (m.tipo_grano || "Silo") + (m.destino ? " · " + m.destino : ""), montoTambo(m.toneladas) * precio);
+        });
+
+        // Amortizaciones de instalaciones y equipos: (valor de compra − residual) / vida útil, por
+        // mes, desde el alta y mientras dure la vida útil.
+        (state.instalaciones || []).forEach((inst) => {
+          const anual = calcAmortizacionAnual(inst);
+          if (!(anual > 0)) return;
+          const alta = fechaTambo(inst.fecha_alta);
+          const vida = Number(inst.vida_util_anios || 0);
+          const finVida = alta ? String(Number(alta.slice(0, 4)) + vida) + alta.slice(4) : "";
+          let [y, m] = desde.slice(0, 7).split("-").map(Number);
+          const [yh, mh] = hasta.slice(0, 7).split("-").map(Number);
+          while (y < yh || (y === yh && m <= mh)) {
+            const mes = y + "-" + String(m).padStart(2, "0");
+            const finMes = mes + "-" + String(new Date(y, m, 0).getDate()).padStart(2, "0");
+            if ((!alta || alta <= finMes) && (!finVida || mes + "-01" < finVida))
+              costo(finMes > hasta ? hasta : finMes, "Amortizaciones", "Amortizaciones", "Amortización " + (inst.nombre || inst.codigo || "instalación"), anual / 12);
+            m += 1;
+            if (m > 12) { m = 1; y += 1; }
+          }
+        });
+        (state.costosOperativos || []).forEach((r) =>
+          costo(r.fecha, grupoCostoTambo(r.sector + " " + r.actividad + " " + r.concepto), "Costos operativos", r.concepto || "Costo operativo", montoTambo(r.monto)),
+        );
+        (state.mantenimiento || []).forEach((r) =>
+          costo(r.fecha, "Mantenimiento", "Mantenimiento", [r.tipo, r.equipo, r.tarea].filter(Boolean).join(" · ") || "Orden de mantenimiento", montoTambo(r.costo)),
+        );
+
+        // Tambero mediero: su parte (bruto, incluye el SUSS que se deposita) menos lo que absorbe de
+        // químicos y otros gastos compartidos. Los adelantos son pagos a cuenta de esa misma parte.
+        const lumePorId = new Map((state.liquidacionesLeche || []).map((l) => [String(l.id), l]));
+        (state.liquidacionesMediero || []).forEach((r) => {
+          const lume = lumePorId.get(String(r.liquidacion_leche_id));
+          const importe = montoTambo(r.bruto_tambero) - montoTambo(r.deduccion_quimicos) - montoTambo(r.deduccion_otros);
+          costo(lume?.fecha || r.fecha, "Tambero mediero", "Tambero mediero", "Tambero mediero · LUME " + (lume?.numero_lume || ""), Math.max(0, importe));
+        });
+
+        // Personal: sueldo de los empleados activos por cada mes del período (desde su ingreso).
+        const empleadosActivos = (state.empleados || []).filter(
+          (e) => normalizeSignal(e.estado || "ACTIVO").includes("ACTIVO") && !normalizeSignal(e.estado).includes("INACTIVO") && montoTambo(e.sueldo_base) > 0,
+        );
+        {
+          let [y, m] = desde.slice(0, 7).split("-").map(Number);
+          const [yh, mh] = hasta.slice(0, 7).split("-").map(Number);
+          while (y < yh || (y === yh && m <= mh)) {
+            const mes = y + "-" + String(m).padStart(2, "0");
+            const finMes = mes + "-" + String(new Date(y, m, 0).getDate()).padStart(2, "0");
+            empleadosActivos.forEach((e) => {
+              const ingreso = fechaTambo(e.fecha_ingreso);
+              if (ingreso && ingreso > finMes) return;
+              costo(finMes > hasta ? hasta : finMes, "Personal", "Sueldos", "Sueldo + SAC + cargas sociales " + [e.nombre, e.apellido].filter(Boolean).join(" "), costoMensualEmpleadoTambo(montoTambo(e.sueldo_base)));
+            });
+            m += 1;
+            if (m > 12) { m = 1; y += 1; }
+          }
+        }
+
+        // Egresos de caja/bancos/finanzas que no pagan un costo ya cargado (ej. luz pagada por caja).
+        const hayNomina = empleadosActivos.length > 0;
+        const financiacion = /cr[eé]dito|pr[eé]stamo|cuota|leasing|cheque|transferencia entre|aporte|retiro de socio|anticipo|adelanto/i;
+        [["finanzas", "Finanzas"], ["caja", "Caja"], ["bancos", "Bancos"]].forEach(([k, origen]) =>
+          (state[k] || []).forEach((r) => {
+            if (autoIds.has(String(r.id)) || /^(ARCA-|MEDIERO-)/.test(String(r.referencia || ""))) return;
+            const texto = (r.categoria || "") + " " + (r.concepto || "");
+            const importe = montoTambo(r.monto ?? r.importe);
+            if (esEgresoTambo(r.tipo)) {
+              if (normalizeSignal(r.pago_de_costo) === "SI" || financiacion.test(texto)) return;
+              const grupo = grupoCostoTambo(texto);
+              if (grupo === "Personal" && hayNomina) return; // el sueldo ya entra por Empleados
+              if (grupo === "Tambero mediero" && (state.liquidacionesMediero || []).length) return;
+              costo(r.fecha, grupo, origen + " (sin costo cargado)", r.concepto || r.categoria || "Egreso", importe);
+            } else if (esIngresoTambo(r.tipo)) {
+              if (financiacion.test(texto) || /leche|lume|usina|hacienda|cobro/i.test(texto)) return;
+              ingreso(r.fecha, "Otros ingresos", r.concepto || r.categoria || "Ingreso", importe);
+            }
+          }),
+        );
+
+        // Ingresos devengados: leche liquidada (neto gravado de la LUME) y venta de hacienda.
+        (state.liquidacionesLeche || []).forEach((l) =>
+          ingreso(l.fecha, "Leche", "LUME " + (l.numero_lume || "") + " " + (l.usina || ""), montoTambo(l.neto)),
+        );
+        (state.ventasHacienda || []).forEach((v) =>
+          ingreso(v.fecha, "Venta de hacienda", ("Venta " + (v.caravana || "") + " " + (v.categoria || "")).trim(), montoTambo(v.importe)),
+        );
+
+        const suma = (lista, clave) =>
+          lista.reduce((acc, x) => {
+            acc[x[clave]] = (acc[x[clave]] || 0) + x.importe;
+            return acc;
+          }, {});
+        const totalCostos = costos.reduce((a, x) => a + x.importe, 0);
+        const totalIngresos = ingresos.reduce((a, x) => a + x.importe, 0);
+        const litros = (state.liquidacionesLeche || []).filter((l) => dentro(l.fecha)).reduce((a, l) => a + montoTambo(l.litros_liquidados), 0);
+        return {
+          desde,
+          hasta,
+          costos,
+          ingresos,
+          totalCostos,
+          totalIngresos,
+          resultado: totalIngresos - totalCostos,
+          porGrupo: suma(costos, "grupo"),
+          porOrigen: suma(costos, "origen"),
+          ingresosPorOrigen: suma(ingresos, "origen"),
+          litros,
+          costoPorLitro: litros > 0 ? totalCostos / litros : 0,
+          sinPrecio: [...new Set(sinPrecio)],
+        };
+      }
+
+      function periodoTambo(tipo, ref = new Date()) {
+        const y = ref.getFullYear();
+        const m = String(ref.getMonth() + 1).padStart(2, "0");
+        if (tipo === "anio") return [y + "-01-01", y + "-12-31"];
+        return [y + "-" + m + "-01", y + "-" + m + "-" + String(new Date(y, ref.getMonth() + 1, 0).getDate()).padStart(2, "0")];
+      }
+
       function renderCostos() {
         const rows = state.costos || [];
+        const esc = (v) => escapeHtml(String(v ?? ""));
         byId("tbodyCostos").innerHTML = rows
           .map(
             (row) => `
         <tr>
-          <td>${row.fecha || ""}</td>
-          <td>${row.categoria || ""}</td>
-          <td>${row.concepto || ""}</td>
+          <td>${esc(row.fecha)}</td>
+          <td>${esc(row.categoria)}</td>
+          <td>${esc(row.concepto)}</td>
           <td>${formatMoney(row.monto)}</td>
-          <td>${row.proveedor || ""}</td>
-          <td>${row.comprobante || ""}</td>
+          <td>${esc(row.proveedor)}</td>
+          <td>${esc(row.comprobante)}</td>
           <td>${estadoPill(row.estado || "PENDIENTE")}</td>
           <td>
-            <button class="btn" onclick="editRow('costos','${row.id}')">Editar</button>
-            <button class="btn" onclick="deleteRow('costos','${row.id}')">Borrar</button>
+            <button class="btn" onclick="editRow('costos','${esc(row.id)}')">Editar</button>
+            <button class="btn" onclick="deleteRow('costos','${esc(row.id)}')">Borrar</button>
           </td>
         </tr>
       `,
           )
           .join("");
 
-        const now = new Date();
-        const y = now.getFullYear();
-        const m = now.getMonth();
-        const inCurrentMonth = (row) => {
-          const d = new Date(`${row.fecha || ""}T00:00:00`);
-          return (
-            !Number.isNaN(d.getTime()) &&
-            d.getFullYear() === y &&
-            d.getMonth() === m
-          );
-        };
-        const inCurrentYear = (row) => {
-          const d = new Date(`${row.fecha || ""}T00:00:00`);
-          return !Number.isNaN(d.getTime()) && d.getFullYear() === y;
-        };
-
-        const totalMes = rows
-          .filter(inCurrentMonth)
-          .reduce((acc, row) => acc + Number(row.monto || 0), 0);
-        const totalAnio = rows
-          .filter(inCurrentYear)
-          .reduce((acc, row) => acc + Number(row.monto || 0), 0);
-        const pendientes = rows.filter((row) =>
-          `${row.estado || ""}`.toUpperCase().includes("PEND"),
-        ).length;
-        const flujoFondos = -totalMes;
+        // Mismo total que Rentabilidad: todos los costos del período, cada uno una sola vez.
+        const mes = resultadoEconomicoTambo(...periodoTambo("mes"));
+        const anio = resultadoEconomicoTambo(...periodoTambo("anio"));
+        const pendientes = rows.filter((row) => normalizeSignal(row.estado || "PENDIENTE").includes("PEND"));
+        const aPagar = pendientes.reduce((acc, row) => acc + montoTambo(row.monto), 0);
+        const detalle = (r) =>
+          Object.entries(r.porOrigen)
+            .sort((a, b) => b[1] - a[1])
+            .map(([k, v]) => k + " " + formatMoney(v))
+            .join(" · ");
 
         byId("kpiCostosTotal").textContent = rows.length;
-        byId("kpiCostosMes").textContent = formatMoney(totalMes);
-        byId("kpiCostosAnio").textContent = formatMoney(totalAnio);
-        byId("kpiCostosPend").textContent = pendientes;
-        byId("kpiCostosFlujo").textContent = formatMoney(flujoFondos);
+        byId("kpiCostosMes").textContent = formatMoney(mes.totalCostos);
+        byId("kpiCostosAnio").textContent = formatMoney(anio.totalCostos);
+        byId("kpiCostosPend").textContent = pendientes.length;
+        byId("kpiCostosFlujo").textContent = formatMoney(aPagar);
+        const sub = (id, texto) => {
+          const el = byId(id)?.parentElement?.querySelector(".sub");
+          if (el) el.textContent = texto;
+        };
+        sub(
+          "kpiCostosMes",
+          (detalle(mes) || "Sin costos este mes") +
+            (mes.sinPrecio.length ? " · ⚠ consumos sin precio de compra: " + mes.sinPrecio.join(", ") : ""),
+        );
+        sub(
+          "kpiCostosAnio",
+          anio.litros > 0 ? "Costo por litro liquidado: " + formatMoney(anio.costoPorLitro) : "Acumulado anual (todas las fuentes)",
+        );
+        sub("kpiCostosPend", "Costos sin pagar: " + formatMoney(aPagar));
+        const etiqueta = byId("kpiCostosFlujo")?.parentElement?.querySelector(".label");
+        if (etiqueta) etiqueta.textContent = "A pagar";
+        sub("kpiCostosFlujo", "Costos cargados pendientes de pago");
       }
 
       function renderFinanzas() {
@@ -13917,53 +14494,18 @@
           ...chequesCubrirRows,
         ];
 
-        const ingresosMes = movimientosFinancieros
-          .filter(inCurrentMonth)
-          .reduce((acc, row) => {
-            const val = signedMoney(row?.tipo, row?.monto ?? row?.importe);
-            return acc + (val > 0 ? val : 0);
-          }, 0);
-        const egresosFinMes = movimientosFinancieros
-          .filter(inCurrentMonth)
-          .reduce((acc, row) => {
-            const val = signedMoney(row?.tipo, row?.monto ?? row?.importe);
-            return acc + (val < 0 ? Math.abs(val) : 0);
-          }, 0);
-        const egresosCostosMes =
-          costosRows
-            .filter(inCurrentMonth)
-            .reduce((acc, row) => acc + Number(row?.monto || 0), 0) +
-          costosOperativosRows
-            .filter(inCurrentMonth)
-            .reduce((acc, row) => acc + Number(row?.monto || 0), 0);
-        const egresosMes = egresosFinMes + egresosCostosMes;
+        // Resultado económico (devengado): mismo motor que Costos, sin contar dos veces una compra y
+        // su pago ni tomar créditos o cheques como ingresos/egresos.
+        const resMes = resultadoEconomicoTambo(...periodoTambo("mes"));
+        const resAnio = resultadoEconomicoTambo(...periodoTambo("anio"));
+        const ingresosMes = resMes.totalIngresos;
+        const egresosMes = resMes.totalCostos;
         const margenMes = ingresosMes - egresosMes;
-        const margenPctMes =
-          ingresosMes > 0 ? (margenMes / ingresosMes) * 100 : 0;
-
-        const ingresosAnio = movimientosFinancieros
-          .filter(inCurrentYear)
-          .reduce((acc, row) => {
-            const val = signedMoney(row?.tipo, row?.monto ?? row?.importe);
-            return acc + (val > 0 ? val : 0);
-          }, 0);
-        const egresosFinAnio = movimientosFinancieros
-          .filter(inCurrentYear)
-          .reduce((acc, row) => {
-            const val = signedMoney(row?.tipo, row?.monto ?? row?.importe);
-            return acc + (val < 0 ? Math.abs(val) : 0);
-          }, 0);
-        const egresosCostosAnio =
-          costosRows
-            .filter(inCurrentYear)
-            .reduce((acc, row) => acc + Number(row?.monto || 0), 0) +
-          costosOperativosRows
-            .filter(inCurrentYear)
-            .reduce((acc, row) => acc + Number(row?.monto || 0), 0);
-        const egresosAnio = egresosFinAnio + egresosCostosAnio;
+        const margenPctMes = ingresosMes > 0 ? (margenMes / ingresosMes) * 100 : 0;
+        const ingresosAnio = resAnio.totalIngresos;
+        const egresosAnio = resAnio.totalCostos;
         const margenAnio = ingresosAnio - egresosAnio;
-        const margenPctAnio =
-          ingresosAnio > 0 ? (margenAnio / ingresosAnio) * 100 : 0;
+        const margenPctAnio = ingresosAnio > 0 ? (margenAnio / ingresosAnio) * 100 : 0;
 
         byId("kpiRentIngresosMes").textContent = formatMoney(ingresosMes);
         byId("kpiRentEgresosMes").textContent = formatMoney(egresosMes);
@@ -13975,118 +14517,259 @@
         byId("kpiRentMargenPctAnio").textContent =
           `${margenPctAnio.toFixed(1)}%`;
 
-        const breakdown = byId("rentabilidadBreakdown");
-        if (breakdown) {
-          const rows = [
-            { label: "Egresos financieros", value: egresosFinMes },
-            {
-              label: "Costos generales",
-              value: costosRows
-                .filter(inCurrentMonth)
-                .reduce((acc, row) => acc + Number(row?.monto || 0), 0),
-            },
-            {
-              label: "Costos operativos",
-              value: costosOperativosRows
-                .filter(inCurrentMonth)
-                .reduce((acc, row) => acc + Number(row?.monto || 0), 0),
-            },
-          ];
-          const total = rows.reduce((acc, row) => acc + row.value, 0);
-          breakdown.innerHTML = rows
-            .map((row) => {
-              const pct = total > 0 ? (row.value / total) * 100 : 0;
-              return `<div class="finance-flow-row"><div class="finance-flow-head"><span>${row.label}</span><strong>${formatMoney(row.value)} (${pct.toFixed(1)}%)</strong></div><div class="finance-flow-track"><div class="finance-flow-fill egr" style="width:${Math.min(100, pct).toFixed(1)}%"></div></div></div>`;
+        const barras = (pares, total) =>
+          pares
+            .map(([label, value]) => {
+              const pct = total > 0 ? (value / total) * 100 : 0;
+              return `<div class="finance-flow-row"><div class="finance-flow-head"><span>${escapeHtml(label)}</span><strong>${formatMoney(value)} (${pct.toFixed(1)}%)</strong></div><div class="finance-flow-track"><div class="finance-flow-fill egr" style="width:${Math.min(100, pct).toFixed(1)}%"></div></div></div>`;
             })
             .join("");
+        const breakdown = byId("rentabilidadBreakdown");
+        if (breakdown) {
+          const pares = Object.entries(resMes.porOrigen).sort((a, b) => b[1] - a[1]);
+          breakdown.innerHTML = pares.length
+            ? barras(pares, resMes.totalCostos) +
+              `<div class="muted" style="margin-top:6px">Total ${formatMoney(resMes.totalCostos)} = Egresos del mes. Ingresos: ${
+                Object.entries(resMes.ingresosPorOrigen).map(([k, v]) => escapeHtml(k) + " " + formatMoney(v)).join(" · ") || "sin ingresos"
+              }${resMes.litros > 0 ? " · costo por litro " + formatMoney(resMes.costoPorLitro) : ""}</div>`
+            : '<div class="muted">Sin costos cargados este mes.</div>';
         }
 
-        renderRentabilidadCategorias({
-          costosRows,
-          costosOperativosRows,
-          inCurrentMonth,
-        });
+        renderRentabilidadCategorias(resMes);
       }
 
       // Reclasifica los costos reales del mes en Alimentación / Sanidad / Personal / Otros (sin datos inventados).
-      function renderRentabilidadCategorias({
-        costosRows,
-        costosOperativosRows,
-        inCurrentMonth,
-      }) {
+      function renderRentabilidadCategorias(resMes) {
         const contenedor = byId("rentabilidadCategorias");
         if (!contenedor) return;
-
-        const esAlimentacion = (texto) => /aliment/i.test(texto);
-        const esSanidad = (texto) =>
-          /sanidad|veterinari|medicaci[oó]n/i.test(texto);
-
-        let alimentacion = 0;
-        let sanidad = 0;
-        let otros = 0;
-
-        costosRows.filter(inCurrentMonth).forEach((row) => {
-          const monto = Number(row?.monto || 0);
-          const texto = `${row?.categoria || ""} ${row?.concepto || ""}`;
-          if (esAlimentacion(texto)) alimentacion += monto;
-          else if (esSanidad(texto)) sanidad += monto;
-          else otros += monto;
-        });
-
-        costosOperativosRows.filter(inCurrentMonth).forEach((row) => {
-          const monto = Number(row?.monto || 0);
-          const texto = `${row?.sector || ""} ${row?.actividad || ""} ${row?.concepto || ""}`;
-          if (esAlimentacion(texto)) alimentacion += monto;
-          else if (esSanidad(texto)) sanidad += monto;
-          else otros += monto;
-        });
-
-        (state.comprasInsumos || []).filter(inCurrentMonth).forEach((row) => {
-          const monto = Number(row?.total || 0);
-          const texto = `${row?.tipo || ""} ${row?.producto || ""}`;
-          if (esAlimentacion(texto)) alimentacion += monto;
-          else if (esSanidad(texto)) sanidad += monto;
-        });
-
-        // Nómina mensual estimada = misma fórmula que el KPI de RRHH (sueldo_base de empleados activos).
-        const personal = (state.empleados || [])
-          .filter((x) =>
-            `${x.estado || "ACTIVO"}`.toUpperCase().includes("ACTIVO"),
-          )
-          .reduce((acc, x) => acc + Number(x.sueldo_base || 0), 0);
-
-        const categorias = [
-          {
-            label: "🌾 Alimentación",
-            value: alimentacion,
-            clase: "cat-alimentacion",
-          },
-          {
-            label: "💉 Sanidad y control oficial",
-            value: sanidad,
-            clase: "cat-sanidad",
-          },
-          {
-            label: "🤠 Personal (nómina estimada)",
-            value: personal,
-            clase: "cat-personal",
-          },
-          { label: "📦 Otros costos", value: otros, clase: "cat-otros" },
-        ];
-        const total = categorias.reduce((acc, c) => acc + c.value, 0);
-
+        // Por rubro, con el mismo total que "Egresos del mes" (antes las compras de insumos se
+        // sumaban dos veces y el sueldo aparecía acá pero no en el margen).
+        const clases = {
+          Alimentación: ["🌾 Alimentación", "cat-alimentacion"],
+          Sanidad: ["💉 Sanidad y control oficial", "cat-sanidad"],
+          Personal: ["🤠 Personal (sueldo + SAC + cargas)", "cat-personal"],
+          "Tambero mediero": ["🥛 Tambero mediero", "cat-personal"],
+          Mantenimiento: ["🔧 Mantenimiento", "cat-otros"],
+          Amortizaciones: ["🏗️ Amortizaciones", "cat-otros"],
+          Otros: ["📦 Otros costos", "cat-otros"],
+        };
+        const total = resMes.totalCostos;
         if (total <= 0) {
           contenedor.innerHTML =
             '<div class="muted">Cargá costos, compras de insumos o empleados para ver la distribución real de gastos.</div>';
           return;
         }
-
-        contenedor.innerHTML = categorias
-          .map((c) => {
-            const pct = (c.value / total) * 100;
-            return `<div class="finance-flow-row"><div class="finance-flow-head"><span>${c.label}</span><strong>${formatMoney(c.value)} (${pct.toFixed(1)}%)</strong></div><div class="finance-flow-track"><div class="finance-flow-fill ${c.clase}" style="width:${Math.max(0, Math.min(100, pct)).toFixed(1)}%"></div></div></div>`;
+        contenedor.innerHTML = GRUPOS_COSTO_TAMBO.filter((g) => resMes.porGrupo[g])
+          .map((g) => {
+            const value = resMes.porGrupo[g];
+            const [label, clase] = clases[g];
+            const pct = (value / total) * 100;
+            return `<div class="finance-flow-row"><div class="finance-flow-head"><span>${label}</span><strong>${formatMoney(value)} (${pct.toFixed(1)}%)</strong></div><div class="finance-flow-track"><div class="finance-flow-fill ${clase}" style="width:${Math.max(0, Math.min(100, pct)).toFixed(1)}%"></div></div></div>`;
           })
           .join("");
+      }
+
+      // Posición de IVA de un mes como la DDJJ: débito (LUME calculadas + comprobantes de débito) −
+      // crédito (comprobantes de crédito, incluidos los de compras/gastos) − saldo a favor técnico de
+      // meses anteriores; después se descuentan las retenciones/percepciones de IVA sufridas (LUME
+      // y comprobantes) y lo que sobra pasa como saldo de libre disponibilidad.
+      function posicionIvaTambo(mesRef, anual = false) {
+        const hoy = new Date();
+        const mesActual = mesRef || `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}`;
+        const porMes = {};
+        const acumular = (fecha, campo, valor) => {
+          const mesFecha = fechaTambo(fecha).slice(0, 7);
+          const v = Number(valor || 0);
+          if (!/^\d{4}-\d{2}$/.test(mesFecha) || mesFecha > mesActual || !v) return;
+          const mes = anual ? mesFecha.slice(0, 4) : mesFecha;
+          porMes[mes] ||= { debito: 0, credito: 0, retIva: 0, retGanancias: 0 };
+          porMes[mes][campo] += v;
+        };
+        (state.liquidacionesLeche || []).forEach((l) => {
+          const r = l.resumen_fiscal || {};
+          acumular(l.fecha, "debito", r.iva_debito);
+          acumular(l.fecha, "retIva", r.retenciones?.iva_sisa);
+          acumular(l.fecha, "retGanancias", r.retenciones?.ganancias_sisa);
+        });
+        (state.comprobantesArca || []).forEach((c) => {
+          const tipo = normalizeSignal(c.tipo_fiscal);
+          if (tipo === "DEBITO_FISCAL") acumular(c.fecha, "debito", c.iva);
+          if (tipo === "CREDITO_FISCAL") acumular(c.fecha, "credito", c.iva);
+          acumular(c.fecha, "retIva", c.iva_retenido);
+          acumular(c.fecha, "retGanancias", c.ganancias_retenido);
+        });
+        let favorTecnico = 0;
+        let favorLibre = 0;
+        let resultado = null;
+        const periodoActual = anual ? mesActual.slice(0, 4) : mesActual;
+        const meses = Object.keys(porMes).sort();
+        if (!meses.includes(periodoActual)) meses.push(periodoActual);
+        meses.forEach((mes) => {
+          const d = porMes[mes] || { debito: 0, credito: 0, retIva: 0, retGanancias: 0 };
+          const favorTecnicoAnterior = favorTecnico;
+          const favorLibreAnterior = favorLibre;
+          let determinado = d.debito - d.credito - favorTecnico;
+          favorTecnico = determinado < 0 ? -determinado : 0;
+          determinado = Math.max(0, determinado);
+          let aPagar = determinado - d.retIva - favorLibre;
+          favorLibre = aPagar < 0 ? -aPagar : 0;
+          aPagar = Math.max(0, aPagar);
+          if (mes === periodoActual)
+            resultado = { mes, anual, ...d, favorTecnicoAnterior, favorLibreAnterior, determinado, aPagar, favorTecnico, favorLibre };
+        });
+        return resultado;
+      }
+
+      // Retenciones sufridas: LUME calculadas, ventas de hacienda y comprobantes cargados a mano con
+      // retención (los generados por una venta no se repiten). periodo: "mes" | "anio" | "todo".
+      function retencionesSufridasTambo(periodo = "mes") {
+        const hoy = new Date();
+        const mes = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}`;
+        const dentro = (f) => {
+          const d = fechaTambo(f);
+          if (periodo === "todo") return Boolean(d);
+          return periodo === "anio" ? d.slice(0, 4) === mes.slice(0, 4) : d.slice(0, 7) === mes;
+        };
+        const filas = [];
+        (state.liquidacionesLeche || []).forEach((l) => {
+          if (!dentro(l.fecha)) return;
+          const r = l.resumen_fiscal?.retenciones || {};
+          const avisos = [];
+          if (!l.resumen_fiscal) avisos.push("Sin \"Calcular fiscal\": retenciones sin calcular");
+          const difUsina = Number(l.diferencia_auditoria || 0);
+          if (l.neto_usina_declarado !== "" && l.neto_usina_declarado != null && Math.abs(difUsina) >= 1)
+            avisos.push(`Neto distinto al declarado por la usina (${formatMoney(difUsina)})`);
+          filas.push({
+            fecha: fechaTambo(l.fecha),
+            origen: "Liquidación de leche",
+            agente: l.usina || "",
+            comprobante: [l.numero_lume ? "LUME " + l.numero_lume : "", l.coe ? "COE " + l.coe : ""].filter(Boolean).join(" · "),
+            base: Number(l.neto || 0),
+            iva: Number(r.iva_sisa || 0),
+            ganancias: Number(r.ganancias_sisa || 0),
+            iibb: Number(r.iibb || 0),
+            certificado: String(l.certificado_f2005 || "").trim(),
+            avisos,
+          });
+        });
+        (state.ventasHacienda || []).forEach((v) => {
+          const iva = Number(v.iva_retenido || 0);
+          const ganancias = Number(v.ganancias_retenido || 0);
+          if (!dentro(v.fecha) || !(iva || ganancias)) return;
+          filas.push({
+            fecha: fechaTambo(v.fecha),
+            origen: "Venta de hacienda",
+            agente: v.destino_comprador || "",
+            comprobante: v.comprobante || "",
+            base: Number(v.importe || 0),
+            iva,
+            ganancias,
+            iibb: 0,
+            certificado: String(v.certificado_f2005 || "").trim(),
+            avisos: [],
+          });
+        });
+        (state.comprobantesArca || []).forEach((c) => {
+          if (c.origen_tipo === "Venta de hacienda") return;
+          const iva = Number(c.iva_retenido || 0);
+          const ganancias = Number(c.ganancias_retenido || 0);
+          if (!dentro(c.fecha) || !(iva || ganancias)) return;
+          filas.push({
+            fecha: fechaTambo(c.fecha),
+            origen: "Comprobante",
+            agente: c.razon_social || "",
+            comprobante: [c.tipo_comprobante, c.punto_venta, c.numero_comprobante].filter(Boolean).join(" "),
+            base: Number(c.neto || 0),
+            iva,
+            ganancias,
+            iibb: 0,
+            certificado: String(c.certificado_f2005 || "").trim(),
+            avisos: [],
+          });
+        });
+        filas.forEach((f) => {
+          if ((f.iva || f.ganancias) && !f.certificado) f.avisos.unshift("Falta el certificado F. 2005");
+        });
+        filas.sort((a, b) => a.fecha.localeCompare(b.fecha));
+        const total = (k) => filas.reduce((acc, f) => acc + f[k], 0);
+        return {
+          periodo,
+          filas,
+          totales: { base: total("base"), iva: total("iva"), ganancias: total("ganancias"), iibb: total("iibb") },
+          sinCertificado: filas.filter((f) => (f.iva || f.ganancias) && !f.certificado).length,
+        };
+      }
+
+      function renderReporteRetenciones() {
+        const tbody = byId("tbodyRetenciones");
+        if (!tbody) return;
+        const periodo = byId("retencionesPeriodo")?.value || "mes";
+        const rep = retencionesSufridasTambo(periodo);
+        const esc = (v) => escapeHtml(String(v ?? ""));
+        tbody.innerHTML = rep.filas.length
+          ? rep.filas
+              .map(
+                (f) => `<tr>
+          <td>${esc(f.fecha)}</td>
+          <td>${esc(f.origen)}</td>
+          <td>${esc(f.agente)}</td>
+          <td>${esc(f.comprobante)}</td>
+          <td>${formatMoney(f.base)}</td>
+          <td>${formatMoney(f.iva)}</td>
+          <td>${formatMoney(f.ganancias)}</td>
+          <td>${formatMoney(f.iibb)}</td>
+          <td>${f.certificado ? esc(f.certificado) : '<span class="pill warn">sin certificado</span>'}</td>
+          <td>${f.avisos.length ? f.avisos.map((a) => `<span class="pill warn">${esc(a)}</span>`).join(" ") : '<span class="pill ok">OK</span>'}</td>
+        </tr>`,
+              )
+              .join("") +
+            `<tr><td colspan="4"><strong>Total</strong></td><td><strong>${formatMoney(rep.totales.base)}</strong></td><td><strong>${formatMoney(rep.totales.iva)}</strong></td><td><strong>${formatMoney(rep.totales.ganancias)}</strong></td><td><strong>${formatMoney(rep.totales.iibb)}</strong></td><td colspan="2"></td></tr>`
+          : '<tr><td colspan="10" class="muted">Sin retenciones en el período.</td></tr>';
+        const resumen = byId("retencionesResumen");
+        if (resumen) {
+          const partes = [
+            `IVA ${formatMoney(rep.totales.iva)} (pago a cuenta del IVA)`,
+            `Ganancias ${formatMoney(rep.totales.ganancias)} (pago a cuenta de Ganancias)`,
+            rep.totales.iibb ? `IIBB ${formatMoney(rep.totales.iibb)}` : "",
+          ].filter(Boolean);
+          // En el mes, el total de IVA es el mismo que descuenta la posición de IVA.
+          const control =
+            periodo === "mes" && typeof posicionIvaTambo === "function"
+              ? Math.abs(posicionIvaTambo(null, false).retIva - rep.totales.iva) < 0.01
+                ? ' · <span class="pill ok">coincide con la posición de IVA del mes</span>'
+                : ' · <span class="pill warn">no coincide con la posición de IVA del mes</span>'
+              : "";
+          resumen.innerHTML =
+            partes.join(" · ") +
+            control +
+            (rep.sinCertificado ? ` · <span class="pill warn">${rep.sinCertificado} sin certificado F. 2005</span>` : "");
+        }
+      }
+
+      function descargarReporteRetenciones() {
+        const periodo = byId("retencionesPeriodo")?.value || "mes";
+        const rep = retencionesSufridasTambo(periodo);
+        const celda = (v) => {
+          const t = String(v ?? "");
+          return /[";\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t;
+        };
+        const num = (n) => (Math.round(Number(n || 0) * 100) / 100).toFixed(2).replace(".", ",");
+        const lineas = [
+          ["Fecha", "Origen", "Agente de retención", "Comprobante", "Base", "Ret. IVA", "Ret. Ganancias", "Ret. IIBB", "Certificado F. 2005", "Observaciones"],
+          ...rep.filas.map((f) => [f.fecha, f.origen, f.agente, f.comprobante, num(f.base), num(f.iva), num(f.ganancias), num(f.iibb), f.certificado, f.avisos.join(" | ")]),
+          ["Total", "", "", "", num(rep.totales.base), num(rep.totales.iva), num(rep.totales.ganancias), num(rep.totales.iibb), "", ""],
+        ];
+        const csv = "\ufeff" + lineas.map((l) => l.map(celda).join(";")).join("\r\n");
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `retenciones_sufridas_${periodo}_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        recordAudit("EXPORTACION", `Reporte de retenciones sufridas (${periodo})`);
       }
 
       function renderArca() {
@@ -14418,84 +15101,50 @@
         // Credito: IVA de comprobantes cargados como CREDITO_FISCAL (compras/insumos con factura real).
         // No se duplica con /fiscal/retenciones ni con comprobantesArca: calculateLume() posta el iva_debito
         // de cada LUME solo en el modelo de retenciones fiscales (lumeFiscalPosting.service.js), nunca en comprobantesArca.
+        const ivaAnual = Boolean(loadArcaSenasaConfig()?.arca?.ivaAnual);
+        const p = posicionIvaTambo(null, ivaAnual);
         const ivaDebitoLumeMes = liquidaciones
           .filter(inCurrentMonth)
-          .reduce(
-            (acc, row) => acc + Number(row?.resumen_fiscal?.iva_debito || 0),
-            0,
-          );
-        const ivaDebitoLumeAcum = liquidaciones.reduce(
-          (acc, row) => acc + Number(row?.resumen_fiscal?.iva_debito || 0),
-          0,
-        );
-        const ivaDebitoComprobantesMes = debitoFiscal
-          .filter(inCurrentMonth)
-          .reduce((acc, row) => acc + Number(row?.iva || 0), 0);
-        const ivaDebitoComprobantesAcum = debitoFiscal.reduce(
-          (acc, row) => acc + Number(row?.iva || 0),
-          0,
-        );
-        const ivaCreditoComprobantesMes = creditoFiscal
-          .filter(inCurrentMonth)
-          .reduce((acc, row) => acc + Number(row?.iva || 0), 0);
-        const ivaCreditoComprobantesAcum = creditoFiscal.reduce(
-          (acc, row) => acc + Number(row?.iva || 0),
-          0,
-        );
-
-        const ivaDebitoMesTotal = ivaDebitoLumeMes + ivaDebitoComprobantesMes;
-        const ivaDebitoAcumTotal =
-          ivaDebitoLumeAcum + ivaDebitoComprobantesAcum;
-        const ivaCreditoMesTotal = ivaCreditoComprobantesMes;
-        const ivaCreditoAcumTotal = ivaCreditoComprobantesAcum;
-        const saldoIvaMes =
-          Math.round((ivaDebitoMesTotal - ivaCreditoMesTotal) * 100) / 100;
-        const saldoIvaAcum =
-          Math.round((ivaDebitoAcumTotal - ivaCreditoAcumTotal) * 100) / 100;
-
+          .reduce((acc, row) => acc + Number(row?.resumen_fiscal?.iva_debito || 0), 0);
+        const lumeSinCalcular = liquidaciones.filter((row) => inCurrentMonth(row) && !row?.resumen_fiscal).length;
+        const noInscripto = ivaEsCostoTambo();
         if (byId("kpiIvaDebitoMes")) {
-          byId("kpiIvaDebitoMes").textContent = formatMoney(ivaDebitoMesTotal);
+          const ivaDebitoLumePeriodo = ivaAnual
+            ? liquidaciones.filter((row) => fechaTambo(row?.fecha).slice(0, 4) === p.mes).reduce((acc, row) => acc + Number(row?.resumen_fiscal?.iva_debito || 0), 0)
+            : ivaDebitoLumeMes;
+          byId("kpiIvaDebitoMes").textContent = formatMoney(p.debito);
           byId("kpiIvaDebitoMesSub").textContent =
-            `Comprobantes: ${formatMoney(ivaDebitoComprobantesMes)} · LUME: ${formatMoney(ivaDebitoLumeMes)}`;
+            (ivaAnual ? `Año ${p.mes} · ` : "") +
+            `Comprobantes: ${formatMoney(p.debito - ivaDebitoLumePeriodo)} · LUME: ${formatMoney(ivaDebitoLumePeriodo)}` +
+            (lumeSinCalcular ? ` · ⚠ ${lumeSinCalcular} LUME sin "Calcular fiscal": el débito está incompleto` : "");
         }
         if (byId("kpiIvaCreditoMes")) {
-          byId("kpiIvaCreditoMes").textContent =
-            formatMoney(ivaCreditoMesTotal);
+          byId("kpiIvaCreditoMes").textContent = formatMoney(p.credito);
+          if (byId("kpiIvaCreditoMesSub"))
+            byId("kpiIvaCreditoMesSub").textContent = "Comprobantes de crédito (incluye compras y gastos con IVA)";
         }
         if (byId("kpiIvaSaldoMes")) {
-          byId("kpiIvaSaldoMes").textContent = formatMoney(
-            Math.abs(saldoIvaMes),
-          );
-          byId("kpiIvaSaldoMes").style.color =
-            saldoIvaMes > 0
-              ? "var(--red, #dc2626)"
-              : saldoIvaMes < 0
-                ? "var(--green, #16a34a)"
-                : "";
-          byId("kpiIvaSaldoMesSub").textContent =
-            saldoIvaMes > 0
-              ? "A pagar (débito > crédito)"
-              : saldoIvaMes < 0
-                ? "A favor (crédito > débito)"
-                : "Sin saldo";
+          byId("kpiIvaSaldoMes").textContent = p.aPagar > 0 ? `${formatMoney(p.aPagar)} (a pagar)` : `${formatMoney(p.favorTecnico + p.favorLibre)} (a favor)`;
+          byId("kpiIvaSaldoMes").style.color = p.aPagar > 0 ? "var(--red, #dc2626)" : "var(--green, #16a34a)";
+          byId("kpiIvaSaldoMesSub").textContent = [
+            ivaAnual ? `Opción anual · año ${p.mes} (se paga al vencimiento anual):` : "",
+            `Débito ${formatMoney(p.debito)} − crédito ${formatMoney(p.credito)}`,
+            p.favorTecnicoAnterior ? `− a favor anterior ${formatMoney(p.favorTecnicoAnterior)}` : "",
+            p.retIva || p.favorLibreAnterior ? `− ret./perc. IVA ${formatMoney(p.retIva + p.favorLibreAnterior)}` : "",
+            noInscripto ? `· ${condicionIvaTambo() === "MONOTRIBUTO" ? "Monotributo" : "Exento"}: no liquida IVA (solo informativo)` : "",
+          ]
+            .filter(Boolean)
+            .join(" ");
         }
         if (byId("kpiIvaSaldoAcum")) {
-          byId("kpiIvaSaldoAcum").textContent = formatMoney(
-            Math.abs(saldoIvaAcum),
-          );
-          byId("kpiIvaSaldoAcum").style.color =
-            saldoIvaAcum > 0
-              ? "var(--red, #dc2626)"
-              : saldoIvaAcum < 0
-                ? "var(--green, #16a34a)"
-                : "";
+          byId("kpiIvaSaldoAcum").textContent = formatMoney(p.favorTecnico + p.favorLibre);
+          byId("kpiIvaSaldoAcum").style.color = p.favorTecnico + p.favorLibre > 0 ? "var(--green, #16a34a)" : "";
           byId("kpiIvaSaldoAcumSub").textContent =
-            saldoIvaAcum > 0
-              ? "Posición deudora acumulada"
-              : saldoIvaAcum < 0
-                ? "Crédito acumulado a favor"
-                : "Sin saldo";
+            `Técnico ${formatMoney(p.favorTecnico)} · libre disponibilidad (retenciones) ${formatMoney(p.favorLibre)}` +
+            (p.retGanancias ? ` · Ret. Ganancias del mes ${formatMoney(p.retGanancias)} (pago a cuenta de Ganancias)` : "");
         }
+
+        renderReporteRetenciones();
 
         const flow = byId("arcaResumenFlow");
         if (flow) {
@@ -14786,10 +15435,13 @@
           `${x.estado || "ACTIVO"}`.toUpperCase().includes("ACTIVO"),
         ).length;
         const nomina = empleados
-          .filter((x) =>
-            `${x.estado || "ACTIVO"}`.toUpperCase().includes("ACTIVO"),
-          )
-          .reduce((acc, x) => acc + Number(x.sueldo_base || 0), 0);
+          .filter((x) => {
+            const estado = normalizeSignal(x.estado || "ACTIVO");
+            return estado.includes("ACTIVO") && !estado.includes("INACTIVO");
+          })
+          .reduce((acc, x) => acc + costoMensualEmpleadoTambo(montoTambo(x.sueldo_base)), 0);
+        const inputCargas = byId("cargasSocialesPctInput");
+        if (inputCargas && document.activeElement !== inputCargas) inputCargas.value = cargasSocialesPct();
 
         byId("kpiRrhhEmpleados").textContent = activos;
         byId("kpiRrhhPresentes").textContent = presentes;
@@ -15810,13 +16462,47 @@
           }
         });
 
+        // Retiro de carne vigente (no enviar a faena).
+        (state.sanidad || []).forEach((row) => {
+          const retiroCarne = Number(row.dias_retiro_carne || 0);
+          const fechaCarne = parseRecordDate(row.fecha);
+          if (!(retiroCarne > 0) || !fechaCarne) return;
+          const fin = new Date(fechaCarne);
+          fin.setDate(fin.getDate() + retiroCarne);
+          const dias = Math.ceil((fin - startDay) / msPerDay);
+          if (dias >= 0)
+            alerts.push({
+              level: "warn",
+              title: "Carencia de carne",
+              detail: `${row.vaca || "Sin animal"} · ${row.producto || row.tipo || "Tratamiento"} · no enviar a faena por ${dias} día(s)`,
+            });
+        });
+
+        const renspa = renspaEstadoTambo();
+        const cfgSenasa = loadArcaSenasaConfig()?.senasa || {};
+        if (!cfgSenasa.renspa && (state.animales || []).length)
+          alerts.push({ level: "warn", title: "RENSPA sin cargar", detail: "Cargalo en Configuración ARCA/SENASA: lo exigen el DT-e y la LUME." });
+        else if (renspa?.estado === "VENCIDO")
+          alerts.push({ level: "bad", title: "RENSPA vencido", detail: `Venció hace ${Math.abs(renspa.dias)} día(s) · sin RENSPA vigente no se emiten DT-e` });
+        else if (renspa?.estado === "POR_VENCER")
+          alerts.push({ level: "warn", title: "RENSPA por vencer", detail: `Faltan ${renspa.dias} día(s) para renovarlo` });
+
         const doesStatus = computeDoesStatus();
         [
           { key: "tuberculosis", label: "Tuberculosis (PPD)" },
           { key: "brucelosis", label: "Brucelosis (DOES)" },
         ].forEach(({ key, label }) => {
           const estadoDoes = doesStatus[key];
-          if (!estadoDoes.ultima) return;
+          if (!estadoDoes.ultima) {
+            // Un tambo con animales sin ningún control anual cargado no puede acreditar su estatus.
+            if ((state.animales || []).length)
+              alerts.push({
+                level: "warn",
+                title: "Control anual sin registrar",
+                detail: `${label} · no hay ningún registro: cargalo en Sanidad (tipo ${key === "tuberculosis" ? "TUBERCULINA_PPD" : "BRUCELOSIS_DOES"}) para acreditar el estatus de Tambo Libre`,
+              });
+            return;
+          }
           if (estadoDoes.estado === "VENCIDO") {
             alerts.push({
               level: "bad",
@@ -17128,6 +17814,52 @@
         return items.filter((x) => `${x?.id || ""}` !== target);
       }
 
+      // Condición frente al IVA del productor (Configuración ARCA). Si no es Responsable Inscripto,
+      // el IVA de las compras es costo y no genera crédito fiscal.
+      function condicionIvaTambo() {
+        try {
+          return loadArcaSenasaConfig()?.arca?.condicionIva || "RESPONSABLE_INSCRIPTO";
+        } catch {
+          return "RESPONSABLE_INSCRIPTO";
+        }
+      }
+      function ivaEsCostoTambo() {
+        return condicionIvaTambo() !== "RESPONSABLE_INSCRIPTO";
+      }
+
+      // Compra, gasto o venta de hacienda con IVA: su comprobante de crédito/débito fiscal se crea,
+      // actualiza o borra solo (un solo lugar de carga). Sin IVA no genera comprobante.
+      function syncComprobanteAutoTambo(row, previousRow, datos) {
+        const previoId = row.auto_comprobante_id || previousRow?.auto_comprobante_id || "";
+        const iva = Number(datos.iva || 0);
+        if (!(iva > 0)) {
+          if (previoId) state.comprobantesArca = removeById(state.comprobantesArca, previoId);
+          delete row.auto_comprobante_id;
+          return;
+        }
+        const id = previoId || makeAutoId();
+        const neto = Number(datos.neto || 0);
+        state.comprobantesArca = upsertById(state.comprobantesArca, {
+          id,
+          fecha: row.fecha || new Date().toISOString().slice(0, 10),
+          tipo_comprobante: "Factura",
+          tipo_fiscal: datos.tipoFiscal,
+          numero_comprobante: datos.numero || "",
+          razon_social: datos.contraparte || "",
+          concepto: datos.concepto || "",
+          neto,
+          iva,
+          total: Math.round((neto + iva) * 100) / 100,
+          iva_retenido: Number(datos.ivaRetenido || 0),
+          ganancias_retenido: Number(datos.gananciasRetenido || 0),
+          estado: "REGISTRADO",
+          origen_tipo: datos.origenTipo,
+          origen_id: row.id || "",
+          observaciones: "Generado automáticamente desde " + datos.origenTipo,
+        });
+        row.auto_comprobante_id = id;
+      }
+
       function syncArcaLinkedRows(type, currentRow, previousRow = null) {
         if (!currentRow || !type) return;
         const todayIso = new Date().toISOString().slice(0, 10);
@@ -17152,6 +17884,16 @@
               0,
           );
           const estadoPago = normalizeSignal(currentRow.pagado);
+          const ivaCompra = Number(currentRow.iva || 0);
+          syncComprobanteAutoTambo(currentRow, previousRow, {
+            tipoFiscal: "CREDITO_FISCAL",
+            neto: monto,
+            iva: ivaEsCostoTambo() ? 0 : ivaCompra,
+            numero: currentRow.factura,
+            contraparte: currentRow.proveedor,
+            concepto: `Compra: ${currentRow.producto || currentRow.tipo || "insumos"}`,
+            origenTipo: "Compras de insumos",
+          });
           const costoPayload = {
             id: costoId,
             fecha: currentRow.fecha || todayIso,
@@ -17159,7 +17901,7 @@
               ? `Compra ${currentRow.tipo}`
               : "Compra de insumos",
             concepto: currentRow.producto || "Compra de insumos",
-            monto,
+            monto: monto + (ivaEsCostoTambo() ? ivaCompra : 0),
             proveedor: currentRow.proveedor || "",
             comprobante: currentRow.factura || "",
             estado:
@@ -17177,16 +17919,19 @@
           // buscando por nombre de producto y creando el insumo si todavia no existe.
           if (normalizeSignal(currentRow.tipo) === "MEDICAMENTOS") {
             const nombreProducto = `${currentRow.producto || ""}`.trim();
-            const cantidadComprada = Number(currentRow.cantidad || 0);
-            if (nombreProducto && cantidadComprada > 0) {
+            const previaMismoProducto =
+              previousRow &&
+              normalizeSignal(previousRow.tipo) === "MEDICAMENTOS" &&
+              `${previousRow.producto || ""}`.trim().toLowerCase() === nombreProducto.toLowerCase();
+            const cantidadComprada = Number(currentRow.cantidad || 0) - (previaMismoProducto ? Number(previousRow.cantidad || 0) : 0);
+            if (nombreProducto && cantidadComprada !== 0) {
               const existente = (state.insumosSanidad || []).find(
                 (row) =>
                   `${row?.producto || ""}`.trim().toLowerCase() ===
                   nombreProducto.toLowerCase(),
               );
               if (existente) {
-                existente.stock =
-                  Number(existente.stock || 0) + cantidadComprada;
+                existente.stock = Math.max(0, Number(existente.stock || 0) + cantidadComprada);
                 if (currentRow.unidad && !existente.unidad)
                   existente.unidad = currentRow.unidad;
                 if (currentRow.vencimiento)
@@ -17195,7 +17940,7 @@
                   state.insumosSanidad,
                   existente,
                 );
-              } else {
+              } else if (cantidadComprada > 0) {
                 state.insumosSanidad = upsertById(state.insumosSanidad, {
                   id: makeAutoId(),
                   producto: nombreProducto,
@@ -17210,13 +17955,47 @@
             }
           }
 
+          // Alimento comprado: suma stock en Alimentos (una edición mueve solo la diferencia). El
+          // costo no se imputa al comprar sino al consumir (cantidad × último precio de compra).
+          {
+            const antes = previousRow && esCompraAlimentoTambo(previousRow) ? previousRow : null;
+            const ahora = esCompraAlimentoTambo(currentRow) ? currentRow : null;
+            if (antes) moverStockAlimentoTambo(antes.producto, -cantidadEnUnidadDelAlimento(antes));
+            if (ahora) {
+              let alimento = alimentoPorNombreTambo(ahora.producto);
+              if (!alimento && `${ahora.producto || ""}`.trim()) {
+                alimento = {
+                  id: makeAutoId(),
+                  nombre: `${ahora.producto}`.trim(),
+                  tipo: ahora.tipo || "Alimento",
+                  stock: 0,
+                  unidad: ahora.unidad || "kg",
+                };
+                state.alimentos = [alimento, ...(state.alimentos || [])];
+                const localId = alimento.id;
+                request(endpointMap.alimentos || "/alimentos", { method: "POST", body: JSON.stringify({ ...alimento, id: undefined }) })
+                  .then((creado) => {
+                    if (creado?.id) {
+                      alimento.id = creado.id;
+                      request(`${endpointMap.alimentos || "/alimentos"}/${creado.id}`, { method: "PUT", body: JSON.stringify({ stock: alimento.stock }) }).catch(() => {});
+                    }
+                  })
+                  .catch(() => {
+                    alimento.id = localId;
+                  });
+              }
+              moverStockAlimentoTambo(ahora.producto, cantidadEnUnidadDelAlimento(ahora));
+            }
+          }
+
           // Caja/Finanzas segun el medio y el estado de pago (mismo criterio que Cobros y Pagos):
           // pago en Efectivo -> Caja; otro medio -> Finanzas; sin pago (NO) -> sin movimiento todavia.
           const medioNorm = normalizeSignal(currentRow.medio_pago);
           const useCaja = medioNorm === "EFECTIVO";
           const hayPago = estadoPago === "SI" || estadoPago === "PARCIAL";
 
-          if (hayPago && monto > 0) {
+          const montoPago = monto + ivaCompra;
+          if (hayPago && montoPago > 0) {
             if (useCaja) {
               const cajaAutoId =
                 currentRow.auto_caja_id || prevCajaId || makeAutoId();
@@ -17225,7 +18004,7 @@
                 fecha: currentRow.fecha || todayIso,
                 tipo: "EGRESO",
                 concepto: currentRow.producto || "Compra de insumos",
-                monto,
+                monto: montoPago,
                 medio: currentRow.medio_pago || "Efectivo",
                 estado: estadoPago === "SI" ? "PAGADO" : "PARCIAL",
                 comprobante: currentRow.factura || "",
@@ -17246,7 +18025,7 @@
                 tipo: "EGRESO",
                 categoria: "Compra de insumos",
                 concepto: currentRow.producto || "Compra de insumos",
-                monto,
+                monto: montoPago,
                 medio_pago: currentRow.medio_pago || "Transferencia",
                 estado: estadoPago === "SI" ? "PAGADO" : "PARCIAL",
                 referencia:
@@ -17273,12 +18052,22 @@
             currentRow.auto_costo_id || prevCostoId || makeAutoId();
           const monto = Number(currentRow.importe || 0);
           const estadoPago = normalizeSignal(currentRow.pagado);
+          const ivaGasto = Number(currentRow.iva || 0);
+          syncComprobanteAutoTambo(currentRow, previousRow, {
+            tipoFiscal: "CREDITO_FISCAL",
+            neto: monto,
+            iva: ivaEsCostoTambo() ? 0 : ivaGasto,
+            numero: currentRow.comprobante,
+            contraparte: currentRow.proveedor,
+            concepto: currentRow.concepto || "Gasto",
+            origenTipo: "Gastos",
+          });
           const costoPayload = {
             id: costoId,
             fecha: currentRow.fecha || todayIso,
             categoria: currentRow.categoria || "Gastos",
             concepto: currentRow.concepto || "Gasto ARCA",
-            monto,
+            monto: monto + (ivaEsCostoTambo() ? ivaGasto : 0),
             proveedor: currentRow.proveedor || "",
             comprobante: currentRow.comprobante || "",
             estado:
@@ -17325,7 +18114,21 @@
         }
 
         if (type === "ventasHacienda") {
-          const importe = Number(currentRow.importe || 0);
+          const neto = Number(currentRow.importe || 0);
+          const ivaVenta = Number(currentRow.iva || 0);
+          syncComprobanteAutoTambo(currentRow, previousRow, {
+            tipoFiscal: "DEBITO_FISCAL",
+            neto,
+            iva: ivaVenta,
+            ivaRetenido: currentRow.iva_retenido,
+            gananciasRetenido: currentRow.ganancias_retenido,
+            numero: currentRow.comprobante,
+            contraparte: currentRow.destino_comprador,
+            concepto: `Venta de hacienda ${currentRow.categoria || ""} ${currentRow.caravana || ""}`.trim(),
+            origenTipo: "Venta de hacienda",
+          });
+          const importe =
+            neto + ivaVenta - Number(currentRow.iva_retenido || 0) - Number(currentRow.ganancias_retenido || 0);
           const finId = currentRow.auto_finanza_id || prevFinId;
           if (importe > 0) {
             const finanzaId = finId || makeAutoId();
@@ -17429,12 +18232,16 @@
 
       function removeArcaLinkedRows(type, row) {
         if (!row || !type) return;
+        if (type === "comprasInsumos" && esCompraAlimentoTambo(row))
+          moverStockAlimentoTambo(row.producto, -cantidadEnUnidadDelAlimento(row));
         if (row.auto_costo_id)
           state.costos = removeById(state.costos, row.auto_costo_id);
         if (row.auto_finanza_id)
           state.finanzas = removeById(state.finanzas, row.auto_finanza_id);
         if (row.auto_caja_id)
           state.caja = removeById(state.caja, row.auto_caja_id);
+        if (row.auto_comprobante_id)
+          state.comprobantesArca = removeById(state.comprobantesArca, row.auto_comprobante_id);
       }
 
       function normalizeExpenseSnapshot(type, row = {}) {
@@ -17539,6 +18346,19 @@
         return null;
       }
 
+      // Suma (delta > 0) o descuenta (delta < 0) stock de un alimento y lo guarda en el servidor si hay.
+      function moverStockAlimentoTambo(nombre, delta) {
+        const alimento = alimentoPorNombreTambo(nombre);
+        if (!alimento || !delta) return alimento;
+        alimento.stock = Math.round((Number(alimento.stock || 0) + delta) * 1000) / 1000;
+        if (alimento.id)
+          request(`${endpointMap.alimentos || "/alimentos"}/${alimento.id}`, {
+            method: "PUT",
+            body: JSON.stringify({ stock: alimento.stock }),
+          }).catch(() => {});
+        return alimento;
+      }
+
       async function saveCurrent(event) {
         event.preventDefault();
         if (isSavingEditor) return;
@@ -17639,6 +18459,29 @@
               const d = `${celoDate.getDate()}`.padStart(2, "0");
               payload.proximo_celo_esperado = `${y}-${m}-${d}`;
             }
+          }
+        }
+
+        if (type === "ventasHacienda") {
+          const carne = getRetiroCarneActivo(payload.caravana);
+          const aFaena = /FAENA|FRIGOR|MATADERO|CONSUMO/.test(normalizeSignal(`${payload.motivo || ""} ${payload.destino_comprador || ""}`));
+          if (carne && aFaena) {
+            alert(
+              `⛔ Carencia de carne activa: ${payload.caravana} fue tratado con ${carne.producto} y le faltan ${carne.diasRestantes} día(s). SENASA no permite enviarlo a faena hasta que termine el retiro.`,
+            );
+            return;
+          }
+          const avisos = [];
+          if (carne) avisos.push(`${payload.caravana} tiene carencia de carne por ${carne.diasRestantes} día(s) más (${carne.producto}).`);
+          const aftosa = computeAftosaCampana();
+          if (aftosa.configurada && aftosa.general.estado === "VENCIDO" && aftosa.general.pendientes > 0)
+            avisos.push(`La campaña de aftosa venció con ${aftosa.general.pendientes} animal(es) sin registrar: SENASA puede bloquear el DT-e.`);
+          const renspa = renspaEstadoTambo();
+          if (!loadArcaSenasaConfig()?.senasa?.renspa) avisos.push("No hay RENSPA cargado en Configuración ARCA/SENASA: el DT-e lo exige.");
+          else if (renspa?.estado === "VENCIDO") avisos.push("El RENSPA está vencido: el DT-e no se puede emitir.");
+          if (avisos.length) {
+            const seguir = await askConfirmAction({ title: "Controles SENASA", message: avisos.join("\n") + "\n\n¿Registrar la venta igual?" });
+            if (!seguir) return;
           }
         }
 
@@ -17902,6 +18745,34 @@
             if (getDropdownFieldKeys(type).length) {
               syncDropdownCatalogFromPayload(type, payload);
             }
+            renderAll();
+            closeModal();
+            return;
+          }
+
+          if (type === "consumosAlimento") {
+            const previo = id ? (state.consumosAlimento || []).find((x) => `${x.id}` === `${id}`) : null;
+            const alimento = alimentoPorNombreTambo(payload.alimento);
+            const cantidad = Number(payload.cantidad || 0);
+            if (!alimento) throw new Error("Elegí un alimento cargado en el inventario de alimentos.");
+            if (!(cantidad > 0)) throw new Error("La cantidad consumida tiene que ser mayor a cero.");
+            const disponible =
+              Number(alimento.stock || 0) +
+              (previo && normalizeSignal(previo.alimento) === normalizeSignal(alimento.nombre) ? Number(previo.cantidad || 0) : 0);
+            if (cantidad > disponible) {
+              const seguir = await askConfirmAction({
+                title: "Stock insuficiente",
+                message: `${alimento.nombre}: hay ${disponible} ${alimento.unidad || "kg"} y se consumen ${cantidad}. El stock quedará en negativo hasta que cargues la compra. ¿Guardar igual?`,
+              });
+              if (!seguir) return;
+            }
+            if (previo) moverStockAlimentoTambo(previo.alimento, Number(previo.cantidad || 0));
+            moverStockAlimentoTambo(alimento.nombre, -cantidad);
+            const next = { ...payload, alimento: alimento.nombre, cantidad, id: id || makeAutoId() };
+            state.consumosAlimento = upsertById(state.consumosAlimento, next);
+            saveConsumosAlimentoLocal();
+            saveOfflineSnapshot();
+            recordAudit(id ? "EDICION" : "ALTA", `consumo de alimento ${alimento.nombre}`);
             renderAll();
             closeModal();
             return;
@@ -18278,6 +19149,17 @@
             return;
           }
 
+          if (type === "consumosAlimento") {
+            const previo = (state.consumosAlimento || []).find((row) => `${row.id}` === `${id}`);
+            if (previo) moverStockAlimentoTambo(previo.alimento, Number(previo.cantidad || 0));
+            state.consumosAlimento = removeById(state.consumosAlimento, id);
+            saveConsumosAlimentoLocal();
+            saveOfflineSnapshot();
+            recordAudit("BAJA", `consumo de alimento #${id}`);
+            renderAll();
+            return;
+          }
+
           if (type === "recria") {
             state.recria = (state.recria || []).filter(
               (row) => `${row.id}` !== `${id}`,
@@ -18490,6 +19372,9 @@
       );
       byId("btnNuevoAlimento").addEventListener("click", () =>
         openModal("alimentos"),
+      );
+      byId("btnNuevoConsumoAlimento")?.addEventListener("click", () =>
+        openModal("consumosAlimento"),
       );
       byId("btnNuevoSilo")?.addEventListener("click", () => openModal("silos"));
       byId("movTipo")?.addEventListener("change", toggleCamposMovimientoSilo);
@@ -19313,7 +20198,7 @@
         }
       };
     </script>
-    <script src="pampaia-source.js?v=pampaia-published-6"></script>
+    <script src="pampaia-source.js?v=pampaia-published-7"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () =>

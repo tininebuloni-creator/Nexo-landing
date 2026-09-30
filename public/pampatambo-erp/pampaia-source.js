@@ -114,7 +114,7 @@
       const saldo = sum(data.caja, ['importe']) + sum(data.bancos, ['importe']);
       rows.push(['ok', 'Caja y bancos registrados: ' + money(saldo)]);
       rows.push(['warn', 'Por cobrar: ' + money(sum(data.cobrar, ['importe'])) + ' · Por pagar: ' + money(sum(data.pagar, ['importe']))]);
-      rows.push(['warn', 'Costos registrados: ' + money(sum(data.costos, ['importe', 'costo', 'monto']))]);
+      if (typeof resultadoEconomicoTambo === 'function' && typeof periodoTambo === 'function') { const r = resultadoEconomicoTambo(...periodoTambo('anio')); rows.push(['warn', 'Costos del año (todas las fuentes, sin duplicar): ' + money(r.totalCostos) + ' · ingresos ' + money(r.totalIngresos) + ' · resultado ' + money(r.resultado)]); } else rows.push(['warn', 'Costos registrados: ' + money(sum(data.costos, ['importe', 'costo', 'monto']))]);
       answer.innerHTML = '<strong>Análisis financiero</strong><br>Revisá saldos, compromisos y costos antes de tomar decisiones.';
     } else if (type === 'operacion') {
       rows.push(['ok', 'Campos: ' + data.campos.length + ' · Lotes: ' + data.lotes.length + ' · Hacienda: ' + data.hacienda.length]);
