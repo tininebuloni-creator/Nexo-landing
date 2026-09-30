@@ -5549,6 +5549,27 @@
         return Array.from(new Set(bases));
       })();
       let apiBaseCache = API_BASE_CANDIDATES[0];
+      // Con servidor (escritorio o servidor propio) o en modo local (web, sin servidor: todo queda
+      // en este navegador). null = todavía sin detectar.
+      let apiDisponible = null;
+      async function detectarApiTambo() {
+        for (const base of API_BASE_CANDIDATES) {
+          try {
+            const res = await fetch(`${base}/health`, { cache: "no-store" });
+            if (!res.ok || !/json/i.test(res.headers.get("content-type") || "")) continue;
+            const datos = await res.json();
+            if (datos?.module === "tambo") {
+              apiBaseCache = base;
+              return true;
+            }
+          } catch {
+            /* sin servidor en esta dirección */
+          }
+        }
+        return false;
+      }
+      // Reglas de retención con las que arranca el modo local (las mismas del servidor).
+      const REGLAS_RETENCION_DEFECTO = [{"id":"1","regimen":"IVA_LECHE_ALICUOTA","condicion":"GENERAL","jurisdiccion":"NACIONAL","alicuota_pct":21,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG (AFIP) 1428/2003 (texto actualizado) y Ley de IVA: la venta de leche fluida sin procesar del tambo a la industria está gravada al 21%; la industria/intermediario retiene 1% a Responsables Inscriptos en situación regular y 12,70% a no categorizados o con irregularidades. Confirmado por el productor el 30/9/2026.","estado":"VALIDADA","observaciones":"Venta de leche cruda tambo → industria: alícuota general 21% (antes figuraba 10,5%, que es de granos)."},{"id":"2","regimen":"IVA_LECHE_RETENCION","condicion":"SISA_1","jurisdiccion":"NACIONAL","alicuota_pct":1,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG (AFIP) 1428/2003 (texto actualizado) y Ley de IVA: la venta de leche fluida sin procesar del tambo a la industria está gravada al 21%; la industria/intermediario retiene 1% a Responsables Inscriptos en situación regular y 12,70% a no categorizados o con irregularidades. Confirmado por el productor el 30/9/2026.","estado":"VALIDADA","observaciones":"Categoría 1: Responsable Inscripto en situación regular → retención 1%."},{"id":"3","regimen":"IVA_LECHE_RETENCION","condicion":"SISA_2","jurisdiccion":"NACIONAL","alicuota_pct":12.7,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG (AFIP) 1428/2003 (texto actualizado) y Ley de IVA: la venta de leche fluida sin procesar del tambo a la industria está gravada al 21%; la industria/intermediario retiene 1% a Responsables Inscriptos en situación regular y 12,70% a no categorizados o con irregularidades. Confirmado por el productor el 30/9/2026.","estado":"VALIDADA","observaciones":"Categoría 2: no categorizado → retención 12,70% (antes 1%)."},{"id":"4","regimen":"IVA_LECHE_RETENCION","condicion":"SISA_3","jurisdiccion":"NACIONAL","alicuota_pct":12.7,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG (AFIP) 1428/2003 (texto actualizado) y Ley de IVA: la venta de leche fluida sin procesar del tambo a la industria está gravada al 21%; la industria/intermediario retiene 1% a Responsables Inscriptos en situación regular y 12,70% a no categorizados o con irregularidades. Confirmado por el productor el 30/9/2026.","estado":"VALIDADA","observaciones":"Categoría 3: irregularidades → retención 12,70% (RG 1428 no tiene una tercera categoría distinta)."},{"id":"5","regimen":"IVA_LECHE_RETENCION","condicion":"SISA_INACTIVO","jurisdiccion":"NACIONAL","alicuota_pct":12.7,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG (AFIP) 1428/2003 (texto actualizado) y Ley de IVA: la venta de leche fluida sin procesar del tambo a la industria está gravada al 21%; la industria/intermediario retiene 1% a Responsables Inscriptos en situación regular y 12,70% a no categorizados o con irregularidades. Confirmado por el productor el 30/9/2026.","estado":"VALIDADA","observaciones":"Inactivo / no categorizado o con irregularidades → retención 12,70%."},{"id":"6","regimen":"GANANCIAS_LECHE_RETENCION","condicion":"SISA_1","jurisdiccion":"NACIONAL","alicuota_pct":0,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG 1428 (ARCA) — retención de Ganancias que practica la usina al pagar la LUME, según estado SISA; % vigente confirmado por administración","estado":"VALIDADA","observaciones":"SISA Estado 1"},{"id":"7","regimen":"GANANCIAS_LECHE_RETENCION","condicion":"SISA_2","jurisdiccion":"NACIONAL","alicuota_pct":2,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG 1428 (ARCA) — retención de Ganancias que practica la usina al pagar la LUME, según estado SISA; % vigente confirmado por administración","estado":"VALIDADA","observaciones":"SISA Estado 2"},{"id":"8","regimen":"GANANCIAS_LECHE_RETENCION","condicion":"SISA_3","jurisdiccion":"NACIONAL","alicuota_pct":4,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG 1428 (ARCA) — retención de Ganancias que practica la usina al pagar la LUME, según estado SISA; % vigente confirmado por administración","estado":"VALIDADA","observaciones":"SISA Estado 3"},{"id":"9","regimen":"GANANCIAS_LECHE_RETENCION","condicion":"SISA_INACTIVO","jurisdiccion":"NACIONAL","alicuota_pct":15,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG 1428 (ARCA) — retención de Ganancias que practica la usina al pagar la LUME, según estado SISA; % vigente confirmado por administración","estado":"VALIDADA","observaciones":"SISA inactivo o no catalogado"},{"id":"10","regimen":"IVA_LECHE_RETENCION","condicion":"SISA_MONOTRIBUTO","jurisdiccion":"NACIONAL","alicuota_pct":0,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG 1428 (ARCA) — retención de IVA que practica la usina al pagar la LUME, según estado SISA; % vigente confirmado por administración","estado":"VALIDADA","observaciones":"Productor monotributista: no sufre retención de IVA"},{"id":"11","regimen":"GANANCIAS_LECHE_RETENCION","condicion":"SISA_MONOTRIBUTO","jurisdiccion":"NACIONAL","alicuota_pct":0,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG 1428 (ARCA) — retención de Ganancias que practica la usina al pagar la LUME, según estado SISA; % vigente confirmado por administración","estado":"VALIDADA","observaciones":"Productor monotributista: no sufre retención de Ganancias"},{"id":"12","regimen":"IIBB_LECHE_RETENCION","condicion":"GENERAL","jurisdiccion":"BUENOS AIRES","alicuota_pct":1.75,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"ARBA — SIN VERIFICAR. El rango habitual citado es 1,75% a 2,50% según coeficiente/categoría de riesgo del contribuyente en ARBA; cargué el extremo más bajo como punto de partida.","estado":"BORRADOR","observaciones":"PENDIENTE: confirmar con tu contador tu categoría/coeficiente actual en ARBA antes de pasar a Validada."},{"id":"13","regimen":"IIBB_LECHE_RETENCION","condicion":"GENERAL","jurisdiccion":"SANTA FE","alicuota_pct":0,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"API Santa Fe — SIN VERIFICAR. Santa Fe NO usa una alícuota fija: publica un padrón mensual (PARP) con un % específico por CUIT, que puede ir de 0% a 4,50% según conducta fiscal.","estado":"BORRADOR","observaciones":"PENDIENTE: no se puede cargar un valor fijo correcto acá. Tenés que consultar tu % en el padrón PARP de API Santa Fe cada mes y actualizar este valor (o dejarlo en 0 si tu padrón te da 0%)."},{"id":"14","regimen":"IIBB_LECHE_RETENCION","condicion":"GENERAL","jurisdiccion":"CORDOBA","alicuota_pct":1.5,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"Rentas Córdoba — SIN VERIFICAR (el sitio oficial estaba caído al momento de chequear). Se cita 0% (exento) si el productor cumple requisitos de inscripción/Buenas Prácticas, o 1,5% si no.","estado":"BORRADOR","observaciones":"PENDIENTE: confirmar con tu contador si tu tambo califica para la exención (0%) antes de pasar a Validada."}];
       const modules = [
         "empresa",
         "dashboard",
@@ -10968,6 +10989,7 @@
       }
 
       function enqueueSyncOperation(op) {
+        if (apiDisponible === false) return;
         const queue = loadSyncQueue();
         const item = {
           id:
@@ -11052,7 +11074,9 @@
         }
         if (byId("connStatusLine")) {
           const targetLabel =
-            target === "cloud"
+            apiDisponible === false
+              ? "Este navegador (modo local, sin servidor)"
+              : target === "cloud"
               ? "Servidor propio"
               : target === "personal"
                 ? "Drive/Dropbox/OneDrive"
@@ -11105,6 +11129,16 @@
 
         if (!navigator.onLine) {
           renderConnectivityStatus("Sin internet para sincronizar");
+          return;
+        }
+
+        if (apiDisponible === true) {
+          const ok = await replicarEnServidorTambo();
+          if (ok) {
+            saveSyncQueue([]);
+            localStorage.setItem(LAST_SYNC_KEY, new Date().toISOString());
+          }
+          renderConnectivityStatus(ok ? "Sincronización completa" : "Quedaron pendientes");
           return;
         }
 
@@ -12073,6 +12107,8 @@
       }
 
       async function request(path, options = {}) {
+        if (apiDisponible === false)
+          throw new Error("No se pudo conectar con el servidor: modo local, los datos se guardan en este equipo.");
         const method = `${options.method || "GET"}`.toUpperCase();
         const baseHeaders = { ...(options.headers || {}) };
         if (
@@ -12095,6 +12131,12 @@
               method,
               headers: baseHeaders,
             });
+
+            if (res.status !== 204 && !/json/i.test(res.headers.get("content-type") || "")) {
+              lastNetworkError = new Error("La respuesta no es del servidor de Tambo");
+              loadDataHadConnectivityError = true;
+              continue;
+            }
 
             if (!res.ok) {
               const payload = await res
@@ -12133,9 +12175,160 @@
         );
       }
 
+      // Colecciones que solo guarda el equipo (el servidor las recibe por sincronización).
+      const COLECCIONES_LOCALES_TAMBO = {
+        toros: [() => loadTorosLocal(), () => saveTorosLocal()],
+        guachera: [() => loadGuacheraLocal(), () => saveGuacheraLocal()],
+        recria: [() => loadRecriaLocal(), () => saveRecriaLocal()],
+        mantenimiento: [() => loadMantenimientoLocal(), () => saveMantenimientoLocal()],
+        consumosAlimento: [() => loadConsumosAlimentoLocal(), () => saveConsumosAlimentoLocal()],
+      };
+
+      function cargarModoLocalTambo() {
+        const snap = getOfflineSnapshot();
+        const arcaLocal = loadArcaLocalState();
+        const preferir = (a, b) => (Array.isArray(a) && a.length ? a : Array.isArray(b) ? b : []);
+        OFFLINE_COLLECTIONS.forEach((k) => {
+          state[k] = Array.isArray(snap[k]) ? snap[k] : [];
+        });
+        Object.keys(arcaLocal).forEach((k) => {
+          state[k] = preferir(arcaLocal[k], state[k]);
+        });
+        Object.entries(COLECCIONES_LOCALES_TAMBO).forEach(([k, [cargar]]) => {
+          state[k] = preferir(cargar(), state[k]);
+        });
+        if (!(state.reglasRetencion || []).length) state.reglasRetencion = REGLAS_RETENCION_DEFECTO.map((r) => ({ ...r }));
+        saveArcaLocalState();
+        saveOfflineSnapshot();
+        renderConnectivityStatus("Modo local: los datos se guardan en este navegador");
+        renderAll();
+      }
+
+      // Con servidor: lo que el equipo tiene y el servidor todavía no (registros creados acá, con id
+      // propio) se conserva en vez de perderse al recargar, y se replica.
+      function fusionarExtrasLocalesTambo(snapshotPrevio, arcaLocal) {
+        const esIdServidor = (id) => /^\d+$/.test(String(id));
+        const extras = new Set();
+        const claves = new Set([...OFFLINE_COLLECTIONS, ...Object.keys(arcaLocal || {})]);
+        claves.forEach((k) => {
+          if (COLECCIONES_LOCALES_TAMBO[k]) return;
+          const servidor = Array.isArray(state[k]) ? state[k] : [];
+          const local = (Array.isArray(arcaLocal?.[k]) && arcaLocal[k].length ? arcaLocal[k] : snapshotPrevio?.[k]) || [];
+          const ids = new Set(servidor.map((r) => String(r?.id)));
+          const faltan = local.filter((r) => r && r.id != null && !ids.has(String(r.id)) && !esIdServidor(r.id));
+          faltan.forEach((r) => extras.add(`${k}|${r.id}`));
+          if (faltan.length) state[k] = [...faltan, ...servidor];
+        });
+        return extras;
+      }
+
+      async function traerDelServidorTambo(k) {
+        const tabla = tablaServidorTambo(k);
+        if (!tabla) return [];
+        try {
+          const raiz = String(apiBaseCache).replace(/\/tambo\/?$/, "");
+          const res = await fetch(`${raiz}/sync/pull/${tabla}`, { cache: "no-store" });
+          const filas = res.ok ? await res.json() : [];
+          return Array.isArray(filas) ? filas : [];
+        } catch {
+          return [];
+        }
+      }
+
+      // ── Réplica al servidor: lo que cambió en el equipo se manda con su mismo id ───────────
+      const REPLICA_KEY = "tambo_replica_hashes";
+      let replicaTimer = null;
+      let replicando = false;
+      function tablaServidorTambo(k) {
+        const tabla = String(endpointMap[k] || `/${k}`).replace(/^\//, "");
+        return /^[a-zA-Z0-9-]+$/.test(tabla) ? tabla : null;
+      }
+      function coleccionesReplicablesTambo() {
+        return [...new Set([...OFFLINE_COLLECTIONS, "preciosMercadoLeche", "muestrasCalidadLeche"])].filter(tablaServidorTambo);
+      }
+      function hashFilaTambo(fila) {
+        const texto = JSON.stringify(fila);
+        let h = 0;
+        for (let i = 0; i < texto.length; i++) h = (h * 31 + texto.charCodeAt(i)) | 0;
+        return String(h);
+      }
+      function hashesActualesTambo(excluir = new Set()) {
+        const out = {};
+        coleccionesReplicablesTambo().forEach((k) => {
+          const m = {};
+          (state[k] || []).forEach((fila) => {
+            if (fila?.id == null || excluir.has(`${k}|${fila.id}`)) return;
+            m[String(fila.id)] = hashFilaTambo(fila);
+          });
+          out[k] = m;
+        });
+        return out;
+      }
+      function leerReplicaTambo() {
+        try {
+          return JSON.parse(localStorage.getItem(REPLICA_KEY) || "{}") || {};
+        } catch {
+          return {};
+        }
+      }
+      function guardarReplicaTambo(m) {
+        try {
+          localStorage.setItem(REPLICA_KEY, JSON.stringify(m));
+        } catch {
+          /* sin almacenamiento */
+        }
+      }
+      function operacionesPendientesTambo() {
+        const previo = leerReplicaTambo();
+        const actual = hashesActualesTambo();
+        const ahora = new Date().toISOString();
+        const ops = [];
+        Object.keys(actual).forEach((k) => {
+          const tabla = tablaServidorTambo(k);
+          const anterior = previo[k] || {};
+          const filas = new Map((state[k] || []).map((f) => [String(f?.id), f]));
+          Object.entries(actual[k]).forEach(([id, h]) => {
+            if (anterior[id] !== h) ops.push({ id: makeAutoId(), action: "UPSERT", table: tabla, data: { ...filas.get(id), id }, timestamp: ahora });
+          });
+          Object.keys(anterior).forEach((id) => {
+            if (!(id in actual[k])) ops.push({ id: makeAutoId(), action: "DELETE", table: tabla, data: { id }, timestamp: ahora });
+          });
+        });
+        return { ops, actual };
+      }
+      async function replicarEnServidorTambo() {
+        if (apiDisponible !== true || replicando) return true;
+        const { ops, actual } = operacionesPendientesTambo();
+        if (!ops.length) return true;
+        replicando = true;
+        try {
+          const raiz = String(apiBaseCache).replace(/\/tambo\/?$/, "");
+          const deviceId = window.PampaCoreSync?.getDeviceId?.("pampatambo") || "pampatambo";
+          const res = await fetch(`${raiz}/sync/push`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ deviceId, operations: ops }),
+          });
+          const r = await res.json().catch(() => ({}));
+          if (!res.ok || (r.rejected || []).length) return false;
+          guardarReplicaTambo(actual);
+          localStorage.setItem(LAST_SYNC_KEY, new Date().toISOString());
+          return true;
+        } catch {
+          return false;
+        } finally {
+          replicando = false;
+        }
+      }
+
       async function loadData() {
         loadDataHadApiSuccess = false;
         loadDataHadConnectivityError = false;
+        if (apiDisponible === null) apiDisponible = await detectarApiTambo();
+        if (!apiDisponible) return cargarModoLocalTambo();
+        // Antes de pedir al servidor se suben los cambios del equipo que falten.
+        await replicarEnServidorTambo();
+        const snapshotPrevio = getOfflineSnapshot();
         const arcaLocal = loadArcaLocalState();
         const [
           campos,
@@ -12286,6 +12479,20 @@
         state.silos = silos;
         state.siloMovimientos = siloMovimientos;
         state.consumosAlimento = loadConsumosAlimentoLocal();
+        // Lo que solo guarda el equipo: si acá está vacío (se borró el navegador o cambió el
+        // puerto), se recupera de la copia del servidor.
+        for (const [k, [, guardar]] of Object.entries(COLECCIONES_LOCALES_TAMBO)) {
+          if ((state[k] || []).length) continue;
+          const filas = await traerDelServidorTambo(k);
+          if (filas.length) {
+            state[k] = filas;
+            guardar();
+          }
+        }
+        const extrasLocales = fusionarExtrasLocalesTambo(snapshotPrevio, arcaLocal);
+        guardarReplicaTambo(hashesActualesTambo(extrasLocales));
+        if (!replicaTimer) replicaTimer = setInterval(replicarEnServidorTambo, 5000);
+        setTimeout(replicarEnServidorTambo, 0);
         saveArcaLocalState();
         saveOfflineSnapshot();
         renderConnectivityStatus();
@@ -15291,6 +15498,49 @@
         }
       }
 
+      // Mismo cálculo que el servidor (services/fiscalRules.service.js), con las reglas del equipo.
+      function calcularLumeLocalTambo(liquidacion, { estadoSisa, provinciaCompradora, porcentajeTambero = 0, tipoInscripcionTambero = "SIN_DECLARAR" }) {
+        const fecha = String(liquidacion.fecha || new Date().toISOString()).slice(0, 10);
+        const vigente = (r) =>
+          r.estado === "VALIDADA" && (!r.vigencia_desde || r.vigencia_desde <= fecha) && (!r.vigencia_hasta || r.vigencia_hasta >= fecha);
+        const retencion = ({ regimen, condicion, jurisdiccion = "NACIONAL", base }) => {
+          const regla = (state.reglasRetencion || []).find(
+            (r) => r.regimen === regimen && r.condicion === condicion && r.jurisdiccion === jurisdiccion && vigente(r),
+          );
+          if (!regla) return { found: false, amount: 0, rule: null };
+          const imponible = Math.max(0, Number(base || 0) - Number(regla.minimo_no_imponible || 0));
+          return { found: true, amount: Math.round(imponible * Number(regla.alicuota_pct || 0) * 100) / 10000, rule: regla };
+        };
+        const base = Number(liquidacion.neto || 0);
+        const condicion = `SISA_${String(estadoSisa || "").toUpperCase()}`;
+        const ivaDebito = retencion({ regimen: "IVA_LECHE_ALICUOTA", condicion: "GENERAL", base });
+        const iva = retencion({ regimen: "IVA_LECHE_RETENCION", condicion, base });
+        const ganancias = retencion({ regimen: "GANANCIAS_LECHE_RETENCION", condicion, base });
+        if (!ivaDebito.found || !iva.found || !ganancias.found)
+          throw new Error(`Falta una regla VALIDADA y vigente para IVA_LECHE_ALICUOTA, IVA_LECHE_RETENCION o GANANCIAS_LECHE_RETENCION para ${condicion}.`);
+        const tipoInscripcion = String(tipoInscripcionTambero || "SIN_DECLARAR").trim().toUpperCase();
+        const iibb = provinciaCompradora
+          ? retencion({ regimen: "IIBB_LECHE_RETENCION", condicion: "GENERAL", jurisdiccion: String(provinciaCompradora).toUpperCase(), base })
+          : { found: false, amount: 0, rule: null };
+        const porcentaje = Number(porcentajeTambero || 0);
+        const brutoTambero = Math.round(base * porcentaje) / 100;
+        const sussOmitido = tipoInscripcion === "MONOTRIBUTO";
+        const suss = porcentaje > 0 && !sussOmitido
+          ? retencion({ regimen: "SUSS_TAMBERO_ASOCIADO", condicion: "GENERAL", base: brutoTambero })
+          : { found: false, amount: 0, rule: null };
+        return {
+          calculado_en: new Date().toISOString(),
+          calculado_local: true,
+          base_neto: base,
+          estado_sisa: estadoSisa,
+          iva_debito: ivaDebito.amount,
+          retenciones: { iva_sisa: iva.amount, ganancias_sisa: ganancias.amount, iibb: iibb.amount, suss_tambero: suss.amount },
+          mederia: { porcentaje_tambero: porcentaje, bruto_tambero: brutoTambero, tipo_inscripcion_tambero: tipoInscripcion, suss_omitido_por_monotributo: sussOmitido, neto_tambero: Math.max(0, brutoTambero - suss.amount) },
+          neto_estimado_tambo: Math.round((base + ivaDebito.amount - iva.amount - ganancias.amount - iibb.amount - brutoTambero) * 100) / 100,
+          reglas_aplicadas: [ivaDebito.rule, iva.rule, ganancias.rule, iibb.rule, suss.rule].filter(Boolean).map((r) => ({ id: r.id, regimen: r.regimen, condicion: r.condicion, jurisdiccion: r.jurisdiccion, alicuota_pct: Number(r.alicuota_pct || 0) })),
+        };
+      }
+
       async function calcularRetencionesLiquidacionLeche(id) {
         const liquidacion = (state.liquidacionesLeche || []).find(
           (row) => `${row.id}` === `${id}`,
@@ -15302,6 +15552,24 @@
             "Cargá el Estado SISA al editar la liquidación antes de calcular.",
             "error",
           );
+        if (apiDisponible === false) {
+          try {
+            const resumen = calcularLumeLocalTambo(liquidacion, {
+              estadoSisa: liquidacion.estado_sisa,
+              provinciaCompradora: liquidacion.provincia_compradora,
+              porcentajeTambero: liquidacion.porcentaje_tambero,
+              tipoInscripcionTambero: liquidacion.tipo_inscripcion_tambero,
+            });
+            liquidacion.resumen_fiscal = resumen;
+            saveArcaLocalState();
+            saveOfflineSnapshot();
+            renderAll();
+            showToast(`Fiscal calculado en este equipo. Neto banco: ${formatMoney(resumen.neto_estimado_tambo)}.`);
+          } catch (error) {
+            showToast(`${error.message} Cargala en ARCA → Reglas de retención.`, "error");
+          }
+          return;
+        }
         try {
           const resultado = await request(
             `/fiscal/lel/${encodeURIComponent(id)}/calcular-retenciones`,
@@ -18978,6 +19246,16 @@
 
           // Reglas de retención fiscal (motor de "Calcular fiscal"): también en el servidor, porque
           // fiscalRules.service.js las lee ahí mismo al calcular las retenciones de cualquier LUME.
+          if (type === "reglasRetencion" && apiDisponible === false) {
+            const next = { ...payload, id: id || makeAutoId(), updated_at: new Date().toISOString() };
+            state.reglasRetencion = upsertById(state.reglasRetencion, next);
+            saveArcaLocalState();
+            recordAudit(id ? "EDICION" : "ALTA", "reglasRetencion (local)");
+            renderAll();
+            closeModal();
+            return;
+          }
+
           if (type === "reglasRetencion") {
             const endpoint = endpointMap[type] || "/fiscal/reglas-retencion";
             try {
