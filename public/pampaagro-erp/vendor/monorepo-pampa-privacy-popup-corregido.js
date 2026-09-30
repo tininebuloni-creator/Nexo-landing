@@ -3,7 +3,7 @@
 
   const appName = (document.title.split('|')[0] || 'Pampa ERP').trim();
   const noticeId = 'pampa-local-data-notice';
-  const storageKey = `pampa-local-data-notice-${appName}-2026-09-01`;
+  const storageKey = `pampa-local-data-notice-${appName}-2026-09-30`;
 
   function showNotice() {
     if (document.getElementById(noticeId) || localStorage.getItem(storageKey)) return;
@@ -26,12 +26,12 @@
     const notice = document.createElement('aside');
     notice.id = noticeId;
     notice.setAttribute('role', 'dialog');
-    notice.setAttribute('aria-label', 'Aviso sobre datos de la demo');
+    notice.setAttribute('aria-label', 'Aviso sobre privacidad de tus datos');
     notice.innerHTML = `
       <div class="pampa-local-data-card">
         <div>
-          <strong>Datos de la demo</strong>
-          <p>Los datos cargados aqui no se guardan. Tus datos quedan en tu campo y bajo tu control.</p>
+          <strong>Tus datos, bajo tu control</strong>
+          <p>Lo que cargás queda guardado en tu equipo. Nadie más tiene acceso a tus datos: no se envían a nuestros servidores.</p>
         </div>
         <button type="button" aria-label="Cerrar aviso">Entendido</button>
       </div>
