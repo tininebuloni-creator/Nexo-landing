@@ -11944,6 +11944,9 @@
               required: true,
               min: 0,
             },
+            { name: "iva", label: "IVA de la venta ($, aparte del importe: débito fiscal)", type: "number" },
+            { name: "ivaRetenido", label: "Retención / percepción de IVA sufrida ($)", type: "number" },
+            { name: "gananciasRetenido", label: "Retención de Ganancias sufrida ($)", type: "number" },
             {
               name: "cartaPorteNumero",
               label: "Carta de Porte",
@@ -12163,6 +12166,8 @@
               type: "number",
               required: true,
             },
+            { name: "iva", label: "IVA de la factura de compra ($, opcional: genera crédito fiscal)", type: "number" },
+            { name: "nroComprobante", label: "N° de factura de compra", type: "text" },
             {
               name: "motivo",
               label: "Motivo",
@@ -12587,6 +12592,7 @@
             { name: "detalle", label: "Detalle", type: "text" },
             { name: "destino", label: "Destino/Origen", type: "text" },
             { name: "valor", label: "Valor ($)", type: "text" },
+            { name: "iva", label: "IVA incluido en el valor ($, compras con factura: crédito fiscal)", type: "number" },
           ],
         },
         animalesTrazabilidad: {
@@ -12935,6 +12941,8 @@
               type: "text",
               required: true,
             },
+            { name: "iva", label: "IVA incluido en el importe ($, opcional: si es un gasto con factura, genera crédito fiscal)", type: "number" },
+            { name: "nroComprobante", label: "N° de factura (si cargás IVA)", type: "text" },
             {
               name: "categoria",
               label: "Categoría",
@@ -22629,6 +22637,14 @@
         );
       }
 
+      // El IVA de una factura es costo solo si el productor no es Responsable Inscripto (no lo recupera).
+      function ivaEsCostoAgro() {
+        const c = String(state.empresa?.condicionIva || "").trim();
+        return Boolean(c) && !/responsable\s+inscripto/i.test(c);
+      }
+      const importeSinIva = (item, importe) =>
+        ivaEsCostoAgro() ? parseMonto(importe || 0) : parseMonto(importe || 0) - (parseMonto(item?.iva || 0) || 0);
+
       function obtenerCostosGanaderos() {
         const grupos = {};
         const agregar = (
@@ -22694,7 +22710,7 @@
           )
             agregar(
               item.concepto || "Egreso ganadero",
-              item.importe,
+              importeSinIva(item, item.importe),
               "Caja",
               item,
               item.iva ?? item.ivaImporte,
@@ -22707,7 +22723,7 @@
               item.tipo === "Compra"
                 ? "Compra de hacienda"
                 : "Sanidad ganadera",
-              item.valor,
+              importeSinIva(item, item.valor),
               "Hacienda",
               item,
               item.iva ?? item.ivaImporte,
@@ -23034,197 +23050,246 @@
         return filas;
       }
 
+      // Cada comprobante con IVA se cuenta una sola vez y en su mes. Antes:
+      // - el IVA de la venta de hacienda entraba como débito Y como crédito (se anulaba solo);
+      // - el consumo de alimento sumaba como crédito el IVA del producto en cada ración;
+      // - un costo ganadero sin "ganad/aliment..." en el nombre se contaba dos veces;
+      // - la retención de Ganancias se restaba del IVA (solo se descuenta la retención de IVA);
+      // - el neto era de toda la historia, sin mes ni saldo a favor arrastrado.
+      function movimientosDeIva() {
+        const movs = [];
+        const n = (v) => parseMonto(v ?? 0) || 0;
+        const agregar = (m) => {
+          if (m.iva || m.retIva || m.retGanancias || m.otrasRet) movs.push(m);
+        };
+        (state.lpgEmitidasLocal || []).forEach((item) => {
+          const l = item.liquidacion || {};
+          const ivaL = typeof l.iva === "object" && l.iva ? l.iva : { ivaOperacion: l.iva };
+          const retGanancias = n(l.ganancias?.retencionGanancias);
+          const retIva = ivaL.retencionIva != null ? n(ivaL.retencionIva) : Math.max(0, n(l.totalRetenciones) - retGanancias);
+          agregar({
+            fecha: item.fecha || item.creadoEn,
+            tipo: "LPG",
+            lado: "debito",
+            comprobante: item.numeroComprobante || item.cae || "—",
+            iva: n(ivaL.ivaOperacion),
+            retIva,
+            retGanancias,
+            otrasRet: 0,
+            neto: n(l.netoACobrar),
+            origen: item.estadoSisa ? "Granos · SISA " + item.estadoSisa : "Granos",
+          });
+        });
+        (state.ventasHacienda || []).forEach((venta) => {
+          const l = venta.liquidacion || {};
+          const retIva = n(l.iva?.retencionIva ?? venta.ivaRetenido);
+          const retGanancias = n(l.ganancias?.retencionGanancias ?? venta.gananciasRetenido);
+          const total = n(l.totalRetenciones ?? venta.retenciones ?? venta.retencion);
+          agregar({
+            fecha: venta.fecha,
+            tipo: "Venta hacienda",
+            lado: "debito",
+            comprobante: venta.cartaPorteNumero || venta.caravana || "—",
+            iva: n(l.iva?.ivaOperacion ?? venta.iva ?? venta.ivaImporte),
+            retIva,
+            retGanancias,
+            otrasRet: Math.max(0, total - retIva - retGanancias),
+            neto: n(venta.valor ?? venta.importe),
+            origen: "Ganadería",
+          });
+        });
+        // Compras: Costos (agrícolas, ganaderos y mixtos, una sola vez), Costos operativos,
+        // compras de hacienda / sanidad y egresos de caja que no pagan un costo ya cargado.
+        (state.costos || []).forEach((item) =>
+          agregar({
+            fecha: item.fecha,
+            tipo: item.actividad === "Ganadera" ? "Costo ganadero" : "Costo",
+            lado: "credito",
+            comprobante: item.nroComprobante || item.concepto || item.categoria || "—",
+            iva: n(item.iva ?? item.ivaImporte),
+            retIva: 0,
+            retGanancias: 0,
+            otrasRet: n(item.retenciones ?? item.retencion),
+            neto: n(item.monto ?? item.importe ?? item.costo),
+            origen: "Costos",
+          }),
+        );
+        (state.costosOperativos || []).forEach((item) =>
+          agregar({
+            fecha: item.fecha,
+            tipo: "Mantenimiento",
+            lado: "credito",
+            comprobante: item.nroComprobante || item.tipoCosto || item.descripcion || "—",
+            iva: n(item.iva),
+            retIva: 0,
+            retGanancias: 0,
+            otrasRet: 0,
+            neto: n(item.costo),
+            origen: "Costos Operativos",
+          }),
+        );
+        (state.hacienda || []).forEach((item) => {
+          if (!["Compra", "Vacunación"].includes(item.tipo)) return;
+          agregar({
+            fecha: item.fecha,
+            tipo: item.tipo === "Compra" ? "Compra de hacienda" : "Sanidad ganadera",
+            lado: "credito",
+            comprobante: item.nroComprobante || item.caravana || item.categoria || "—",
+            iva: n(item.iva ?? item.ivaImporte),
+            retIva: 0,
+            retGanancias: 0,
+            otrasRet: n(item.retenciones ?? item.retencion),
+            neto: n(item.valor),
+            origen: "Hacienda",
+          });
+        });
+        (state.movimientoStock || []).forEach((item) => {
+          if (item.tipo !== "Entrada") return;
+          const producto = (state.inventario || []).find((p) => p.codigo === item.producto);
+          agregar({
+            fecha: item.fecha,
+            tipo: "Compra de insumos",
+            lado: "credito",
+            comprobante: item.nroComprobante || (producto?.producto || item.producto || "—"),
+            iva: n(item.iva),
+            retIva: 0,
+            retGanancias: 0,
+            otrasRet: 0,
+            neto: n(item.cantidad) * n(producto?.costoUnit ?? producto?.precioUnitario),
+            origen: "Stock",
+          });
+        });
+        (state.caja || []).forEach((item) => {
+          if (item.tipo !== "Egreso" || item.pagoDeCostoRegistrado === "Sí") return;
+          agregar({
+            fecha: item.fecha,
+            tipo: "Egreso de caja",
+            lado: "credito",
+            comprobante: item.concepto || "—",
+            iva: n(item.iva ?? item.ivaImporte),
+            retIva: 0,
+            retGanancias: 0,
+            otrasRet: 0,
+            neto: n(item.importe),
+            origen: "Caja",
+          });
+        });
+        return movs;
+      }
+
+      function mesDeFechaIva(f) {
+        const t = String(f || "").trim();
+        const dmy = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+        return dmy ? dmy[3] + "-" + dmy[2].padStart(2, "0") : t.slice(0, 7);
+      }
+
+      // Posición de IVA del mes como en la DDJJ: el saldo técnico a favor (más crédito que débito)
+      // y las retenciones de IVA que sobran (libre disponibilidad) pasan a los meses siguientes.
+      function posicionIva(mesRef, movs = movimientosDeIva()) {
+        const hoy = new Date();
+        const mesActual = mesRef || hoy.getFullYear() + "-" + String(hoy.getMonth() + 1).padStart(2, "0");
+        const porMes = {};
+        movs.forEach((m) => {
+          const mes = mesDeFechaIva(m.fecha);
+          if (!/^\d{4}-\d{2}$/.test(mes) || mes > mesActual) return;
+          porMes[mes] ||= { debito: 0, credito: 0, retIva: 0, retGanancias: 0, otrasRet: 0 };
+          porMes[mes][m.lado] += m.iva;
+          porMes[mes].retIva += m.retIva;
+          porMes[mes].retGanancias += m.retGanancias;
+          porMes[mes].otrasRet += m.otrasRet;
+        });
+        let favorTecnico = 0;
+        let favorLibre = 0;
+        let resultado = null;
+        const meses = Object.keys(porMes).sort();
+        if (!meses.includes(mesActual)) meses.push(mesActual);
+        meses.forEach((mes) => {
+          const x = porMes[mes] || { debito: 0, credito: 0, retIva: 0, retGanancias: 0, otrasRet: 0 };
+          const favorTecnicoAnterior = favorTecnico;
+          const favorLibreAnterior = favorLibre;
+          let determinado = x.debito - x.credito - favorTecnico;
+          favorTecnico = determinado < 0 ? -determinado : 0;
+          determinado = Math.max(0, determinado);
+          let aPagar = determinado - x.retIva - favorLibre;
+          favorLibre = aPagar < 0 ? -aPagar : 0;
+          aPagar = Math.max(0, aPagar);
+          if (mes === mesActual)
+            resultado = { mes, ...x, favorTecnicoAnterior, favorLibreAnterior, determinado, aPagar, favorTecnico, favorLibre };
+        });
+        return resultado;
+      }
+
       function actualizarResumenImpuestos() {
         const fmt = (monto) => "$" + Math.round(monto).toLocaleString("es-AR");
-        const lpg = Array.isArray(state.lpgEmitidasLocal)
-          ? state.lpgEmitidasLocal
-          : [];
-        const caja = Array.isArray(state.caja) ? state.caja : [];
-        const costosGanaderos = obtenerCostosGanaderos();
-
-        let debitoFiscal = 0;
-        let creditoFiscal = 0;
-        let retenciones = 0;
-        let netoFiscal = 0;
-        const filas = [];
-
-        lpg.forEach((item) => {
-          const liquidacion = item.liquidacion || {};
-          const iva = Number(
-            liquidacion.iva?.ivaOperacion ?? liquidacion.iva ?? 0,
-          );
-          const ret = Number(
-            liquidacion.totalRetenciones ??
-              liquidacion.ganancias?.retencionGanancias ??
-              0,
-          );
-          const neto = Number(liquidacion.netoACobrar ?? 0);
-          debitoFiscal += iva;
-          retenciones += ret;
-          netoFiscal += neto;
-          filas.push({
-            tipo: "LPG",
-            comprobante: item.numeroComprobante || item.cae || "—",
-            iva,
-            retenciones: ret,
-            neto,
-            origen: item.estadoSisa || "Granos",
-          });
-        });
-
-        costosGanaderos.forEach((item) => {
-          creditoFiscal += item.iva;
-          retenciones += item.retenciones;
-          if (item.iva || item.retenciones)
-            filas.push({
-              tipo: "Costo ganadero",
-              comprobante: item.concepto,
-              iva: item.iva,
-              retenciones: item.retenciones,
-              neto: item.costo,
-              origen: item.origen,
-            });
-        });
-
-        // Crédito fiscal agrícola: costos NO ganaderos con IVA/retenciones cargados (alquileres, fletes, cosecha a
-        // porcentaje, etc.). Se excluyen los que ya cuenta obtenerCostosGanaderos() para no duplicarlos.
-        // Alineado con la raíz, que ya tenía este bloque y el de Mantenimiento de abajo.
-        const esGanaderoParaFiscal = (valor) =>
-          /ganad|hacienda|animal|aliment|sanidad|vacun|veterin|forraje|balanceado|insumo ganadero/i.test(
-            String(valor || ""),
-          );
-        (state.costos || []).forEach((item) => {
-          if (
-            esGanaderoParaFiscal(
-              `${item.categoria || ""} ${item.concepto || ""}`,
-            )
-          )
-            return;
-          const ivaItem = Number(item.iva ?? item.ivaImporte ?? 0);
-          const retItem = Number(item.retenciones ?? item.retencion ?? 0);
-          if (!ivaItem && !retItem) return;
-          creditoFiscal += ivaItem;
-          retenciones += retItem;
-          filas.push({
-            tipo: "Costo agrícola",
-            comprobante: item.concepto || item.categoria || "—",
-            iva: ivaItem,
-            retenciones: retItem,
-            neto: parseMonto(item.monto ?? item.importe ?? item.costo ?? 0),
-            origen: "Costos",
-          });
-        });
-
-        // Crédito fiscal de mantenimiento de maquinaria (lubricantes, filtros, repuestos, etc. con IVA cargado).
-        (state.costosOperativos || []).forEach((item) => {
-          const ivaItem = Number(item.iva ?? 0);
-          if (!ivaItem) return;
-          creditoFiscal += ivaItem;
-          filas.push({
-            tipo: "Mantenimiento",
-            comprobante: item.tipoCosto || item.descripcion || "—",
-            iva: ivaItem,
-            retenciones: 0,
-            neto: parseMonto(item.costo ?? 0),
-            origen: "Costos Operativos",
-          });
-        });
-
-        (state.ventasHacienda || []).forEach((venta) => {
-          const liquidacion = venta.liquidacion || {};
-          const iva = Number(
-            liquidacion.iva?.ivaOperacion ?? venta.iva ?? venta.ivaImporte ?? 0,
-          );
-          const ret = Number(
-            liquidacion.totalRetenciones ??
-              venta.retenciones ??
-              venta.retencion ??
-              0,
-          );
-          const neto = Number(venta.valor ?? venta.importe ?? 0);
-          debitoFiscal += iva;
-          retenciones += ret;
-          if (iva || ret)
-            filas.push({
-              tipo: "Venta hacienda",
-              comprobante: venta.cartaPorteNumero || venta.caravana || "—",
-              iva,
-              retenciones: ret,
-              neto,
-              origen: "Ganadería",
-            });
-        });
-
-        const pagoImpuestoDirecto = caja
+        const esc = (v) =>
+          String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+        const movs = movimientosDeIva();
+        const p = posicionIva(null, movs);
+        const [anio, mes] = p.mes.split("-");
+        const nombreMes = mes + "/" + anio;
+        // Retenciones que el productor practica y deposita (ej. Ganancias del alquiler): informativas.
+        const pagoImpuestoDirecto = (state.caja || [])
           .filter(
             (item) =>
-              item.categoria === "Impuestos" ||
-              /retencion|impuesto/i.test(item.concepto || ""),
+              mesDeFechaIva(item.fecha) === p.mes &&
+              (item.categoria === "Impuestos" || /retencion|retención|impuesto/i.test(item.concepto || "")),
           )
           .reduce((sum, item) => sum + parseMonto(item.importe || 0), 0);
-        // Neto fiscal = Débito fiscal (IVA de ventas) - Crédito fiscal (IVA de compras) - Retenciones sufridas
-        // (pagos a cuenta). Antes solo restaba retenciones y nunca el crédito fiscal, aunque ya se calculaba
-        // arriba — alineado con la fórmula correcta que ya tenía la raíz.
-        const netoResumen = debitoFiscal - creditoFiscal - retenciones;
+        const retencionesMes = p.retIva + p.retGanancias + p.otrasRet;
 
-        setEl("impuestosDebitoKpi", fmt(debitoFiscal));
-        setEl(
-          "impuestosDebitoSub",
-          debitoFiscal > 0
-            ? `${filas.length} liquidación${filas.length === 1 ? "" : "es"} con IVA`
-            : "Sin ventas con IVA",
-        );
-        setEl("impuestosCreditoKpi", fmt(creditoFiscal));
+        setEl("impuestosDebitoKpi", fmt(p.debito));
+        setEl("impuestosDebitoSub", p.debito > 0 ? "IVA de ventas de " + nombreMes : "Sin ventas con IVA en " + nombreMes);
+        setEl("impuestosCreditoKpi", fmt(p.credito));
         setEl(
           "impuestosCreditoSub",
-          creditoFiscal > 0
-            ? "Crédito fiscal detectado"
-            : "Sin compras con IVA discriminado",
+          p.credito > 0 ? "IVA de compras y costos de " + nombreMes : "Sin compras con IVA discriminado en " + nombreMes,
         );
-        setEl(
-          "impuestosRetencionesKpi",
-          fmt(retenciones + pagoImpuestoDirecto),
-        );
+        setEl("impuestosRetencionesKpi", fmt(retencionesMes));
         setEl(
           "impuestosRetencionesSub",
-          retenciones + pagoImpuestoDirecto > 0
-            ? "Registro de retenciones y pagos fiscales"
+          retencionesMes || pagoImpuestoDirecto
+            ? "IVA " + fmt(p.retIva) + " · Ganancias " + fmt(p.retGanancias) +
+                (p.otrasRet ? " · otras " + fmt(p.otrasRet) : "") +
+                (pagoImpuestoDirecto ? " · pagos/retenciones practicadas " + fmt(pagoImpuestoDirecto) : "")
             : "Sin retenciones registradas",
         );
-        setEl("impuestosNetoKpi", fmt(netoResumen));
+        setEl("impuestosNetoKpi", p.aPagar > 0 ? fmt(p.aPagar) + " (a pagar)" : fmt(p.favorTecnico + p.favorLibre) + " (a favor)");
         setEl(
           "impuestosNetoSub",
-          debitoFiscal > 0
-            ? "Débito fiscal menos crédito fiscal y retenciones"
-            : "Sin liquidación",
+          [
+            "IVA " + nombreMes + ": débito " + fmt(p.debito) + " − crédito " + fmt(p.credito),
+            p.favorTecnicoAnterior ? "− a favor anterior " + fmt(p.favorTecnicoAnterior) : "",
+            p.retIva || p.favorLibreAnterior ? "− ret./perc. IVA " + fmt(p.retIva + p.favorLibreAnterior) : "",
+            p.aPagar > 0 ? "" : "· pasa al mes siguiente",
+          ]
+            .filter(Boolean)
+            .join(" "),
         );
 
         const cuerpo = document.getElementById("costosImpuestosBody");
         if (cuerpo) {
-          const registros = filas.length ? filas : [];
-          if (!registros.length) {
-            cuerpo.innerHTML =
-              '<tr><td colspan="6" style="text-align:center;color:#64748b;">Sin liquidaciones fiscales cargadas.</td></tr>';
-            return {
-              debitoFiscal,
-              creditoFiscal,
-              retenciones: retenciones + pagoImpuestoDirecto,
-              netoFiscal: netoResumen,
-            };
-          }
-          cuerpo.innerHTML = registros
-            .map(
-              (fila) =>
-                `<tr><td>${fila.tipo}</td><td>${fila.comprobante}</td><td>${fmt(fila.iva)}</td><td>${fmt(fila.retenciones)}</td><td>${fmt(fila.neto)}</td><td>${fila.origen}</td></tr>`,
-            )
-            .join("");
+          const filas = movs
+            .filter((m) => m.iva || m.retIva || m.retGanancias || m.otrasRet)
+            .sort((a, b) => String(b.fecha || "").localeCompare(String(a.fecha || "")));
+          cuerpo.innerHTML = filas.length
+            ? filas
+                .map(
+                  (f) =>
+                    "<tr><td>" + esc(f.tipo) + (f.lado === "debito" ? " (débito)" : " (crédito)") +
+                    "</td><td>" + esc(f.comprobante) + (f.fecha ? " · " + esc(String(f.fecha).slice(0, 10)) : "") +
+                    "</td><td>" + fmt(f.iva) + "</td><td>" + fmt(f.retIva + f.retGanancias + f.otrasRet) +
+                    "</td><td>" + fmt(f.neto) + "</td><td>" + esc(f.origen) + "</td></tr>",
+                )
+                .join("")
+            : '<tr><td colspan="6" style="text-align:center;color:#64748b;">Sin liquidaciones fiscales cargadas.</td></tr>';
         }
 
         return {
-          debitoFiscal,
-          creditoFiscal,
-          retenciones: retenciones + pagoImpuestoDirecto,
-          netoFiscal: netoResumen,
+          debitoFiscal: p.debito,
+          creditoFiscal: p.credito,
+          retenciones: retencionesMes + pagoImpuestoDirecto,
+          netoFiscal: p.aPagar > 0 ? p.aPagar : -(p.favorTecnico + p.favorLibre),
+          posicion: p,
         };
       }
 

@@ -3663,7 +3663,7 @@
                   <div class="kpi-sub" id="kpiIvaSaldoMesSub">Débito − Crédito − retenciones/percepciones de IVA</div>
                 </div>
                 <div class="kpi" id="kpiIvaSaldoAcumCard">
-                  <div class="kpi-label">Saldo técnico acumulado</div>
+                  <div class="kpi-label">Saldo a favor para el mes siguiente</div>
                   <div class="kpi-value" id="kpiIvaSaldoAcum">$0</div>
                   <div class="kpi-sub" id="kpiIvaSaldoAcumSub">
                     A favor se arrastra al próximo período
@@ -5523,6 +5523,11 @@
         if (!confirm("¿Eliminar este registro?")) return;
         const registroEliminado = state[modulo][index];
         state[modulo].splice(index, 1);
+        // Si el costo había generado un crédito fiscal, se borra con él.
+        if (["costos", "costosOperativos"].includes(modulo) && registroEliminado?._id && Array.isArray(state.comprobantesArca))
+          state.comprobantesArca = state.comprobantesArca.filter(
+            (c) => c.origenCostoId !== registroEliminado._id && c.origenCostoOperativoId !== registroEliminado._id,
+          );
         if (modulo === "alimentacion" && registroEliminado) {
           const cantidad = parseFloat(registroEliminado.cantidadTotal) || 0;
           const producto = (state.inventario || []).find((p) => p.codigo === registroEliminado.producto);
@@ -8140,11 +8145,13 @@ costos: {
             },
             {
               name: "importe",
-              label: "Importe ($)",
+              label: "Importe neto ($, sin IVA)",
               type: "number",
               required: true,
             },
             { name: "destino", label: "Destino / Proveedor", type: "text" },
+            { name: "iva", label: "IVA de la factura ($, opcional: genera el crédito fiscal)", type: "number" },
+            { name: "nroComprobante", label: "N° de factura (opcional)", type: "text" },
             {
               name: "rubro",
               label: "Rubro",
@@ -8209,7 +8216,7 @@ costos: {
               label: "Equipo/Maquinaria",
               type: "select",
               required: true,
-              dynamicOptions: "maquinarias",
+              dynamicOptions: "equipos",
             },
             {
               name: "tipoCombustible",
@@ -8249,7 +8256,7 @@ costos: {
               label: "Equipo/Maquinaria",
               type: "select",
               required: true,
-              dynamicOptions: "maquinarias",
+              dynamicOptions: "equipos",
             },
             {
               name: "tipoCosto",
@@ -8291,6 +8298,8 @@ costos: {
               type: "number",
               placeholder: "Si la factura discrimina IVA",
             },
+            { name: "nroComprobante", label: "N° de factura (si cargás IVA)", type: "text" },
+            { name: "proveedor", label: "Proveedor", type: "text" },
             {
               name: "intervalo",
               label: "Intervalo de Cambio (horas)",
@@ -8478,7 +8487,7 @@ costos: {
               label: "Equipo",
               type: "select",
               required: true,
-              dynamicOptions: "maquinarias",
+              dynamicOptions: "equipos",
             },
             {
               name: "tipo",
@@ -9340,8 +9349,8 @@ costos: {
           if (equipoSelect && descripcionSelect) {
             function actualizarDescripciones() {
               const equipoSeleccionado = equipoSelect.value;
-              const maquinaria = state.maquinarias.find(
-                (m) => m.equipo === equipoSeleccionado,
+              const maquinaria = listaEquipos().find(
+                (m) => m.equipo === equipoSeleccionado || m.codigo === equipoSeleccionado,
               );
 
               descripcionSelect.innerHTML =
@@ -10033,7 +10042,9 @@ costos: {
           if (
             data.tipo_fiscal === "CREDITO_FISCAL" &&
             !data.origenMovimientoStockId &&
-            !data.origenHaciendaId
+            !data.origenHaciendaId &&
+            !data.origenCostoId &&
+            !data.origenCostoOperativoId
           ) {
             const neto = parseFloat(data.neto) || 0;
             const iva = parseFloat(data.iva) || 0;
@@ -10165,6 +10176,38 @@ costos: {
           };
           if (previo) state.hacienda[state.hacienda.indexOf(previo)] = movimiento;
           else state.hacienda.push(movimiento);
+        }
+
+        // Costo operativo o costo manual con IVA de la factura: genera el crédito fiscal solo (un solo
+        // lugar donde cargar la compra). El costo queda neto de IVA (Responsable Inscripto).
+        if (module === "costosOperativos" || module === "costos") {
+          const esOperativo = module === "costosOperativos";
+          const campoOrigen = esOperativo ? "origenCostoOperativoId" : "origenCostoId";
+          if (!data._id) data._id = (esOperativo ? "CO-" : "CM-") + Date.now() + "-" + Math.floor(Math.random() * 100000);
+          if (!Array.isArray(state.comprobantesArca)) state.comprobantesArca = [];
+          state.comprobantesArca = state.comprobantesArca.filter((c) => c[campoOrigen] !== data._id);
+          const neto = parseMonto(esOperativo ? data.costo : data.importe);
+          const iva = parseMonto(data.iva);
+          if (!esOperativo) {
+            data.neto = neto;
+            data.iva = iva;
+          }
+          if (iva > 0) {
+            state.comprobantesArca.push({
+              fecha: data.fecha,
+              tipo_fiscal: "CREDITO_FISCAL",
+              comprobante: data.nroComprobante || "",
+              contraparte: (esOperativo ? data.proveedor : data.destino) || "",
+              concepto: esOperativo
+                ? `${data.tipoCosto || "Costo operativo"} · ${data.equipo || ""}`
+                : data.concepto || data.categoria || "Costo",
+              neto,
+              iva,
+              rubro: data.rubro || "Ganadero",
+              _id: "CA-" + data._id,
+              [campoOrigen]: data._id,
+            });
+          }
         }
 
         // Actualizar stock si es un movimiento de inventario
@@ -12166,8 +12209,8 @@ costos: {
         if (costosOperativosBody) {
           costosOperativosBody.innerHTML = state.costosOperativos
             .map((c, i) => {
-              const maqEquipo = state.maquinarias.find(
-                (m) => m.equipo === c.equipo,
+              const maqEquipo = listaEquipos().find(
+                (m) => m.equipo === c.equipo || m.codigo === c.equipo,
               );
               const horasActuales = maqEquipo
                 ? parseFloat(maqEquipo.horas) || 0
@@ -12227,7 +12270,7 @@ costos: {
           }, 0);
 
           const proximasIntervenciones = state.costosOperativos.filter((c) => {
-            const maq = state.maquinarias.find((m) => m.equipo === c.equipo);
+            const maq = listaEquipos().find((m) => m.equipo === c.equipo || m.codigo === c.equipo);
             const horasActuales = maq ? parseFloat(maq.horas) || 0 : 0;
             const proximoMto =
               (parseFloat(c.ultimaEjecucion) || 0) +
@@ -12343,6 +12386,7 @@ costos: {
         // Costos (KPIs + tabla): función dedicada, ver renderCostos()
         safeRender("costos", renderCostos);
 safeRender("sanidad", renderSanidad);
+        safeRender("equipos", renderMaquinarias);
         safeRender("dteRecepciones", renderDteRecepciones);
 
         // Empleados
@@ -12939,6 +12983,7 @@ safeRender("sanidad", renderSanidad);
             costoPorCategoriaVendida,
             evaluarSanidad,
             calcularCostoTotalEmpleados,
+            posicionIva,
           });
         return asistenteIACache;
       }
@@ -13324,6 +13369,50 @@ safeRender("sanidad", renderSanidad);
         }, 50);
       }
 
+      // Posición de IVA de un mes como en la DDJJ: el saldo técnico a favor de un mes (más crédito
+      // que débito) se descuenta en los siguientes, igual que las retenciones/percepciones de IVA que
+      // sobran (saldo de libre disponibilidad). Los meses con saldo a pagar se toman como pagados.
+      // Antes el mes no descontaba los saldos a favor anteriores y mostraba de más a pagar.
+      function posicionIva(mesRef) {
+        const hoy = new Date();
+        const mesActual = mesRef || `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}`;
+        const mesDe = (f) => {
+          const t = String(f || "").trim();
+          const dmy = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+          return dmy ? `${dmy[3]}-${dmy[2].padStart(2, "0")}` : t.slice(0, 7);
+        };
+        const porMes = {};
+        (state.comprobantesArca || []).forEach((r) => {
+          const m = mesDe(r.fecha);
+          if (!/^\d{4}-\d{2}$/.test(m) || m > mesActual) return;
+          porMes[m] ||= { debito: 0, credito: 0, retIva: 0, retGanancias: 0, retIibb: 0 };
+          if (r.tipo_fiscal === "DEBITO_FISCAL") porMes[m].debito += parseMonto(r.iva);
+          if (r.tipo_fiscal === "CREDITO_FISCAL") porMes[m].credito += parseMonto(r.iva);
+          porMes[m].retIva += parseMonto(r.ivaRetenido);
+          porMes[m].retGanancias += parseMonto(r.gananciasRetenido);
+          porMes[m].retIibb += parseMonto(r.iibbRetenido);
+        });
+        let favorTecnico = 0;
+        let favorLibre = 0;
+        let resultado = null;
+        const meses = Object.keys(porMes).sort();
+        if (!meses.includes(mesActual)) meses.push(mesActual);
+        meses.forEach((m) => {
+          const d = porMes[m] || { debito: 0, credito: 0, retIva: 0, retGanancias: 0, retIibb: 0 };
+          const favorTecnicoAnterior = favorTecnico;
+          const favorLibreAnterior = favorLibre;
+          let determinado = d.debito - d.credito - favorTecnico;
+          favorTecnico = determinado < 0 ? -determinado : 0;
+          determinado = Math.max(0, determinado);
+          let aPagar = determinado - d.retIva - favorLibre;
+          favorLibre = aPagar < 0 ? -aPagar : 0;
+          aPagar = Math.max(0, aPagar);
+          if (m === mesActual)
+            resultado = { mes: m, ...d, favorTecnicoAnterior, favorLibreAnterior, determinado, aPagar, favorTecnico, favorLibre };
+        });
+        return resultado;
+      }
+
       function renderComprobantesArca() {
         const registros = state.comprobantesArca || [];
         // El mismo comprobante (tipo + número + contraparte) cargado dos veces duplica el IVA.
@@ -13380,43 +13469,43 @@ safeRender("sanidad", renderSanidad);
           lista.reduce((acc, r) => acc + parseMonto(r.iva), 0);
         const creditoMes = totalIva(credito.filter(esDelMes));
         const debitoMes = totalIva(debito.filter(esDelMes));
-        const creditoAcum = totalIva(credito);
-        const debitoAcum = totalIva(debito);
-        // Retenciones y percepciones sufridas: son pagos a cuenta. Las de IVA bajan el saldo a pagar;
-        // las de Ganancias e Ingresos Brutos quedan a favor en esos impuestos.
-        const sumaCampo = (lista, campo) => lista.reduce((acc, r) => acc + parseMonto(r[campo]), 0);
-        const delMes = registros.filter(esDelMes);
-        const retIvaMes = sumaCampo(delMes, "ivaRetenido");
-        const retGananciasMes = sumaCampo(delMes, "gananciasRetenido");
-        const retIibbMes = sumaCampo(delMes, "iibbRetenido");
-        const retIvaAcum = sumaCampo(registros, "ivaRetenido");
-
+        const p = posicionIva();
+        const retIvaMes = p.retIva;
+        const retGananciasMes = p.retGanancias;
+        const retIibbMes = p.retIibb;
         setEl("kpiIvaDebitoMes", fmt(debitoMes));
         setEl("kpiIvaCreditoMes", fmt(creditoMes));
-        const saldoMes = debitoMes - creditoMes - retIvaMes;
         setEl("kpiRetencionesMes", fmt(retIvaMes + retGananciasMes + retIibbMes));
         setEl(
           "kpiRetencionesMesSub",
           `IVA: ${fmt(retIvaMes)} · Ganancias: ${fmt(retGananciasMes)} · IIBB: ${fmt(retIibbMes)}`,
         );
+        // Ventas de hacienda del mes sin factura cargada: el débito queda incompleto.
+        const ventasSinFactura = (state.hacienda || []).filter(
+          (h) =>
+            h.tipo === "Venta" &&
+            esDelMes(h) &&
+            !(state.comprobantesArca || []).some((c) => c.origenHaciendaId && c.origenHaciendaId === h._id),
+        ).length;
+        const condicion = String(state.empresa?.condicionIva || "Responsable Inscripto");
+        const noInscripto = !/responsable\s+inscripto/i.test(condicion);
         setEl(
           "kpiIvaSaldoMesSub",
-          `Débito ${fmt(debitoMes)} − Crédito ${fmt(creditoMes)} − Ret./perc. IVA ${fmt(retIvaMes)}`,
+          [
+            `Débito ${fmt(debitoMes)} − Crédito ${fmt(creditoMes)}`,
+            p.favorTecnicoAnterior ? `− a favor anterior ${fmt(p.favorTecnicoAnterior)}` : "",
+            p.retIva || p.favorLibreAnterior ? `− ret./perc. IVA ${fmt(p.retIva + p.favorLibreAnterior)}` : "",
+            ventasSinFactura ? `· ⚠ ${ventasSinFactura} venta(s) de hacienda sin factura: el débito está incompleto` : "",
+            noInscripto ? `· ${condicion}: no liquida IVA (solo informativo)` : "",
+          ]
+            .filter(Boolean)
+            .join(" "),
         );
-        setEl(
-          "kpiIvaSaldoMes",
-          fmt(Math.abs(saldoMes)) +
-            (saldoMes >= 0 ? " (a pagar)" : " (a favor)"),
-        );
-        const saldoAcum = debitoAcum - creditoAcum - retIvaAcum;
+        setEl("kpiIvaSaldoMes", p.aPagar > 0 ? `${fmt(p.aPagar)} (a pagar)` : `${fmt(p.favorTecnico + p.favorLibre)} (a favor)`);
+        setEl("kpiIvaSaldoAcum", fmt(p.favorTecnico + p.favorLibre));
         setEl(
           "kpiIvaSaldoAcumSub",
-          `Técnico: ${fmt(debitoAcum - creditoAcum)} · Ret./perc. IVA: ${fmt(retIvaAcum)}. A favor se arrastra al próximo período`,
-        );
-        setEl(
-          "kpiIvaSaldoAcum",
-          fmt(Math.abs(saldoAcum)) +
-            (saldoAcum >= 0 ? " (a pagar)" : " (a favor)"),
+          `Pasa al mes siguiente · técnico ${fmt(p.favorTecnico)} · libre disponibilidad (retenciones) ${fmt(p.favorLibre)}`,
         );
 
         const tbodyCredito = document.getElementById("tbodyCreditoFiscal");
@@ -13685,6 +13774,20 @@ function costosGanaderosDelPeriodo(desde, hasta) {
             origen: "Alimentación",
           });
         });
+        (state.costosOperativos || []).forEach((c) => {
+          if (!dentro(c.fecha)) return;
+          const importe = parseMonto(c.costo) + (ivaEsCosto() ? parseMonto(c.iva) : 0);
+          if (!importe) return;
+          items.push({
+            fecha: fechaDeRegistro(c.fecha),
+            rubro: "Ganadero",
+            grupo: "Mantenimiento",
+            concepto: "Costos operativos de equipos",
+            categoriaHacienda: "",
+            importe,
+            origen: "Costos operativos",
+          });
+        });
         (state.eventosSanitarios || []).forEach((e) => {
           const importe = parseMonto(e.costo);
           if (!importe || !dentro(e.fecha)) return;
@@ -13814,6 +13917,11 @@ function costosGanaderosDelPeriodo(desde, hasta) {
                   return `<tr onclick="${accionClick}" style="cursor:${accionClick ? "pointer" : "default"};"><td>${esc(c.fecha || "")}</td><td>${esc(c.categoria || "")}</td><td>${esc(c.concepto || "")}</td><td>${fmt(importeDeCosto(c))}<span style="font-size:11px;color:var(--text-dim);">${nota}</span></td><td>${esc(c.destino || "")}</td><td><span class="tag ${rubro === "Agrícola" ? "orange" : "green"}">${esc(rubro)}</span></td><td>${esc(c.origen || (c.origenComprobanteId ? "Fiscal · Crédito fiscal IVA" : "Manual"))}</td></tr>`;
                 })
                 .join("") +
+              (state.costosOperativos || [])
+                .map((c, i) => ({ c, i }))
+                .filter(({ c }) => parseMonto(c.costo) > 0)
+                .map(({ c, i }) => `<tr onclick="openModal('costosOperativos', ${i})" style="cursor:pointer;"><td>${esc(c.fecha || "")}</td><td>Mantenimiento</td><td>${esc(`${c.tipoCosto || "Costo operativo"} · ${c.equipo || ""}`)}</td><td>${fmt(parseMonto(c.costo) + (ivaEsCosto() ? parseMonto(c.iva) : 0))}</td><td>${esc(c.proveedor || c.descripcion || "")}</td><td><span class="tag green">Ganadero</span></td><td>Costos operativos${parseMonto(c.iva) > 0 ? " · crédito fiscal" : ""}</td></tr>`)
+                .join("") +
               (state.alimentacion || [])
                 .map((a, i) => ({ a, i, importe: costoDeAlimentacion(a) }))
                 .filter((x) => x.importe > 0)
@@ -13835,7 +13943,7 @@ function costosGanaderosDelPeriodo(desde, hasta) {
         setEl("costoKpiOperativoMes", fmt(suma(items)));
         setEl(
           "costoKpiOperativoMesSub",
-          `Costos: ${fmt(deOrigen("Costos"))} | Alimentación: ${fmt(deOrigen("Alimentación"))} | Hacienda: ${fmt(deOrigen("Hacienda"))} | Sanidad: ${fmt(deOrigen("Eventos Sanitarios"))} | RRHH: ${fmt(deOrigen("RRHH"))} | Agrícola: ${fmt(suma(agricola))}` +
+          `Costos: ${fmt(deOrigen("Costos") + deOrigen("Costos operativos"))} | Alimentación: ${fmt(deOrigen("Alimentación"))} | Hacienda: ${fmt(deOrigen("Hacienda"))} | Sanidad: ${fmt(deOrigen("Eventos Sanitarios"))} | RRHH: ${fmt(deOrigen("RRHH"))} | Agrícola: ${fmt(suma(agricola))}` +
             (ivaEsCosto() ? "" : " · netos de IVA"),
         );
         setEl("costoKpiGanaderoMes", fmt(suma(ganadero)));
@@ -15361,7 +15469,7 @@ function costosGanaderosDelPeriodo(desde, hasta) {
               );
               y += 6;
               doc.text(
-                `Maquinarias: ${(state.maquinarias || []).length} equipos`,
+                `Maquinarias: ${listaEquipos().length} equipos`,
                 25,
                 y,
               );
@@ -15564,7 +15672,7 @@ function costosGanaderosDelPeriodo(desde, hasta) {
               y += 8;
               doc.setFont(undefined, "normal");
 
-              state.maquinarias.forEach((maq) => {
+              listaEquipos().forEach((maq) => {
                 if (y > 270) {
                   doc.addPage();
                   y = 20;
@@ -15786,8 +15894,8 @@ function costosGanaderosDelPeriodo(desde, hasta) {
           const siembra = Array.isArray(state.siembra) ? state.siembra : [];
           const cosecha = Array.isArray(state.cosecha) ? state.cosecha : [];
           const hacienda = Array.isArray(state.hacienda) ? state.hacienda : [];
-          const maquinarias = Array.isArray(state.maquinarias)
-            ? state.maquinarias
+          const maquinarias = listaEquipos().length
+            ? listaEquipos()
             : Array.isArray(state.equipos)
               ? state.equipos
               : [];
@@ -17916,6 +18024,18 @@ function costosGanaderosDelPeriodo(desde, hasta) {
         };
       }
 
+      // En Ganadería los equipos están en "equipos" (el código heredado leía "maquinarias", que no
+      // existe: la Flota se veía vacía y Combustible, Costos operativos y Mantenimiento no podían
+      // elegir equipo). Si hay datos viejos en "maquinarias", pasan a "equipos".
+      function listaEquipos() {
+        if (!Array.isArray(state.equipos)) state.equipos = [];
+        if (!state.equipos.length && Array.isArray(state.maquinarias) && state.maquinarias.length) {
+          state.equipos = state.maquinarias;
+          delete state.maquinarias;
+        }
+        return state.equipos;
+      }
+
       function renderMaquinarias() {
         const maqBody = document.getElementById("maqBody");
         const amortBody = document.getElementById("maqAmortBody");
@@ -17930,7 +18050,7 @@ function costosGanaderosDelPeriodo(desde, hasta) {
           kpiOk = 0,
           kpiMant = 0;
 
-        const rows = state.maquinarias.map((m, i) => {
+        const rows = listaEquipos().map((m, i) => {
           const a = calcularAmortizacion(m);
           totalValor += a.valorCompra;
           totalAmortAnual += a.amortAnual;
@@ -17945,7 +18065,7 @@ function costosGanaderosDelPeriodo(desde, hasta) {
                 ? `${Math.max(0, m.horasVidaUtil - parseFloat(m.horas || 0)).toLocaleString("es-AR")} hs rest.`
                 : "-";
 
-          return `<tr onclick="openModal('maquinarias', ${i})" style="cursor:pointer;">
+          return `<tr onclick="openModal('equipos', ${i})" style="cursor:pointer;">
       <td><b>${m.equipo || ""}</b></td>
       <td>${m.marca || ""}</td>
       <td>${m.anio || ""}</td>
@@ -17967,7 +18087,7 @@ function costosGanaderosDelPeriodo(desde, hasta) {
 
         // Tabla de amortización detallada
         if (amortBody) {
-          const amortRows = state.maquinarias
+          const amortRows = listaEquipos()
             .filter(
               (m) => m.metodoAmort && m.metodoAmort !== "Sin amortización",
             )
@@ -18002,7 +18122,7 @@ function costosGanaderosDelPeriodo(desde, hasta) {
 
         // KPIs
         setEl("maqKpiOk", kpiOk);
-        setEl("maqKpiOkSub", `${state.maquinarias.length} equipos totales`);
+        setEl("maqKpiOkSub", `${listaEquipos().length} equipos totales`);
         setEl("maqKpiMant", kpiMant);
         setEl(
           "maqKpiValor",
@@ -19192,7 +19312,7 @@ function costosGanaderosDelPeriodo(desde, hasta) {
       }
     </script>
 
-    <script src="asistente-ia.js?v=2"></script>
+    <script src="asistente-ia.js?v=3"></script>
     <script src="pampaia-source.js?v=pampaia-published-7"></script>
 
     <script>

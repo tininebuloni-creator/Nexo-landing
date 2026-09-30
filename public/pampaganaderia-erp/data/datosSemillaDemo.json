@@ -912,6 +912,18 @@
         "iva": 52500,
         "rubro": "Ganadero",
         "_id": "CA-DEMO-VET"
+      },
+      {
+        "fecha": "2026-09-21",
+        "tipo_fiscal": "CREDITO_FISCAL",
+        "comprobante": "A-0003-00004512",
+        "contraparte": "Agroservicios Villegas (DEMO)",
+        "concepto": "Lubricantes · Tractor John Deere 5090E",
+        "neto": 350000,
+        "iva": 73500,
+        "rubro": "Ganadero",
+        "_id": "CA-CO-DEMO-01",
+        "origenCostoOperativoId": "CO-DEMO-01"
       }
     ],
     "costos": [
@@ -1051,9 +1063,9 @@
       {
         "fecha": "2026-08-15",
         "categoria": "Mantenimiento",
-        "concepto": "OT-0012 · EQ-01 · Service 3000 hs (aceite y filtros)",
+        "concepto": "OT-0012 · Tractor John Deere 5090E · Service 3000 hs (aceite y filtros)",
         "importe": 420000,
-        "destino": "EQ-01",
+        "destino": "Tractor John Deere 5090E",
         "origen": "Mantenimiento · Orden de trabajo",
         "rubro": "Ganadero",
         "origenComprobanteId": "MT-DEMO-01",
@@ -1062,9 +1074,9 @@
       {
         "fecha": "2026-09-27",
         "categoria": "Mantenimiento",
-        "concepto": "OT-0013 · EQ-02 · Pastillas y discos de freno",
+        "concepto": "OT-0013 · Camioneta Toyota Hilux · Pastillas y discos de freno",
         "importe": 180000,
-        "destino": "EQ-02",
+        "destino": "Camioneta Toyota Hilux",
         "origen": "Mantenimiento · Orden de trabajo",
         "rubro": "Ganadero",
         "origenComprobanteId": "MT-DEMO-02",
@@ -1107,7 +1119,7 @@
       {
         "_id": "MT-DEMO-01",
         "numero": "OT-0012",
-        "equipo": "EQ-01",
+        "equipo": "Tractor John Deere 5090E",
         "tipo": "Service",
         "descripcion": "Service 3000 hs (aceite y filtros)",
         "fecha": "2026-08-15",
@@ -1119,7 +1131,7 @@
       {
         "_id": "MT-DEMO-02",
         "numero": "OT-0013",
-        "equipo": "EQ-02",
+        "equipo": "Camioneta Toyota Hilux",
         "tipo": "Correctivo",
         "descripcion": "Pastillas y discos de freno",
         "fecha": "2026-09-27",
@@ -1129,10 +1141,23 @@
         "rubro": "Ganadero"
       }
     ],
+    "costosOperativos": [
+      {
+        "_id": "CO-DEMO-01",
+        "fecha": "2026-09-21",
+        "equipo": "Tractor John Deere 5090E",
+        "tipoCosto": "Lubricantes",
+        "costo": 350000,
+        "iva": 73500,
+        "nroComprobante": "A-0003-00004512",
+        "proveedor": "Agroservicios Villegas (DEMO)",
+        "descripcion": "Aceite hidráulico y filtros"
+      }
+    ],
     "cargacombustible": [
       {
         "fecha": "2026-09-09",
-        "equipo": "EQ-01",
+        "equipo": "Tractor John Deere 5090E",
         "tipoCombustible": "Gasoil",
         "cantidad": 300,
         "costoUnitario": 1350,
@@ -1142,7 +1167,7 @@
       },
       {
         "fecha": "2026-09-23",
-        "equipo": "EQ-02",
+        "equipo": "Camioneta Toyota Hilux",
         "tipoCombustible": "Gasoil",
         "cantidad": 80,
         "costoUnitario": 1350,

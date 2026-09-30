@@ -383,8 +383,13 @@
         const mes = hoy.slice(0, 7);
         const comp = (s.comprobantesArca || []).filter((c) => fechaIso(c.fecha).slice(0, 7) === mes);
         const suma = (tipo, campo) => comp.filter((c) => c.tipo_fiscal === tipo || tipo === '*').reduce((t, c) => t + numero(c[campo]), 0);
-        const saldoIva = suma('DEBITO_FISCAL', 'iva') - suma('CREDITO_FISCAL', 'iva') - suma('*', 'ivaRetenido');
-        lineas.push(linea(saldoIva > 0 ? 'warn' : 'ok', `🧾 IVA del mes: ${saldoIva >= 0 ? `*${pesos(saldoIva)} a pagar*` : `${pesos(-saldoIva)} a favor`} (débito − crédito − retenciones/percepciones)`));
+        // Misma posición que la pantalla de Fiscal (con los saldos a favor de meses anteriores).
+        const p = d.posicionIva ? d.posicionIva() : null;
+        if (p) lineas.push(linea(p.aPagar > 0 ? 'warn' : 'ok', `🧾 IVA del mes: ${p.aPagar > 0 ? `*${pesos(p.aPagar)} a pagar*` : `${pesos(p.favorTecnico + p.favorLibre)} a favor`} (débito ${pesos(p.debito)} − crédito ${pesos(p.credito)}${p.favorTecnicoAnterior ? ` − a favor anterior ${pesos(p.favorTecnicoAnterior)}` : ''} − ret./perc. ${pesos(p.retIva + p.favorLibreAnterior)})`));
+        else {
+          const saldoIva = suma('DEBITO_FISCAL', 'iva') - suma('CREDITO_FISCAL', 'iva') - suma('*', 'ivaRetenido');
+          lineas.push(linea(saldoIva > 0 ? 'warn' : 'ok', `🧾 IVA del mes: ${saldoIva >= 0 ? `*${pesos(saldoIva)} a pagar*` : `${pesos(-saldoIva)} a favor`} (débito − crédito − retenciones/percepciones)`));
+        }
       }
       if (!lineas.length) lineas.push(linea('ok', 'Sin datos de sanidad ni fiscales para revisar.'));
       return resultado('🩺 Cumplimiento SENASA y fiscal', lineas);
