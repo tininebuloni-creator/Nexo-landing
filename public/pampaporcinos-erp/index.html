@@ -1691,6 +1691,7 @@ tr:hover td {
       <div class="activation-error" id="licenseActivationError"></div>
       <button class="activation-btn" type="submit">Activar licencia</button>
     </form>
+    <button class="activation-btn" type="button" id="licenseTrialBtn" hidden style="margin-top:10px;background:#16a34a;color:#fff;width:100%">Iniciar prueba gratis (10 días)</button>
     <div class="activation-info">La licencia pertenece al sistema Pampa ERP y también es válida para Agro, Ganadería y Producción Porcina.</div>
   </div>
 </div>
@@ -1764,6 +1765,10 @@ tr:hover td {
     <div class="content">
       <main>
 <section id="dashboard" class="view active">
+  <div id="demoBannerDashboard" style="display:none;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 14px;padding:12px 16px;border:1px dashed #3fa66a;border-radius:12px;background:rgba(63,166,106,.08)">
+    <div style="flex:1;min-width:220px"><strong>¿Querés ver la app funcionando con datos?</strong><div style="font-size:12px;color:var(--text-dim);margin-top:2px">Cargá una granja de ejemplo de ciclo completo con rodeo, sanidad, alimentación, ventas, ARCA, SENASA, residuos y alertas. Se borra con Limpieza básica.</div></div>
+    <button class="dashboard-action-btn" type="button" onclick="cargarDatosEjemploPorcinos()">📥 Cargar datos de ejemplo</button>
+  </div>
   <div class="dashboard-home-layout">
     <div class="empresa-dashboard-card">
       <div class="empresa-dashboard-top">
@@ -1802,6 +1807,7 @@ tr:hover td {
         <button class="dashboard-action-btn" type="button" onclick="syncNow()">Sincronizar ahora</button>
         <button class="dashboard-action-btn" type="button" onclick="document.getElementById('restoreFile').click()">Importar</button>
         <button class="dashboard-action-btn" type="button" onclick="backup()">Exportar</button>
+        <button class="dashboard-action-btn" type="button" id="btnDatosEjemplo" hidden onclick="cargarDatosEjemploPorcinos()">📥 Datos de ejemplo</button>
         <button class="dashboard-action-btn danger" type="button" onclick="clearAll()">Limpieza básica</button>
         <button class="dashboard-action-btn whatsapp-action" type="button" onclick="abrirWhatsAppReporteModal()"><span class="wa-mini-icon">WA</span>Reporte por WhatsApp</button>
       </div>
@@ -3364,6 +3370,21 @@ async function initLicense(){
   if(overlay) overlay.style.display='none';
   applyLicenseAccess();
   return;
+ }
+ // Web: la prueba gratis también se puede iniciar desde la pantalla de activación (antes solo
+ // arrancaba entrando por el enlace del catálogo con ?trial=auto).
+ const trialBtn=$('licenseTrialBtn');
+ if(trialBtn && !isDesktopApp()){
+  trialBtn.hidden=false;
+  trialBtn.addEventListener('click',async()=>{
+   trialBtn.disabled=true;
+   const trial=await crearTrial();
+   if(!trial){ marcarTrialAgotado(); trialBtn.disabled=false; alert('La prueba gratis de 10 días ya se usó en este equipo. Para seguir usando PampaPorcinos, activá una licencia.'); return; }
+   localStorage.setItem(LICENSE_KEY,JSON.stringify(trial));
+   if(overlay) overlay.style.display='none';
+   applyLicenseAccess();
+   if(typeof refresh==='function') await refresh();
+  });
  }
  const license=storedLicense();
  if(license && overlay) overlay.style.display='none';
@@ -5055,6 +5076,91 @@ $('restoreFile').addEventListener('change',async e=>{
   await refresh();alert('Respaldo importado correctamente.');
  }catch(err){console.error('Error al importar el respaldo.',err);alert('No se pudo importar el respaldo.')}
 });
+// === Datos de ejemplo (solo web) ===
+// data/datosSemillaDemo.json: granja ficticia con las 32 listas cargadas. Cada registro trae su
+// syncKey "demo:..."; las referencias por id (tratamiento, operación y venta) se resuelven al cargar.
+const DEMO_PORCINOS_KEY='pampaporcinos_demo_cargado';
+async function hayDatosPorcinos(){
+ const filas=await Promise.all(DATA_STORES.map(all));
+ return filas.some(f=>f.length>0);
+}
+async function actualizarBannerDemoPorcinos(){
+ const banner=$('demoBannerDashboard');
+ const boton=$('btnDatosEjemplo');
+ if(isDesktopApp()){ if(banner) banner.style.display='none'; if(boton) boton.hidden=true; return; }
+ if(boton) boton.hidden=false;
+ if(banner) banner.style.display=(await hayDatosPorcinos().catch(()=>true))?'none':'flex';
+}
+function correrFechasDemoPorcinos(valor,dias){
+ if(Array.isArray(valor)) return valor.map(v=>correrFechasDemoPorcinos(v,dias));
+ if(valor && typeof valor==='object') return Object.fromEntries(Object.entries(valor).map(([k,v])=>[k,correrFechasDemoPorcinos(v,dias)]));
+ if(typeof valor!=='string') return valor;
+ const iso=valor.match(/^(\d{4})-(\d{2})-(\d{2})(.*)$/);
+ if(!iso) return valor;
+ const f=new Date(Date.UTC(+iso[1],+iso[2]-1,+iso[3]));
+ if(Number.isNaN(f.getTime())) return valor;
+ f.setUTCDate(f.getUTCDate()+dias);
+ return f.toISOString().slice(0,10)+iso[4];
+}
+// Quita los registros del ejemplo de todas las listas (también las fiscales) y de la cola de sincronización.
+async function purgarDatosEjemploPorcinos(){
+ const esDemo=r=>String(r?.syncKey||'').startsWith('demo:');
+ for(const store of [...DATA_STORES,SYNC_LOG_STORE]){
+  const filas=await all(store);
+  const quedan=filas.filter(r=>!esDemo(r) && !(store===SYNC_LOG_STORE && esDemo({syncKey:r.syncKey})));
+  if(quedan.length===filas.length) continue;
+  await clearStore(store);
+  if(quedan.length) await putMany(store,quedan);
+ }
+ if(localStorage.getItem(DEMO_PORCINOS_KEY)){
+  localStorage.removeItem(DEMO_PORCINOS_KEY);
+  localStorage.removeItem(ARCA_FISCAL_KEY);
+ }
+}
+async function cargarDatosEjemploPorcinos(){
+ if(isDesktopApp()) return;
+ let seed;
+ try{
+  const respuesta=await fetch('data/datosSemillaDemo.json',{cache:'no-store'});
+  if(!respuesta.ok) throw new Error('HTTP '+respuesta.status);
+  seed=await respuesta.json();
+ }catch(err){ alert('No se pudieron leer los datos de ejemplo ('+err.message+').'); return; }
+ if(seed?._meta?.tipo!=='pampa-seed-demo' || !seed.estado){ alert('El archivo de datos de ejemplo no tiene el formato esperado.'); return; }
+ if(await hayDatosPorcinos()){
+  if(!confirm('Ya hay datos cargados. Los datos de ejemplo reemplazan los de producción (antes se descarga un respaldo). Los registros fiscales propios se conservan. ¿Continuar?')) return;
+  try{ await backup(); }catch(err){ if(!confirm('No se pudo descargar el respaldo. ¿Continuar igual?')) return; }
+ }
+ const [a,m,d]=String(seed._meta.fechaReferencia).split('-').map(Number);
+ const hoy=new Date();
+ const dias=Math.round((Date.UTC(hoy.getFullYear(),hoy.getMonth(),hoy.getDate())-Date.UTC(a,m-1,d))/864e5);
+ const datos=correrFechasDemoPorcinos(seed.estado,dias);
+ await purgarDatosEjemploPorcinos();
+ for(const store of DATA_STORES){ if(!FISCAL_STORES.includes(store)) await clearStore(store); }
+ const ids={};
+ const guardar=async(store,fila)=>{ const id=await add(store,fila); ids[fila.syncKey]=id; return id; };
+ // Primero lo que otros registros referencian.
+ const orden=['sales','arcaOperations','vademecum','treatments',...DATA_STORES.filter(x=>!['sales','arcaOperations','vademecum','treatments','arcaInvoices'].includes(x)),'arcaInvoices'];
+ for(const store of orden){
+  for(const fila of (datos[store]||[])){
+   if(store==='costs' && fila.stockItem){ ids[fila.syncKey]=await addStockPurchase({...fila}); continue; }
+   if(store==='arcaInvoices'){
+    const {_opRef,_ventaRef,...resto}=fila;
+    await guardar(store,{...resto,opRef:_opRef?String(ids[_opRef]||''):'',ventaId:_ventaRef?(ids[_ventaRef]||null):null});
+    continue;
+   }
+   const id=await guardar(store,fila);
+   // El tratamiento también queda en Registros de sanidad, como al guardarlo desde el formulario.
+   if(store==='treatments') await add('health',{fecha:fila.fechaInicio,categoria:fila.categoria||fila.lote,tipo:'Tratamiento',producto:fila.medicamento?.nombre||'',cantidad:fila.animales,usoCantidad:fila.usoCantidad,costo:0,responsable:fila.veterinario,obs:'Historial clínico · lote '+fila.lote+' · '+fila.diagnostico,treatmentId:id});
+  }
+ }
+ localStorage.setItem(EMPRESA_KEY,JSON.stringify({...defaultEmpresa(),...(seed.empresa||{})}));
+ saveArcaFiscal(seed.arcaFiscal||{});
+ localStorage.setItem(DEMO_PORCINOS_KEY,JSON.stringify({version:seed._meta.version,cargadoEn:new Date().toISOString()}));
+ renderEmpresa();
+ await refresh();
+ alert('Se cargó la granja de ejemplo "'+(seed.empresa?.nombre||'')+'".\n\nTiene rodeo de ciclo completo, sanidad e historial clínico, alimentación, compras al stock, ventas a faena con DT-e y operación ARCA, canje, equipos, personal, finanzas, transporte y residuos.\n\nIncluye alertas (carencia activa, mortalidad sin notificar, RENSPA por vencer, DDJJ de efluentes vencida, ventas sin factura) para que veas cómo avisa la app.\n\nPara borrar los datos de ejemplo y cargar los tuyos: Dashboard → Limpieza básica.');
+}
+
 async function clearAll(){
  if(!confirm('¿Seguro que querés borrar los datos de producción porcina? Se conservan los registros fiscales y sanitarios (operaciones ARCA, facturas, REC, compras con IVA, historial clínico, plan SENASA, DT-e, notificaciones, canje y datos fiscales).\n\nSolo se borra en este equipo: si sincroniza con una carpeta o servidor, los datos vuelven en la próxima sincronización.'))return;
  // Los costos con IVA o percepciones son comprobantes del Libro IVA Compras: también se conservan.
@@ -5067,6 +5173,7 @@ async function clearAll(){
  const keptCostIds=new Set(fiscalCosts.map(r=>r.id));
  const fiscalEvents=syncEvents.filter(event=>FISCAL_STORES.includes(event.store)||(event.store==='costs'&&keptCostIds.has(event.recordId)));
  if(fiscalEvents.length) await putMany(SYNC_LOG_STORE,fiscalEvents);
+ await purgarDatosEjemploPorcinos();
  localStorage.removeItem(EMPRESA_KEY);
  localStorage.removeItem(HOME_BANKING_KEY);
  localStorage.removeItem(TRANSPORT_LINKS_KEY);
@@ -5757,8 +5864,10 @@ async function refreshAnimals(){
  $('animalTable').innerHTML=rows.filter(r=>JSON.stringify(r).toLowerCase().includes(q)).sort((a,b)=>b.fecha.localeCompare(a.fecha)).map(r=>`<tr><td>${esc(r.fecha)}</td><td>${esc(r.tipo)}</td><td>${esc(r.categoria)}</td><td>${esc(r.sistema)}</td><td>${esc(r.cantidad)}</td><td>${r.peso?Number(r.peso*r.cantidad).toFixed(1):'-'}</td><td>${esc(r.destino||r.origen||'-')}</td><td>${esc(r.obs||'')}</td><td>${delBtn('animals',r)}</td></tr>`).join('');
 }
 async function refresh(){
+ actualizarBannerDemoPorcinos().catch(()=>{});
  renderSyncConflicts().catch(err=>console.warn('No se pudieron mostrar los conflictos de sincronización.',err));
- if(typeof refreshIASnapshot==='function') refreshIASnapshot().catch(err=>console.warn('PampaIA: no se pudieron leer los datos.',err));
+ // El resumen de PampaIA se armaba antes de leer la base y quedaba en '0 cabezas': se recalcula al tener los datos.
+ if(typeof refreshIASnapshot==='function') refreshIASnapshot().then(()=>{ const insights=document.querySelector('#pampaiaPanel #pampaiaInsights'); if(insights && window.PampaAsistenteIA){ try{ insights.innerHTML=window.PampaAsistenteIA.insightsHtml(asistenteIA().analizar('empresa').lineas); }catch(err){ console.warn('PampaIA: no se pudo actualizar el resumen.',err); } } }).catch(err=>console.warn('PampaIA: no se pudieron leer los datos.',err));
  const [animals,health,inventory,costs,sales,boletosSenal,renspaRows]=await Promise.all(['animals','health','inventory','costs','sales','boletosSenal','renspaControl'].map(all));
  const signs={};
  animals.forEach(r=>{
