@@ -29,7 +29,7 @@
     { id: 'costoCabeza', nivel: 2, icono: '🧮', titulo: 'Costo por cabeza', detalle: 'Costo, venta y margen por cabeza vendida de cada categoría (12 meses).' },
     { id: 'mantenimiento', nivel: 2, icono: '🔧', titulo: 'Equipos y mantenimiento', detalle: 'Órdenes pendientes, gasto en reparaciones y combustible por equipo.' },
     { id: 'rentabilidad', nivel: 3, icono: '📈', titulo: 'Rentabilidad por categoría', detalle: 'Ingreso, costo y margen de cada categoría y en qué se va la plata.' },
-    { id: 'cumplimiento', nivel: 3, icono: '🩺', titulo: 'Cumplimiento SENASA y fiscal', detalle: 'Sanidad, DUT sin cerrar, boletos de marca y saldo de IVA.' },
+    { id: 'cumplimiento', nivel: 3, icono: '🩺', titulo: 'Cumplimiento SENASA, fiscal y ambiente', detalle: 'Sanidad, DUT sin cerrar, boletos de marca, saldo de IVA y residuos.' },
     { id: 'caja90', nivel: 3, icono: '💵', titulo: 'Caja a 90 días', detalle: 'Saldo proyectado con cheques, cuotas de créditos y sueldos.' },
   ];
 
@@ -59,6 +59,7 @@
     services: ['mantenimiento', 'equipos'],
     hacienda: ['hacienda'],
     fiscal: ['fiscal'],
+    ambiente: ['residuos'],
   };
 
   const pesos = (n) => `$ ${Math.round(Number(n) || 0).toLocaleString('es-AR')}`;
@@ -391,7 +392,12 @@
           lineas.push(linea(saldoIva > 0 ? 'warn' : 'ok', `🧾 IVA del mes: ${saldoIva >= 0 ? `*${pesos(saldoIva)} a pagar*` : `${pesos(-saldoIva)} a favor`} (débito − crédito − retenciones/percepciones)`));
         }
       }
-      if (!lineas.length) lineas.push(linea('ok', 'Sin datos de sanidad ni fiscales para revisar.'));
+      if (veDato('ambiente') && d.residuos) {
+        const amb = d.residuos().alertas;
+        amb.forEach((a) => lineas.push(linea(a.nivel === 'rojo' ? 'risk' : 'warn', `♻️ ${a.texto}`)));
+        if (!amb.length) lineas.push(linea('ok', '♻️ Residuos y efluentes sin alertas.'));
+      }
+      if (!lineas.length) lineas.push(linea('ok', 'Sin datos de sanidad, fiscales ni ambientales para revisar.'));
       return resultado('🩺 Cumplimiento SENASA y fiscal', lineas);
     }
 

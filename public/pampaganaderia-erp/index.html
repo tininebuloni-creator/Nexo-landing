@@ -1940,6 +1940,9 @@
 
           <div class="nav-section">
             <div class="nav-section-title">Análisis</div>
+            <div class="nav-item" data-module="residuos">
+              <span class="nav-icon">♻️</span> Residuos y efluentes
+            </div>
             <div class="nav-item" data-module="rentabilidad">
               <span class="nav-icon">📈</span> Rentabilidad
             </div>
@@ -4575,6 +4578,102 @@
           </div>
 
           <!-- MODULE: RENTABILIDAD -->
+          <div class="module" id="mod-residuos">
+            <div class="kpi-grid">
+              <div class="kpi green"><div class="kpi-label">Último análisis de efluente</div><div class="kpi-value" id="kpiResAnalisis">-</div><div class="kpi-sub" id="kpiResAnalisisSub">Sin análisis</div></div>
+              <div class="kpi blue"><div class="kpi-label">Nitrógeno aplicado (año)</div><div class="kpi-value" id="kpiResNitrogeno">0</div><div class="kpi-sub" id="kpiResNitrogenoSub">kg N/ha, lote más cargado</div></div>
+              <div class="kpi red"><div class="kpi-label">Patogénicos en acopio</div><div class="kpi-value" id="kpiResPatogenicos">0 kg</div><div class="kpi-sub" id="kpiResPatogenicosSub">Sin acopio pendiente</div></div>
+              <div class="kpi orange"><div class="kpi-label">Plásticos pendientes</div><div class="kpi-value" id="kpiResPlasticos">0</div><div class="kpi-sub">Bidones y silobolsas sin entregar</div></div>
+            </div>
+            <div class="card" style="margin-bottom: 16px">
+              <div class="card-header"><div class="card-title">⚠️ Alertas ambientales</div></div>
+              <div id="residuosAlertas" style="padding: 12px 16px"></div>
+            </div>
+            <div class="card" style="margin-bottom: 16px">
+              <div class="card-header"><div class="card-title">🌊 Sistema de efluentes y permisos</div></div>
+              <div class="text-muted" style="font-size: 12px; padding: 0 16px 8px">
+                Los límites de nitrógeno y fósforo, los vencimientos y la frecuencia de análisis dependen de tu provincia y de tu permiso: cargalos según lo que te exigieron. En un sistema pastoril sin corrales, completá solo lo que corresponda.
+              </div>
+              <form id="residuosConfigForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px 14px; padding: 0 16px 16px" onsubmit="event.preventDefault(); guardarConfigResiduosGanaderia();">
+                <label class="form-group"><span class="form-label">Sistema</span><select class="form-select" name="sistema"><option value="">Sin dato</option><option>Pastoril (sin corrales)</option><option>Corrales de encierre</option><option>Feedlot (engorde a corral)</option></select></label>
+                <label class="form-group"><span class="form-label">Separador de sólidos / limpieza de corrales</span><select class="form-select" name="separador"><option value="">Sin dato</option><option>Sí</option><option>No</option></select></label>
+                <label class="form-group"><span class="form-label">Laguna o fosa · impermeabilización</span><select class="form-select" name="laguna"><option value="">Sin dato</option><option>Geomembrana</option><option>Arcilla compactada</option><option>Sin impermeabilizar</option><option>No tiene laguna</option></select></label>
+                <label class="form-group"><span class="form-label">Tipo de suelo</span><select class="form-select" name="suelo"><option value="">Sin dato</option><option>Arenoso</option><option>Franco</option><option>Arcilloso</option></select></label>
+                <label class="form-group"><span class="form-label">Autoridad de control</span><input class="form-input" name="autoridad" placeholder="Ej: Autoridad del Agua (Bs. As.)" /></label>
+                <label class="form-group"><span class="form-label">N° de permiso / expediente</span><input class="form-input" name="permiso" /></label>
+                <label class="form-group"><span class="form-label">Vencimiento del permiso</span><input class="form-input" name="permisoVence" type="date" /></label>
+                <label class="form-group"><span class="form-label">Próxima declaración jurada</span><input class="form-input" name="ddjjVence" type="date" /></label>
+                <label class="form-group"><span class="form-label">Máximo de nitrógeno (kg N/ha/año)</span><input class="form-input" name="nMax" type="number" min="0" /></label>
+                <label class="form-group"><span class="form-label">Máximo de fósforo (kg P/ha/año)</span><input class="form-input" name="pMax" type="number" min="0" /></label>
+                <label class="form-group"><span class="form-label">Análisis de efluente cada (meses)</span><input class="form-input" name="frecuenciaMeses" type="number" min="1" placeholder="12" /></label>
+                <label class="form-group"><span class="form-label">Días máximos de acopio de patogénicos</span><input class="form-input" name="diasAcopio" type="number" min="1" placeholder="30" /></label>
+                <div style="grid-column: 1 / -1; display: flex; gap: 8px; align-items: center">
+                  <button class="topbar-btn primary" type="submit">💾 Guardar</button>
+                  <span class="text-muted" id="residuosConfigEstado" style="font-size: 12px"></span>
+                </div>
+              </form>
+            </div>
+            <div class="card" style="margin-bottom: 16px">
+              <div class="card-header">
+                <div class="card-title">🧪 Análisis de efluente, suelo y napa</div>
+                <button class="topbar-btn primary" type="button" onclick="openModal('efluentesAnalisis')">+ Análisis</button>
+              </div>
+              <div style="overflow-x: auto">
+                <table class="data-table">
+                  <thead><tr><th>Fecha</th><th>Muestra</th><th>Lote</th><th>N</th><th>P</th><th>Nitratos</th><th>Laboratorio</th><th></th></tr></thead>
+                  <tbody id="efluentesAnalisisBody"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card" style="margin-bottom: 16px">
+              <div class="card-header">
+                <div class="card-title">🚜 Uso agronómico (efluente / estiércol)</div>
+                <button class="topbar-btn primary" type="button" onclick="openModal('efluentesAplicaciones')">+ Aplicación</button>
+              </div>
+              <div style="overflow-x: auto">
+                <table class="data-table">
+                  <thead><tr><th>Fecha</th><th>Lote</th><th>Método</th><th>Superficie</th><th>Volumen</th><th>kg N/ha</th><th>kg P/ha</th><th></th></tr></thead>
+                  <tbody id="efluentesAplicacionesBody"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card" style="margin-bottom: 16px">
+              <div class="card-header">
+                <div class="card-title">💉 Residuos patogénicos y veterinarios</div>
+                <button class="topbar-btn primary" type="button" onclick="openModal('residuosPatogenicos')">+ Acopio o retiro</button>
+              </div>
+              <div style="overflow-x: auto">
+                <table class="data-table">
+                  <thead><tr><th>Fecha</th><th>Movimiento</th><th>Residuos</th><th>Kg</th><th>Transportista</th><th>Manifiesto</th><th></th></tr></thead>
+                  <tbody id="residuosPatogenicosBody"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card" style="margin-bottom: 16px">
+              <div class="card-header">
+                <div class="card-title">🧴 Plásticos: bidones de agroquímicos y silobolsas</div>
+                <button class="topbar-btn primary" type="button" onclick="openModal('residuosPlasticos')">+ Registro</button>
+              </div>
+              <div style="overflow-x: auto">
+                <table class="data-table">
+                  <thead><tr><th>Fecha</th><th>Tipo</th><th>Producto</th><th>Cantidad</th><th>Triple lavado</th><th>Perforado</th><th>Destino</th><th>Comprobante</th><th></th></tr></thead>
+                  <tbody id="residuosPlasticosBody"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card" style="margin-bottom: 16px">
+              <div class="card-header">
+                <div class="card-title">🪦 Disposición de animales muertos</div>
+                <button class="topbar-btn primary" type="button" onclick="openModal('disposicionMuertos')">+ Disposición</button>
+              </div>
+              <div style="overflow-x: auto">
+                <table class="data-table">
+                  <thead><tr><th>Fecha</th><th>Cabezas</th><th>Método</th><th>Lugar</th><th>Causa</th><th></th></tr></thead>
+                  <tbody id="disposicionMuertosBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
           <div class="module" id="mod-rentabilidad">
             <div class="card" style="margin-bottom: 16px">
               <div class="card-header">
@@ -5299,6 +5398,12 @@
         partesVoz: [],
         sanidadEstablecimiento: {},
         sanidadCampanas: [],
+        efluentesAnalisis: [],
+        efluentesAplicaciones: [],
+        residuosPatogenicos: [],
+        residuosPlasticos: [],
+        disposicionMuertos: [],
+        residuosConfig: {},
         sanidadVacunaciones: [],
         sanidadAnalisis: [],
         sanidadGarrapata: [],
@@ -5902,11 +6007,18 @@
         "empresa",
         "reportes",
         "documentos",
+        "residuos",
       ];
       const moduleNames = {
 
         dteRecepciones: "Recepción de hacienda (DT-e)",
         sanidadCampanas: "Campaña de vacunación",
+        residuos: "Residuos y efluentes",
+        efluentesAnalisis: "Análisis de efluente / suelo",
+        efluentesAplicaciones: "Aplicación de efluente o estiércol",
+        residuosPatogenicos: "Residuo patogénico",
+        residuosPlasticos: "Residuo plástico",
+        disposicionMuertos: "Disposición de animales muertos",
         sanidadVacunaciones: "Vacunación",
         sanidadAnalisis: "Análisis sanitario",
         sanidadGarrapata: "Baño / tratamiento garrapata",
@@ -5947,6 +6059,7 @@
           nombre: "Administrador/Propietario",
           icono: "👑",
           modulos: [
+            "residuos",
             "dashboard",
             "campos",
             "lotes",
@@ -5979,6 +6092,7 @@
           nombre: "Ingeniero/Veterinario",
           icono: "🩺",
           modulos: [
+            "residuos",
             "dashboard",
             "campos",
             "lotes",
@@ -5998,6 +6112,7 @@
           nombre: "Operarios de Campo",
           icono: "👷",
           modulos: [
+            "residuos",
             "dashboard",
             "campos",
             "lotes",
@@ -6014,6 +6129,7 @@
           nombre: "Operadores de Oficina",
           icono: "🧾",
           modulos: [
+            "residuos",
             "dashboard",
             "caja",
             "bancos",
@@ -7447,6 +7563,7 @@
         });
         state.saldosIniciales = {};
         state.sanidadEstablecimiento = {};
+        state.residuosConfig = {};
         state.empresa = getDefaultEmpresaCleanState();
         delete state.demoCargado;
       }
@@ -8059,6 +8176,69 @@
             { name: "caravanas", label: "Caravanas / RFID leídas (opcional)", type: "text" },
             { name: "cerradoSigsa", label: "¿Ya se cerró en SIGSA?", type: "select", options: ["No", "Sí"] },
             { name: "observaciones", label: "Observaciones (faltantes, animales lastimados…)", type: "text" },
+          ],
+        },
+        efluentesAnalisis: {
+          title: "Análisis de efluente, suelo o napa",
+          fields: [
+            { name: "fecha", label: "Fecha de la muestra", type: "date", required: true },
+            { name: "muestra", label: "Muestra", type: "select", options: ["Efluente - laguna / fosa", "Efluente - salida / tratado", "Estiércol / compost", "Suelo receptor", "Agua de napa / pozo"], required: true },
+            { name: "lote", label: "Lote (si es suelo)", type: "select", dynamicOptions: "lotes" },
+            { name: "nitrogeno", label: "Nitrógeno total (mg/L o % en sólidos)", type: "number" },
+            { name: "fosforo", label: "Fósforo (mg/L o ppm)", type: "number" },
+            { name: "nitratos", label: "Nitratos (mg/L, agua de napa)", type: "number" },
+            { name: "laboratorio", label: "Laboratorio / protocolo", type: "text" },
+            { name: "observaciones", label: "Observaciones", type: "text" },
+          ],
+        },
+        efluentesAplicaciones: {
+          title: "Uso agronómico de efluente o estiércol",
+          fields: [
+            { name: "fecha", label: "Fecha", type: "date", required: true },
+            { name: "lote", label: "Lote", type: "select", dynamicOptions: "lotes", required: true },
+            { name: "metodo", label: "Método", type: "select", options: ["Fertirriego (efluente líquido)", "Estercolera / cisterna", "Estiércol de corral", "Sólido compostado"], required: true },
+            { name: "superficie_ha", label: "Superficie aplicada (ha)", type: "number", required: true },
+            { name: "volumen", label: "Volumen (m³) o toneladas", type: "number" },
+            { name: "n_kg_ha", label: "Nitrógeno aplicado (kg N/ha)", type: "number", required: true },
+            { name: "p_kg_ha", label: "Fósforo aplicado (kg P/ha)", type: "number" },
+            { name: "responsable", label: "Responsable", type: "text" },
+          ],
+        },
+        residuosPatogenicos: {
+          title: "Residuos patogénicos y veterinarios",
+          fields: [
+            { name: "fecha", label: "Fecha", type: "date", required: true },
+            { name: "movimiento", label: "Movimiento", type: "select", options: ["Acopio", "Retiro"], required: true },
+            { name: "descripcion", label: "Residuos", type: "text", placeholder: "Agujas en descartador, frascos de vacunas y antiparasitarios, guantes…", required: true },
+            { name: "cantidad_kg", label: "Cantidad (kg)", type: "number" },
+            { name: "transportista", label: "Transportista habilitado (en retiros)", type: "text" },
+            { name: "manifiesto", label: "N° de manifiesto / certificado de tratamiento", type: "text" },
+            { name: "responsable", label: "Responsable", type: "text" },
+          ],
+        },
+        residuosPlasticos: {
+          title: "Plásticos: bidones de agroquímicos y silobolsas",
+          fields: [
+            { name: "fecha", label: "Fecha", type: "date", required: true },
+            { name: "tipo", label: "Tipo", type: "select", options: ["Bidón de agroquímico", "Silobolsa", "Manta de silo", "Otro plástico"], required: true },
+            { name: "producto", label: "Producto / origen", type: "text" },
+            { name: "cantidad", label: "Cantidad", type: "number", required: true },
+            { name: "unidad", label: "Unidad", type: "select", options: ["unidades", "kg"] },
+            { name: "triple_lavado", label: "Triple lavado (bidones)", type: "select", options: ["NO", "SI", "NO APLICA"] },
+            { name: "perforado", label: "Perforado / inutilizado (bidones)", type: "select", options: ["NO", "SI", "NO APLICA"] },
+            { name: "destino", label: "Destino", type: "select", options: ["Pendiente (en acopio)", "CAT CampoLimpio", "Reciclador", "Otro"] },
+            { name: "comprobante", label: "Comprobante de entrega (CAT / reciclador)", type: "text" },
+          ],
+        },
+        disposicionMuertos: {
+          title: "Disposición de animales muertos",
+          fields: [
+            { name: "fecha", label: "Fecha", type: "date", required: true },
+            { name: "cabezas", label: "Cabezas", type: "number", required: true },
+            { name: "metodo", label: "Método", type: "select", options: ["Enterramiento en fosa con cal", "Compostaje", "Retiro por empresa habilitada", "Incineración"], required: true },
+            { name: "lugar", label: "Lugar / lote (lejos de aguadas y napas)", type: "text" },
+            { name: "causa", label: "Causa probable", type: "text" },
+            { name: "responsable", label: "Responsable", type: "text" },
           ],
         },
         sanidadCampanas: {
@@ -11747,6 +11927,17 @@ costos: {
           }
         }
 
+        // Alertas ambientales (residuos y efluentes).
+        if (typeof evaluarResiduosGanaderia === "function") {
+          try {
+            evaluarResiduosGanaderia().alertas.forEach((a) =>
+              alertas.push({ clase: a.nivel === "rojo" ? "critical" : "", icono: "♻️", texto: escapeHtmlRoles(`Ambiente: ${a.texto}`), tiempo: "Residuos y efluentes" }),
+            );
+          } catch (error) {
+            console.error("Alertas ambientales:", error);
+          }
+        }
+
         // Alertas de cheques por cobrar
         if (state.chequesCobrar) {
           state.chequesCobrar.forEach((cheque) => {
@@ -12411,6 +12602,7 @@ costos: {
         // Costos (KPIs + tabla): función dedicada, ver renderCostos()
         safeRender("costos", renderCostos);
 safeRender("sanidad", renderSanidad);
+safeRender("residuos", renderResiduosGanaderia);
         safeRender("equipos", renderMaquinarias);
         safeRender("dteRecepciones", renderDteRecepciones);
 
@@ -12927,6 +13119,131 @@ safeRender("sanidad", renderSanidad);
         showToast(`DT-e ${r.nroDte} marcado como cerrado en SIGSA.`, "success");
       }
 
+      // ── Residuos y efluentes ─────────────────────────────────────────────────────────────────
+      function guardarConfigResiduosGanaderia() {
+        const form = document.getElementById("residuosConfigForm");
+        if (!form) return;
+        state.residuosConfig = { ...(state.residuosConfig || {}), ...Object.fromEntries(new FormData(form).entries()), actualizado: new Date().toISOString() };
+        saveState();
+        renderResiduosGanaderia();
+        showToast("Configuración de efluentes guardada.", "success");
+      }
+
+      // Alertas y cifras del módulo (también van al Dashboard y a PampaIA).
+      function evaluarResiduosGanaderia(hoyIso = hoyIsoSan()) {
+        const cfg = state.residuosConfig || {};
+        const alertas = [];
+        const f = (x) => fechaIsoSan(x);
+        const dias = (x) => { const v = f(x); return v ? Math.round((new Date(v + "T12:00:00") - new Date(hoyIso + "T12:00:00")) / 86400000) : null; };
+        const n = (v) => parseFloat(String(v ?? "").replace(",", ".")) || 0;
+        if (cfg.laguna === "Sin impermeabilizar")
+          alertas.push({ nivel: cfg.suelo === "Arenoso" ? "rojo" : "amarillo", texto: cfg.suelo === "Arenoso" ? "Laguna o fosa sin impermeabilizar en suelo arenoso: el efluente percola rápido a la napa. Tiene que tener geomembrana o arcilla compactada." : "La laguna o fosa tiene que ser impermeable (geomembrana o arcilla compactada) para no contaminar la napa." });
+        [["permisoVence", "Permiso de efluentes"], ["ddjjVence", "Declaración jurada de efluentes"]].forEach(([k, label]) => {
+          const d = cfg[k] ? dias(cfg[k]) : null;
+          if (d === null) return;
+          if (d < 0) alertas.push({ nivel: "rojo", texto: `${label} vencido hace ${Math.abs(d)} día(s).` });
+          else if (d <= 30) alertas.push({ nivel: "amarillo", texto: `${label}: faltan ${d} día(s).` });
+        });
+        const conCorrales = /Corrales|Feedlot/.test(cfg.sistema || "");
+        const hayEfluentes = (state.efluentesAplicaciones || []).length || (state.efluentesAnalisis || []).length || (cfg.laguna && cfg.laguna !== "No tiene laguna") || conCorrales;
+        if (hayEfluentes && !cfg.permiso) alertas.push({ nivel: "amarillo", texto: "Efluentes sin permiso cargado: cargá el número de permiso o expediente y su vencimiento." });
+        const analisis = (state.efluentesAnalisis || []).filter((a) => /^(Efluente|Estiércol)/.test(a.muestra || "")).map((a) => f(a.fecha)).filter(Boolean).sort().reverse();
+        const frecuencia = n(cfg.frecuenciaMeses) > 0 ? n(cfg.frecuenciaMeses) : 12;
+        let proximoAnalisis = "";
+        if (analisis.length) {
+          const d = new Date(analisis[0] + "T12:00:00");
+          d.setMonth(d.getMonth() + frecuencia);
+          proximoAnalisis = d.toISOString().slice(0, 10);
+          if (proximoAnalisis < hoyIso) alertas.push({ nivel: "amarillo", texto: `Análisis de efluente vencido: el último es del ${fechaArSan(analisis[0])} (cada ${frecuencia} meses).` });
+        } else if ((state.efluentesAplicaciones || []).length || conCorrales) {
+          alertas.push({ nivel: "amarillo", texto: "Sin análisis de efluente o estiércol: hace falta para calcular la dosis de uso agronómico." });
+        }
+        const anio = hoyIso.slice(0, 4);
+        const porLote = {};
+        (state.efluentesAplicaciones || []).forEach((a) => {
+          if (f(a.fecha).slice(0, 4) !== anio) return;
+          const lote = a.lote || "Sin lote";
+          porLote[lote] ||= { n: 0, p: 0 };
+          porLote[lote].n += n(a.n_kg_ha);
+          porLote[lote].p += n(a.p_kg_ha);
+        });
+        const nMax = n(cfg.nMax), pMax = n(cfg.pMax);
+        Object.entries(porLote).forEach(([lote, d]) => {
+          if (nMax && d.n > nMax) alertas.push({ nivel: "rojo", texto: `Dosis de nitrógeno excedida en ${lote}: ${Math.round(d.n)} kg N/ha en ${anio} (máximo ${nMax}).` });
+          if (pMax && d.p > pMax) alertas.push({ nivel: "rojo", texto: `Dosis de fósforo excedida en ${lote}: ${Math.round(d.p)} kg P/ha en ${anio} (máximo ${pMax}).` });
+        });
+        const loteMax = Object.entries(porLote).sort((a, b) => b[1].n - a[1].n)[0] || null;
+        // Patogénicos: lo acopiado después del último retiro.
+        const pat = [...(state.residuosPatogenicos || [])].sort((a, b) => f(a.fecha).localeCompare(f(b.fecha)));
+        const ultimoRetiro = [...pat].reverse().find((r) => r.movimiento === "Retiro");
+        const desde = ultimoRetiro ? f(ultimoRetiro.fecha) : "";
+        const acopios = pat.filter((r) => r.movimiento !== "Retiro" && f(r.fecha) > desde);
+        const kgAcopio = acopios.reduce((t, r) => t + n(r.cantidad_kg), 0);
+        const diasAcopio = n(cfg.diasAcopio) > 0 ? n(cfg.diasAcopio) : 30;
+        if (acopios.length && -dias(acopios[0].fecha) > diasAcopio)
+          alertas.push({ nivel: "rojo", texto: `Patogénicos sin retirar desde hace ${-dias(acopios[0].fecha)} día(s) (máximo ${diasAcopio}): coordiná el retiro con un transportista habilitado.` });
+        const tratamientos = [...(state.eventosSanitarios || []), ...(state.sanidadVacunaciones || []), ...(state.sanidadGarrapata || [])].filter((r) => f(r.fecha) > desde).length;
+        if (tratamientos && !acopios.length && (!ultimoRetiro || -dias(ultimoRetiro.fecha) > 90))
+          alertas.push({ nivel: "amarillo", texto: `${tratamientos} vacunación(es) o tratamiento(s) desde el último retiro: registrá el acopio de agujas y frascos.` });
+        pat.filter((r) => r.movimiento === "Retiro" && !String(r.manifiesto || "").trim()).forEach((r) =>
+          alertas.push({ nivel: "amarillo", texto: `Retiro de patogénicos del ${fechaArSan(f(r.fecha))} sin manifiesto o certificado de tratamiento.` }));
+        // Plásticos.
+        const bidones = (state.residuosPlasticos || []).filter((r) => r.tipo === "Bidón de agroquímico");
+        const sinLavar = bidones.filter((r) => r.triple_lavado !== "SI").reduce((t, r) => t + n(r.cantidad), 0);
+        const sinPerforar = bidones.filter((r) => r.triple_lavado === "SI" && r.perforado !== "SI").reduce((t, r) => t + n(r.cantidad), 0);
+        const pendientes = (state.residuosPlasticos || []).filter((r) => !r.destino || /^Pendiente/.test(r.destino));
+        const bidonesSinEntregar = pendientes.filter((r) => r.tipo === "Bidón de agroquímico").reduce((t, r) => t + n(r.cantidad), 0);
+        if (sinLavar) alertas.push({ nivel: "rojo", texto: `${sinLavar} bidón(es) sin triple lavado: es obligatorio (Ley 27.279) al preparar el caldo.` });
+        if (sinPerforar) alertas.push({ nivel: "amarillo", texto: `${sinPerforar} bidón(es) lavados sin perforar.` });
+        if (bidonesSinEntregar) alertas.push({ nivel: "amarillo", texto: `${bidonesSinEntregar} bidón(es) en acopio: entregalos en un CAT de CampoLimpio y guardá el comprobante.` });
+        (state.residuosPlasticos || []).filter((r) => r.destino && !/^Pendiente/.test(r.destino) && !String(r.comprobante || "").trim()).forEach((r) =>
+          alertas.push({ nivel: "amarillo", texto: `${r.tipo} entregado el ${fechaArSan(f(r.fecha))} (${r.destino}) sin comprobante.` }));
+        // Animales muertos de los últimos 90 días sin destino registrado.
+        const hace90 = new Date(hoyIso + "T12:00:00"); hace90.setDate(hace90.getDate() - 90);
+        const desde90 = hace90.toISOString().slice(0, 10);
+        const muertes = (state.hacienda || []).filter((m) => m.tipo === "Muerte" && f(m.fecha) >= desde90).reduce((t, m) => t + (parseInt(m.cantidad, 10) || 0), 0);
+        const dispuestas = (state.disposicionMuertos || []).filter((d) => f(d.fecha) >= desde90).reduce((t, d) => t + (parseInt(d.cabezas, 10) || 0), 0);
+        if (muertes > dispuestas) alertas.push({ nivel: "amarillo", texto: `${muertes - dispuestas} animal(es) muerto(s) en los últimos 90 días sin disposición registrada (fosa con cal, compostaje o retiro).` });
+        return { alertas, ultimoAnalisis: analisis[0] || "", proximoAnalisis, loteMax, kgAcopio, acopiosPendientes: acopios.length, plasticosPendientes: bidonesSinEntregar + pendientes.filter((r) => r.tipo !== "Bidón de agroquímico").length };
+      }
+
+      function renderResiduosGanaderia() {
+        if (!document.getElementById("mod-residuos")) return;
+        const esc = escapeHtmlRoles;
+        const cfg = state.residuosConfig || {};
+        const form = document.getElementById("residuosConfigForm");
+        if (form && document.activeElement?.form !== form) [...form.elements].forEach((c) => { if (c.name) c.value = cfg[c.name] ?? ""; });
+        setEl("residuosConfigEstado", cfg.actualizado ? `Guardado el ${new Date(cfg.actualizado).toLocaleString("es-AR")}` : "Sin guardar todavía");
+        const tabla = (id, modulo, columnas, vacio) => {
+          const body = document.getElementById(id);
+          if (!body) return;
+          const lista = state[modulo] || [];
+          body.innerHTML = lista.length
+            ? lista.map((r, i) => ({ r, i })).sort((a, b) => fechaIsoSan(b.r.fecha).localeCompare(fechaIsoSan(a.r.fecha)))
+                .map(({ r, i }) => `<tr onclick="openModal('${modulo}', ${i})" style="cursor:pointer;">${columnas.map((c) => `<td>${typeof c === "function" ? c(r) : esc(r[c] ?? "")}</td>`).join("")}<td><button class="btn-delete" onclick="event.stopPropagation(); deleteRecord('${modulo}', ${i});">🗑️</button></td></tr>`).join("")
+            : `<tr><td colspan="${columnas.length + 1}" style="text-align:center;color:var(--text-dim);">${vacio}</td></tr>`;
+        };
+        const fecha = (r) => esc(fechaArSan(fechaIsoSan(r.fecha)));
+        tabla("efluentesAnalisisBody", "efluentesAnalisis", [fecha, "muestra", "lote", "nitrogeno", "fosforo", "nitratos", "laboratorio"], "Sin análisis cargados");
+        tabla("efluentesAplicacionesBody", "efluentesAplicaciones", [fecha, "lote", "metodo", "superficie_ha", "volumen", "n_kg_ha", "p_kg_ha"], "Sin aplicaciones cargadas");
+        tabla("residuosPatogenicosBody", "residuosPatogenicos", [fecha, "movimiento", "descripcion", "cantidad_kg", "transportista", "manifiesto"], "Sin movimientos de patogénicos");
+        tabla("residuosPlasticosBody", "residuosPlasticos", [fecha, "tipo", "producto", (r) => `${esc(r.cantidad ?? "")} ${esc(r.unidad || "")}`, "triple_lavado", "perforado", "destino", "comprobante"], "Sin plásticos registrados");
+        tabla("disposicionMuertosBody", "disposicionMuertos", [fecha, "cabezas", "metodo", "lugar", "causa"], "Sin disposiciones registradas");
+        const ev = evaluarResiduosGanaderia();
+        setEl("kpiResAnalisis", ev.ultimoAnalisis ? fechaArSan(ev.ultimoAnalisis) : "-");
+        setEl("kpiResAnalisisSub", ev.proximoAnalisis ? `Próximo: ${fechaArSan(ev.proximoAnalisis)}` : "Sin análisis");
+        setEl("kpiResNitrogeno", ev.loteMax ? `${Math.round(ev.loteMax[1].n)} kg N/ha` : "0");
+        setEl("kpiResNitrogenoSub", ev.loteMax ? `${ev.loteMax[0]} (lote más cargado del año)` : "Sin aplicaciones este año");
+        setEl("kpiResPatogenicos", `${ev.kgAcopio.toLocaleString("es-AR", { maximumFractionDigits: 1 })} kg`);
+        setEl("kpiResPatogenicosSub", ev.acopiosPendientes ? `${ev.acopiosPendientes} acopio(s) sin retirar` : "Sin acopio pendiente");
+        setEl("kpiResPlasticos", String(ev.plasticosPendientes));
+        const cont = document.getElementById("residuosAlertas");
+        if (cont)
+          cont.innerHTML = ev.alertas.length
+            ? ev.alertas.map((a) => `<div class="alert-item ${a.nivel === "rojo" ? "critical" : ""}"><span class="alert-icon">${a.nivel === "rojo" ? "🔴" : "🟡"}</span><span class="alert-text">${esc(a.texto)}</span></div>`).join("")
+            : '<span class="tag green">Sin alertas ambientales</span>';
+      }
+
       function renderSanidad() {
         const esc = escapeHtmlRoles;
         const hoy = hoyIsoSan();
@@ -13009,6 +13326,7 @@ safeRender("sanidad", renderSanidad);
             evaluarSanidad,
             calcularCostoTotalEmpleados,
             posicionIva,
+            residuos: evaluarResiduosGanaderia,
           });
         return asistenteIACache;
       }
@@ -16574,7 +16892,7 @@ function costosGanaderosDelPeriodo(desde, hasta) {
       };
 
       const PLAN_MODULE_CONFIG_KEY = "nexoAgroPlanModulesConfig";
-      const ALWAYS_PLAN_MODULES = ["dashboard", "empresa", "reportes"];
+      const ALWAYS_PLAN_MODULES = ["dashboard", "empresa", "reportes", "residuos"];
       const PLAN_MODULE_GROUPS = {
         campos: ["campos", "lotes"],
         hacienda: [
@@ -19170,7 +19488,7 @@ function costosGanaderosDelPeriodo(desde, hasta) {
       }
     </script>
 
-    <script src="asistente-ia.js?v=3"></script>
+    <script src="asistente-ia.js?v=4"></script>
     <script src="pampaia-source.js?v=pampaia-published-7"></script>
 
     <script>

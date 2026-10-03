@@ -14,7 +14,8 @@
       "Vencimientos: RENSPA de La Aguada y boleto de marca por vencer",
       "Desvíos: última venta de novillos por debajo del promedio y mortandad reciente",
       "Stock: rollos y vacuna antiaftosa bajo el mínimo",
-      "Mantenimiento: orden pendiente de la camioneta"
+      "Mantenimiento: orden pendiente de la camioneta",
+      "Ambiente: permiso de efluentes por vencer, nitrógeno excedido en el Potrero 2, patogénicos sin retirar, bidones sin perforar ni entregar y 2 animales muertos sin disposición"
     ],
     "comoBorrar": "Para borrar los datos de ejemplo y cargar los propios: Empresa → 🧼 Limpieza profunda. Antes de borrar se descarga un respaldo."
   },
@@ -759,6 +760,138 @@
       }
     ],
     "sanidadGarrapata": [],
+    "residuosConfig": {
+      "sistema": "Corrales de encierre",
+      "separador": "Sí",
+      "laguna": "Arcilla compactada",
+      "suelo": "Franco",
+      "autoridad": "Autoridad del Agua (Bs. As.) (DEMO)",
+      "permiso": "ADA-DEMO-2025-0142",
+      "permisoVence": "2026-10-19",
+      "ddjjVence": "2026-12-13",
+      "nMax": "170",
+      "pMax": "",
+      "frecuenciaMeses": "12",
+      "diasAcopio": "30",
+      "actualizado": "2026-08-30T10:00:00.000Z"
+    },
+    "efluentesAnalisis": [
+      {
+        "fecha": "2026-03-13",
+        "muestra": "Efluente - laguna / fosa",
+        "lote": "",
+        "nitrogeno": 420,
+        "fosforo": 85,
+        "nitratos": "",
+        "laboratorio": "Laboratorio Villegas (DEMO) · prot. EF-0042",
+        "observaciones": "DEMO"
+      },
+      {
+        "fecha": "2026-03-13",
+        "muestra": "Suelo receptor",
+        "lote": "P02",
+        "nitrogeno": 18,
+        "fosforo": 22,
+        "nitratos": "",
+        "laboratorio": "Laboratorio Villegas (DEMO) · prot. SU-0043",
+        "observaciones": "DEMO"
+      }
+    ],
+    "efluentesAplicaciones": [
+      {
+        "fecha": "2026-06-01",
+        "lote": "P02",
+        "metodo": "Estiércol de corral",
+        "superficie_ha": 40,
+        "volumen": 120,
+        "n_kg_ha": 90,
+        "p_kg_ha": 20,
+        "responsable": "Juan Pérez (DEMO)"
+      },
+      {
+        "fecha": "2026-09-14",
+        "lote": "P02",
+        "metodo": "Estiércol de corral",
+        "superficie_ha": 40,
+        "volumen": 130,
+        "n_kg_ha": 95,
+        "p_kg_ha": 22,
+        "responsable": "Juan Pérez (DEMO)"
+      }
+    ],
+    "residuosPatogenicos": [
+      {
+        "fecha": "2026-07-21",
+        "movimiento": "Retiro",
+        "descripcion": "Descartadores y frascos de la 1ª campaña",
+        "cantidad_kg": 6,
+        "transportista": "Patogénicos del Oeste SRL (DEMO)",
+        "manifiesto": "MAN-DEMO-00871",
+        "responsable": "Juan Pérez (DEMO)"
+      },
+      {
+        "fecha": "2026-08-15",
+        "movimiento": "Acopio",
+        "descripcion": "Agujas en descartador y frascos de antiparasitario",
+        "cantidad_kg": 3.5,
+        "transportista": "",
+        "manifiesto": "",
+        "responsable": "Mario Díaz (DEMO)"
+      }
+    ],
+    "residuosPlasticos": [
+      {
+        "fecha": "2026-07-31",
+        "tipo": "Bidón de agroquímico",
+        "producto": "Glifosato 20 L",
+        "cantidad": 8,
+        "unidad": "unidades",
+        "triple_lavado": "SI",
+        "perforado": "SI",
+        "destino": "CAT CampoLimpio",
+        "comprobante": "CAT-DEMO-1123"
+      },
+      {
+        "fecha": "2026-09-23",
+        "tipo": "Bidón de agroquímico",
+        "producto": "Herbicida 2,4-D 20 L",
+        "cantidad": 4,
+        "unidad": "unidades",
+        "triple_lavado": "SI",
+        "perforado": "NO",
+        "destino": "Pendiente (en acopio)",
+        "comprobante": ""
+      },
+      {
+        "fecha": "2026-08-30",
+        "tipo": "Silobolsa",
+        "producto": "Silo de maíz (60 m)",
+        "cantidad": 1,
+        "unidad": "unidades",
+        "triple_lavado": "NO APLICA",
+        "perforado": "NO APLICA",
+        "destino": "Reciclador",
+        "comprobante": "REC-DEMO-0077"
+      }
+    ],
+    "disposicionMuertos": [
+      {
+        "fecha": "2026-05-02",
+        "cabezas": 2,
+        "metodo": "Enterramiento en fosa con cal",
+        "lugar": "P03 (lejos de la aguada)",
+        "causa": "Diarrea neonatal",
+        "responsable": "Juan Pérez (DEMO)"
+      },
+      {
+        "fecha": "2026-09-21",
+        "cabezas": 3,
+        "metodo": "Compostaje",
+        "lugar": "Corral de compostaje P04",
+        "causa": "Neumonía (en estudio)",
+        "responsable": "Mario Díaz (DEMO)"
+      }
+    ],
     "boletosMarca": [
       {
         "nroBoleto": "BM-DEMO-001",
