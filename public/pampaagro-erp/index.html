@@ -2674,6 +2674,10 @@
         <div class="content" id="content">
           <!-- MODULE: DASHBOARD -->
           <div class="module active" id="mod-dashboard">
+            <div id="demoBannerDashboard" style="display:none;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;padding:12px 16px;border:1px dashed var(--accent, #3fa66a);border-radius:12px;background:rgba(63,166,106,.08);">
+              <div style="flex:1;min-width:220px;"><strong>¿Querés ver la app funcionando con datos?</strong><div style="font-size:12px;color:var(--text-dim);margin-top:2px;">Cargá un establecimiento de ejemplo con 12 meses de movimientos y alertas. Se borra desde Empresa → 🧼 Limpieza profunda.</div></div>
+              <button class="topbar-btn" type="button" onclick="cargarDatosEjemplo()">📥 Cargar datos de ejemplo</button>
+            </div>
             <!-- PORTADA EMPRESA -->
             <div class="dashboard-hero">
               <div class="dashboard-empresa-col">
@@ -10865,6 +10869,17 @@
           cargadoEn: new Date().toISOString(),
           empresa: datos.empresa?.nombre || "",
         };
+        // Plan de cuotas de los créditos del ejemplo, con las cuotas ya vencidas como pagadas.
+        (state.creditos || []).forEach((credito) => {
+          if (Array.isArray(credito.cuotas) && credito.cuotas.length) return;
+          credito.cuotas =
+            credito.sistema === "Aleman"
+              ? generarAmortizacionAleman(credito.monto, credito.plazoMeses, credito.tea, credito.fechaInicio)
+              : generarAmortizacionFrances(credito.monto, credito.plazoMeses, credito.tea, credito.fechaInicio);
+          const inicio = new Date(`${credito.fechaInicio}T12:00:00`);
+          const meses = (new Date().getFullYear() - inicio.getFullYear()) * 12 + (new Date().getMonth() - inicio.getMonth());
+          credito.cuotaActual = Math.min(Math.max(meses + 1, 1), credito.plazoMeses);
+        });
         // Residuos de las aplicaciones, siembras y mantenimientos del ejemplo.
         cargarResiduosDeRegistrosAnteriores();
         saveState();
@@ -17299,7 +17314,17 @@
         }
       }
 
+      // Muestra el aviso de datos de ejemplo solo mientras no haya nada cargado.
+      function actualizarBannerDemo() {
+        const banner = document.getElementById("demoBannerDashboard");
+        if (!banner) return;
+        let vacia = false;
+        try { vacia = !hayDatosCargados(); } catch (e) { vacia = false; }
+        banner.style.display = vacia ? "flex" : "none";
+      }
+
       function renderTables() {
+        actualizarBannerDemo();
         if (typeof renderPartesVoz === "function") renderPartesVoz();
         renderAvisoDemo();
         // Asegurar arrays base para evitar undefined.map en localStorage viejos

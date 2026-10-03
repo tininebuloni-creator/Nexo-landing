@@ -759,7 +759,48 @@
         "sigsa": "Sí"
       }
     ],
-    "sanidadGarrapata": [],
+    "sanidadGarrapata": [
+      {
+        "fecha": "2026-03-01",
+        "tipo": "Baño precautorio antes de la carga",
+        "producto": "Cipermetrina pour-on (DEMO)",
+        "cabezas": 40,
+        "resultado": "Sin garrapatas. Carga a faena autorizada."
+      },
+      {
+        "fecha": "2026-09-27",
+        "tipo": "Inspección",
+        "producto": "",
+        "cabezas": 120,
+        "resultado": "Inspección de rutina del veterinario: sin garrapatas."
+      }
+    ],
+    "dteRecepciones": [
+      {
+        "fecha": "2025-11-03",
+        "nroDte": "DTE-DEMO-0045871",
+        "procedencia": "Remate Feria Villegas (DEMO)",
+        "renspaOrigen": "06.555.0.00321/00",
+        "categoria": "Terneros",
+        "cabezas": 150,
+        "destino": "P02",
+        "caravanas": "032000000200001 a 032000000200150",
+        "cerradoSigsa": "Sí",
+        "observaciones": "DEMO"
+      },
+      {
+        "fecha": "2026-09-25",
+        "nroDte": "DTE-DEMO-0051234",
+        "procedencia": "Cabaña Los Álamos (DEMO)",
+        "renspaOrigen": "06.777.0.00456/00",
+        "categoria": "Toros",
+        "cabezas": 2,
+        "destino": "P01",
+        "caravanas": "032000000300001, 032000000300002",
+        "cerradoSigsa": "No",
+        "observaciones": "Falta cerrar la DT-e en SIGSA (DEMO)"
+      }
+    ],
     "residuosConfig": {
       "sistema": "Corrales de encierre",
       "separador": "Sí",

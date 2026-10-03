@@ -1948,6 +1948,10 @@
 
         <section class="content">
           <div class="module active" id="mod-dashboard">
+            <div id="demoBannerDashboard" style="display:none;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;padding:12px 16px;border:1px dashed #3fa66a;border-radius:12px;background:rgba(63,166,106,.08);">
+              <div style="flex:1;min-width:220px;"><strong>¿Querés ver la app funcionando con datos?</strong><div class="muted" style="font-size:12px;margin-top:2px;">Cargá un tambo de ejemplo con rodeo, ordeñes, 12 liquidaciones de leche, costos, ARCA, SENASA y alertas. Se borra con 🧼 Limpieza profunda.</div></div>
+              <button class="btn primary" type="button" onclick="cargarDatosEjemploTambo()">📥 Cargar datos de ejemplo</button>
+            </div>
             <div class="dashboard-top">
               <div class="empresa-hero">
                 <div class="empresa-hero-main">
@@ -1957,7 +1961,7 @@
                   ></div>
                   <div>
                     <div class="empresa-hero-title" id="dashboardEmpresaNombre">
-                      Agropecuaria Pampa N S.I.A.
+                      Mi tambo
                     </div>
                     <div class="empresa-hero-sub" id="dashboardEmpresaSub">
                       Panel operativo de la empresa
@@ -2006,6 +2010,9 @@
                 </button>
                 <button class="btn" id="btnAbrirReportes">
                   WhatsApp reportes
+                </button>
+                <button class="btn" type="button" onclick="cargarDatosEjemploTambo()" title="Carga un tambo ficticio para recorrer la app. Se borra con Limpieza profunda.">
+                  📥 Datos de ejemplo
                 </button>
                 <button class="btn" id="btnLimpiezaBasica">
                   Limpieza básica
@@ -2322,7 +2329,7 @@
                     <input
                       id="empresaNombreInput"
                       type="text"
-                      placeholder="Agropecuaria Pampa N S.I.A."
+                      placeholder="Ej.: Tambo San José S.A."
                       aria-label="Nombre de la empresa"
                     />
                   </div>
@@ -5790,8 +5797,8 @@
         silos: [],
         siloMovimientos: [],
         empresa: {
-          nombre: "Agropecuaria Pampa N S.I.A.",
-          cuit: "30-00000000-0",
+          nombre: "",
+          cuit: "",
           direccion: "",
           telefono: "",
           email: "",
@@ -11460,6 +11467,9 @@
             localStorage.getItem(EMPRESA_STORAGE_KEY) || "{}",
           );
           if (parsed && typeof parsed === "object") {
+            // La empresa ficticia que traía la app por defecto no es del usuario.
+            if (parsed.nombre === "Agropecuaria Pampa N S.I.A.") parsed.nombre = "";
+            if (parsed.cuit === "30-00000000-0") parsed.cuit = "";
             state.empresa = {
               ...state.empresa,
               nombre: `${parsed.nombre || state.empresa.nombre}`.trim(),
@@ -11492,7 +11502,7 @@
       function renderEmpresaDashboard() {
         const emp = state.empresa || {};
         byId("dashboardEmpresaNombre").textContent =
-          emp.nombre || "Agropecuaria Pampa N S.I.A.";
+          emp.nombre || "Mi tambo";
         byId("dashboardEmpresaSub").textContent =
           "Panel operativo de la empresa";
         byId("dashboardEmpresaCuit").textContent = emp.cuit || "Sin definir";
@@ -13631,7 +13641,8 @@
         });
         if (!proceed) return;
 
-        const targetTypes = deep ? IMPORT_TYPES.slice() : basicTypes;
+        // La profunda borra todo: lo importable y todas las listas del equipo (silos, residuos, consumos...).
+        const targetTypes = deep ? [...new Set([...IMPORT_TYPES, ...OFFLINE_COLLECTIONS])] : basicTypes;
 
         const btnBasica = byId("btnLimpiezaBasica");
         const btnProfunda = byId("btnLimpiezaProfunda");
@@ -13665,6 +13676,11 @@
           if (targetTypes.includes("guachera")) saveGuacheraLocal();
           if (targetTypes.includes("recria")) saveRecriaLocal();
           if (targetTypes.includes("mantenimiento")) saveMantenimientoLocal();
+          Object.entries(COLECCIONES_LOCALES_TAMBO).forEach(([k, [, guardar]]) => {
+            if (targetTypes.includes(k)) guardar();
+          });
+          saveArcaLocalState();
+          if (deep && typeof borrarDatosEjemploTambo === "function") borrarDatosEjemploTambo();
 
           if (deep) {
             state.auditoria = [];
@@ -17858,7 +17874,153 @@
         document.querySelectorAll("[data-residuo-nuevo]").forEach((b) => (b.style.display = puede ? "" : "none"));
       }
 
+      // === Datos de ejemplo (solo web) ===
+      // data/datosSemillaDemo.json: tambo ficticio con todos los módulos cargados y alertas activas. Las
+      // compras, gastos y ventas pasan por la misma lógica del formulario (comprobantes, stock y
+      // Finanzas/Caja) y las liquidaciones de leche se calculan con las reglas de retención del equipo.
+      const DEMO_TAMBO_KEY = "tambo_demo_cargado";
+
+      function hayDatosCargadosTambo() {
+        return OFFLINE_COLLECTIONS.some((k) => Array.isArray(state[k]) && state[k].length > 0) || Boolean(state.empresa?.cuit);
+      }
+
+      function actualizarBannerDemoTambo() {
+        const banner = document.getElementById("demoBannerDashboard");
+        if (!banner) return;
+        let vacia = false;
+        try {
+          vacia = !hayDatosCargadosTambo();
+        } catch (e) {
+          vacia = false;
+        }
+        banner.style.display = vacia ? "flex" : "none";
+      }
+
+      // Corre las fechas "AAAA-MM-DD..." del ejemplo los días indicados (y los períodos "AAAA-MM" por mes).
+      function correrFechasDemoTambo(valor, dias, meses) {
+        if (Array.isArray(valor)) return valor.map((v) => correrFechasDemoTambo(v, dias, meses));
+        if (valor && typeof valor === "object")
+          return Object.fromEntries(Object.entries(valor).map(([k, v]) => [k, correrFechasDemoTambo(v, dias, meses)]));
+        if (typeof valor !== "string") return valor;
+        const iso = valor.match(/^(\d{4})-(\d{2})-(\d{2})(.*)$/);
+        if (iso) {
+          const f = new Date(Date.UTC(+iso[1], +iso[2] - 1, +iso[3]));
+          if (Number.isNaN(f.getTime())) return valor;
+          f.setUTCDate(f.getUTCDate() + dias);
+          return f.toISOString().slice(0, 10) + iso[4];
+        }
+        const periodo = valor.match(/^(\d{4})-(\d{2})$/);
+        if (periodo) {
+          const f = new Date(Date.UTC(+periodo[1], +periodo[2] - 1 + meses, 1));
+          return f.toISOString().slice(0, 7);
+        }
+        return valor;
+      }
+
+      async function cargarDatosEjemploTambo() {
+        let seed;
+        try {
+          const respuesta = await fetch("data/datosSemillaDemo.json", { cache: "no-store" });
+          if (!respuesta.ok) throw new Error("HTTP " + respuesta.status);
+          seed = await respuesta.json();
+        } catch (error) {
+          showToast("No se pudieron leer los datos de ejemplo (" + error.message + ").", "error");
+          return;
+        }
+        if (seed?._meta?.tipo !== "pampa-seed-demo" || !seed.estado) {
+          showToast("El archivo de datos de ejemplo no tiene el formato esperado.", "error");
+          return;
+        }
+        if (hayDatosCargadosTambo()) {
+          if (!confirm("Ya hay datos cargados. Los datos de ejemplo los reemplazan por completo (antes se descarga un respaldo). ¿Continuar?")) return;
+          try {
+            exportBackupJson();
+          } catch (error) {
+            if (!confirm("No se pudo descargar el respaldo. ¿Continuar igual?")) return;
+          }
+        }
+        const [a, m, d] = String(seed._meta.fechaReferencia).split("-").map(Number);
+        const hoy = new Date();
+        const dias = Math.round((Date.UTC(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()) - Date.UTC(a, m - 1, d)) / 86400000);
+        const meses = (hoy.getFullYear() - a) * 12 + (hoy.getMonth() + 1 - m);
+        const corrido = correrFechasDemoTambo(seed, dias, meses);
+        const datos = corrido.estado;
+
+        new Set([...OFFLINE_COLLECTIONS, ...Object.keys(datos)]).forEach((k) => {
+          state[k] = Array.isArray(datos[k]) ? datos[k].map((r) => ({ ...r })) : [];
+        });
+        state.reglasRetencion = REGLAS_RETENCION_DEFECTO.map((r) => ({ ...r }));
+        migrarReglasLocalesTambo();
+        // Las reglas por defecto rigen desde 2026: en el ejemplo valen también para las liquidaciones anteriores.
+        const primeraLiquidacion = state.liquidacionesLeche.map((l) => String(l.fecha)).sort()[0];
+        if (primeraLiquidacion)
+          state.reglasRetencion.forEach((regla) => {
+            if (regla.estado === "VALIDADA" && String(regla.vigencia_desde || "") > primeraLiquidacion) regla.vigencia_desde = primeraLiquidacion;
+          });
+        state.empresa = { ...state.empresa, ...corrido.empresa, whatsappRoles: { ...state.empresa.whatsappRoles, ...(corrido.empresa?.whatsappRoles || {}) } };
+        saveEmpresaData();
+        localStorage.setItem(ARCA_SENASA_CONFIG_KEY, JSON.stringify(corrido.configArcaSenasa || {}));
+        localStorage.setItem(RESIDUOS_CONFIG_KEY, JSON.stringify(corrido.residuosConfig || {}));
+
+        // Lo mismo que hace el formulario al guardar compras, gastos y ventas (de la más vieja a la más nueva).
+        ["comprasInsumos", "gastosArca", "ventasHacienda"].forEach((tipo) => {
+          state[tipo]
+            .slice()
+            .sort((x, y) => String(x.fecha).localeCompare(String(y.fecha)))
+            .forEach((fila) => syncArcaLinkedRows(tipo, fila, null));
+        });
+        // Liquidaciones de leche: cálculo fiscal en orden (Ganancias acumula los pagos del mes).
+        state.liquidacionesLeche
+          .slice()
+          .sort((x, y) => String(x.fecha).localeCompare(String(y.fecha)))
+          .forEach((liq) => {
+            try {
+              liq.resumen_fiscal = calcularLumeLocalTambo(liq, {
+                provinciaCompradora: liq.provincia_compradora,
+                porcentajeTambero: Number(liq.porcentaje_tambero || 0),
+                tipoInscripcionTambero: liq.tipo_inscripcion_tambero,
+              });
+            } catch (error) {
+              console.warn("Liquidación de ejemplo sin cálculo fiscal:", error.message);
+            }
+          });
+        // Recibo del tambero mediero: importes según la LUME calculada.
+        (state.liquidacionesMediero || []).forEach((recibo) => {
+          const mederia = state.liquidacionesLeche.find((l) => String(l.id) === String(recibo.liquidacion_leche_id))?.resumen_fiscal?.mederia;
+          if (!mederia) return;
+          recibo.bruto_tambero = Number(mederia.bruto_tambero || 0);
+          recibo.neto_tambero = Number(mederia.neto_tambero || 0);
+          recibo.neto_a_transferir = recibo.neto_tambero - Number(recibo.deduccion_quimicos || 0) - Number(recibo.deduccion_adelantos || 0) - Number(recibo.deduccion_otros || 0);
+        });
+
+        saveArcaLocalState();
+        Object.values(COLECCIONES_LOCALES_TAMBO).forEach(([, guardar]) => guardar());
+        saveOfflineSnapshot();
+        localStorage.setItem(DEMO_TAMBO_KEY, JSON.stringify({ version: seed._meta.version, cargadoEn: new Date().toISOString() }));
+        recordAudit("ALTA", "datos de ejemplo");
+        renderAll();
+        alert(
+          'Se cargó el tambo de ejemplo "' + (state.empresa.nombre || "") + '".\n\n' +
+            "Tiene rodeo, guachera y recría, ordeñes, entregas a usina, 12 liquidaciones de leche con IVA y Ganancias calculados, alimentación, sanidad, máquinas, personal, finanzas, ARCA y residuos.\n\n" +
+            "Incluye alertas (leche descartada, carencias, aftosa, DOES, RCS alta, stock y vencimientos) para que veas cómo avisa la app.\n\n" +
+            "Para borrar los datos de ejemplo y cargar los tuyos: 🧼 Limpieza profunda.",
+        );
+      }
+
+      // La limpieza profunda borra también la empresa y la configuración del ejemplo.
+      function borrarDatosEjemploTambo() {
+        if (!localStorage.getItem(DEMO_TAMBO_KEY)) return;
+        localStorage.removeItem(DEMO_TAMBO_KEY);
+        localStorage.removeItem(ARCA_SENASA_CONFIG_KEY);
+        localStorage.removeItem(RESIDUOS_CONFIG_KEY);
+        state.reglasRetencion = REGLAS_RETENCION_DEFECTO.map((r) => ({ ...r }));
+        state.empresa = { ...state.empresa, nombre: "", cuit: "", direccion: "", telefono: "", email: "", codigo_tambo: "", whatsappRoles: Object.fromEntries(Object.keys(state.empresa.whatsappRoles || {}).map((k) => [k, ""])) };
+        saveEmpresaData();
+        saveArcaLocalState();
+      }
+
       function renderAll() {
+        actualizarBannerDemoTambo();
         renderResiduosTambo();
         renderEmpresaDashboard();
         renderEmpresaForm();

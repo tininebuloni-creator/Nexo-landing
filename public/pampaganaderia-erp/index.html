@@ -2067,6 +2067,10 @@
         <div class="content" id="content">
           <!-- MODULE: DASHBOARD -->
           <div class="module active" id="mod-dashboard">
+            <div id="demoBannerDashboard" style="display:none;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;padding:12px 16px;border:1px dashed var(--accent, #3fa66a);border-radius:12px;background:rgba(63,166,106,.08);">
+              <div style="flex:1;min-width:220px;"><strong>¿Querés ver la app funcionando con datos?</strong><div style="font-size:12px;color:var(--text-dim);margin-top:2px;">Cargá un establecimiento de ejemplo con 12 meses de movimientos y alertas. Se borra desde Empresa → 🧼 Limpieza profunda.</div></div>
+              <button class="topbar-btn" type="button" onclick="cargarDatosEjemplo()">📥 Cargar datos de ejemplo</button>
+            </div>
             <div class="dashboard-hero">
               <div class="dashboard-empresa-col">
                 <div class="empresa-portada" id="empresaPortada">
@@ -5477,14 +5481,14 @@
         empleados: [],
         documentos: [],
         empresa: {
-          nombre: "Agropecuaria Pampa N S.I.A.",
-          cuit: "30-71234567-8",
+          nombre: "",
+          cuit: "",
           condicionIva: "Responsable Inscripto",
-          inicioActividades: "01/04/2010",
-          direccion: "Av. San Martín 1234, Río Cuarto",
-          telefono: "+54 358 4567890",
-          email: "info@nexoagro.com.ar",
-          iibr: "358-012345-6",
+          inicioActividades: "",
+          direccion: "",
+          telefono: "",
+          email: "",
+          iibr: "",
           subtitulo: "Panel Ejecutivo",
           whatsappPropietario: "",
           whatsappAdministracion: "",
@@ -5553,6 +5557,11 @@
           seedEmptyStateForDelivery();
         }
 
+        // Migración: la empresa ficticia que venía por defecto ("Agropecuaria Pampa N S.I.A.") no es del usuario.
+        if (state.empresa?.cuit === "30-71234567-8" && state.empresa?.nombre === "Agropecuaria Pampa N S.I.A.") {
+          const { whatsappPropietario, whatsappAdministracion, whatsappIngeniero } = state.empresa;
+          state.empresa = { ...getDefaultEmpresaCleanState(), whatsappPropietario: whatsappPropietario || "", whatsappAdministracion: whatsappAdministracion || "", whatsappIngeniero: whatsappIngeniero || "" };
+        }
         // Migración: limpiar subtítulo legado de la portada de empresa
         if (state.empresa && typeof state.empresa.subtitulo === "string") {
           const subtituloLimpio = state.empresa.subtitulo
@@ -12150,7 +12159,17 @@ costos: {
         });
       }
 
+      // Muestra el aviso de datos de ejemplo solo mientras no haya nada cargado.
+      function actualizarBannerDemo() {
+        const banner = document.getElementById("demoBannerDashboard");
+        if (!banner) return;
+        let vacia = false;
+        try { vacia = !hayDatosCargados(); } catch (e) { vacia = false; }
+        banner.style.display = vacia ? "flex" : "none";
+      }
+
       function renderTables() {
+        actualizarBannerDemo();
         normalizarNumerosState();
         // Asegurar arrays base para evitar undefined.map en localStorage viejos
         [
@@ -16319,7 +16338,7 @@ function costosGanaderosDelPeriodo(desde, hasta) {
             align: "center",
           });
           y += 10;
-          doc.text("Agropecuaria Pampa N S.I.A.", 105, y, { align: "center" });
+          doc.text(state.empresa?.nombre || "", 105, y, { align: "center" });
 
           // Resumen ejecutivo
           doc.addPage();

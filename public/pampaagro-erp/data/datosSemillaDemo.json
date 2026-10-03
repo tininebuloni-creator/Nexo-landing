@@ -1,7 +1,7 @@
 {
   "_meta": {
     "tipo": "pampa-seed-demo",
-    "version": 1,
+    "version": 2,
     "app": "PampaAgropecuario",
     "fechaReferencia": "2026-09-28",
     "descripcion": "Establecimiento mixto ficticio (Venado Tuerto, Santa Fe): soja y maíz, recría e invernada bovina, un campo propio y uno alquilado de uso mixto. CUIT, RENSPA y comprobantes son de prueba (DEMO) y no corresponden a personas o empresas reales.",
@@ -1095,6 +1095,90 @@
         "actividad": "Estructura",
         "cobroDeVentaRegistrada": "No",
         "referencia": "Resumen 09/2026"
+      }
+    ],
+    "residuosEnvases": [
+      {
+        "fecha": "2026-05-01",
+        "producto": "Herbicida 2,4-D (DEMO)",
+        "cantidadEnvases": 6,
+        "capacidad": "20 L",
+        "lote": "L02",
+        "estado": "Entregado a CAT",
+        "observaciones": "DEMO"
+      }
+    ],
+    "residuosTripleLavado": [
+      {
+        "fecha": "2026-05-01",
+        "producto": "Herbicida 2,4-D (DEMO)",
+        "cantidadEnvases": 6,
+        "metodo": "Mecánico (a presión)",
+        "responsable": "Mario García (DEMO)",
+        "observaciones": "Envases perforados después del lavado"
+      }
+    ],
+    "residuosCAT": [
+      {
+        "fecha": "2026-05-31",
+        "centroAcopio": "CAT CampoLimpio Venado Tuerto (DEMO)",
+        "ubicacion": "Venado Tuerto, Santa Fe",
+        "cantidadEnvases": 6,
+        "numeroComprobante": "CAT-DEMO-0456",
+        "responsable": "Mario García (DEMO)",
+        "observaciones": "DEMO"
+      }
+    ],
+    "chequesCobrar": [
+      {
+        "numero": "00045120",
+        "banco": "Banco Galicia",
+        "origen": "Acopio del Sur S.A. (DEMO)",
+        "importe": "$ 18.000.000",
+        "fechaEmision": "18/09/2026",
+        "vencimiento": "18/10/2026",
+        "estado": "En cartera"
+      },
+      {
+        "numero": "00045098",
+        "banco": "Banco Santander",
+        "origen": "Consignataria Rosafé (DEMO)",
+        "importe": "$ 6.500.000",
+        "fechaEmision": "30/07/2026",
+        "vencimiento": "29/08/2026",
+        "estado": "Cobrado"
+      }
+    ],
+    "chequesCubrir": [
+      {
+        "numero": "00088012",
+        "banco": "Banco Nación",
+        "destino": "Agroinsumos del Litoral (DEMO)",
+        "importe": "$ 9.400.000",
+        "fechaEmision": "13/09/2026",
+        "vencimiento": "02/10/2026",
+        "estado": "Emitido"
+      },
+      {
+        "numero": "00087990",
+        "banco": "Banco Nación",
+        "destino": "Contratista de cosecha (DEMO)",
+        "importe": "$ 5.200.000",
+        "fechaEmision": "14/08/2026",
+        "vencimiento": "13/09/2026",
+        "estado": "Cobrado"
+      }
+    ],
+    "creditos": [
+      {
+        "numero": "CR-DEMO-01",
+        "entidad": "Banco Nación",
+        "destino": "Compra de sembradora (DEMO)",
+        "monto": 45000000,
+        "plazoMeses": 36,
+        "tea": 34,
+        "sistema": "Frances",
+        "fechaInicio": "2026-03-02"
       }
     ]
   }
