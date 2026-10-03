@@ -2212,22 +2212,21 @@
                   <div class="field">
                     <label for="reportTypeSelect">Tipo de reporte</label>
                     <select id="reportTypeSelect">
-                      <option value="cambiosDiarios">
-                        Reporte operativo diario completo
-                      </option>
-                      <option value="cambiosInstantaneos">
-                        Reporte operativo instantáneo completo
-                      </option>
-                      <option value="reporteOperativo">
-                        Reporte operativo completo
-                      </option>
-                      <option value="produccion">Producción y ordeñe</option>
-                      <option value="sanidad">Sanidad y tratamientos</option>
-                      <option value="alimentacion">
-                        Alimentación y rollos
-                      </option>
-                      <option value="finanzas">Finanzas</option>
-                      <option value="costos">Costos de producción</option>
+                      <option value="cambiosDiarios">Reporte operativo diario completo</option>
+                      <option value="cambiosInstantaneos">Reporte operativo instantáneo completo</option>
+                      <option value="resumen">Resumen del día</option>
+                      <option value="rodeo">Rodeo y producción</option>
+                      <option value="leche">Leche del mes (ordeñe, entregas y liquidaciones)</option>
+                      <option value="gastos">Gastos del mes</option>
+                      <option value="plata">Caja y Bancos</option>
+                      <option value="alertas">Alertas de desvíos</option>
+                      <option value="sanidad">Sanidad SENASA</option>
+                      <option value="stock">Alimento (proyección)</option>
+                      <option value="costoLitro">Costo por litro</option>
+                      <option value="mantenimiento">Equipos y mantenimiento</option>
+                      <option value="rentabilidad">Rentabilidad</option>
+                      <option value="cumplimiento">Cumplimiento SENASA, ARCA y ambiente</option>
+                      <option value="caja90">Flujo de fondos a 90 días</option>
                     </select>
                   </div>
                   <div class="field">
@@ -5978,7 +5977,6 @@
             "ordenes",
             "entregas",
             "costosOperativos",
-            "finanzas",
             "arca",
             "rentabilidad",
             "rrhh",
@@ -6049,7 +6047,6 @@
             "entregas",
             "sanidad",
             "costosOperativos",
-            "finanzas",
             "arca",
             "rentabilidad",
           ],
@@ -10338,21 +10335,21 @@
       }
 
       function saveMantenimientoLocal() {
-        localStorage.setItem(
+        guardarEnNavegador(
           MANTENIMIENTO_STORAGE_KEY,
           JSON.stringify(state.mantenimiento || []),
         );
       }
 
       function saveTorosLocal() {
-        localStorage.setItem(
+        guardarEnNavegador(
           TOROS_STORAGE_KEY,
           JSON.stringify(state.toros || []),
         );
       }
 
       function saveGuacheraLocal() {
-        localStorage.setItem(
+        guardarEnNavegador(
           GUACHERA_STORAGE_KEY,
           JSON.stringify(state.guachera || []),
         );
@@ -10370,14 +10367,14 @@
 
       function saveConsumosAlimentoLocal() {
         try {
-          localStorage.setItem(CONSUMOS_ALIMENTO_STORAGE_KEY, JSON.stringify(state.consumosAlimento || []));
+          guardarEnNavegador(CONSUMOS_ALIMENTO_STORAGE_KEY, JSON.stringify(state.consumosAlimento || []));
         } catch {
           /* sin almacenamiento: queda en memoria hasta recargar */
         }
       }
 
       function saveRecriaLocal() {
-        localStorage.setItem(
+        guardarEnNavegador(
           RECRIA_STORAGE_KEY,
           JSON.stringify(state.recria || []),
         );
@@ -10422,6 +10419,32 @@
         }
       }
 
+      // Guarda en el navegador y avisa si no pudo (sin espacio). Antes el error cortaba el guardado sin
+      // que nadie se enterara y lo último cargado se perdía al recargar.
+      var ultimoAvisoSinEspacio = 0;
+      function guardarEnNavegador(clave, texto) {
+        try {
+          localStorage.setItem(clave, texto);
+          return true;
+        } catch (error) {
+          if (Date.now() - ultimoAvisoSinEspacio > 60000) {
+            ultimoAvisoSinEspacio = Date.now();
+            setTimeout(() => {
+              const mensaje =
+                "No se pudo guardar en este equipo: el navegador se quedó sin espacio. Lo último que cargaste puede no quedar guardado.\n\n¿Descargar ahora un respaldo con todos tus datos?";
+              if (confirm(mensaje)) {
+                try {
+                  exportBackupJson();
+                } catch (e) {
+                  alert("No se pudo generar el respaldo: " + (e?.message || e));
+                }
+              }
+            }, 0);
+          }
+          return false;
+        }
+      }
+
       function saveArcaLocalState() {
         const payload = {
           liquidacionesLeche: state.liquidacionesLeche || [],
@@ -10434,7 +10457,7 @@
           comprobantesArca: state.comprobantesArca || [],
           cobrosPagos: state.cobrosPagos || [],
         };
-        localStorage.setItem(ARCA_STORAGE_KEY, JSON.stringify(payload));
+        guardarEnNavegador(ARCA_STORAGE_KEY, JSON.stringify(payload));
       }
 
       function loadArcaSenasaConfig() {
@@ -11231,7 +11254,7 @@
         OFFLINE_COLLECTIONS.forEach((key) => {
           snapshot[key] = Array.isArray(state[key]) ? state[key] : [];
         });
-        localStorage.setItem(OFFLINE_STATE_KEY, JSON.stringify(snapshot));
+        guardarEnNavegador(OFFLINE_STATE_KEY, JSON.stringify(snapshot));
       }
 
       function applyOfflineSnapshot(snapshot = {}) {
@@ -11543,91 +11566,61 @@
         };
       }
 
-      function buildQuickReportMessage(
-        type = "cambiosDiarios",
-        instantDetail = "",
-      ) {
-        const hoy = new Date().toLocaleString("es-AR");
-        const fechaHoy = new Date().toISOString().slice(0, 10);
-        const recientes = (row) =>
-          type === "cambiosInstantaneos" ||
-          !row?.fecha ||
-          String(row.fecha).slice(0, 10) === fechaHoy;
-        const limite = type === "cambiosInstantaneos" ? 20 : Infinity;
-        const nacimientos = (state.animales || [])
-          .filter(
-            (row) =>
-              recientes(row) &&
-              ["Nacimiento", "nacimiento", "Alta"].includes(row?.tipo),
-          )
-          .slice(0, limite);
-        const sanidad = (state.sanidad || [])
-          .filter(recientes)
-          .slice(0, limite);
-        const alimentacion = (state.alimentos || [])
-          .filter(recientes)
-          .slice(0, limite);
-        const rollos = alimentacion.filter((row) =>
-          /rollo/i.test(`${row?.producto || row?.alimento || row?.item || ""}`),
-        );
-        const litrosHoy = Number(
-          (state.ordenes || [])
-            .filter(recientes)
-            .reduce((acc, row) => acc + Number(row?.litros || 0), 0),
-        );
-        const ingresos = Number(
-          (state.finanzas || [])
-            .filter((x) =>
-              normalizeSignal(x.tipo || x.movimiento || "").includes("ING"),
-            )
-            .reduce(
-              (acc, row) => acc + Number(row?.monto || row?.importe || 0),
-              0,
-            ),
-        );
-        const egresos = Number(
-          (state.finanzas || [])
-            .filter((x) =>
-              normalizeSignal(x.tipo || x.movimiento || "").includes("EGR"),
-            )
-            .reduce(
-              (acc, row) => acc + Number(row?.monto || row?.importe || 0),
-              0,
-            ),
-        );
-        const saldo = ingresos - egresos;
-        return [
-          `Reporte ${{ cambiosInstantaneos: "instantáneo", cambiosDiarios: "diario", reporteOperativo: "operativo completo", produccion: "de producción", sanidad: "de sanidad", alimentacion: "de alimentación", finanzas: "financiero", costos: "de costos" }[type] || "diario"} PampaTambo (${hoy})`,
-          ...(type === "cambiosInstantaneos" && instantDetail
-            ? [`Descripción: ${instantDetail}`]
-            : []),
-          `Nacimientos: ${nacimientos.length}`,
-          ...nacimientos.map(
-            (row) =>
-              `- Nacimiento: ${row.cantidad || 1} · lote: ${row.lote || row.destino || "sin lote"} · caravana: ${row.caravana || row.rfid || "sin caravana"}`,
-          ),
-          `Eventos sanitarios: ${sanidad.length}`,
-          ...sanidad
-            .slice(0, 5)
-            .map(
-              (row) =>
-                `- Sanidad: ${row.producto || row.tipo || "evento"} · animal: ${row.animal || row.caravana || "-"}`,
-            ),
-          `Eventos de alimentación: ${alimentacion.length}`,
-          `Ingreso de rollos: ${rollos.length}`,
-          ...rollos
-            .slice(0, 5)
-            .map(
-              (row) =>
-                `- Rollo: ${row.producto || row.alimento || row.item} · cantidad: ${row.cantidad || row.kg || "-"}`,
-            ),
-          `Animales: ${(state.animales || []).length}`,
-          `Producción diaria (litros): ${litrosHoy.toFixed(2)}`,
-          `Costos cargados: ${(state.costos || []).length}`,
-          `Ingresos finanzas: ${formatMoney(ingresos)}`,
-          `Egresos finanzas: ${formatMoney(egresos)}`,
-          `Saldo financiero: ${formatMoney(saldo)}`,
-        ].join("\n");
+      const TIPOS_REPORTE_TAMBO = {"cambiosDiarios":"Reporte operativo diario completo","cambiosInstantaneos":"Reporte operativo instantáneo completo","resumen":"Resumen del día","rodeo":"Rodeo y producción","leche":"Leche del mes (ordeñe, entregas y liquidaciones)","gastos":"Gastos del mes","plata":"Caja y Bancos","alertas":"Alertas de desvíos","sanidad":"Sanidad SENASA","stock":"Alimento (proyección)","costoLitro":"Costo por litro","mantenimiento":"Equipos y mantenimiento","rentabilidad":"Rentabilidad","cumplimiento":"Cumplimiento SENASA, ARCA y ambiente","caja90":"Flujo de fondos a 90 días"};
+      // El reporte se calcula con el rol de quien lo recibe: si ese rol no ve un módulo, el mensaje
+      // lo dice en vez de mandar la información (igual que PampaIA y que Agro y Ganadería).
+      function buildQuickReportMessage(type = "cambiosDiarios", instantDetail = "", rolDestino = currentRole) {
+        const tipo = TIPOS_REPORTE_TAMBO[type] ? type : "cambiosDiarios";
+        const empresa = state?.empresa?.nombre || "PampaTambo ERP";
+        const para = ROLE_PERMISSIONS[normalizeRole(rolDestino)]?.name || "";
+        const encabezado = `📋 *${TIPOS_REPORTE_TAMBO[tipo]}*\nEmpresa: ${empresa}\nFecha: ${new Date().toLocaleString("es-AR")}${para ? `\nPara: ${para}` : ""}`;
+        if (tipo === "cambiosDiarios" || tipo === "cambiosInstantaneos") {
+          const ve = (m) => puedeVerModuloTambo(rolDestino, m);
+          const hoyLocal = new Date();
+          const isoLocal = (f) => `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, "0")}-${String(f.getDate()).padStart(2, "0")}`;
+          const hoy = isoLocal(hoyLocal);
+          const ayer = isoLocal(new Date(hoyLocal.getFullYear(), hoyLocal.getMonth(), hoyLocal.getDate() - 1));
+          const instantaneo = tipo === "cambiosInstantaneos";
+          const vale = (f) => { const x = fechaTambo(f); return x === hoy || (instantaneo && x === ayer); };
+          const eventos = [];
+          const agregar = (lista, campo, texto) => (lista || []).filter((x) => vale(x[campo])).forEach((x) => eventos.push({ fecha: fechaTambo(x[campo]), texto: texto(x) }));
+          const litros = (lista, dia) => (lista || []).filter((r) => fechaTambo(r.fecha) === dia).reduce((t, r) => t + montoTambo(r.litros), 0);
+          const lineas = [];
+          if (instantaneo && instantDetail) lineas.push(`• Descripción: ${instantDetail}`);
+          if (ve("ordenes") || ve("entregas") || ve("produccion")) {
+            [[hoy, "Hoy"], ...(instantaneo ? [[ayer, "Ayer"]] : [])].forEach(([dia, etiqueta]) => {
+              const o = litros(state.ordenes, dia);
+              const e = litros(state.entregasUsina, dia);
+              if (o || e) lineas.push(`• 🥛 ${etiqueta}: ordeñe ${o.toLocaleString("es-AR")} L · entregado ${e.toLocaleString("es-AR")} L`);
+            });
+          }
+          if (ve("animales") || ve("sanidad")) {
+            agregar(state.guachera, "fecha_nacimiento", (g) => `• Nacimiento: ${g.caravana || "-"} ${g.sexo || ""}`);
+            agregar(state.sanidad, "fecha", (r) => `• Sanidad: ${r.tipo || ""} ${r.producto || ""} · ${r.vaca || "-"}${Number(r.dias_retiro) > 0 ? ` · retiro de leche ${r.dias_retiro} días` : ""}`);
+            agregar(state.reproduccion, "fecha", (r) => `• Reproducción: ${r.vaca || "-"} · ${r.tipo_servicio || r.resultado || ""}`);
+          }
+          if (ve("alimentos")) agregar(state.consumosAlimento, "fecha", (c) => `• Consumo: ${c.alimento} · ${c.cantidad}${c.destino ? " · " + c.destino : ""}`);
+          if (ve("silos")) agregar(state.siloMovimientos, "fecha", (m) => `• Silo: ${String(m.tipo || "").toLowerCase()} ${m.toneladas} TN ${m.tipo_grano || ""}`);
+          if (ve("mantenimiento")) agregar(state.mantenimiento, "fecha", (o) => `• Mantenimiento: ${o.equipo || "-"} · ${o.tarea || o.tipo || ""} (${o.estado || ""})`);
+          if (ve("residuos")) agregar(state.residuosPatogenicos, "fecha", (r) => `• Residuos patogénicos: ${(r.movimiento || "").toLowerCase()} ${r.cantidad_kg ? r.cantidad_kg + " kg" : ""}`);
+          eventos.sort((x, y) => y.fecha.localeCompare(x.fecha)).slice(0, 25).forEach((e) => lineas.push(instantaneo && e.fecha === ayer ? `${e.texto} _(ayer)_` : e.texto));
+          return `${encabezado}\n\n${lineas.length ? lineas.join("\n") : `• Sin cambios ${instantaneo ? "de hoy ni de ayer" : "registrados hoy"}.`}`;
+        }
+        const preguntas = {
+          gastos: "¿cuánto gasté este mes?",
+          plata: "¿cuánta plata hay en caja y bancos?",
+          sanidad: "¿cómo está la sanidad?",
+          leche: "¿cuántos litros de leche este mes?",
+        };
+        let r;
+        try {
+          const asistente = asistenteIA();
+          r = preguntas[tipo] ? asistente.responder(preguntas[tipo], { rol: rolDestino }) : asistente.ejecutar(tipo, new Date(), { rol: rolDestino });
+        } catch (error) {
+          return `${encabezado}\n\nNo se pudo calcular el reporte: ${error.message}`;
+        }
+        // El título del reporte ya está en el encabezado.
+        return `${encabezado}\n\n${String(r.texto || "").replace(/^\*[^\n]*\*\n\n?/, "")}`;
       }
 
       function renderReportesPanel() {
@@ -11671,6 +11664,8 @@
         if (msg && !msg.value.trim()) {
           msg.value = buildQuickReportMessage(
             byId("reportTypeSelect")?.value || "cambiosDiarios",
+            "",
+            normalizeRole(byId("reportRoleSelect")?.value || currentRole),
           );
         }
       }
@@ -11680,6 +11675,8 @@
         const phone = getEmpresaWhatsAppRoles()[role] || "";
         if (byId("reportPhonePreview"))
           byId("reportPhonePreview").value = phone;
+        // El contenido depende de lo que puede ver el rol que lo recibe.
+        if (byId("reportMessage")) generarReporteRapido();
       }
 
       function generarReporteRapido() {
@@ -11688,6 +11685,7 @@
         box.value = buildQuickReportMessage(
           byId("reportTypeSelect")?.value || "cambiosDiarios",
           byId("reportInstantDetail")?.value || "",
+          normalizeRole(byId("reportRoleSelect")?.value || currentRole),
         );
         byId("reportWhatsappStatus").textContent = "Reporte generado.";
       }
@@ -11756,7 +11754,7 @@
         const now = new Date().toLocaleString("es-AR");
         const ctx = getActiveModuleContext();
         const header = `Reporte desde ${ctx.moduleLabel}${ctx.subLabel ? ` / ${ctx.subLabel}` : ""} (${now})`;
-        return `${header}\n\n${buildQuickReportMessage()}`;
+        return `${header}\n\n${buildQuickReportMessage("resumen", "", normalizeRole(byId("quickRoleSelect")?.value || currentRole))}`;
       }
 
       function renderQuickWhatsAppModal(prefillMessage = false) {
@@ -17466,6 +17464,73 @@
         byId("kpiHacSanidad").textContent = state.sanidad.length;
       }
 
+      /* === PampaIA: capacidades por versión (asistente-ia.js) === */
+      // Mismo criterio que el menú: el rol tiene el módulo y la versión de la licencia lo incluye.
+      function puedeVerModuloTambo(rol, modulo) {
+        const permisos = ROLE_PERMISSIONS[normalizeRole(rol)];
+        if (!permisos) return false;
+        const permitidos = getAllowedModulesForLicense();
+        return permisos.modules.includes(modulo) && (!permitidos || permitidos.has(modulo));
+      }
+      // Básica / Profesional / Premium según la licencia; la prueba ve todo.
+      function planIATambo() {
+        const payload = getActiveLicensePayload();
+        if (payload?.trial) return "trial";
+        return { B: "basica", P: "profesional", M: "premium" }[String(payload?.versionCode || "").trim().toUpperCase()] || "basica";
+      }
+      let asistenteIACache = null;
+      function asistenteIA() {
+        if (!window.PampaAsistenteIA) throw new Error("No se cargó el asistente de PampaIA (asistente-ia.js).");
+        if (!asistenteIACache)
+          asistenteIACache = window.PampaAsistenteIA.crearAsistente({
+            estado: () => state,
+            plan: planIATambo,
+            rol: () => currentRole,
+            acceso: puedeVerModuloTambo,
+            nombreRol: (rol) => ROLE_PERMISSIONS[rol]?.name || "",
+            monto: montoTambo,
+            esIngreso: esIngresoTambo,
+            esEgreso: esEgresoTambo,
+            resultado: resultadoEconomicoTambo,
+            costoMensualEmpleado: costoMensualEmpleadoTambo,
+            getRetiroActivo,
+            getRetiroCarneActivo,
+            doesEstado: computeDoesStatus,
+            aftosa: computeAftosaCampana,
+            b19: computeBrucelosisB19Pendientes,
+            renspa: renspaEstadoTambo,
+            residuos: evaluarResiduosTambo,
+            posicionIva: () => posicionIvaTambo(null, Boolean(loadArcaSenasaConfig()?.arca?.ivaAnual)),
+            retenciones: retencionesSufridasTambo,
+          });
+        return asistenteIACache;
+      }
+      function mostrarResultadoIA(r) {
+        const html = window.PampaAsistenteIA.aHtml(r.texto) + (r.nota ? `<br><br><small>${window.PampaAsistenteIA.aHtml(r.nota)}</small>` : "");
+        const respuesta = document.getElementById("pampaIAAnswer");
+        if (respuesta) respuesta.innerHTML = html;
+        return html;
+      }
+      function montarCapacidadesIA() {
+        const panel = document.getElementById("pampaiaPanel");
+        if (!panel || !window.PampaAsistenteIA) return;
+        try {
+          window.PampaAsistenteIA.montarCapacidades(panel, asistenteIA(), mostrarResultadoIA);
+        } catch (error) {
+          console.error("PampaIA: no se pudieron mostrar las capacidades:", error);
+        }
+      }
+      // Lo usa pampaia-source.js (panel del Dashboard) para calcular con los datos de la app.
+      window.PampaIAAdapter = {
+        getState: () => state,
+        getRole: () => currentRole,
+        getPlan: planIATambo,
+        analizar: (tipo) => asistenteIA().analizar(tipo),
+        responder: (pregunta) => asistenteIA().responder(pregunta),
+        mostrar: mostrarResultadoIA,
+        montarCapacidades: montarCapacidadesIA,
+      };
+
       // ── Residuos y efluentes ────────────────────────────────────────────────────────────────
       const TIPOS_RESIDUOS_TAMBO = ["efluentesAnalisis","efluentesAplicaciones","residuosPatogenicos","residuosPlasticos"];
       const RESIDUOS_CONFIG_KEY = "tambo_residuos_config";
@@ -17479,7 +17544,7 @@
       }
       function guardarResiduoLocalTambo(k) {
         try {
-          localStorage.setItem(`tambo_${k}`, JSON.stringify(state[k] || []));
+          guardarEnNavegador(`tambo_${k}`, JSON.stringify(state[k] || []));
         } catch {
           /* sin almacenamiento */
         }
@@ -20921,7 +20986,8 @@
         }
       };
     </script>
-    <script src="pampaia-source.js?v=pampaia-published-7"></script>
+    <script src="asistente-ia.js?v=2"></script>
+    <script src="pampaia-source.js?v=pampaia-published-8"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () =>

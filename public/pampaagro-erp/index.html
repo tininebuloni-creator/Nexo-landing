@@ -8126,8 +8126,34 @@
       }
 
       // Guardar en localStorage
+      // Guarda en el navegador y avisa si no pudo (sin espacio). Antes el error cortaba el guardado sin
+      // que nadie se enterara y lo último cargado se perdía al recargar.
+      var ultimoAvisoSinEspacio = 0;
+      function guardarEnNavegador(clave, texto) {
+        try {
+          localStorage.setItem(clave, texto);
+          return true;
+        } catch (error) {
+          if (Date.now() - ultimoAvisoSinEspacio > 60000) {
+            ultimoAvisoSinEspacio = Date.now();
+            setTimeout(() => {
+              const mensaje =
+                "No se pudo guardar en este equipo: el navegador se quedó sin espacio. Lo último que cargaste puede no quedar guardado.\n\n¿Descargar ahora un respaldo con todos tus datos?";
+              if (confirm(mensaje)) {
+                try {
+                  crearRespaldoPreLimpieza("_respaldo-sin-espacio.json");
+                } catch (e) {
+                  alert("No se pudo generar el respaldo: " + (e?.message || e));
+                }
+              }
+            }, 0);
+          }
+          return false;
+        }
+      }
+
       function saveState() {
-        localStorage.setItem("nexoAgroERP", JSON.stringify(state));
+        guardarEnNavegador("nexoAgroERP", JSON.stringify(state));
       }
 
       // saveState() reescribe el estado completo: con la app abierta en dos pestañas (una emitiendo
@@ -24057,9 +24083,7 @@
             registro,
           });
         }
-        try {
-          localStorage.setItem("nexoAgroERP", JSON.stringify(state));
-        } catch (e) {}
+        guardarEnNavegador("nexoAgroERP", JSON.stringify(state));
         pampaIACloseReview();
         pampaIASetAnswer(
           `<strong>✓ Documento preparado y registrado</strong><br>El comprobante fue incorporado a Gestión de Documentos. Antes de imputarlo a Caja, Bancos o Costos, revisá la clasificación correspondiente.`,
@@ -24220,9 +24244,7 @@
           concepto: data.concepto,
         });
 
-        try {
-          localStorage.setItem("nexoAgroERP", JSON.stringify(state));
-        } catch (e) {}
+        guardarEnNavegador("nexoAgroERP", JSON.stringify(state));
         pampaIASetAnswer(`
     <strong>✓ Operación ejecutada</strong><br>
     Comprobante <strong>${data.comprobante || "(sin número)"}</strong> registrado.

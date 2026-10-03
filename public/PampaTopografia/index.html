@@ -15,11 +15,11 @@
 <link rel="icon" type="image/png" href="logo2.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="./vendor/xlsx-0.20.3.full.min.js"></script>
+<link rel="stylesheet" href="./vendor/leaflet/leaflet.css" />
+<script src="./vendor/leaflet/leaflet.js"></script>
+<script src="./vendor/three.min.js"></script>
+<script src="./vendor/OrbitControls.js"></script>
 
 <style>
 /* === CSS VARIABLES === */
@@ -1286,10 +1286,12 @@ body.pampa-license-locked .app { display: none; }
             <button class="tool-btn" onclick="generateContours()">◎ Generar Curvas</button>
             <button class="tool-btn" onclick="toggleLabels()">🏷 Etiquetas</button>
             <div class="separator"></div>
-            <label class="form-label" style="margin:0; font-size:10px;">Intervalo:</label>
-            <select class="form-select" id="contourInterval" style="width:80px; padding:4px 8px; font-size:11px;" onchange="generateContours()">
+            <label class="form-label" style="margin:0; font-size:10px;" for="contourInterval">Equidistancia:</label>
+            <select class="form-select" id="contourInterval" style="width:96px; padding:4px 8px; font-size:11px;" onchange="generateContours()">
+              <option value="" selected>Elegir…</option>
+              <option value="0.25">0.25 m</option>
               <option value="0.5">0.5 m</option>
-              <option value="1" selected>1.0 m</option>
+              <option value="1">1.0 m</option>
               <option value="2">2.0 m</option>
               <option value="5">5.0 m</option>
             </select>
@@ -1554,7 +1556,7 @@ body.pampa-license-locked .app { display: none; }
 <script>
 window.jspdfLoaded = false;
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" onload="window.jspdfLoaded = true; console.log('jsPDF cargado correctamente');" onerror="console.error('Error al cargar jsPDF')"></script>
+<script src="./vendor/jspdf-2.5.1.umd.min.js" onload="window.jspdfLoaded = true; console.log('jsPDF cargado correctamente');" onerror="console.error('Error al cargar jsPDF')"></script>
 <script>
 /* ============================================
    NEXO SOLUCIONES — ENGINE
@@ -2609,6 +2611,18 @@ function setContourTool(t) {
 
 function toggleLabels() { contourState.showLabels = !contourState.showLabels; generateContours(); }
 
+// Mensaje en un canvas vacío (sin datos o sin equidistancia elegida).
+function mensajeCanvasTopo(ctx, w, h, titulo, detalle) {
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#8aa0b8';
+  ctx.font = '600 14px Outfit, "Segoe UI", sans-serif';
+  ctx.fillText(titulo, w / 2, h / 2 - 12);
+  ctx.fillStyle = '#5f7389';
+  ctx.font = '12px Outfit, "Segoe UI", sans-serif';
+  ctx.fillText(detalle, w / 2, h / 2 + 12);
+  ctx.textAlign = 'start';
+}
+
 function generateContours() {
   const canvas = document.getElementById('contourCanvas');
   const ctx = canvas.getContext('2d');
@@ -2619,10 +2633,19 @@ function generateContours() {
 
   ctx.fillStyle = '#080c12'; ctx.fillRect(0,0,w,h);
 
-  const pts = state.points.length ? state.points : generateContourSamplePoints();
-  if (!pts.length) return;
-
   const interval = parseFloat(document.getElementById('contourInterval').value);
+  const leyenda = document.getElementById('contourLegend');
+  // Solo con los puntos del relevamiento y la equidistancia elegida por el usuario.
+  if (state.points.length < 3 || !(interval > 0)) {
+    if (leyenda) leyenda.style.display = 'none';
+    if (state.points.length < 3)
+      mensajeCanvasTopo(ctx, w, h, state.points.length ? 'Hacen falta al menos 3 puntos para generar curvas.' : 'Todavía no hay puntos cargados.', 'Importá el relevamiento en "Importar Datos" y después elegí la equidistancia.');
+    else
+      mensajeCanvasTopo(ctx, w, h, 'Elegí la equidistancia de las curvas.', 'Usá el selector "Equidistancia" de arriba para generar las curvas de nivel.');
+    return;
+  }
+  if (leyenda) leyenda.style.display = '';
+  const pts = state.points;
   const cotas = pts.map(p => p.cota);
   const minZ = Math.floor(Math.min(...cotas) / interval) * interval;
   const maxZ = Math.ceil(Math.max(...cotas) / interval) * interval;
@@ -2929,18 +2952,6 @@ function contourColor(t) {
   return `rgb(${r},${g},${b})`;
 }
 
-function generateContourSamplePoints() {
-  if (state.contourSamplePoints.length) return state.contourSamplePoints;
-  const pts = [];
-  for (let i = 0; i < 100; i++) {
-    const x = 500 + Math.random()*150;
-    const y = 900 + Math.random()*200;
-    const z = 118 + 8*Math.sin(x*0.02)*Math.cos(y*0.015) + Math.random()*2;
-    pts.push({ punto:'G'+i, norte:y, este:x, cota:z, codigo:'SC' });
-  }
-  state.contourSamplePoints = pts;
-  return pts;
-}
 
 // === DASHBOARD ===
 function renderDashboard() {
@@ -3179,7 +3190,11 @@ function renderPreview() {
 
   ctx.fillStyle = '#060a10'; ctx.fillRect(0,0,w,h);
 
-  const pts = state.points.length ? state.points : generateContourSamplePoints();
+  if (!state.points.length) {
+    mensajeCanvasTopo(ctx, w, h, 'Sin datos para la vista previa.', 'Importá el relevamiento en "Importar Datos".');
+    return;
+  }
+  const pts = state.points;
   const pad = 30;
   const minX = Math.min(...pts.map(p=>p.este))-5, maxX = Math.max(...pts.map(p=>p.este))+5;
   const minY = Math.min(...pts.map(p=>p.norte))-5, maxY = Math.max(...pts.map(p=>p.norte))+5;
@@ -4323,5 +4338,86 @@ if ('serviceWorker' in navigator) {
 })();
   </script>
   <script src="./trial-progress.js"></script>
+<script>
+// Guardado automático del proyecto en este equipo: cada pocos segundos y al cerrar o salir de la
+// pestaña. Al volver a abrir se recupera solo. Nada sale del equipo.
+(function () {
+  var CLAVE = 'pampatopografia-proyecto-autoguardado';
+  var CAMPOS = ['points', 'longitudinal', 'transversal', 'suelos', 'manningResult', 'previewLayers'];
+  var ultimaFirma = '';
+  var avisoSinEspacio = false;
+  var restaurado = false;
+
+  function leerEntradas() {
+    var valores = {};
+    document.querySelectorAll('.module input[id], .module select[id], .module textarea[id]').forEach(function (el) {
+      if (el.type === 'file' || el.type === 'password') return;
+      valores[el.id] = el.type === 'checkbox' ? el.checked : el.value;
+    });
+    return valores;
+  }
+
+  function guardar() {
+    if (!restaurado || typeof state === 'undefined') return;
+    try {
+      var datos = {};
+      CAMPOS.forEach(function (k) { if (state[k] !== undefined) datos[k] = state[k]; });
+      var cuerpo = JSON.stringify({ datos: datos, entradas: leerEntradas() });
+      if (cuerpo === ultimaFirma) return;
+      localStorage.setItem(CLAVE, JSON.stringify({ v: 1, guardado: new Date().toISOString(), cuerpo: cuerpo }));
+      ultimaFirma = cuerpo;
+      avisoSinEspacio = false;
+    } catch (error) {
+      if (avisoSinEspacio) return;
+      avisoSinEspacio = true;
+      var texto = 'No se pudo guardar el proyecto en este equipo (sin espacio). Exportá el proyecto para no perder el trabajo.';
+      if (typeof showToast === 'function') showToast(texto, 'error', 10000); else alert(texto);
+    }
+  }
+
+  function redibujar() {
+    ['renderPointsTable', 'renderLongTable', 'renderLongCanvas', 'renderTransCanvas', 'renderManningCurve', 'renderSuelosTable', 'renderSuelosCanvas', 'renderDashboard'].forEach(function (nombre) {
+      try { if (typeof window[nombre] === 'function') window[nombre](); } catch (e) { /* esa vista necesita datos que no hay */ }
+    });
+  }
+
+  function restaurar() {
+    try {
+      var guardado = JSON.parse(localStorage.getItem(CLAVE) || 'null');
+      if (!guardado || !guardado.cuerpo || typeof state === 'undefined') return;
+      var cuerpo = JSON.parse(guardado.cuerpo);
+      var datos = cuerpo.datos || {};
+      if (!Array.isArray(datos.points) || !datos.points.length) return;
+      Object.keys(cuerpo.entradas || {}).forEach(function (id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        if (el.type === 'checkbox') el.checked = Boolean(cuerpo.entradas[id]);
+        else el.value = cuerpo.entradas[id];
+      });
+      CAMPOS.forEach(function (k) { if (datos[k] !== undefined) state[k] = datos[k]; });
+      ultimaFirma = guardado.cuerpo;
+      redibujar();
+      var cuando = new Date(guardado.guardado);
+      var texto = 'Se recuperó tu último proyecto (' + datos.points.length + ' puntos, guardado el ' + cuando.toLocaleString('es-AR') + '). Para empezar uno nuevo usá "Limpiar datos".';
+      if (typeof showToast === 'function') showToast(texto, 'success', 8000);
+    } catch (e) {
+      /* copia dañada: se ignora y se sigue sin recuperar */
+    }
+  }
+
+  function iniciar() {
+    setTimeout(function () {
+      restaurar();
+      restaurado = true;
+      setInterval(guardar, 4000);
+    }, 300);
+  }
+  if (document.readyState === 'complete') iniciar();
+  else window.addEventListener('load', iniciar);
+  window.addEventListener('pagehide', guardar);
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') guardar(); });
+  window.pampaTopoAutoguardado = { guardar: guardar, restaurar: restaurar, clave: CLAVE };
+})();
+</script>
 </body>
 </html>

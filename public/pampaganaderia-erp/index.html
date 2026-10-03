@@ -65,10 +65,6 @@
       data-product="pampa-ganaderia"
     ></script>
 
-    <!-- Google Drive API -->
-    <script src="https://apis.google.com/js/api.js"></script>
-    <script src="https://accounts.google.com/gsi/client"></script>
-
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
@@ -5291,7 +5287,7 @@
         true,
       );
     </script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+    <script src="vendor/xlsx-0.20.3.full.min.js"></script>
     <script>
       /* === ESTADO GLOBAL === */
       const state = {
@@ -5499,8 +5495,34 @@
       }
 
       // Guardar en localStorage
+      // Guarda en el navegador y avisa si no pudo (sin espacio). Antes el error cortaba el guardado sin
+      // que nadie se enterara y lo último cargado se perdía al recargar.
+      var ultimoAvisoSinEspacio = 0;
+      function guardarEnNavegador(clave, texto) {
+        try {
+          localStorage.setItem(clave, texto);
+          return true;
+        } catch (error) {
+          if (Date.now() - ultimoAvisoSinEspacio > 60000) {
+            ultimoAvisoSinEspacio = Date.now();
+            setTimeout(() => {
+              const mensaje =
+                "No se pudo guardar en este equipo: el navegador se quedó sin espacio. Lo último que cargaste puede no quedar guardado.\n\n¿Descargar ahora un respaldo con todos tus datos?";
+              if (confirm(mensaje)) {
+                try {
+                  crearRespaldoPreLimpieza("_respaldo-sin-espacio.json");
+                } catch (e) {
+                  alert("No se pudo generar el respaldo: " + (e?.message || e));
+                }
+              }
+            }, 0);
+          }
+          return false;
+        }
+      }
+
       function saveState() {
-        localStorage.setItem("pampaGanaderiaERP", JSON.stringify(state));
+        guardarEnNavegador("pampaGanaderiaERP", JSON.stringify(state));
       }
 
       // Elimina un registro de cualquier array de state por índice y re-renderiza.
@@ -5642,7 +5664,7 @@
         }, 1500);
       }
 
-      /* === EXPORT / IMPORT DE DATOS (JSON para sincronizar por Drive) === */
+      /* === EXPORT / IMPORT DE DATOS (JSON de respaldo: el cliente elige dónde guardarlo) === */
       function exportarDatosJSON() {
         try {
           const snapshot = buildExportSnapshot();
@@ -17507,121 +17529,11 @@ function costosGanaderosDelPeriodo(desde, hasta) {
         });
       }
 
-      // === SISTEMA DE SINCRONIZACIÓN CON GOOGLE DRIVE ===
-      const GOOGLE_DRIVE_CONFIG = {
-        CLIENT_ID: "TU_CLIENT_ID_AQUI", // Reemplazar con tu Client ID de Google Cloud
-        API_KEY: "TU_API_KEY_AQUI", // Reemplazar con tu API Key de Google Cloud
-        SCOPES: "https://www.googleapis.com/auth/drive.file",
-        DISCOVERY_DOCS: [
-          "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest",
-        ],
-      };
 
-      let googleAuth = null;
-      let isGoogleDriveConnected = false;
-      let syncInterval = null;
 
-      // Inicializar Google API
-      function initGoogleAPI() {
-        return new Promise((resolve, reject) => {
-          // Verificar si gapi está disponible
-          if (typeof gapi === "undefined") {
-            reject("Google API no cargada");
-            return;
-          }
-
-          gapi.load("client:auth2", async () => {
-            try {
-              await gapi.client.init({
-                apiKey: GOOGLE_DRIVE_CONFIG.API_KEY,
-                clientId: GOOGLE_DRIVE_CONFIG.CLIENT_ID,
-                discoveryDocs: GOOGLE_DRIVE_CONFIG.DISCOVERY_DOCS,
-                scope: GOOGLE_DRIVE_CONFIG.SCOPES,
-              });
-              googleAuth = gapi.auth2.getAuthInstance();
-
-              // Verificar si ya está autenticado
-              if (googleAuth.isSignedIn.get()) {
-                isGoogleDriveConnected = true;
-                updateSyncStatus("online");
-                startAutoSync();
-              }
-
-              // Escuchar cambios de estado
-              googleAuth.isSignedIn.listen(updateGoogleSignInStatus);
-
-              resolve();
-            } catch (error) {
-              console.error("Error al inicializar Google API:", error);
-              reject(error);
-            }
-          });
-        });
-      }
-
-      function updateGoogleSignInStatus(isSignedIn) {
-        isGoogleDriveConnected = Boolean(isSignedIn);
-
-        if (isGoogleDriveConnected) {
-          startAutoSync();
-          if (navigator.onLine) {
-            updateSyncStatus("online");
-          }
-        } else {
-          stopAutoSync();
-          updateSyncStatus(navigator.onLine ? "online" : "offline");
-        }
-
-        actualizarModalSincronizacion();
-      }
-
-      async function conectarGoogleDrive() {
-        if (
-          GOOGLE_DRIVE_CONFIG.CLIENT_ID === "TU_CLIENT_ID_AQUI" ||
-          GOOGLE_DRIVE_CONFIG.API_KEY === "TU_API_KEY_AQUI"
-        ) {
-          showToast(
-            "Google Drive no está configurado. Cargá CLIENT_ID y API_KEY.",
-            "error",
-          );
-          return;
-        }
-
-        try {
-          if (!googleAuth) {
-            await initGoogleAPI();
-          }
-
-          if (!googleAuth) {
-            showToast("No se pudo inicializar Google Auth", "error");
-            return;
-          }
-
-          await googleAuth.signIn();
-          updateGoogleSignInStatus(true);
-          showToast("Google Drive conectado correctamente", "success");
-        } catch (error) {
-          console.error("Error al conectar Google Drive:", error);
-          showToast("No se pudo conectar con Google Drive", "error");
-        }
-      }
-
-      async function desconectarGoogleDrive() {
-        try {
-          if (googleAuth && googleAuth.isSignedIn.get()) {
-            await googleAuth.signOut();
-          }
-        } catch (error) {
-          console.error("Error al desconectar Google Drive:", error);
-        } finally {
-          isGoogleDriveConnected = false;
-          stopAutoSync();
-          updateSyncStatus(navigator.onLine ? "online" : "offline");
-          actualizarModalSincronizacion();
-          showToast("Google Drive desconectado", "info");
-        }
-      }
-
+      // === RESPALDO EN LA CARPETA DEL CLIENTE ===
+      // El cliente elige dónde guardar (su carpeta sincronizada o un archivo descargado). No hay
+      // integración con Google Drive ni APIs de terceros.
       async function sincronizarAhora() {
         const syncApi = window.electronAPI;
         if (
@@ -17684,107 +17596,6 @@ function costosGanaderosDelPeriodo(desde, hasta) {
         }
       }
 
-      // Buscar o crear archivo en Google Drive
-      async function findOrCreateDriveFile() {
-        try {
-          const response = await gapi.client.drive.files.list({
-            q: "name='nexo-agro-erp-data.json' and mimeType='application/json'",
-            fields: "files(id, name)",
-          });
-
-          if (response.result.files && response.result.files.length > 0) {
-            return response.result.files[0].id;
-          }
-
-          // Crear nuevo archivo
-          const fileMetadata = {
-            name: "nexo-agro-erp-data.json",
-            mimeType: "application/json",
-          };
-
-          const createResponse = await gapi.client.drive.files.create({
-            resource: fileMetadata,
-            fields: "id",
-          });
-
-          return createResponse.result.id;
-        } catch (error) {
-          console.error("Error al buscar/crear archivo:", error);
-          throw error;
-        }
-      }
-
-      // Subir datos a Google Drive
-      async function uploadToDrive(fileId, data) {
-        const content = JSON.stringify(data);
-
-        const boundary = "-------314159265358979323846";
-        const delimiter = "\r\n--" + boundary + "\r\n";
-        const close_delim = "\r\n--" + boundary + "--";
-
-        const contentType = "application/json";
-        const metadata = {
-          mimeType: contentType,
-        };
-
-        const multipartRequestBody =
-          delimiter +
-          "Content-Type: application/json\r\n\r\n" +
-          JSON.stringify(metadata) +
-          delimiter +
-          "Content-Type: " +
-          contentType +
-          "\r\n\r\n" +
-          content +
-          close_delim;
-
-        const request = gapi.client.request({
-          path: "/upload/drive/v3/files/" + fileId,
-          method: "PATCH",
-          params: {
-            uploadType: "multipart",
-          },
-          headers: {
-            "Content-Type": 'multipart/related; boundary="' + boundary + '"',
-          },
-          body: multipartRequestBody,
-        });
-
-        return request;
-      }
-
-      // Descargar datos desde Google Drive
-      async function downloadFromDrive(fileId) {
-        const response = await gapi.client.drive.files.get({
-          fileId: fileId,
-          alt: "media",
-        });
-
-        return JSON.parse(response.body);
-      }
-
-      // Iniciar sincronización automática
-      function startAutoSync() {
-        if (syncInterval) clearInterval(syncInterval);
-
-        // Sincronizar cada 5 minutos
-        syncInterval = setInterval(
-          () => {
-            if (isGoogleDriveConnected && navigator.onLine) {
-              sincronizarAhora();
-            }
-          },
-          5 * 60 * 1000,
-        );
-      }
-
-      // Detener sincronización automática
-      function stopAutoSync() {
-        if (syncInterval) {
-          clearInterval(syncInterval);
-          syncInterval = null;
-        }
-      }
 
       // === MONITOREO DE CONEXIÓN ===
       function updateSyncStatus(status) {
@@ -17986,25 +17797,6 @@ function costosGanaderosDelPeriodo(desde, hasta) {
         });
       }
 
-      // Inicializar Google API (opcional, solo si está configurado)
-      async function inicializarGoogleAPI() {
-        // Verificar si las credenciales están configuradas
-        if (
-          GOOGLE_DRIVE_CONFIG.CLIENT_ID === "TU_CLIENT_ID_AQUI" ||
-          GOOGLE_DRIVE_CONFIG.API_KEY === "TU_API_KEY_AQUI"
-        ) {
-          console.log(
-            "Google Drive API no configurada - sincronización deshabilitada",
-          );
-          return;
-        }
-
-        try {
-          await initGoogleAPI();
-        } catch (error) {
-          console.log("Google API no disponible:", error);
-        }
-      }
 
       // Inicializar todo (la inicialización se hace después de que la app principal esté lista)
       // Ver sección "INICIALIZACIÓN" arriba

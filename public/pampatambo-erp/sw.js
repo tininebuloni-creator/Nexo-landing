@@ -1,8 +1,24 @@
-const CACHE_NAME = 'pampatambo-pwa-v16-privacidad';
-const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './logo.png', './pampaia-source.js', './pampa-report-voice.js', './pampa-sync-envelope.js'];
+const CACHE_NAME = 'pampatambo-pwa-v19-reportes';
+const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './logo2.png', './pampaia-source.js', './pampa-report-voice.js', './pampa-sync-envelope.js'];
+
+// Guarda la lista básica y, leyendo index.html, todos los archivos propios que la página carga.
+async function precacheCompleto(cache, basicos) {
+  const guardar = (url) => cache.add(new Request(url, { cache: 'reload' })).catch(() => null);
+  await Promise.all(basicos.map(guardar));
+  try {
+    const html = await (await fetch('./index.html', { cache: 'reload' })).text();
+    const locales = [...html.matchAll(/(?:src|href)=["']([^"'#]+)["']/g)]
+      .map((m) => m[1])
+      .filter((u) => !/^(?:[a-z][a-z0-9+.-]*:|\/)/i.test(u))
+      .filter((u) => /\.(?:js|css|png|webp|jpe?g|jfif|svg|ico|json|webmanifest|woff2?|xlsx)(?:\?|$)/i.test(u));
+    await Promise.all([...new Set(locales)].map(guardar));
+  } catch {
+    // Sin red al instalar: queda lo básico y el resto se guarda al usarse.
+  }
+}
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => precacheCompleto(cache, APP_SHELL)));
   self.skipWaiting();
 });
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pampaganaderia-erp-v12-privacidad';
+const CACHE_NAME = 'pampaganaderia-erp-v13-offline';
 // Rutas relativas: la web se publica en /pampaganaderia-erp/ (con "/" se guardaba y se abría la
 // página de la landing en vez de la app).
 const STATIC_ASSETS = [
@@ -13,10 +13,24 @@ const STATIC_ASSETS = [
 const SHARE_CACHE_NAME = 'pampaganaderia-compartidos';
 const SHARE_KEY = './__compartido/nota-de-voz';
 
+// Guarda la lista básica y, leyendo index.html, todos los archivos propios que la página carga.
+async function precacheCompleto(cache, basicos) {
+  const guardar = (url) => cache.add(new Request(url, { cache: 'reload' })).catch(() => null);
+  await Promise.all(basicos.map(guardar));
+  try {
+    const html = await (await fetch('./index.html', { cache: 'reload' })).text();
+    const locales = [...html.matchAll(/(?:src|href)=["']([^"'#]+)["']/g)]
+      .map((m) => m[1])
+      .filter((u) => !/^(?:[a-z][a-z0-9+.-]*:|\/)/i.test(u))
+      .filter((u) => /\.(?:js|css|png|webp|jpe?g|jfif|svg|ico|json|webmanifest|woff2?|xlsx)(?:\?|$)/i.test(u));
+    await Promise.all([...new Set(locales)].map(guardar));
+  } catch {
+    // Sin red al instalar: queda lo básico y el resto se guarda al usarse.
+  }
+}
+
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => Promise.all(STATIC_ASSETS.map((asset) => cache.add(asset).catch(() => null))))
-  );
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => precacheCompleto(cache, STATIC_ASSETS)));
   self.skipWaiting();
 });
 
