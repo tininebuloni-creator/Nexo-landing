@@ -210,12 +210,15 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
                     <p class="mt-2 text-base font-semibold leading-relaxed text-[#f1f5f9]">Tus datos operativos permanecen privados dentro de tu entorno.</p>
                     <p class="mt-1 text-sm leading-relaxed text-[#94a3b8]">Entregamos instaladores de escritorio, no una página web: la información de tu empresa trabaja en tu propia PC.</p>
                 </aside>
-                <div class="pt-4 flex flex-col sm:flex-row gap-4">
+                <div class="pt-4 flex flex-col sm:flex-row sm:flex-wrap gap-4">
                     <a href="https://wa.me/5492364719731?text=Hola%20Pampa%20N%20-%20ERP,%20me%20interesa%20solicitar%20una%20demo%20técnica." target="_blank" class="bg-amber-500 hover:bg-amber-600 text-black text-center px-8 py-4 rounded font-bold text-lg shadow-lg transition-all">
                         Solicitar Demo Técnica
                     </a>
                     <a href="#catalogo" class="border border-amber-500/60 hover:border-amber-500 hover:bg-amber-500/10 text-amber-500 text-center px-8 py-4 rounded font-semibold text-lg transition">
                         Ver catálogo
+                    </a>
+                    <a href="#documentacion" onclick="return abrirDocumentacion(event)" class="border border-amber-500/60 hover:border-amber-500 hover:bg-amber-500/10 text-amber-500 text-center px-8 py-4 rounded font-semibold text-lg transition">
+                        Ver documentación
                     </a>
                     <a href="#caracteristicas" class="border border-[#3d4558] hover:border-amber-500 text-[#f1f5f9] text-center px-8 py-4 rounded font-semibold text-lg transition">
                         Especificaciones
@@ -761,6 +764,103 @@ src="https://www.facebook.com/tr?id=4013996878735619&ev=PageView&noscript=1"
 
         function cerrarModal() {
             modal.classList.remove('active');
+        }
+    </script>
+
+    <script src="documentos/catalogo.js"></script>
+    <script>
+        const documentosBiblioteca = window.DOCUMENTOS_BIBLIOTECA || [];
+
+        let visorDocumentacionActivo = null;
+
+        function cerrarDocumentacion() {
+            if (!visorDocumentacionActivo) return;
+            const { overlay, overflowAnterior, teclado } = visorDocumentacionActivo;
+            document.removeEventListener('keydown', teclado);
+            overlay.remove();
+            document.body.style.overflow = overflowAnterior;
+            visorDocumentacionActivo = null;
+            document.querySelector('a[href="#documentacion"]')?.focus();
+        }
+
+        function abrirDocumentacion(event) {
+            event.preventDefault();
+            if (visorDocumentacionActivo) return false;
+
+            const urls = documentosBiblioteca.map(documento => documento.file);
+
+            const escapar = valor => String(valor)
+                .replaceAll('&', '&amp;').replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+
+            const listaHtml = documentosBiblioteca.map((documento, indice) => `
+                <button class="docs-item${indice === 0 ? ' active' : ''}" type="button" data-index="${indice}" aria-selected="${indice === 0}">
+                    <span class="docs-pdf">PDF</span>
+                    <span class="docs-item-copy"><strong>${escapar(documento.title)}</strong><small>${escapar(documento.category)} · ${escapar(documento.pages)}</small></span>
+                    <span class="docs-flecha" aria-hidden="true">›</span>
+                </button>`).join('');
+
+            const overlay = document.createElement('section');
+            overlay.id = 'documentacion';
+            overlay.className = 'docs-overlay';
+            overlay.setAttribute('role', 'dialog');
+            overlay.setAttribute('aria-modal', 'true');
+            overlay.setAttribute('aria-label', 'Biblioteca técnica');
+            overlay.innerHTML = `
+                <style>
+                    .docs-overlay{position:fixed;inset:0;z-index:9999;color:#f1f5f9;background:#0f1419;font-family:var(--font-main,Arial,sans-serif)}
+                    .docs-overlay *{box-sizing:border-box}.docs-top{height:68px;padding:0 clamp(16px,3vw,30px);display:flex;align-items:center;justify-content:space-between;gap:18px;border-bottom:1px solid #2d3548;background:#121820}
+                    .docs-brand{display:flex;align-items:center;gap:12px}.docs-brand-mark{width:36px;height:36px;display:grid;place-items:center;color:#0f1419;background:#f59e0b;border-radius:9px;font-weight:900}.docs-brand strong{display:block;font-size:17px}.docs-brand small{color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+                    .docs-close{width:42px;height:42px;display:grid;place-items:center;color:#f1f5f9;border:1px solid #3d4558;border-radius:10px;background:#1e2433;cursor:pointer;font-size:25px;line-height:1;transition:.2s}.docs-close:hover{color:#0f1419;border-color:#f59e0b;background:#f59e0b}
+                    .docs-layout{height:calc(100vh - 68px);display:grid;grid-template-columns:370px minmax(0,1fr)}.docs-catalogo{min-height:0;padding:24px;display:flex;flex-direction:column;border-right:1px solid #2d3548;background:#161b26}
+                    .docs-catalogo h2{margin:0 0 7px;font-size:25px}.docs-catalogo>p{margin:0 0 16px;color:#94a3b8;font-size:13px;line-height:1.5}.docs-contador{margin-bottom:11px;color:#f59e0b;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.09em}.docs-lista{display:grid;gap:8px;overflow-y:auto;padding-right:4px}
+                    .docs-item{width:100%;padding:12px;display:grid;grid-template-columns:38px 1fr auto;align-items:center;gap:10px;text-align:left;color:#f1f5f9;border:1px solid #2d3548;border-radius:10px;background:#1e2433;cursor:pointer;transition:.2s}.docs-item:hover{border-color:#72562b;transform:translateX(2px)}.docs-item.active{border-color:#f59e0b;background:#272a31}
+                    .docs-pdf{width:38px;height:44px;display:grid;place-items:center;color:#0f1419;background:#f59e0b;border-radius:7px;font-size:10px;font-weight:800}.docs-item-copy{min-width:0}.docs-item strong{display:block;margin-bottom:4px;font-size:12px;line-height:1.25}.docs-item small{display:block;overflow:hidden;color:#94a3b8;font-size:10px;text-overflow:ellipsis;white-space:nowrap}.docs-flecha{color:#f59e0b;font-size:23px}
+                    .docs-lector{min-width:0;display:flex;flex-direction:column}.docs-toolbar{min-height:70px;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:18px;border-bottom:1px solid #2d3548}.docs-toolbar small{display:block;color:#f59e0b;margin-bottom:4px;font-size:10px;font-weight:800;letter-spacing:.08em}.docs-toolbar h3{margin:0;font-size:15px}.docs-descarga{padding:10px 14px;color:#0f1419;background:#f59e0b;border-radius:8px;text-decoration:none;font-size:12px;font-weight:800}.docs-marco{min-height:0;flex:1;padding:10px;background:#252b3b}.docs-marco iframe{width:100%;height:100%;display:block;border:0;background:#fff}
+                    @media(max-width:760px){.docs-top{height:62px}.docs-brand small{display:none}.docs-layout{height:auto;display:block;overflow-y:auto}.docs-catalogo{height:340px;padding:16px;border-right:0;border-bottom:1px solid #2d3548}.docs-lector{height:calc(100vh - 62px)}.docs-toolbar{padding:11px}.docs-toolbar h3{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.docs-descarga{padding:9px 10px}.docs-marco{padding:6px}}
+                </style>
+                <header class="docs-top">
+                    <div class="docs-brand"><span class="docs-brand-mark">PN</span><span><strong>Biblioteca técnica</strong><small>Pampa N · Acceso público</small></span></div>
+                    <button class="docs-close" type="button" aria-label="Cerrar documentación">×</button>
+                </header>
+                <div class="docs-layout">
+                    <aside class="docs-catalogo"><h2>Documentación</h2><p>Seleccioná un documento para leerlo en esta página.</p><span class="docs-contador">${documentosBiblioteca.length} documentos disponibles</span><div class="docs-lista">${listaHtml}</div></aside>
+                    <section class="docs-lector"><div class="docs-toolbar"><div><small>PDF · <span id="docsCategoria"></span></small><h3 id="docsTitulo"></h3></div><a class="docs-descarga" id="docsDescargar">Descargar</a></div><div class="docs-marco"><iframe id="docsVisor" title="Visor de documentación"></iframe></div></section>
+                </div>`;
+
+            const overflowAnterior = document.body.style.overflow;
+            document.body.appendChild(overlay);
+            document.body.style.overflow = 'hidden';
+
+            const visor = overlay.querySelector('#docsVisor');
+            const titulo = overlay.querySelector('#docsTitulo');
+            const categoria = overlay.querySelector('#docsCategoria');
+            const descargar = overlay.querySelector('#docsDescargar');
+            const botones = [...overlay.querySelectorAll('.docs-item')];
+
+            function mostrarDocumento(indice) {
+                const documento = documentosBiblioteca[indice];
+                visor.src = urls[indice];
+                visor.title = documento.title;
+                titulo.textContent = documento.title;
+                categoria.textContent = documento.category.toUpperCase();
+                descargar.href = urls[indice];
+                descargar.download = documento.filename;
+                botones.forEach((boton, posicion) => {
+                    const activo = posicion === indice;
+                    boton.classList.toggle('active', activo);
+                    boton.setAttribute('aria-selected', activo);
+                });
+            }
+
+            botones.forEach(boton => boton.addEventListener('click', () => mostrarDocumento(Number(boton.dataset.index))));
+            overlay.querySelector('.docs-close').addEventListener('click', cerrarDocumentacion);
+            const teclado = evento => { if (evento.key === 'Escape') cerrarDocumentacion(); };
+            document.addEventListener('keydown', teclado);
+            visorDocumentacionActivo = { overlay, overflowAnterior, teclado };
+            mostrarDocumento(0);
+            overlay.querySelector('.docs-close').focus();
+            return false;
         }
     </script>
 </body>
