@@ -3067,23 +3067,23 @@
             <div class="kpi-grid">
               <div class="kpi green">
                 <div class="kpi-label">💰 Saldo Bancos</div>
-                <div class="kpi-value">$0</div>
-                <div class="kpi-sub">Sin movimientos</div>
+                <div class="kpi-value" id="dashKpiBancos">$0</div>
+                <div class="kpi-sub" id="dashKpiBancosSub">Sin movimientos</div>
               </div>
               <div class="kpi blue">
                 <div class="kpi-label">💵 Caja</div>
-                <div class="kpi-value">$0</div>
-                <div class="kpi-sub">Sin movimientos</div>
+                <div class="kpi-value" id="dashKpiCaja">$0</div>
+                <div class="kpi-sub" id="dashKpiCajaSub">Sin movimientos</div>
               </div>
               <div class="kpi purple">
                 <div class="kpi-label">📥 Cuentas por Cobrar</div>
-                <div class="kpi-value">$0</div>
-                <div class="kpi-sub">Sin registros</div>
+                <div class="kpi-value" id="dashKpiCobrar">$0</div>
+                <div class="kpi-sub" id="dashKpiCobrarSub">Sin registros</div>
               </div>
               <div class="kpi red">
                 <div class="kpi-label">📤 Cuentas por Pagar</div>
-                <div class="kpi-value">$0</div>
-                <div class="kpi-sub">Sin registros</div>
+                <div class="kpi-value" id="dashKpiPagar">$0</div>
+                <div class="kpi-sub" id="dashKpiPagarSub">Sin registros</div>
               </div>
             </div>
 
@@ -3091,7 +3091,7 @@
               <div class="card">
                 <div class="card-header">
                   <div class="card-title">📈 Flujo Proyectado 90 Días</div>
-                  <span class="tag green">Sin datos</span>
+                  <span class="tag green" id="dashFlujoTag">Sin datos</span>
                 </div>
                 <div class="chart-container">
                   <canvas id="chartFlujo"></canvas>
@@ -3100,7 +3100,7 @@
               <div class="card">
                 <div class="card-header">
                   <div class="card-title">🌾 Superficie Sembrada</div>
-                  <span class="tag blue">Sin datos</span>
+                  <span class="tag blue" id="dashSuperficieTag">Sin datos</span>
                 </div>
                 <div class="chart-container">
                   <canvas id="chartCultivos"></canvas>
@@ -3112,7 +3112,7 @@
               <div class="card">
                 <div class="card-header">
                   <div class="card-title">🐄 Hacienda</div>
-                  <span class="tag green">Sin datos</span>
+                  <span class="tag green" id="dashHaciendaTag">Sin datos</span>
                 </div>
                 <div
                   style="
@@ -3132,7 +3132,7 @@
                     <div style="font-size: 11px; color: var(--text-dim)">
                       Bovinos
                     </div>
-                    <div
+                    <div id="dashHaciendaBovinos"
                       style="
                         font-size: 20px;
                         font-weight: 700;
@@ -3152,7 +3152,7 @@
                     <div style="font-size: 11px; color: var(--text-dim)">
                       Terneros
                     </div>
-                    <div
+                    <div id="dashHaciendaTerneros"
                       style="
                         font-size: 20px;
                         font-weight: 700;
@@ -3172,7 +3172,7 @@
                     <div style="font-size: 11px; color: var(--text-dim)">
                       Vaquillonas
                     </div>
-                    <div
+                    <div id="dashHaciendaVaquillonas"
                       style="
                         font-size: 20px;
                         font-weight: 700;
@@ -3192,7 +3192,7 @@
                     <div style="font-size: 11px; color: var(--text-dim)">
                       Toros
                     </div>
-                    <div
+                    <div id="dashHaciendaToros"
                       style="
                         font-size: 20px;
                         font-weight: 700;
@@ -3219,7 +3219,7 @@
               <div class="card">
                 <div class="card-header">
                   <div class="card-title">🚜 Maquinarias</div>
-                  <span class="tag blue">Sin datos</span>
+                  <span class="tag blue" id="dashMaqTag">Sin datos</span>
                 </div>
                 <div
                   style="
@@ -3239,8 +3239,7 @@
                     "
                   >
                     <span>✅ Operativos</span>
-                    <span style="font-weight: 600; color: var(--green)"
-                      >Sin datos</span
+                    <span style="font-weight: 600; color: var(--green)" id="dashMaqOperativos">Sin datos</span
                     >
                   </div>
                   <div
@@ -3253,8 +3252,7 @@
                     "
                   >
                     <span>🔧 En mantenimiento</span>
-                    <span style="font-weight: 600; color: var(--orange)"
-                      >Sin datos</span
+                    <span style="font-weight: 600; color: var(--orange)" id="dashMaqMantenimiento">Sin datos</span
                     >
                   </div>
                   <div
@@ -3267,8 +3265,7 @@
                     "
                   >
                     <span>⚙️ Próximos servicios</span>
-                    <span style="font-weight: 600; color: var(--yellow)"
-                      >Sin datos</span
+                    <span style="font-weight: 600; color: var(--yellow)" id="dashMaqServicios">Sin datos</span
                     >
                   </div>
                 </div>
@@ -3276,7 +3273,7 @@
               <div class="card">
                 <div class="card-header">
                   <div class="card-title">💵 Costo Operativo Mensual</div>
-                  <span class="tag red">Sin datos</span>
+                  <span class="tag red" id="dashCostosTag">Sin datos</span>
                 </div>
                 <div class="chart-container" style="height: 200px">
                   <canvas id="chartCostos"></canvas>
@@ -17323,7 +17320,244 @@
         banner.style.display = vacia ? "flex" : "none";
       }
 
+      // Créditos guardados con la fecha del formulario (AAAA-MM-DD) quedaban con las cuotas en "NaN/NaN/NaN":
+      // se recalculan conservando qué cuotas ya estaban pagadas.
+      function repararCuotasCreditos() {
+        let cambios = 0;
+        (state.creditos || []).forEach((credito) => {
+          if (!(credito.cuotas || []).some((q) => /NaN/.test(String(q.fecha)))) return;
+          const estados = credito.cuotas.map((q) => q.estado);
+          const generar = credito.sistema === "Aleman" ? generarAmortizacionAleman : generarAmortizacionFrances;
+          credito.cuotas = generar(parseMonto(credito.monto), parseInt(credito.plazoMeses) || 0, parseFloat(credito.tea) || 0, credito.fechaInicio);
+          credito.cuotas.forEach((q, i) => {
+            if (estados[i]) q.estado = estados[i];
+          });
+          cambios += 1;
+        });
+        if (cambios) saveState();
+      }
+
+      // Dashboard de Agro: superficie sembrada, maquinarias y costo operativo de los últimos 30 días.
+      function actualizarDashboardAgro() {
+        const poner = (id, texto) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = texto;
+        };
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        const hace = (dias) => {
+          const d = new Date(hoy);
+          d.setDate(d.getDate() - dias);
+          return d;
+        };
+        const dentro = (fecha, desde) => {
+          const f = fechaDashboard(fecha);
+          return f && f >= desde && f <= hoy;
+        };
+
+        // Superficie sembrada en los últimos 12 meses, por cultivo.
+        const porCultivo = {};
+        (state.siembra || []).forEach((s) => {
+          if (!dentro(s.fecha, hace(365))) return;
+          const lote = (state.lotes || []).find((l) => l.codigo === s.lote || l.id === s.lote);
+          const ha = parseMonto(s.ha || s.hectareas || s.superficie) || parseMonto(lote?.superficie);
+          const cultivo = String(s.cultivo || "Otro").trim() || "Otro";
+          porCultivo[cultivo] = (porCultivo[cultivo] || 0) + ha;
+        });
+        const cultivos = Object.keys(porCultivo).sort((a, b) => porCultivo[b] - porCultivo[a]);
+        const totalHa = cultivos.reduce((s, c) => s + porCultivo[c], 0);
+        poner("dashSuperficieTag", totalHa ? Math.round(totalHa).toLocaleString("es-AR") + " ha" : "Sin datos");
+        const gCultivos = window.chartCultivosDashboard;
+        if (gCultivos) {
+          const colores = ["#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#ef4444", "#14b8a6", "#64748b"];
+          gCultivos.data.labels = cultivos.length ? cultivos : ["Soja", "Maíz", "Trigo", "Girasol"];
+          gCultivos.data.datasets[0].data = cultivos.length ? cultivos.map((c) => Math.round(porCultivo[c])) : [0, 0, 0, 0];
+          gCultivos.data.datasets[0].backgroundColor = gCultivos.data.labels.map((_, i) => colores[i % colores.length]);
+          gCultivos.update();
+        }
+
+        // Maquinarias por estado y órdenes de mantenimiento abiertas.
+        const maquinas = state.maquinarias || [];
+        const operativas = maquinas.filter((m) => !m.estado || m.estado === "OK").length;
+        const enTaller = maquinas.filter((m) => ["Servicio", "Taller"].includes(m.estado)).length;
+        const abiertas = (state.mantenimiento || []).filter((o) => o.estado && o.estado !== "Completado").length;
+        poner("dashMaqTag", maquinas.length ? maquinas.length + " equipo(s)" : "Sin datos");
+        poner("dashMaqOperativos", maquinas.length ? String(operativas) : "Sin datos");
+        poner("dashMaqMantenimiento", maquinas.length ? String(enTaller) : "Sin datos");
+        poner("dashMaqServicios", maquinas.length || abiertas ? abiertas + " orden(es) abiertas" : "Sin datos");
+
+        // Costo operativo de los últimos 30 días.
+        const desde = hace(30);
+        const grupos = { Sueldos: 0, Combustible: 0, Insumos: 0, Maquinaria: 0, Otros: 0 };
+        (state.costos || []).forEach((c) => {
+          if (!dentro(c.fecha, desde)) return;
+          const t = (String(c.categoria || "") + " " + String(c.concepto || "")).toLowerCase();
+          const monto = parseMonto(c.monto ?? c.importe);
+          if (/sueldo|personal|mano de obra|jornal|cargas sociales/.test(t)) grupos.Sueldos += monto;
+          else if (/combustible|gasoil|nafta/.test(t)) grupos.Combustible += monto;
+          else if (/inventario|insumo|semilla|fertiliz|agroqu|herbic|alimento|balancead|sanidad/.test(t)) grupos.Insumos += monto;
+          else if (/maquin|repuesto|service|taller|manten/.test(t)) grupos.Maquinaria += monto;
+          else grupos.Otros += monto;
+        });
+        (state.cargacombustible || []).forEach((c) => {
+          if (dentro(c.fecha, desde)) grupos.Combustible += parseMonto(c.costoTotal) || parseMonto(c.cantidad) * parseMonto(c.costoUnitario);
+        });
+        (state.costosOperativos || []).forEach((c) => {
+          if (dentro(c.fecha, desde)) grupos.Maquinaria += parseMonto(c.costo);
+        });
+        (state.mantenimiento || []).forEach((o) => {
+          if (dentro(o.fecha, desde)) grupos.Maquinaria += parseMonto(o.costo);
+        });
+        const totalCostos = Object.values(grupos).reduce((s, v) => s + v, 0);
+        poner("dashCostosTag", totalCostos ? "$" + Math.round(totalCostos).toLocaleString("es-AR") + " (30 días)" : "Sin datos");
+        const gCostos = window.chartCostosDashboard;
+        if (gCostos) {
+          gCostos.data.labels = Object.keys(grupos);
+          gCostos.data.datasets[0].data = Object.values(grupos).map((v) => Math.round(v));
+          gCostos.update();
+        }
+      }
+
+      // === Dashboard: tarjetas financieras, flujo de 90 días y hacienda (antes eran texto fijo) ===
+      function fechaDashboard(valor) {
+        const t = String(valor || "").trim();
+        let m = t.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+        m = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+        if (m) return new Date(+m[3], +m[2] - 1, +m[1]);
+        return null;
+      }
+      function signoDashboard(movimiento) {
+        if (typeof signoMovimientoFondos === "function") return signoMovimientoFondos(movimiento);
+        if (movimiento?.tipo === "Ingreso") return 1;
+        if (movimiento?.tipo === "Egreso") return -1;
+        return 0;
+      }
+      function actualizarDashboardFinanzas() {
+        const dinero = (n) => "$" + Math.round(n || 0).toLocaleString("es-AR");
+        const poner = (id, texto) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = texto;
+        };
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        const en90 = new Date(hoy);
+        en90.setDate(en90.getDate() + 90);
+
+        // Caja y bancos: mismos saldos que sus módulos.
+        const caja = (state.caja || []).reduce((s, m) => s + (m.tipo === "Ingreso" ? 1 : signoDashboard(m) || -1) * parseMonto(m.importe), 0);
+        let bancos = 0;
+        if (typeof saldoTotalBancos === "function") bancos = saldoTotalBancos();
+        else {
+          const iniciales = {};
+          (state.bancosLista || []).forEach((c) => (iniciales[c.nombre] = c.saldoInicial ? parseMonto(c.saldoInicial) : 0));
+          Object.keys(state.saldosIniciales || {}).forEach((b) => {
+            if (!iniciales[b]) iniciales[b] = parseMonto(state.saldosIniciales[b]);
+          });
+          bancos = Object.values(iniciales).reduce((s, v) => s + v, 0) + (state.bancos || []).reduce((s, m) => s + signoDashboard(m) * parseMonto(m.importe), 0);
+        }
+        poner("dashKpiBancos", dinero(bancos));
+        poner("dashKpiBancosSub", (state.bancos || []).length ? (state.bancosLista || []).length + " cuenta(s) · " + state.bancos.length + " movimiento(s)" : "Sin movimientos");
+        poner("dashKpiCaja", dinero(caja));
+        poner("dashKpiCajaSub", (state.caja || []).length ? state.caja.length + " movimiento(s)" : "Sin movimientos");
+
+        // A cobrar: cheques en cartera. A pagar: cheques emitidos sin cobrar y cuotas de créditos pendientes.
+        const chequesCobrar = (state.chequesCobrar || []).filter((c) => ["En cartera", "Depositado"].includes(c.estado));
+        const chequesPagar = (state.chequesCubrir || []).filter((c) => ["Emitido", "Entregado"].includes(c.estado));
+        const cuotas = [];
+        (state.creditos || []).forEach((cr) => {
+          const actual = parseInt(cr.cuotaActual) || 1;
+          (cr.cuotas || []).forEach((q) => {
+            if (q.estado === "Pagada" || (Number(q.numero) || 0) < actual) return;
+            cuotas.push({ fecha: q.fecha, importe: parseMonto(q.cuota), entidad: cr.entidad });
+          });
+        });
+        const cuotas90 = cuotas.filter((q) => {
+          const f = fechaDashboard(q.fecha);
+          return f && f <= en90;
+        });
+        const aCobrar = chequesCobrar.reduce((s, c) => s + parseMonto(c.importe), 0);
+        const aPagar = chequesPagar.reduce((s, c) => s + parseMonto(c.importe), 0) + cuotas90.reduce((s, q) => s + q.importe, 0);
+        poner("dashKpiCobrar", dinero(aCobrar));
+        poner("dashKpiCobrarSub", chequesCobrar.length ? chequesCobrar.length + " cheque(s) en cartera" : "Sin registros");
+        poner("dashKpiPagar", dinero(aPagar));
+        poner(
+          "dashKpiPagarSub",
+          chequesPagar.length || cuotas90.length ? [chequesPagar.length ? chequesPagar.length + " cheque(s)" : "", cuotas90.length ? cuotas90.length + " cuota(s) en 90 días" : ""].filter(Boolean).join(" · ") : "Sin registros",
+        );
+
+        // Flujo: 6 meses reales (Caja + Bancos) y los 3 próximos con lo ya comprometido.
+        const meses = [];
+        for (let i = -5; i <= 3; i++) {
+          const d = new Date(hoy.getFullYear(), hoy.getMonth() + i, 1);
+          meses.push({ clave: d.getFullYear() * 12 + d.getMonth(), etiqueta: d.toLocaleDateString("es-AR", { month: "short" }).replace(".", "") + (i > 0 ? " (p)" : ""), ingresos: 0, egresos: 0 });
+        }
+        const sumar = (fecha, importe, ingreso) => {
+          const f = fechaDashboard(fecha);
+          if (!f || !importe) return;
+          const mes = meses.find((m) => m.clave === f.getFullYear() * 12 + f.getMonth());
+          if (!mes) return;
+          if (ingreso) mes.ingresos += importe;
+          else mes.egresos += importe;
+        };
+        [...(state.caja || []), ...(state.bancos || [])].forEach((m) => {
+          const f = fechaDashboard(m.fecha);
+          if (!f || f > hoy) return;
+          const signo = m.tipo === "Ingreso" ? 1 : signoDashboard(m);
+          if (signo) sumar(m.fecha, parseMonto(m.importe), signo > 0);
+        });
+        const futuro = (fecha) => {
+          const f = fechaDashboard(fecha);
+          return f && f > hoy;
+        };
+        chequesCobrar.filter((c) => futuro(c.vencimiento)).forEach((c) => sumar(c.vencimiento, parseMonto(c.importe), true));
+        chequesPagar.filter((c) => futuro(c.vencimiento)).forEach((c) => sumar(c.vencimiento, parseMonto(c.importe), false));
+        cuotas.filter((q) => futuro(q.fecha)).forEach((q) => sumar(q.fecha, q.importe, false));
+        const hayFlujo = meses.some((m) => m.ingresos || m.egresos);
+        poner("dashFlujoTag", hayFlujo ? "6 meses reales + 3 proyectados (p)" : "Sin datos");
+        const grafico = window.chartFlujoDashboard;
+        if (grafico) {
+          grafico.data.labels = meses.map((m) => m.etiqueta);
+          grafico.data.datasets[0].data = meses.map((m) => Math.round(m.ingresos));
+          grafico.data.datasets[1].data = meses.map((m) => Math.round(m.egresos));
+          grafico.update();
+        }
+
+        // Hacienda (Ganadería): mismo stock que el módulo Hacienda.
+        if (document.getElementById("dashHaciendaBovinos")) {
+          let terneros = 0,
+            bovinos = 0,
+            vaquillonas = 0,
+            toros = 0;
+          (state.hacienda || []).forEach((m) => {
+            const cant = parseInt(m.cantidad) || 0;
+            const cat = String(m.categoria || "").toLowerCase();
+            const signo = m.tipo === "Nacimiento" || m.tipo === "Compra" ? 1 : ["Venta", "Muerte", "Faena"].includes(m.tipo) ? -1 : 0;
+            if (!signo) return;
+            if (cat.includes("ternero")) terneros += signo * cant;
+            else if (cat.includes("vaquillona")) vaquillonas += signo * cant;
+            else if (cat.includes("toro")) toros += signo * cant;
+            else if (cat.includes("novill") || cat.includes("vaca")) bovinos += signo * cant;
+          });
+          poner("dashHaciendaBovinos", bovinos.toLocaleString("es-AR"));
+          poner("dashHaciendaTerneros", terneros.toLocaleString("es-AR"));
+          poner("dashHaciendaVaquillonas", vaquillonas.toLocaleString("es-AR"));
+          poner("dashHaciendaToros", toros.toLocaleString("es-AR"));
+          const total = bovinos + terneros + vaquillonas + toros;
+          poner("dashHaciendaTag", total ? total.toLocaleString("es-AR") + " cabezas" : "Sin datos");
+        }
+      }
+
       function renderTables() {
+        setTimeout(() => {
+          try {
+            repararCuotasCreditos();
+            actualizarDashboardFinanzas();
+            actualizarDashboardAgro();
+          } catch (error) {
+            console.error("Dashboard:", error);
+          }
+        }, 0);
         actualizarBannerDemo();
         if (typeof renderPartesVoz === "function") renderPartesVoz();
         renderAvisoDemo();
@@ -21217,8 +21451,10 @@
         let saldo = monto;
 
         // Parsear fecha de inicio
-        const partes = fechaInicio.split("/");
-        const fechaBase = new Date(partes[2], partes[1] - 1, partes[0]);
+        // El formulario guarda la fecha como AAAA-MM-DD; los datos viejos, como DD/MM/AAAA.
+        const iso = String(fechaInicio || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+        const partes = String(fechaInicio || "").split("/");
+        const fechaBase = iso ? new Date(+iso[1], +iso[2] - 1, +iso[3]) : new Date(partes[2], partes[1] - 1, partes[0]);
 
         for (let i = 1; i <= plazoMeses; i++) {
           const interes = saldo * tasaMensual;
@@ -21254,8 +21490,10 @@
         let saldo = monto;
 
         // Parsear fecha de inicio
-        const partes = fechaInicio.split("/");
-        const fechaBase = new Date(partes[2], partes[1] - 1, partes[0]);
+        // El formulario guarda la fecha como AAAA-MM-DD; los datos viejos, como DD/MM/AAAA.
+        const iso = String(fechaInicio || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+        const partes = String(fechaInicio || "").split("/");
+        const fechaBase = iso ? new Date(+iso[1], +iso[2] - 1, +iso[3]) : new Date(partes[2], partes[1] - 1, partes[0]);
 
         for (let i = 1; i <= plazoMeses; i++) {
           const interes = saldo * tasaMensual;
@@ -22559,7 +22797,7 @@
         );
       } else {
         // Flujo proyectado
-        new Chart(document.getElementById("chartFlujo"), {
+        window.chartFlujoDashboard = new Chart(document.getElementById("chartFlujo"), {
           type: "line",
           data: {
             labels: [
@@ -22613,7 +22851,7 @@
         });
 
         // Cultivos
-        new Chart(document.getElementById("chartCultivos"), {
+        window.chartCultivosDashboard = new Chart(document.getElementById("chartCultivos"), {
           type: "doughnut",
           data: {
             labels: ["Soja", "Maíz", "Trigo", "Girasol"],
@@ -22638,7 +22876,7 @@
         });
 
         // Costos operativos
-        new Chart(document.getElementById("chartCostos"), {
+        window.chartCostosDashboard = new Chart(document.getElementById("chartCostos"), {
           type: "bar",
           data: {
             labels: [

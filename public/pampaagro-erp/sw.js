@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pampaagro-erp-v12-demo';
+const CACHE_NAME = 'pampaagro-erp-v13-dashboard';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './logo2.png'];
 
 // Caché aparte y ESTABLE para las imágenes del mapa (tiles). No se borra cuando
