@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pampatambo-pwa-v19-reportes';
+const CACHE_NAME = 'pampatambo-pwa-v20-roles';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './logo2.png', './pampaia-source.js', './pampa-report-voice.js', './pampa-sync-envelope.js'];
 
 // Guarda la lista básica y, leyendo index.html, todos los archivos propios que la página carga.
