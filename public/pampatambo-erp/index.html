@@ -18,7 +18,7 @@
     <script src="./pampa-core-sync.js"></script>
     <script src="./pampa-report-voice.js"></script>
     <script src="./vendor/pampa-search.js?v=5"></script>
-    <script src="./vendor/pampa-fiscal-normativa.js"></script>
+    <script src="./vendor/pampa-fiscal-normativa.js" data-app="tambo" data-sources="/tambo/fiscal/normativa"></script>
     <meta name="theme-color" content="#f59e0b" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
@@ -26,6 +26,8 @@
       rel="stylesheet"
     />
     <script src="./vendor/xlsx.full.min.js"></script>
+    <script src="./vendor/jspdf.umd.min.js"></script>
+    <script src="./lume-retenciones.js"></script>
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css" />
     <link rel="stylesheet" href="pampa-brand.css" />
     <script src="vendor/leaflet/leaflet.js"></script>
@@ -4684,9 +4686,10 @@
                 contador). El botón "Calcular fiscal" de cada LUME busca acá,
                 por Régimen + Condición (+ Jurisdicción si es IIBB), la primera
                 regla en estado <strong>Validada</strong> y vigente a la fecha
-                del LUME. Sin al menos IVA_LECHE_ALICUOTA, IVA_LECHE_RETENCION y
-                GANANCIAS_LECHE_RETENCION cargadas y validadas para el Estado
-                SISA correspondiente, el cálculo va a fallar.
+                del LUME. IVA: RG 1428 según la condición registral del tambo
+                (1 % / 12,70 % / 21 %, sin retención si da $400 o menos).
+                Ganancias: RG 830 régimen 78 (inscripto 2 % sobre el excedente
+                de $224.000 mensuales por usina; no inscripto 10 %; mínimo $240).
               </p>
               <div class="table-wrap">
                 <table>
@@ -5663,7 +5666,7 @@
         return false;
       }
       // Reglas de retención con las que arranca el modo local (las mismas del servidor).
-      const REGLAS_RETENCION_DEFECTO = [{"id":"1","regimen":"IVA_LECHE_ALICUOTA","condicion":"GENERAL","jurisdiccion":"NACIONAL","alicuota_pct":21,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG (AFIP) 1428/2003 (texto actualizado) y Ley de IVA: la venta de leche fluida sin procesar del tambo a la industria está gravada al 21%; la industria/intermediario retiene 1% a Responsables Inscriptos en situación regular y 12,70% a no categorizados o con irregularidades. Confirmado por el productor el 30/9/2026.","estado":"VALIDADA","observaciones":"Venta de leche cruda tambo → industria: alícuota general 21% (antes figuraba 10,5%, que es de granos)."},{"id":"2","regimen":"IVA_LECHE_RETENCION","condicion":"SISA_1","jurisdiccion":"NACIONAL","alicuota_pct":1,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG (AFIP) 1428/2003 (texto actualizado) y Ley de IVA: la venta de leche fluida sin procesar del tambo a la industria está gravada al 21%; la industria/intermediario retiene 1% a Responsables Inscriptos en situación regular y 12,70% a no categorizados o con irregularidades. Confirmado por el productor el 30/9/2026.","estado":"VALIDADA","observaciones":"Categoría 1: Responsable Inscripto en situación regular → retención 1%."},{"id":"3","regimen":"IVA_LECHE_RETENCION","condicion":"SISA_2","jurisdiccion":"NACIONAL","alicuota_pct":12.7,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG (AFIP) 1428/2003 (texto actualizado) y Ley de IVA: la venta de leche fluida sin procesar del tambo a la industria está gravada al 21%; la industria/intermediario retiene 1% a Responsables Inscriptos en situación regular y 12,70% a no categorizados o con irregularidades. Confirmado por el productor el 30/9/2026.","estado":"VALIDADA","observaciones":"Categoría 2: no categorizado → retención 12,70% (antes 1%)."},{"id":"4","regimen":"IVA_LECHE_RETENCION","condicion":"SISA_3","jurisdiccion":"NACIONAL","alicuota_pct":12.7,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG (AFIP) 1428/2003 (texto actualizado) y Ley de IVA: la venta de leche fluida sin procesar del tambo a la industria está gravada al 21%; la industria/intermediario retiene 1% a Responsables Inscriptos en situación regular y 12,70% a no categorizados o con irregularidades. Confirmado por el productor el 30/9/2026.","estado":"VALIDADA","observaciones":"Categoría 3: irregularidades → retención 12,70% (RG 1428 no tiene una tercera categoría distinta)."},{"id":"5","regimen":"IVA_LECHE_RETENCION","condicion":"SISA_INACTIVO","jurisdiccion":"NACIONAL","alicuota_pct":12.7,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG (AFIP) 1428/2003 (texto actualizado) y Ley de IVA: la venta de leche fluida sin procesar del tambo a la industria está gravada al 21%; la industria/intermediario retiene 1% a Responsables Inscriptos en situación regular y 12,70% a no categorizados o con irregularidades. Confirmado por el productor el 30/9/2026.","estado":"VALIDADA","observaciones":"Inactivo / no categorizado o con irregularidades → retención 12,70%."},{"id":"6","regimen":"GANANCIAS_LECHE_RETENCION","condicion":"SISA_1","jurisdiccion":"NACIONAL","alicuota_pct":0,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG 1428 (ARCA) — retención de Ganancias que practica la usina al pagar la LUME, según estado SISA; % vigente confirmado por administración","estado":"VALIDADA","observaciones":"SISA Estado 1"},{"id":"7","regimen":"GANANCIAS_LECHE_RETENCION","condicion":"SISA_2","jurisdiccion":"NACIONAL","alicuota_pct":2,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG 1428 (ARCA) — retención de Ganancias que practica la usina al pagar la LUME, según estado SISA; % vigente confirmado por administración","estado":"VALIDADA","observaciones":"SISA Estado 2"},{"id":"8","regimen":"GANANCIAS_LECHE_RETENCION","condicion":"SISA_3","jurisdiccion":"NACIONAL","alicuota_pct":4,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG 1428 (ARCA) — retención de Ganancias que practica la usina al pagar la LUME, según estado SISA; % vigente confirmado por administración","estado":"VALIDADA","observaciones":"SISA Estado 3"},{"id":"9","regimen":"GANANCIAS_LECHE_RETENCION","condicion":"SISA_INACTIVO","jurisdiccion":"NACIONAL","alicuota_pct":15,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG 1428 (ARCA) — retención de Ganancias que practica la usina al pagar la LUME, según estado SISA; % vigente confirmado por administración","estado":"VALIDADA","observaciones":"SISA inactivo o no catalogado"},{"id":"10","regimen":"IVA_LECHE_RETENCION","condicion":"SISA_MONOTRIBUTO","jurisdiccion":"NACIONAL","alicuota_pct":0,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG 1428 (ARCA) — retención de IVA que practica la usina al pagar la LUME, según estado SISA; % vigente confirmado por administración","estado":"VALIDADA","observaciones":"Productor monotributista: no sufre retención de IVA"},{"id":"11","regimen":"GANANCIAS_LECHE_RETENCION","condicion":"SISA_MONOTRIBUTO","jurisdiccion":"NACIONAL","alicuota_pct":0,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG 1428 (ARCA) — retención de Ganancias que practica la usina al pagar la LUME, según estado SISA; % vigente confirmado por administración","estado":"VALIDADA","observaciones":"Productor monotributista: no sufre retención de Ganancias"},{"id":"12","regimen":"IIBB_LECHE_RETENCION","condicion":"GENERAL","jurisdiccion":"BUENOS AIRES","alicuota_pct":1.75,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"ARBA — SIN VERIFICAR. El rango habitual citado es 1,75% a 2,50% según coeficiente/categoría de riesgo del contribuyente en ARBA; cargué el extremo más bajo como punto de partida.","estado":"BORRADOR","observaciones":"PENDIENTE: confirmar con tu contador tu categoría/coeficiente actual en ARBA antes de pasar a Validada."},{"id":"13","regimen":"IIBB_LECHE_RETENCION","condicion":"GENERAL","jurisdiccion":"SANTA FE","alicuota_pct":0,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"API Santa Fe — SIN VERIFICAR. Santa Fe NO usa una alícuota fija: publica un padrón mensual (PARP) con un % específico por CUIT, que puede ir de 0% a 4,50% según conducta fiscal.","estado":"BORRADOR","observaciones":"PENDIENTE: no se puede cargar un valor fijo correcto acá. Tenés que consultar tu % en el padrón PARP de API Santa Fe cada mes y actualizar este valor (o dejarlo en 0 si tu padrón te da 0%)."},{"id":"14","regimen":"IIBB_LECHE_RETENCION","condicion":"GENERAL","jurisdiccion":"CORDOBA","alicuota_pct":1.5,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"Rentas Córdoba — SIN VERIFICAR (el sitio oficial estaba caído al momento de chequear). Se cita 0% (exento) si el productor cumple requisitos de inscripción/Buenas Prácticas, o 1,5% si no.","estado":"BORRADOR","observaciones":"PENDIENTE: confirmar con tu contador si tu tambo califica para la exención (0%) antes de pasar a Validada."}];
+      const REGLAS_RETENCION_DEFECTO = [{"id":"1","regimen":"IVA_LECHE_ALICUOTA","condicion":"GENERAL","jurisdiccion":"NACIONAL","alicuota_pct":21,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG (AFIP) 1428/2003 (texto actualizado) y Ley de IVA: la venta de leche fluida sin procesar del tambo a la industria está gravada al 21%; la industria/intermediario retiene 1% a Responsables Inscriptos en situación regular y 12,70% a no categorizados o con irregularidades. Confirmado por el productor el 30/9/2026.","estado":"VALIDADA","observaciones":"Venta de leche cruda tambo → industria: alícuota general 21% (antes figuraba 10,5%, que es de granos)."},{"id":"2","regimen":"IVA_LECHE_RETENCION","condicion":"SISA_1","jurisdiccion":"NACIONAL","alicuota_pct":1,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG (AFIP) 1428/2003 (texto actualizado) y Ley de IVA: la venta de leche fluida sin procesar del tambo a la industria está gravada al 21%; la industria/intermediario retiene 1% a Responsables Inscriptos en situación regular y 12,70% a no categorizados o con irregularidades. Confirmado por el productor el 30/9/2026.","estado":"REEMPLAZADA","observaciones":"Categoría 1: Responsable Inscripto en situación regular → retención 1%. Reemplazada: la retención sobre la leche depende de la condición registral (RG 1428) y Ganancias va por RG 830, no por el Estado SISA."},{"id":"3","regimen":"IVA_LECHE_RETENCION","condicion":"SISA_2","jurisdiccion":"NACIONAL","alicuota_pct":12.7,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG (AFIP) 1428/2003 (texto actualizado) y Ley de IVA: la venta de leche fluida sin procesar del tambo a la industria está gravada al 21%; la industria/intermediario retiene 1% a Responsables Inscriptos en situación regular y 12,70% a no categorizados o con irregularidades. Confirmado por el productor el 30/9/2026.","estado":"REEMPLAZADA","observaciones":"Categoría 2: no categorizado → retención 12,70% (antes 1%). Reemplazada: la retención sobre la leche depende de la condición registral (RG 1428) y Ganancias va por RG 830, no por el Estado SISA."},{"id":"4","regimen":"IVA_LECHE_RETENCION","condicion":"SISA_3","jurisdiccion":"NACIONAL","alicuota_pct":12.7,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG (AFIP) 1428/2003 (texto actualizado) y Ley de IVA: la venta de leche fluida sin procesar del tambo a la industria está gravada al 21%; la industria/intermediario retiene 1% a Responsables Inscriptos en situación regular y 12,70% a no categorizados o con irregularidades. Confirmado por el productor el 30/9/2026.","estado":"REEMPLAZADA","observaciones":"Categoría 3: irregularidades → retención 12,70% (RG 1428 no tiene una tercera categoría distinta). Reemplazada: la retención sobre la leche depende de la condición registral (RG 1428) y Ganancias va por RG 830, no por el Estado SISA."},{"id":"5","regimen":"IVA_LECHE_RETENCION","condicion":"SISA_INACTIVO","jurisdiccion":"NACIONAL","alicuota_pct":12.7,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG (AFIP) 1428/2003 (texto actualizado) y Ley de IVA: la venta de leche fluida sin procesar del tambo a la industria está gravada al 21%; la industria/intermediario retiene 1% a Responsables Inscriptos en situación regular y 12,70% a no categorizados o con irregularidades. Confirmado por el productor el 30/9/2026.","estado":"REEMPLAZADA","observaciones":"Inactivo / no categorizado o con irregularidades → retención 12,70%. Reemplazada: la retención sobre la leche depende de la condición registral (RG 1428) y Ganancias va por RG 830, no por el Estado SISA."},{"id":"6","regimen":"GANANCIAS_LECHE_RETENCION","condicion":"SISA_1","jurisdiccion":"NACIONAL","alicuota_pct":0,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG 1428 (ARCA) — retención de Ganancias que practica la usina al pagar la LUME, según estado SISA; % vigente confirmado por administración","estado":"REEMPLAZADA","observaciones":"SISA Estado 1 Reemplazada: la retención sobre la leche depende de la condición registral (RG 1428) y Ganancias va por RG 830, no por el Estado SISA."},{"id":"7","regimen":"GANANCIAS_LECHE_RETENCION","condicion":"SISA_2","jurisdiccion":"NACIONAL","alicuota_pct":2,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG 1428 (ARCA) — retención de Ganancias que practica la usina al pagar la LUME, según estado SISA; % vigente confirmado por administración","estado":"REEMPLAZADA","observaciones":"SISA Estado 2 Reemplazada: la retención sobre la leche depende de la condición registral (RG 1428) y Ganancias va por RG 830, no por el Estado SISA."},{"id":"8","regimen":"GANANCIAS_LECHE_RETENCION","condicion":"SISA_3","jurisdiccion":"NACIONAL","alicuota_pct":4,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG 1428 (ARCA) — retención de Ganancias que practica la usina al pagar la LUME, según estado SISA; % vigente confirmado por administración","estado":"REEMPLAZADA","observaciones":"SISA Estado 3 Reemplazada: la retención sobre la leche depende de la condición registral (RG 1428) y Ganancias va por RG 830, no por el Estado SISA."},{"id":"9","regimen":"GANANCIAS_LECHE_RETENCION","condicion":"SISA_INACTIVO","jurisdiccion":"NACIONAL","alicuota_pct":15,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG 1428 (ARCA) — retención de Ganancias que practica la usina al pagar la LUME, según estado SISA; % vigente confirmado por administración","estado":"REEMPLAZADA","observaciones":"SISA inactivo o no catalogado Reemplazada: la retención sobre la leche depende de la condición registral (RG 1428) y Ganancias va por RG 830, no por el Estado SISA."},{"id":"10","regimen":"IVA_LECHE_RETENCION","condicion":"SISA_MONOTRIBUTO","jurisdiccion":"NACIONAL","alicuota_pct":0,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG 1428 (ARCA) — retención de IVA que practica la usina al pagar la LUME, según estado SISA; % vigente confirmado por administración","estado":"REEMPLAZADA","observaciones":"Productor monotributista: no sufre retención de IVA Reemplazada: la retención sobre la leche depende de la condición registral (RG 1428) y Ganancias va por RG 830, no por el Estado SISA."},{"id":"11","regimen":"GANANCIAS_LECHE_RETENCION","condicion":"SISA_MONOTRIBUTO","jurisdiccion":"NACIONAL","alicuota_pct":0,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"RG 1428 (ARCA) — retención de Ganancias que practica la usina al pagar la LUME, según estado SISA; % vigente confirmado por administración","estado":"REEMPLAZADA","observaciones":"Productor monotributista: no sufre retención de Ganancias Reemplazada: la retención sobre la leche depende de la condición registral (RG 1428) y Ganancias va por RG 830, no por el Estado SISA."},{"id":"12","regimen":"IIBB_LECHE_RETENCION","condicion":"GENERAL","jurisdiccion":"BUENOS AIRES","alicuota_pct":1.75,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"ARBA — SIN VERIFICAR. El rango habitual citado es 1,75% a 2,50% según coeficiente/categoría de riesgo del contribuyente en ARBA; cargué el extremo más bajo como punto de partida.","estado":"BORRADOR","observaciones":"PENDIENTE: confirmar con tu contador tu categoría/coeficiente actual en ARBA antes de pasar a Validada."},{"id":"13","regimen":"IIBB_LECHE_RETENCION","condicion":"GENERAL","jurisdiccion":"SANTA FE","alicuota_pct":0,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"API Santa Fe — SIN VERIFICAR. Santa Fe NO usa una alícuota fija: publica un padrón mensual (PARP) con un % específico por CUIT, que puede ir de 0% a 4,50% según conducta fiscal.","estado":"BORRADOR","observaciones":"PENDIENTE: no se puede cargar un valor fijo correcto acá. Tenés que consultar tu % en el padrón PARP de API Santa Fe cada mes y actualizar este valor (o dejarlo en 0 si tu padrón te da 0%)."},{"id":"14","regimen":"IIBB_LECHE_RETENCION","condicion":"GENERAL","jurisdiccion":"CORDOBA","alicuota_pct":1.5,"minimo_no_imponible":0,"vigencia_desde":"2026-01-01","vigencia_hasta":"","fuente_normativa":"Rentas Córdoba — SIN VERIFICAR (el sitio oficial estaba caído al momento de chequear). Se cita 0% (exento) si el productor cumple requisitos de inscripción/Buenas Prácticas, o 1,5% si no.","estado":"BORRADOR","observaciones":"PENDIENTE: confirmar con tu contador si tu tambo califica para la exención (0%) antes de pasar a Validada."},{"jurisdiccion":"NACIONAL","vigencia_desde":"2026-01-01","vigencia_hasta":"","estado":"VALIDADA","origen":"RG1428_RG830","regimen":"IVA_LECHE_RETENCION","condicion":"RESPONSABLE_INSCRIPTO","alicuota_pct":1,"minimo_no_imponible":0,"monto_minimo_retencion":400,"fuente_normativa":"RG (AFIP) 1428/2003, texto según RG 4216: retención de IVA sobre la compra de leche cruda bovina según la condición registral del vendedor. Sin retención si el importe es igual o inferior a $400 (RG 2854/2010).","fuente_url":"https://biblioteca.afip.gob.ar/search/query/norma.aspx?p=t:RAG|n:1428|o:3|a:2003|f:30/01/2003","id":"15"},{"jurisdiccion":"NACIONAL","vigencia_desde":"2026-01-01","vigencia_hasta":"","estado":"VALIDADA","origen":"RG1428_RG830","regimen":"IVA_LECHE_RETENCION","condicion":"NO_CATEGORIZADO","alicuota_pct":12.7,"minimo_no_imponible":0,"monto_minimo_retencion":400,"fuente_normativa":"RG (AFIP) 1428/2003, texto según RG 4216: retención de IVA sobre la compra de leche cruda bovina según la condición registral del vendedor. Sin retención si el importe es igual o inferior a $400 (RG 2854/2010).","fuente_url":"https://biblioteca.afip.gob.ar/search/query/norma.aspx?p=t:RAG|n:1428|o:3|a:2003|f:30/01/2003","id":"16"},{"jurisdiccion":"NACIONAL","vigencia_desde":"2026-01-01","vigencia_hasta":"","estado":"VALIDADA","origen":"RG1428_RG830","regimen":"IVA_LECHE_RETENCION","condicion":"IRREGULAR","alicuota_pct":21,"minimo_no_imponible":0,"monto_minimo_retencion":400,"fuente_normativa":"RG (AFIP) 1428/2003, texto según RG 4216: retención de IVA sobre la compra de leche cruda bovina según la condición registral del vendedor. Sin retención si el importe es igual o inferior a $400 (RG 2854/2010).","fuente_url":"https://biblioteca.afip.gob.ar/search/query/norma.aspx?p=t:RAG|n:1428|o:3|a:2003|f:30/01/2003","id":"17"},{"jurisdiccion":"NACIONAL","vigencia_desde":"2026-01-01","vigencia_hasta":"","estado":"VALIDADA","origen":"RG1428_RG830","regimen":"IVA_LECHE_RETENCION","condicion":"MONOTRIBUTO","alicuota_pct":0,"minimo_no_imponible":0,"monto_minimo_retencion":400,"fuente_normativa":"RG (AFIP) 1428/2003, texto según RG 4216: retención de IVA sobre la compra de leche cruda bovina según la condición registral del vendedor. Sin retención si el importe es igual o inferior a $400 (RG 2854/2010). El monotributista en regla no sufre retención (el excedido tributa como no categorizado).","fuente_url":"https://biblioteca.afip.gob.ar/search/query/norma.aspx?p=t:RAG|n:1428|o:3|a:2003|f:30/01/2003","id":"18"},{"jurisdiccion":"NACIONAL","vigencia_desde":"2026-01-01","vigencia_hasta":"","estado":"VALIDADA","origen":"RG1428_RG830","regimen":"GANANCIAS_LECHE_RG830","condicion":"INSCRIPTO","alicuota_pct":2,"minimo_no_imponible":224000,"monto_minimo_retencion":240,"codigo_regimen":"78","fuente_normativa":"RG (AFIP) 830/2000, Anexo II, régimen 78 (enajenación de bienes muebles y bienes de cambio): mínimo no sujeto mensual acumulable por agente de retención; retención mínima $240.","fuente_url":"","id":"19"},{"jurisdiccion":"NACIONAL","vigencia_desde":"2026-01-01","vigencia_hasta":"","estado":"VALIDADA","origen":"RG1428_RG830","regimen":"GANANCIAS_LECHE_RG830","condicion":"NO_INSCRIPTO","alicuota_pct":10,"minimo_no_imponible":0,"monto_minimo_retencion":240,"codigo_regimen":"78","fuente_normativa":"RG (AFIP) 830/2000, Anexo II, régimen 78 (enajenación de bienes muebles y bienes de cambio): mínimo no sujeto mensual acumulable por agente de retención; retención mínima $240. No inscriptos: sobre el total, sin mínimo no sujeto.","fuente_url":"","id":"20"}];
       const modules = [
         "empresa",
         "dashboard",
@@ -7259,12 +7262,20 @@
             ],
           },
           {
-            key: "estado_sisa",
-            label:
-              "Categoría RG 1428 (retención de IVA de la usina): 1 = Responsable Inscripto regular (1%) · 2, 3 o INACTIVO = no categorizado o con irregularidades (12,70%) · MONOTRIBUTO",
+            key: "condicion_iva_tambo",
+            label: "Condición frente al IVA (retención RG 1428 de la usina)",
             type: "select",
-            options: ["1", "2", "3", "INACTIVO", "MONOTRIBUTO"],
+            options: ["RESPONSABLE_INSCRIPTO", "NO_CATEGORIZADO", "IRREGULAR", "MONOTRIBUTO"],
             required: true,
+            hint: "RESPONSABLE_INSCRIPTO en regla: 1 % · NO_CATEGORIZADO o monotributista excedido: 12,70 % · IRREGULAR (transgresiones): 21 % · MONOTRIBUTO en regla: sin retención. No se retiene si el importe da $400 o menos.",
+          },
+          {
+            key: "condicion_ganancias_tambo",
+            label: "Ganancias (RG 830, régimen 78)",
+            type: "select",
+            options: ["INSCRIPTO", "NO_INSCRIPTO"],
+            required: true,
+            hint: "Inscripto: 2 % sobre lo que excede $224.000 en el mes (sumando lo que ya te pagó esa usina en el mes). No inscripto: 10 % sobre el total. No se retiene si da menos de $240.",
           },
           {
             key: "provincia_compradora",
@@ -7354,19 +7365,19 @@
             options: [
               "IVA_LECHE_ALICUOTA",
               "IVA_LECHE_RETENCION",
-              "GANANCIAS_LECHE_RETENCION",
+              "GANANCIAS_LECHE_RG830",
               "IIBB_LECHE_RETENCION",
               "SUSS_TAMBERO_ASOCIADO",
             ],
             required: true,
-            hint: "IVA_LECHE_ALICUOTA = alícuota de IVA débito fiscal sobre la leche (condición GENERAL). IVA_LECHE_RETENCION y GANANCIAS_LECHE_RETENCION = retenciones según Estado SISA del tambo. IIBB_LECHE_RETENCION = retención de Ingresos Brutos (una regla por provincia, en Jurisdicción). SUSS_TAMBERO_ASOCIADO = aporte del tambero mediero.",
+            hint: "IVA_LECHE_ALICUOTA = alícuota de IVA débito fiscal sobre la leche (condición GENERAL). IVA_LECHE_RETENCION = retención de IVA RG 1428 según la condición registral del tambo. GANANCIAS_LECHE_RG830 = retención de Ganancias RG 830 régimen 78 (inscripto / no inscripto). IIBB_LECHE_RETENCION = retención de Ingresos Brutos (una regla por provincia, en Jurisdicción). SUSS_TAMBERO_ASOCIADO = aporte del tambero mediero.",
           },
           {
             key: "condicion",
             label: "Condición",
             type: "text",
             required: true,
-            hint: "Para IVA_LECHE_ALICUOTA e IIBB_LECHE_RETENCION usá GENERAL. Para IVA_LECHE_RETENCION y GANANCIAS_LECHE_RETENCION usá SISA_1, SISA_2, SISA_3, SISA_INACTIVO o SISA_MONOTRIBUTO según el Estado SISA cargado en la LUME. Para SUSS_TAMBERO_ASOCIADO usá GENERAL.",
+            hint: "Para IVA_LECHE_ALICUOTA e IIBB_LECHE_RETENCION usá GENERAL. Para IVA_LECHE_RETENCION usá RESPONSABLE_INSCRIPTO, NO_CATEGORIZADO, IRREGULAR o MONOTRIBUTO. Para GANANCIAS_LECHE_RG830 usá INSCRIPTO o NO_INSCRIPTO. Para SUSS_TAMBERO_ASOCIADO usá GENERAL.",
           },
           {
             key: "jurisdiccion",
@@ -7385,8 +7396,15 @@
             key: "minimo_no_imponible",
             label: "Mínimo no imponible ($)",
             type: "number",
-            hint: "Monto que se resta de la base antes de aplicar la alícuota. Dejar en 0 si no corresponde.",
+            hint: "Monto que se resta de la base antes de aplicar la alícuota (en RG 830 inscripto: $224.000 mensuales acumulados por usina). Dejar en 0 si no corresponde.",
           },
+          {
+            key: "monto_minimo_retencion",
+            label: "Retención mínima ($)",
+            type: "number",
+            hint: "Si la retención calculada no supera este importe, no se retiene (RG 1428: $400 o menos; RG 830: menos de $240).",
+          },
+          { key: "codigo_regimen", label: "Código de régimen SIRE/SICORE", type: "text", hint: "Ej. 78 para RG 830 enajenación de bienes muebles." },
           { key: "vigencia_desde", label: "Vigente desde", type: "date" },
           {
             key: "vigencia_hasta",
@@ -7404,7 +7422,7 @@
             key: "estado",
             label: "Estado",
             type: "select",
-            options: ["BORRADOR", "VALIDADA"],
+            options: ["BORRADOR", "VALIDADA", "REEMPLAZADA"],
             required: true,
             hint: "Solo las reglas en estado VALIDADA (y dentro de su vigencia) se usan al calcular. Dejá en BORRADOR hasta confirmar el dato.",
           },
@@ -8661,7 +8679,7 @@
           "subtotal_neto_estimado_erp",
           "desvio_composicion_erp",
         ],
-        reglasRetencion: ["alicuota_pct", "minimo_no_imponible"],
+        reglasRetencion: ["alicuota_pct", "minimo_no_imponible", "monto_minimo_retencion"],
         muestrasCalidadLeche: [
           "litros_del_periodo",
           "porcentaje_gb",
@@ -12404,6 +12422,7 @@
           state[k] = preferir(cargar(), state[k]);
         });
         if (!(state.reglasRetencion || []).length) state.reglasRetencion = REGLAS_RETENCION_DEFECTO.map((r) => ({ ...r }));
+        migrarReglasLocalesTambo();
         saveArcaLocalState();
         saveOfflineSnapshot();
         renderConnectivityStatus("Modo local: los datos se guardan en este navegador");
@@ -12687,7 +12706,7 @@
         state.consumosAlimento = loadConsumosAlimentoLocal();
         // Lo que solo guarda el equipo: si acá está vacío (se borró el navegador o cambió el
         // puerto), se recupera de la copia del servidor.
-        for (const [k, [, guardar]] of Object.entries(COLECCIONES_LOCALES_TAMBO)) {
+        for (const [k, [cargar, guardar]] of Object.entries(COLECCIONES_LOCALES_TAMBO)) {
           if (!(state[k] || []).length) state[k] = cargar() || [];
           if ((state[k] || []).length) continue;
           const filas = await traerDelServidorTambo(k);
@@ -15261,9 +15280,9 @@
           <td>${row.condicion || ""}</td>
           <td>${row.jurisdiccion || "NACIONAL"}</td>
           <td>${Number(row.alicuota_pct || 0).toFixed(2)}%</td>
-          <td>${row.minimo_no_imponible ? formatMoney(row.minimo_no_imponible) : "-"}</td>
+          <td>${row.minimo_no_imponible ? formatMoney(row.minimo_no_imponible) : "-"}${Number(row.monto_minimo_retencion) ? `<br><small class="muted">Ret. mínima ${formatMoney(row.monto_minimo_retencion)}</small>` : ""}</td>
           <td>${row.vigencia_desde || ""}${row.vigencia_hasta ? ` a ${row.vigencia_hasta}` : row.vigencia_desde ? " (sin fin)" : ""}</td>
-          <td><span class="pill ${row.estado === "VALIDADA" ? "ok" : "warn"}">${row.estado === "VALIDADA" ? "Validada" : "Borrador"}</span></td>
+          <td><span class="pill ${row.estado === "VALIDADA" ? "ok" : "warn"}">${row.estado === "VALIDADA" ? "Validada" : row.estado === "REEMPLAZADA" ? "Reemplazada" : "Borrador"}</span></td>
           <td>
             <button class="btn" onclick="editRow('reglasRetencion','${row.id}')">Editar</button>
             <button class="btn" onclick="deleteRow('reglasRetencion','${row.id}')">Borrar</button>
@@ -15272,7 +15291,7 @@
       `,
               )
               .join("") ||
-            '<tr><td colspan="8" class="muted">Sin reglas cargadas todavía. Sin al menos IVA_LECHE_ALICUOTA / IVA_LECHE_RETENCION / GANANCIAS_LECHE_RETENCION en estado Validada, el botón "Calcular fiscal" de la LUME va a fallar.</td></tr>');
+            '<tr><td colspan="8" class="muted">Sin reglas cargadas todavía. Sin al menos IVA_LECHE_ALICUOTA / IVA_LECHE_RETENCION / GANANCIAS_LECHE_RG830 en estado Validada, el botón "Calcular fiscal" de la LUME va a fallar.</td></tr>');
 
         byId("tbodyLiquidacionesLeche") &&
           (byId("tbodyLiquidacionesLeche").innerHTML = liquidaciones
@@ -15294,9 +15313,11 @@
           <td>${formatMoney(row.descuentos)}</td>
           <td><strong>${formatMoney(row.neto)}</strong></td>
           <td>${row.fecha_cobro || ""}</td>
-          <td>${estadoPill(row.estado_arca || "SIN_ENVIAR")}${row.resumen_fiscal ? `<small>IVA débito ${formatMoney(row.resumen_fiscal.iva_debito || 0)}<br>Ret. IVA ${formatMoney(row.resumen_fiscal.retenciones?.iva_sisa || 0)} · Ret. Ganancias ${formatMoney(row.resumen_fiscal.retenciones?.ganancias_sisa || 0)}${row.resumen_fiscal.retenciones?.iibb ? ` · Ret. IIBB ${formatMoney(row.resumen_fiscal.retenciones.iibb)}` : ""}<br><strong>Neto banco ${formatMoney(row.resumen_fiscal.neto_estimado_tambo || 0)}</strong>${row.resumen_fiscal.auditoriaArca ? `<br>CondicionIVAReceptorId: ${row.resumen_fiscal.auditoriaArca.pendienteDeclararCondicionIva ? '<span style="color:var(--red,#dc2626)">sin declarar</span>' : row.resumen_fiscal.auditoriaArca.condicionIvaReceptorId}` : ""}<br><span class="muted">Calculado ${row.resumen_fiscal.calculado_en ? new Date(row.resumen_fiscal.calculado_en).toLocaleString("es-AR") : ""}</span></small>` : '<br><small class="muted">Sin calcular todavía</small>'}</td>
+          <td>${estadoPill(row.estado_arca || "SIN_ENVIAR")}${row.resumen_fiscal ? `<small>IVA débito ${formatMoney(row.resumen_fiscal.iva_debito || 0)}<br>Ret. IVA RG 1428 ${formatMoney(row.resumen_fiscal.retenciones?.iva_sisa || 0)} · Ret. Ganancias RG 830 ${formatMoney(row.resumen_fiscal.retenciones?.ganancias_sisa || 0)}${row.resumen_fiscal.retenciones?.iibb ? ` · Ret. IIBB ${formatMoney(row.resumen_fiscal.retenciones.iibb)}` : ""}<br><strong>Neto banco ${formatMoney(row.resumen_fiscal.neto_estimado_tambo || 0)}</strong>${row.resumen_fiscal.auditoriaArca ? `<br>CondicionIVAReceptorId: ${row.resumen_fiscal.auditoriaArca.pendienteDeclararCondicionIva ? '<span style="color:var(--red,#dc2626)">sin declarar</span>' : row.resumen_fiscal.auditoriaArca.condicionIvaReceptorId}` : ""}<br><span class="muted">Calculado ${row.resumen_fiscal.calculado_en ? new Date(row.resumen_fiscal.calculado_en).toLocaleString("es-AR") : ""}</span></small>` : '<br><small class="muted">Sin calcular todavía</small>'}</td>
           <td>
             <button class="btn" onclick="calcularRetencionesLiquidacionLeche('${row.id}')">Calcular fiscal</button>
+            ${row.resumen_fiscal ? `<button class="btn" onclick="constanciaLiquidacionLeche('${row.id}','pdf')">PDF</button>
+            <button class="btn" onclick="constanciaLiquidacionLeche('${row.id}','imprimir')">Imprimir</button>` : ""}
             <button class="btn" onclick="simularLiquidacionLecheArca('${row.id}')">Simular ARCA</button>
             <button class="btn" onclick="encolarLiquidacionLecheArca('${row.id}')">${row.estado_arca === "PENDIENTE_ARCA" ? "Ver cola" : "Encolar ARCA"}</button>
             <button class="btn" onclick="editRow('liquidacionesLeche','${row.id}')">Editar</button>
@@ -15705,47 +15726,141 @@
         }
       }
 
-      // Mismo cálculo que el servidor (services/fiscalRules.service.js), con las reglas del equipo.
-      function calcularLumeLocalTambo(liquidacion, { estadoSisa, provinciaCompradora, porcentajeTambero = 0, tipoInscripcionTambero = "SIN_DECLARAR" }) {
-        const fecha = String(liquidacion.fecha || new Date().toISOString()).slice(0, 10);
-        const vigente = (r) =>
-          r.estado === "VALIDADA" && (!r.vigencia_desde || r.vigencia_desde <= fecha) && (!r.vigencia_hasta || r.vigencia_hasta >= fecha);
-        const retencion = ({ regimen, condicion, jurisdiccion = "NACIONAL", base }) => {
-          const regla = (state.reglasRetencion || []).find(
-            (r) => r.regimen === regimen && r.condicion === condicion && r.jurisdiccion === jurisdiccion && vigente(r),
-          );
-          if (!regla) return { found: false, amount: 0, rule: null };
-          const imponible = Math.max(0, Number(base || 0) - Number(regla.minimo_no_imponible || 0));
-          return { found: true, amount: Math.round(imponible * Number(regla.alicuota_pct || 0) * 100) / 10000, rule: regla };
-        };
-        const base = Number(liquidacion.neto || 0);
-        const condicion = `SISA_${String(estadoSisa || "").toUpperCase()}`;
-        const ivaDebito = retencion({ regimen: "IVA_LECHE_ALICUOTA", condicion: "GENERAL", base });
-        const iva = retencion({ regimen: "IVA_LECHE_RETENCION", condicion, base });
-        const ganancias = retencion({ regimen: "GANANCIAS_LECHE_RETENCION", condicion, base });
-        if (!ivaDebito.found || !iva.found || !ganancias.found)
-          throw new Error(`Falta una regla VALIDADA y vigente para IVA_LECHE_ALICUOTA, IVA_LECHE_RETENCION o GANANCIAS_LECHE_RETENCION para ${condicion}.`);
-        const tipoInscripcion = String(tipoInscripcionTambero || "SIN_DECLARAR").trim().toUpperCase();
-        const iibb = provinciaCompradora
-          ? retencion({ regimen: "IIBB_LECHE_RETENCION", condicion: "GENERAL", jurisdiccion: String(provinciaCompradora).toUpperCase(), base })
-          : { found: false, amount: 0, rule: null };
-        const porcentaje = Number(porcentajeTambero || 0);
-        const brutoTambero = Math.round(base * porcentaje) / 100;
-        const sussOmitido = tipoInscripcion === "MONOTRIBUTO";
-        const suss = porcentaje > 0 && !sussOmitido
-          ? retencion({ regimen: "SUSS_TAMBERO_ASOCIADO", condicion: "GENERAL", base: brutoTambero })
-          : { found: false, amount: 0, rule: null };
+      // Mismo cálculo que el servidor (lume-retenciones.js compartido), con las reglas del equipo.
+      function calcularLumeLocalTambo(liquidacion, { provinciaCompradora, porcentajeTambero = 0, tipoInscripcionTambero = "SIN_DECLARAR" }) {
+        migrarReglasLocalesTambo();
         return {
-          calculado_en: new Date().toISOString(),
+          ...PampaLumeRetenciones.calcular({
+            liquidacion,
+            reglas: state.reglasRetencion || [],
+            liquidaciones: state.liquidacionesLeche || [],
+            provinciaCompradora,
+            porcentajeTambero,
+            tipoInscripcionTambero,
+          }),
           calculado_local: true,
-          base_neto: base,
-          estado_sisa: estadoSisa,
-          iva_debito: ivaDebito.amount,
-          retenciones: { iva_sisa: iva.amount, ganancias_sisa: ganancias.amount, iibb: iibb.amount, suss_tambero: suss.amount },
-          mederia: { porcentaje_tambero: porcentaje, bruto_tambero: brutoTambero, tipo_inscripcion_tambero: tipoInscripcion, suss_omitido_por_monotributo: sussOmitido, neto_tambero: Math.max(0, brutoTambero - suss.amount) },
-          neto_estimado_tambo: Math.round((base + ivaDebito.amount - iva.amount - ganancias.amount - iibb.amount - brutoTambero) * 100) / 100,
-          reglas_aplicadas: [ivaDebito.rule, iva.rule, ganancias.rule, iibb.rule, suss.rule].filter(Boolean).map((r) => ({ id: r.id, regimen: r.regimen, condicion: r.condicion, jurisdiccion: r.jurisdiccion, alicuota_pct: Number(r.alicuota_pct || 0) })),
         };
+      }
+
+      // Reglas guardadas en este equipo por la versión anterior (Estado SISA) -> RG 1428 / RG 830.
+      function migrarReglasLocalesTambo() {
+        if (!window.PampaLumeRetenciones) return;
+        const siguiente = (lista) => String(Math.max(0, ...lista.map((r) => Number(r.id) || 0)) + 1);
+        const { reglas, cambios } = PampaLumeRetenciones.migrarReglas(state.reglasRetencion || [], siguiente);
+        if (!cambios) return;
+        state.reglasRetencion = reglas;
+        saveArcaLocalState();
+      }
+
+      // Para el módulo de normativa: valor que la app aplica hoy a cada régimen del feed.
+      window.PAMPA_NORMATIVA_VALOR_VIGENTE = (regimen, condicion, fecha) => {
+        const regla = window.PampaLumeRetenciones?.buscarRegla(state.reglasRetencion || [], { regimen, condicion, fecha });
+        return regla ? Number(regla.alicuota_pct) : undefined;
+      };
+
+      // Constancia de la liquidación de leche con sus retenciones (PDF o impresión). Es un resumen del
+      // ERP: el comprobante oficial (LUME / liquidación primaria) lo emite la usina.
+      function datosConstanciaLeche(id) {
+        const l = (state.liquidacionesLeche || []).find((row) => `${row.id}` === `${id}`);
+        if (!l?.resumen_fiscal) return null;
+        const r = l.resumen_fiscal;
+        const d = r.detalle_retenciones || {};
+        const condIva = window.PampaLumeRetenciones?.CONDICIONES_IVA[r.condicion_iva_tambo] || r.condicion_iva_tambo || (l.estado_sisa ? `Estado SISA ${l.estado_sisa} (versión anterior)` : "-");
+        const condGan = window.PampaLumeRetenciones?.CONDICIONES_GANANCIAS[r.condicion_ganancias_tambo] || r.condicion_ganancias_tambo || "-";
+        const filas = [
+          ["Litros liquidados", `${Number(l.litros_liquidados || 0).toLocaleString("es-AR")} l`],
+          ["Precio por litro", formatMoney(l.precio_litro)],
+          ["Bonificaciones / descuentos", `${formatMoney(l.bonificaciones)} / ${formatMoney(l.descuentos)}`],
+          ["Neto gravado", formatMoney(r.base_neto)],
+          ["IVA débito fiscal", formatMoney(r.iva_debito)],
+          ["Total con IVA", formatMoney(r.total_con_iva ?? Number(r.base_neto || 0) + Number(r.iva_debito || 0))],
+          [`Retención IVA ${d.iva ? `${d.iva.regimen} (${d.iva.alicuota_pct} %)` : "RG 1428"}`, `-${formatMoney(r.retenciones?.iva_sisa || 0)}`],
+          [`Retención Ganancias ${d.ganancias ? `${d.ganancias.regimen} (${d.ganancias.alicuota_pct} %)` : "RG 830"}`, `-${formatMoney(r.retenciones?.ganancias_sisa || 0)}`],
+          ...(Number(r.retenciones?.iibb) ? [[`Retención IIBB ${l.provincia_compradora || ""}`, `-${formatMoney(r.retenciones.iibb)}`]] : []),
+          ...(Number(r.mederia?.bruto_tambero) ? [[`Tambero asociado (${r.mederia.porcentaje_tambero} %)`, `-${formatMoney(r.mederia.bruto_tambero)}`]] : []),
+          ["Neto a cobrar estimado", formatMoney(r.neto_estimado_tambo)],
+        ];
+        const notas = [
+          `Condición IVA: ${condIva}.${d.iva?.motivo ? ` ${d.iva.motivo}` : ""}`,
+          `Ganancias: ${condGan}.${d.ganancias ? ` Base ${formatMoney(d.ganancias.base)} (acumulado del mes con esta usina ${formatMoney(d.ganancias.acumulado_mes?.neto || 0)}; mínimo no sujeto ${formatMoney(d.ganancias.minimo_no_sujeto)}).` : ""}${d.ganancias?.motivo ? ` ${d.ganancias.motivo}` : ""}`,
+          l.certificado_f2005 ? `Certificado de retención F. 2005: ${l.certificado_f2005}.` : "Pedile a la usina el certificado de retención (F. 2005, SIRE) para computar la retención como pago a cuenta.",
+          "Derechos de exportación de productos lácteos: 0 %.",
+        ];
+        const reglas = (r.reglas_aplicadas || []).map((x) => `${x.regimen} / ${x.condicion}: ${x.alicuota_pct} %${x.minimo_no_imponible ? `, mínimo no sujeto ${formatMoney(x.minimo_no_imponible)}` : ""}${x.monto_minimo_retencion ? `, retención mínima ${formatMoney(x.monto_minimo_retencion)}` : ""}${x.vigencia_desde ? ` (vigente desde ${x.vigencia_desde})` : ""}`);
+        return { l, r, filas, notas, reglas, empresa: state.empresa || {} };
+      }
+
+      function constanciaLiquidacionLeche(id, modo) {
+        const datos = datosConstanciaLeche(id);
+        if (!datos) return showToast("Calculá el fiscal de la liquidación antes de generar la constancia.", "error");
+        const { l, r, filas, notas, reglas, empresa } = datos;
+        const titulo = "LIQUIDACIÓN DE LECHE CRUDA - DETALLE DE RETENCIONES";
+        const nombreArchivo = `liquidacion-leche-${(l.numero_lume || l.id || "").toString().replace(/[^A-Za-z0-9-]/g, "")}-${l.fecha || ""}.pdf`;
+        if (modo === "pdf") {
+          const JsPdf = window.jspdf?.jsPDF;
+          if (!JsPdf) return showToast("No se pudo cargar el generador de PDF.", "error");
+          const doc = new JsPdf({ unit: "mm", format: "a4" });
+          const ancho = 186;
+          doc.setFont("helvetica", "bold"); doc.setFontSize(12);
+          doc.text(titulo, 105, 16, { align: "center" });
+          doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+          doc.text(`Emitida por PampaTambo el ${new Date().toLocaleString("es-AR")}`, 105, 21, { align: "center" });
+          doc.rect(12, 25, ancho, 24);
+          doc.setFontSize(10);
+          doc.text(`Tambo: ${empresa.nombre || "-"}   CUIT: ${empresa.cuit || "-"}`, 15, 31);
+          doc.text(`Usina: ${l.usina || "-"}   Provincia: ${l.provincia_compradora || "-"}`, 15, 37);
+          doc.text(`LUME N°: ${l.numero_lume || "-"}   COE: ${l.coe || "-"}   Período: ${l.periodo || "-"}   Fecha: ${l.fecha || "-"}`, 15, 43);
+          let y = 58;
+          filas.forEach(([etiqueta, valor], i) => {
+            const ultima = i === filas.length - 1;
+            if (ultima) { doc.line(12, y - 5, 198, y - 5); doc.setFont("helvetica", "bold"); }
+            doc.text(etiqueta, 15, y);
+            doc.text(valor, 195, y, { align: "right" });
+            y += 7;
+          });
+          doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+          y += 3;
+          [...notas, "", "Reglas aplicadas:", ...reglas].forEach((texto) => {
+            doc.splitTextToSize(texto, ancho - 4).forEach((linea) => {
+              if (y > 282) { doc.addPage(); y = 18; }
+              doc.text(linea, 15, y);
+              y += 5;
+            });
+          });
+          doc.setFontSize(8);
+          doc.text("Resumen del ERP. El comprobante oficial (LUME / liquidación) lo emite la usina ante ARCA.", 105, 290, { align: "center" });
+          doc.save(nombreArchivo);
+          recordAudit("EXPORTACION", `PDF liquidación de leche ${l.numero_lume || l.id}`);
+          return;
+        }
+        const filasHtml = filas.map(([etiqueta, valor], i) => `<tr${i === filas.length - 1 ? ' class="total"' : ""}><td>${escapeHtml(etiqueta)}</td><td class="num">${escapeHtml(valor)}</td></tr>`).join("");
+        const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${escapeHtml(titulo)}</title><style>
+          body{font:12px Arial,sans-serif;color:#111;margin:18mm 14mm}h1{font-size:15px;text-align:center;margin:0 0 4px}.sub{text-align:center;color:#555;margin-bottom:12px}
+          .box{border:1px solid #333;padding:8px 10px;margin-bottom:12px;line-height:1.6}table{width:100%;border-collapse:collapse}td{padding:5px 4px;border-bottom:1px solid #ddd}
+          .num{text-align:right;white-space:nowrap}.total td{font-weight:bold;border-top:2px solid #111}ul{padding-left:18px;line-height:1.5}.pie{margin-top:16px;font-size:10px;color:#555;text-align:center}
+          @page{size:A4;margin:12mm}</style></head><body>
+          <h1>${escapeHtml(titulo)}</h1><div class="sub">Emitida por PampaTambo el ${escapeHtml(new Date().toLocaleString("es-AR"))}</div>
+          <div class="box"><b>Tambo:</b> ${escapeHtml(empresa.nombre || "-")} · <b>CUIT:</b> ${escapeHtml(empresa.cuit || "-")}<br><b>Usina:</b> ${escapeHtml(l.usina || "-")} · <b>Provincia:</b> ${escapeHtml(l.provincia_compradora || "-")}<br><b>LUME N°:</b> ${escapeHtml(l.numero_lume || "-")} · <b>COE:</b> ${escapeHtml(l.coe || "-")} · <b>Período:</b> ${escapeHtml(l.periodo || "-")} · <b>Fecha:</b> ${escapeHtml(l.fecha || "-")}</div>
+          <table>${filasHtml}</table>
+          <ul>${notas.map((n) => `<li>${escapeHtml(n)}</li>`).join("")}</ul>
+          <b>Reglas aplicadas</b><ul>${reglas.map((n) => `<li>${escapeHtml(n)}</li>`).join("")}</ul>
+          <div class="pie">Resumen del ERP. El comprobante oficial (LUME / liquidación) lo emite la usina ante ARCA.</div></body></html>`;
+        byId("frameConstanciaLeche")?.remove();
+        const frame = document.createElement("iframe");
+        frame.id = "frameConstanciaLeche";
+        frame.setAttribute("aria-hidden", "true");
+        frame.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;";
+        document.body.appendChild(frame);
+        frame.onload = () => {
+          try {
+            frame.contentWindow.focus();
+            frame.contentWindow.print();
+          } catch (error) {
+            showToast(`No se pudo abrir la impresión: ${error.message}`, "error");
+          }
+        };
+        frame.srcdoc = html;
+        recordAudit("IMPRESION", `Liquidación de leche ${l.numero_lume || l.id}`);
       }
 
       async function calcularRetencionesLiquidacionLeche(id) {
@@ -15754,15 +15869,15 @@
         );
         if (!liquidacion)
           return showToast("No se encontró la liquidación de leche.");
-        if (!liquidacion.estado_sisa)
+        const condiciones = window.PampaLumeRetenciones?.condicionesDe(liquidacion) || {};
+        if (!condiciones.iva)
           return showToast(
-            "Cargá el Estado SISA al editar la liquidación antes de calcular.",
+            "Cargá la condición frente al IVA (RG 1428) y Ganancias (RG 830) al editar la liquidación antes de calcular.",
             "error",
           );
         if (apiDisponible === false) {
           try {
             const resumen = calcularLumeLocalTambo(liquidacion, {
-              estadoSisa: liquidacion.estado_sisa,
               provinciaCompradora: liquidacion.provincia_compradora,
               porcentajeTambero: liquidacion.porcentaje_tambero,
               tipoInscripcionTambero: liquidacion.tipo_inscripcion_tambero,
@@ -15783,7 +15898,8 @@
             {
               method: "POST",
               body: JSON.stringify({
-                estadoSisa: liquidacion.estado_sisa,
+                condicionIvaTambo: condiciones.iva,
+                condicionGananciasTambo: condiciones.ganancias,
                 provinciaCompradora: liquidacion.provincia_compradora,
                 porcentajeTambero: liquidacion.porcentaje_tambero,
                 tipoInscripcionTambero: liquidacion.tipo_inscripcion_tambero,
