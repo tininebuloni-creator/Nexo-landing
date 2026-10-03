@@ -1,18 +1,20 @@
-const CACHE_NAME = 'pampa-precision-v83';
-const APP_SHELL = ['./', './index.html', './logo.png', './leaflet/leaflet.css', './leaflet/leaflet.js', './leaflet/images/marker-icon.png', './leaflet/images/marker-icon-2x.png', './leaflet/images/marker-shadow.png'];
+const CACHE_NAME = 'pampa-precision-v85';
+const APP_SHELL = ['./', './index.html'];
 
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
-    await cache.addAll(APP_SHELL);
+    // Si falla el precache, el Service Worker se instala igual y cachea en cada fetch.
+    await cache.addAll(APP_SHELL).catch(error => console.warn('[sw] No se pudo precachear el app shell:', error));
     await self.skipWaiting();
   })());
 });
 
+// Las apps web comparten dominio (y las cachés son del dominio): cada una borra solo las suyas.
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
-    await Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)));
+    await Promise.all(keys.filter(key => key.startsWith('pampa-precision-') && key !== CACHE_NAME).map(key => caches.delete(key)));
     await self.clients.claim();
   })());
 });

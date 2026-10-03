@@ -3402,7 +3402,7 @@
                 </div>
               </div>
               <p class="text-muted">
-                La retención de Ganancias RG830 no se descuenta de Caja hasta
+                La retención de Ganancias (RG (AFIP) 830/2000) no se descuenta de Caja hasta
                 confirmar el depósito real en ARCA, para que no quede implícita
                 ni se duplique.
               </p>
@@ -11992,8 +11992,8 @@
               min: 0,
             },
             { name: "iva", label: "IVA de la venta ($, aparte del importe: débito fiscal)", type: "number" },
-            { name: "ivaRetenido", label: "Retención / percepción de IVA sufrida ($)", type: "number" },
-            { name: "gananciasRetenido", label: "Retención de Ganancias sufrida ($)", type: "number" },
+            { name: "ivaRetenido", label: "Retención / percepción de IVA sufrida ($)", type: "number", hint: "Granos: RG (AFIP) 4310/2018, según el estado en el SISA. Hacienda bovina: RG (DGI) 4059/1995, texto según RG (AFIP) 3873/2016 (Registro Fiscal de Operadores)." },
+            { name: "gananciasRetenido", label: "Retención de Ganancias sufrida ($)", type: "number", hint: "Granos: RG (AFIP) 4310/2018, según el estado en el SISA. Otras ventas: RG (AFIP) 830/2000, régimen 78." },
             {
               name: "cartaPorteNumero",
               label: "Carta de Porte",
@@ -13777,7 +13777,9 @@
               : "";
             const hint = isAutoNumber
               ? '<div style="font-size:11px;color:var(--text-dim);margin-top:4px;">🔢 Generado automáticamente</div>'
-              : "";
+              : field.hint
+                ? `<div style="font-size:11px;color:var(--text-dim);margin-top:4px;">${field.hint}</div>`
+                : "";
             html += `<input class="form-input" type="${field.type}" name="${field.name}" value="${value}" ${field.required ? "required" : ""} ${readonlyAttr}>${hint}`;
           }
           html += `</div>`;
@@ -20240,11 +20242,11 @@
           ),
           fila(`Categoría SISA`, r.categoriaSisaEtiqueta),
           fila(
-            `Retención IVA estimada (${(tasas.iva * 100).toFixed(1)}%)`,
+            `Retención IVA estimada (${(tasas.iva * 100).toFixed(1)}%) · RG 4310/2018`,
             "- " + fmt$(r.retencionIvaEstimada),
           ),
           fila(
-            `Retención Ganancias estimada (${(tasas.ganancias * 100).toFixed(0)}%)`,
+            `Retención Ganancias estimada (${(tasas.ganancias * 100).toFixed(0)}%) · RG 4310/2018`,
             "- " + fmt$(r.retencionGananciasEstimada),
           ),
           fila("Neto a cobrar (estimado)", fmt$(r.netoACobrarEstimado), true),

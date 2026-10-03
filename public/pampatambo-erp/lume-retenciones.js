@@ -2,8 +2,8 @@
 // (services/fiscalRules.service.js) y en el navegador (modo local): un solo archivo para ambos.
 //  - IVA, RG (AFIP) 1428/2003 (texto según RG 4216): según la condición registral del tambo frente a
 //    ARCA, no según el SISA. Responsable inscripto en regla 1 %; no categorizado o monotributista
-//    excedido 12,70 %; con transgresiones o irregularidades 21 %. No se retiene si el importe
-//    calculado es igual o inferior a $400 (RG 2854/2010).
+//    excedido 12,70 %; con transgresiones o irregularidades 21 %.
+//    La norma no fija importe mínimo: se retiene sobre cada pago.
 //  - Ganancias, RG 830/2000, régimen 78 (enajenación de bienes muebles y bienes de cambio): no hay
 //    régimen sectorial para tambos. Inscripto 2 % sobre lo que excede el mínimo no sujeto de $224.000,
 //    acumulando los pagos del mismo agente (usina) en el mes calendario; no inscripto 10 % sobre el
@@ -26,20 +26,22 @@
   const CONDICIONES_GANANCIAS = {
     INSCRIPTO: 'Inscripto en Ganancias (2 % sobre el excedente de $224.000 mensuales)',
     NO_INSCRIPTO: 'No inscripto en Ganancias (10 % sobre el total)',
+    MONOTRIBUTO: 'Monotributista en regla (sin retención; si excede el régimen, elegí Inscripto)',
   };
 
-  const RG1428 = 'RG (AFIP) 1428/2003, texto según RG 4216: retención de IVA sobre la compra de leche cruda bovina según la condición registral del vendedor. Sin retención si el importe es igual o inferior a $400 (RG 2854/2010).';
+  const RG1428 = 'RG (AFIP) 1428/2003, texto según RG 4216: retención de IVA sobre la compra de leche cruda bovina según la condición registral del vendedor. La norma no fija importe mínimo: se retiene sobre cada pago, desde el primer peso.';
   const RG1428_URL = 'https://biblioteca.afip.gob.ar/search/query/norma.aspx?p=t:RAG|n:1428|o:3|a:2003|f:30/01/2003';
   const RG830 = 'RG (AFIP) 830/2000, Anexo II, régimen 78 (enajenación de bienes muebles y bienes de cambio): mínimo no sujeto mensual acumulable por agente de retención; retención mínima $240.';
   const VIGENCIA = '2026-01-01';
 
   const REGLAS_DEFECTO = [
     { regimen: 'IVA_LECHE_ALICUOTA', condicion: 'GENERAL', alicuota_pct: 21, minimo_no_imponible: 0, monto_minimo_retencion: 0, fuente_normativa: 'Ley de IVA: la venta de leche cruda del tambo a la industria está gravada al 21 % (la alícuota reducida solo aplica en la venta al consumidor final).', fuente_url: '' },
-    { regimen: 'IVA_LECHE_RETENCION', condicion: 'RESPONSABLE_INSCRIPTO', alicuota_pct: 1, minimo_no_imponible: 0, monto_minimo_retencion: 400, fuente_normativa: RG1428, fuente_url: RG1428_URL },
-    { regimen: 'IVA_LECHE_RETENCION', condicion: 'NO_CATEGORIZADO', alicuota_pct: 12.7, minimo_no_imponible: 0, monto_minimo_retencion: 400, fuente_normativa: RG1428, fuente_url: RG1428_URL },
-    { regimen: 'IVA_LECHE_RETENCION', condicion: 'IRREGULAR', alicuota_pct: 21, minimo_no_imponible: 0, monto_minimo_retencion: 400, fuente_normativa: RG1428, fuente_url: RG1428_URL },
-    { regimen: 'IVA_LECHE_RETENCION', condicion: 'MONOTRIBUTO', alicuota_pct: 0, minimo_no_imponible: 0, monto_minimo_retencion: 400, fuente_normativa: `${RG1428} El monotributista en regla no sufre retención (el excedido tributa como no categorizado).`, fuente_url: RG1428_URL },
+    { regimen: 'IVA_LECHE_RETENCION', condicion: 'RESPONSABLE_INSCRIPTO', alicuota_pct: 1, minimo_no_imponible: 0, monto_minimo_retencion: 0, fuente_normativa: RG1428, fuente_url: RG1428_URL },
+    { regimen: 'IVA_LECHE_RETENCION', condicion: 'NO_CATEGORIZADO', alicuota_pct: 12.7, minimo_no_imponible: 0, monto_minimo_retencion: 0, fuente_normativa: RG1428, fuente_url: RG1428_URL },
+    { regimen: 'IVA_LECHE_RETENCION', condicion: 'IRREGULAR', alicuota_pct: 21, minimo_no_imponible: 0, monto_minimo_retencion: 0, fuente_normativa: RG1428, fuente_url: RG1428_URL },
+    { regimen: 'IVA_LECHE_RETENCION', condicion: 'MONOTRIBUTO', alicuota_pct: 0, minimo_no_imponible: 0, monto_minimo_retencion: 0, fuente_normativa: `${RG1428} El monotributista en regla no sufre retención (el excedido tributa como no categorizado).`, fuente_url: RG1428_URL },
     { regimen: 'GANANCIAS_LECHE_RG830', condicion: 'INSCRIPTO', alicuota_pct: 2, minimo_no_imponible: 224000, monto_minimo_retencion: 240, codigo_regimen: '78', fuente_normativa: RG830, fuente_url: '' },
+    { regimen: 'GANANCIAS_LECHE_RG830', condicion: 'MONOTRIBUTO', alicuota_pct: 0, minimo_no_imponible: 0, monto_minimo_retencion: 240, codigo_regimen: '78', fuente_normativa: `${RG830} Monotributista en regla: no sufre retención; si excede los parámetros del régimen se le retiene como inscripto.`, fuente_url: '' },
     { regimen: 'GANANCIAS_LECHE_RG830', condicion: 'NO_INSCRIPTO', alicuota_pct: 10, minimo_no_imponible: 0, monto_minimo_retencion: 240, codigo_regimen: '78', fuente_normativa: `${RG830} No inscriptos: sobre el total, sin mínimo no sujeto.`, fuente_url: '' },
   ].map((regla) => ({ jurisdiccion: 'NACIONAL', vigencia_desde: VIGENCIA, vigencia_hasta: '', estado: 'VALIDADA', origen: 'RG1428_RG830', ...regla }));
 
@@ -54,7 +56,7 @@
     const iva = CONDICIONES_IVA[liquidacion.condicion_iva_tambo] ? liquidacion.condicion_iva_tambo : legadoIva;
     const ganancias = CONDICIONES_GANANCIAS[liquidacion.condicion_ganancias_tambo]
       ? liquidacion.condicion_ganancias_tambo
-      : iva === 'RESPONSABLE_INSCRIPTO' ? 'INSCRIPTO' : iva ? 'NO_INSCRIPTO' : '';
+      : iva === 'RESPONSABLE_INSCRIPTO' ? 'INSCRIPTO' : iva === 'MONOTRIBUTO' ? 'MONOTRIBUTO' : iva ? 'NO_INSCRIPTO' : '';
     return { iva, ganancias };
   }
 
@@ -174,6 +176,14 @@
       if (['IVA_LECHE_RETENCION', 'GANANCIAS_LECHE_RETENCION'].includes(regla.regimen) && /^SISA_/.test(String(regla.condicion || '')) && regla.estado !== 'REEMPLAZADA') {
         regla.estado = 'REEMPLAZADA';
         regla.observaciones = `${regla.observaciones ? `${regla.observaciones} ` : ''}Reemplazada: la retención sobre la leche depende de la condición registral (RG 1428) y Ganancias va por RG 830, no por el Estado SISA.`;
+        cambios += 1;
+      }
+    });
+    // El mínimo de $400 venía de la RG 2854 (que excluye a la leche): la RG 1428 no tiene mínimo.
+    lista.forEach((regla) => {
+      if (regla.regimen === 'IVA_LECHE_RETENCION' && regla.estado !== 'REEMPLAZADA' && Number(regla.monto_minimo_retencion) === 400) {
+        regla.monto_minimo_retencion = 0;
+        regla.fuente_normativa = String(regla.fuente_normativa).replace(' Sin retención si el importe es igual o inferior a $400 (RG 2854/2010).', ' La norma no fija importe mínimo: se retiene sobre cada pago, desde el primer peso.');
         cambios += 1;
       }
     });

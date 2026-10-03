@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="es">
 <head>
-<script id="pampa-web-trial-guard">(function(){try{const url=new URL(window.location.href);if(url.searchParams.get('trial')==='auto'){url.searchParams.delete('trial');window.history.replaceState({},document.title,url.pathname+url.search+url.hash);}}catch(error){}}());</script>
-  <meta charset="utf-8">
+<script id="pampa-web-trial-guard">(function(){try{const url=new URL(window.location.href);if(url.searchParams.get('trial')==='auto'){window.__pampaTrialAutoRequested=true;url.searchParams.delete('trial');window.history.replaceState({},document.title,url.pathname+url.search+url.hash);}}catch(error){}}());</script>
+<meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pampa Precision ERP | Centro operativo</title>
   <link rel="manifest" href="./manifest.webmanifest">
@@ -14,7 +14,7 @@
   <script src="vendor/pampa-search.js?v=2"></script>
   <script src="/shared/pampa-privacy-popup.js"></script>
   <script src="/shared/pampa-onpremise-disclaimer.js"></script>
-  <script src="/shared/core-fiscal-arca/normative-update.browser.js"></script>
+  <script src="/shared/core-fiscal-arca/normative-update.browser.js" data-app="agro"></script>
   <script src="/shared/core-offline/report-voice.js"></script>
   <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
   <link rel="stylesheet" href="/shared/share-styles/global.css">
@@ -267,6 +267,50 @@
     .dashboard-operativity-actions .button { padding: 9px 8px; font-size: 11px; }
     .mobile-menu-button { display: none; position: fixed; top: 12px; left: 12px; z-index: 30; width: 42px; height: 42px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: var(--panel); box-shadow: var(--shadow); font-size: 22px; line-height: 1; }
     .mobile-sidebar-backdrop { display: none; }
+    .dashboard-empresa-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+    .portada-market-tools { display: flex; flex-wrap: wrap; gap: 8px; }
+    /* AgroENSO: enlace con cartel emergente (al pasar el mouse o con el foco del teclado). El
+    cartel se ubica sobre toda la fila de enlaces para no salirse de la pantalla. */
+    .portada-market-tools {
+    position: relative;
+    }
+    .agroenso-tip {
+    display: inline-flex;
+    }
+    .agroenso-tip-texto {
+    position: absolute;
+    left: 0;
+    bottom: calc(100% + 10px);
+    width: min(340px, calc(100vw - 32px));
+    padding: 12px 14px;
+    border: 1px solid rgba(34, 197, 94, 0.5);
+    border-radius: 10px;
+    background: #0f1f17;
+    color: #e7f3ec;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.5;
+    text-align: left;
+    white-space: normal;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(4px);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+    pointer-events: none;
+    z-index: 60;
+    }
+    .agroenso-tip-texto strong {
+    display: block;
+    margin-bottom: 6px;
+    color: #86efac;
+    }
+    .agroenso-tip:hover .agroenso-tip-texto,
+    .agroenso-tip:focus-within .agroenso-tip-texto {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    }
     @media (max-width: 760px) { .dashboard-hero { grid-template-columns: 1fr; } .empresa-portada { min-height: 240px; } .dashboard-operativity-grid { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 980px) {
       .sidebar { width: 220px; flex-basis: 220px; padding: 20px 12px; }
@@ -314,7 +358,7 @@
   <div class="shell">
     <aside class="sidebar">
       <div class="brand">
-        <div class="brand-container"><img class="brand-mark" src="./logo2.png" alt="Logo Pampa Precision ERP"><span class="brand-badge">℠</span></div>
+        <div class="brand-container"><img class="brand-mark" src="./logo2.png" alt="Logo Pampa Precision ERP"></div>
         <div><strong>PampaPrecision</strong><small>TRIAL • 10 días</small><em class="mobile-version-label">Versión móvil</em></div>
       </div>
       <span id="pampaSyncNavBadge" style="display:flex;justify-content:center;margin:4px 0 8px;"></span>
@@ -361,14 +405,31 @@
       </header>
 
       <section class="dashboard-hero" aria-label="Empresa y operatividad">
-        <article class="empresa-portada">
-          <div class="empresa-portada-content">
-            <div class="empresa-portada-logo" aria-hidden="true"></div>
-            <div class="empresa-portada-nombre" id="dashboardCompanyName">Pampa Agropecuaria S.A.</div>
-            <div class="empresa-portada-sub" id="dashboardCompanyCampaign">Campaña 2025 / 2026</div>
-            <div class="empresa-portada-datos"><span>Empresa activa</span><strong id="dashboardCompanyTaxId">CUIT pendiente</strong><span>Operación agrícola de precisión</span></div>
+        <div class="dashboard-empresa-col">
+          <article class="empresa-portada">
+            <div class="empresa-portada-content">
+              <div class="empresa-portada-logo" aria-hidden="true"></div>
+              <div class="empresa-portada-nombre" id="dashboardCompanyName">Pampa Agropecuaria S.A.</div>
+              <div class="empresa-portada-sub" id="dashboardCompanyCampaign">Campaña 2025 / 2026</div>
+              <div class="empresa-portada-datos"><span>Empresa activa</span><strong id="dashboardCompanyTaxId">CUIT pendiente</strong><span>Operación agrícola de precisión</span></div>
+            </div>
+          </article>
+          <div class="portada-market-tools">
+            <span class="agroenso-tip">
+                    <button
+                      class="button"
+                      type="button"
+                      aria-describedby="agroensoInfo"
+                      onclick="window.open('https://agroenso.netlify.app/', '_blank', 'noopener,noreferrer')"
+                    >
+                      🌱 AgroENSO
+                    </button>
+                    <span class="agroenso-tip-texto" id="agroensoInfo" role="tooltip"
+                      ><strong>🌱 AgroENSO · El Niño en tu zona</strong>Podés consultar cómo va a pegar El Niño en los cultivos de tu zona. Analiza las últimas 35 campañas agrícolas para entender cómo reacciona el suelo y el rendimiento de cultivos frente a los cambios del clima. Gráficos sencillos de los rindes históricos reales. Es clave para que el campo tome mejores decisiones, administre los riesgos y aproveche al máximo el agua disponible.</span
+                    >
+                  </span>
           </div>
-        </article>
+        </div>
         <aside class="dashboard-operativity">
           <div class="dashboard-operativity-title">Operatividad</div>
           <div class="dashboard-operativity-status online" id="dashboardOperationalStatus"><span>Conectividad</span><strong id="dashboardOperationalNetwork">Online</strong></div>
@@ -378,7 +439,6 @@
           </div>
           <div class="dashboard-operativity-actions">
             <button class="button primary" type="button" data-action="Sincronizar ahora">Sincronización</button>
-            <button class="button" type="button" onclick="window.open('https://agroenso.netlify.app/', '_blank', 'noopener,noreferrer')" title="Abrir AgroENSO">🌱 AgroENSO</button>
             <button class="button" type="button" id="dashboardBackupButton">Respaldo</button>
             <button class="button" type="button" id="dashboardPrintButton">Imprimir</button>
             <button class="button" type="button" data-action="Importar datos historicos">Importar Excel</button>
@@ -1649,7 +1709,7 @@
         setText('fiscalAgrarioLpgCount', lpgs.length);
         setText('fiscalAgrarioLpgNet', money(lpgs.reduce((total, lpg) => total + Number(lpg.net_amount || 0), 0)));
         const retentionPanel = document.querySelector('#fiscalAgrarioRetentionSummary');
-        if (!retentionPanel && modulePage) modulePage.insertAdjacentHTML('beforeend', '<section class="panel" id="fiscalAgrarioRetentionSummary" style="margin-top:19px"><div class="panel-head"><div><h2>Resumen de retenciones fiscales</h2><p class="panel-caption">Importes descontados de las LPG, separados de costos operativos</p></div><span class="pill yellow">Fiscal</span></div><div class="module-grid"><article class="module-stat"><span>Retención IVA</span><strong id="fiscalRetentionVat">$ 0</strong></article><article class="module-stat"><span>Retención Ganancias</span><strong id="fiscalRetentionIncome">$ 0</strong></article><article class="module-stat"><span>Retención IIBB</span><strong id="fiscalRetentionGrossIncome">$ 0</strong></article><article class="module-stat danger"><span>Total retenciones</span><strong id="fiscalRetentionTotal">$ 0</strong></article></div></section>');
+        if (!retentionPanel && modulePage) modulePage.insertAdjacentHTML('beforeend', '<section class="panel" id="fiscalAgrarioRetentionSummary" style="margin-top:19px"><div class="panel-head"><div><h2>Resumen de retenciones fiscales</h2><p class="panel-caption">Importes descontados de las LPG, separados de costos operativos · IVA y Ganancias: RG (AFIP) 4310/2018, según el estado en el SISA</p></div><span class="pill yellow">Fiscal</span></div><div class="module-grid"><article class="module-stat"><span>Retención IVA</span><strong id="fiscalRetentionVat">$ 0</strong></article><article class="module-stat"><span>Retención Ganancias</span><strong id="fiscalRetentionIncome">$ 0</strong></article><article class="module-stat"><span>Retención IIBB</span><strong id="fiscalRetentionGrossIncome">$ 0</strong></article><article class="module-stat danger"><span>Total retenciones</span><strong id="fiscalRetentionTotal">$ 0</strong></article></div></section>');
         const retentionVat = lpgs.reduce((total, lpg) => total + Number(lpg.vat_withholding || 0), 0);
         const retentionIncome = lpgs.reduce((total, lpg) => total + Number(lpg.income_tax_withholding || 0), 0);
         const retentionGrossIncome = lpgs.reduce((total, lpg) => total + Number(lpg.gross_income_withholding || 0), 0);
@@ -2962,7 +3022,7 @@
             const res = await window.PampaLicenseSigned.verifyLicense(token, { product: 'pampaprecision' });
             if (res.valid) isSignedValid = true;
           }
-        } catch (e) {}
+        } catch (e) { console.warn(e); }
       }
 
       const overlay = document.getElementById('precisionLicenseActivationOverlay');

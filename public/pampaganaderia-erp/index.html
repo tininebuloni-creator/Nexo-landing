@@ -8138,11 +8138,13 @@
               name: "ivaRetenido",
               label: "Retención / percepción de IVA sufrida ($)",
               type: "number",
+              hint: "Hacienda bovina: RG (DGI) 4059/1995, texto según RG (AFIP) 3873/2016 (Registro Fiscal de Operadores). Granos: RG (AFIP) 4310/2018, según el estado en el SISA.",
             },
             {
               name: "gananciasRetenido",
               label: "Retención de Ganancias sufrida ($)",
               type: "number",
+              hint: "RG (AFIP) 830/2000, régimen 78 (venta de bienes muebles), si el comprador es agente de retención. Granos: RG (AFIP) 4310/2018, según el estado en el SISA.",
             },
             {
               name: "iibbRetenido",
@@ -9425,7 +9427,9 @@ costos: {
               : "";
             const hint = isAutoNumber
               ? '<div style="font-size:11px;color:var(--text-dim);margin-top:4px;">🔢 Generado automáticamente</div>'
-              : "";
+              : field.hint
+                ? `<div style="font-size:11px;color:var(--text-dim);margin-top:4px;">${field.hint}</div>`
+                : "";
             html += `<input class="form-input" type="${field.type}" name="${field.name}" value="${value}" ${field.required ? "required" : ""} ${readonlyAttr}>${hint}`;
           }
           html += `</div>`;
