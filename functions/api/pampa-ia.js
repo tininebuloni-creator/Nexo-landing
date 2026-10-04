@@ -136,20 +136,22 @@ export async function onRequestPost({ request, env }) {
   const porMinuto = Number(env.PAMPA_IA_LIMITE_MINUTO) || 6;
   const porDiaIp = Number(env.PAMPA_IA_LIMITE_DIARIO) || 150;
   const porDiaEquipo = Number(env.PAMPA_IA_LIMITE_DISPOSITIVO) || 40;
-  const cache = typeof caches !== 'undefined' ? caches.default : null;
   // Tope general por minuto (todos los usuarios juntos): lo que alcanza a atender la PC del servidor de IA.
+  // Va en el KV (la caché del borde no funciona en *.pages.dev): una sola clave por minuto con el total y
+  // las consultas de cada IP, o sea una escritura más por consulta.
   const globalPorMinuto = Number(env.PAMPA_IA_LIMITE_GLOBAL_MINUTO) || 12;
-  if (cache) {
-    const minuto = Math.floor(Date.now() / 60000);
-    const contar = async (url) => { const k = new Request(url); return { k, n: Number(await (await cache.match(k))?.text()) || 0 }; };
-    const deIp = await contar(`https://limite.pampa-ia/ip/${encodeURIComponent(ip)}/${minuto}`);
-    if (deIp.n >= porMinuto) return respuestaJson({ ok: false, limite: 'minuto', error: 'Muchas consultas seguidas: esperá un minuto y volvé a preguntar.' }, 429);
-    const general = await contar(`https://limite.pampa-ia/general/${minuto}`);
-    if (general.n >= globalPorMinuto) return respuestaJson({ ok: false, limite: 'servidor', error: 'PampaIA está atendiendo muchas consultas: probá de nuevo en un minuto.' }, 429);
-    const guardar = (x) => cache.put(x.k, new Response(String(x.n + 1), { headers: { 'Cache-Control': 'max-age=70' } }));
-    await Promise.all([guardar(deIp), guardar(general)]);
-  }
   const kv = env.PAMPA_TRIAL_KV;
+  if (kv) {
+    const claveMinuto = `ia-min:${Math.floor(Date.now() / 60000)}`;
+    let min; try { min = JSON.parse(await kv.get(claveMinuto)) || {}; } catch { min = {}; }
+    min.total = Number(min.total) || 0;
+    min.ips = min.ips || {};
+    if ((Number(min.ips[ip]) || 0) >= porMinuto) return respuestaJson({ ok: false, limite: 'minuto', error: 'Muchas consultas seguidas: esperá un minuto y volvé a preguntar.' }, 429);
+    if (min.total >= globalPorMinuto) return respuestaJson({ ok: false, limite: 'servidor', error: 'PampaIA está atendiendo muchas consultas: probá de nuevo en un minuto.' }, 429);
+    min.total += 1;
+    min.ips[ip] = (Number(min.ips[ip]) || 0) + 1;
+    await kv.put(claveMinuto, JSON.stringify(min), { expirationTtl: 120 });
+  }
   if (kv) {
     const claveDia = `ia:${new Date().toISOString().slice(0, 10)}:${ip}`;
     let uso; try { uso = JSON.parse(await kv.get(claveDia)) || {}; } catch { uso = {}; }
