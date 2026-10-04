@@ -382,10 +382,11 @@
         <button data-view="Telemetria y clima"><b class="nav-icon">T</b><span>Telemetría, GPS y clima</span></button>
         <button data-view="Analitica"><b class="nav-icon">B</b><span>BI y analítica</span></button>
         <div class="nav-label">Recursos e inventario</div>
-        <button data-view="Plan de equipamiento"><b class="nav-icon">E</b><span>Maquinaria y equipamiento</span></button>
+        <button data-view="Plan de equipamiento"><b class="nav-icon">E</b><span>Equipo</span></button>
         <button data-view="Inventario"><b class="nav-icon">I</b><span>Inventario y compras</span></button>
         <div class="nav-label">Administracion</div>
         <button data-view="Finanzas"><b class="nav-icon">$</b><span>Finanzas</span></button>
+        <button data-view="Costos"><b class="nav-icon">¢</b><span>Costos</span></button>
         <button data-view="Rentabilidad"><b class="nav-icon">%</b><span>Rentabilidad</span></button>
         <button data-view="RRHH"><b class="nav-icon">H</b><span>RRHH</span></button>
         <div class="nav-label">Reportes</div>
@@ -494,10 +495,12 @@
   <div class="connection-status" id="connectionStatus" role="status"></div>
   <script src="vendor/leaflet/leaflet.js"></script>
   <script src="./offline-db.js?v=1"></script>
-  <script src="./agro-core.js?v=8"></script>
-  <script src="./agro-db.js?v=6"></script>
+  <script src="./precision-roles.js?v=3"></script>
+  <script src="./agro-core.js?v=12"></script>
+  <script src="./asistente-ia.js?v=2"></script>
+  <script src="./agro-db.js?v=9"></script>
   <script src="./agro-sync.js?v=1"></script>
-  <script src="./agro-ui.js?v=8"></script>
+  <script src="./agro-ui.js?v=13"></script>
   <script src="./sync-manager.js?v=2"></script>
   <script src="./api-client.js?v=8"></script>
     <script src="./sync-handlers.js?v=1"></script>
@@ -550,7 +553,58 @@
       let registeredBuyers = loadList('pampa-buyers', [{ name: 'Acopio La Pampa S.A.', taxId: '', role: 'Acopio' }, { name: 'Cerealera del Centro S.A.', taxId: '', role: 'Cerealista' }]);
       let registeredBanks = loadList('pampa-banks', ['Banco Nación', 'Banco Provincia', 'Banco Galicia', 'Banco Santander', 'BBVA', 'Banco Macro', 'Banco Credicoop', 'ICBC', 'Brubank', 'Ualá']);
     let registeredUsers = loadList('pampa-users', ['Marina R.', 'Lucas B.', 'Sofia M.']);
-    let registeredRoles = loadList('pampa-roles', ['Propietario / Responsable', 'Administración', 'Ingeniero / Veterinario', 'Operario de campo']);
+    // ---- Roles y permisos (precision-roles.js) ----
+    // Cada rol ve solo sus módulos y sus pestañas de Granos; los roles disponibles dependen de la versión
+    // (Básica 4, Profesional 10, Premium 10 + roles propios). La prueba gratis ve los de Premium.
+    const RolesP = window.PampaRolesPrecision;
+    const ROLES_PROPIOS_KEY = 'pampa-roles-propios';
+    function planPrecision() {
+      let raw = null;
+      try { raw = JSON.parse(localStorage.getItem('PampaPrecisionLicense') || 'null'); } catch { raw = null; }
+      if (raw && (raw.type === 'trial' || raw.trial) && new Date(raw.expiresAt).getTime() > Date.now()) return 'trial';
+      const plan = String(raw?.plan || raw?.version || '').toLowerCase();
+      if (['basica', 'profesional', 'premium'].includes(plan)) return plan;
+      return { B: 'basica', P: 'profesional', M: 'premium' }[String(raw?.planCode || raw?.versionCode || '').trim().toUpperCase()] || 'basica';
+    }
+    function rolesPropios() { try { return JSON.parse(localStorage.getItem(ROLES_PROPIOS_KEY) || '[]') || []; } catch { return []; } }
+    const rolesDisponibles = () => RolesP.rolesDelPlan(planPrecision(), rolesPropios());
+    const rolActivo = () => RolesP.rolEfectivo(localStorage.getItem('pampa-role'), planPrecision(), rolesPropios());
+    window.PampaRolActivo = rolActivo;
+    window.PampaPlanPrecision = planPrecision;
+    // Un módulo se ve si lo incluye la versión contratada y lo tiene el rol.
+    const puedeAbrir = (vista) => RolesP.vistaEnPlan(planPrecision(), vista) && RolesP.puedeVista(rolActivo(), vista);
+    const NOMBRE_VERSION = { basica: 'Básica', profesional: 'Profesional', premium: 'Premium' };
+    // Nombres de versiones anteriores ("Ingeniero / Veterinario", "Operario de campo") pasan al nombre actual.
+    (() => {
+      const guardado = localStorage.getItem('pampa-role');
+      const actual = guardado && RolesP.buscarRol(guardado, planPrecision(), rolesPropios());
+      if (actual && actual.nombre !== guardado) localStorage.setItem('pampa-role', actual.nombre);
+      localStorage.removeItem('pampa-roles');
+    })();
+    let registeredRoles = rolesDisponibles().map(r => r.nombre);
+    function aplicarPermisos() {
+      const rol = rolActivo();
+      const trial = planPrecision() === 'trial';
+      document.querySelectorAll('button[data-view]').forEach(b => {
+        b.hidden = !puedeAbrir(b.dataset.view);
+        // Prueba gratis: cada módulo dice desde qué versión está incluido.
+        b.querySelector('.nav-plan-tag')?.remove();
+        if (trial && b.closest('.nav')) { const v = RolesP.planMinimoVista(b.dataset.view); if (b.dataset.view !== 'Centro operativo') b.insertAdjacentHTML('beforeend', `<small class="nav-plan-tag" style="margin-left:auto;font-size:9px;padding:1px 5px;border-radius:6px;border:1px solid currentColor;opacity:.75">${NOMBRE_VERSION[v]}</small>`); }
+      });
+      document.querySelectorAll('[data-view-action]').forEach(b => { b.hidden = !puedeAbrir(b.dataset.viewAction); });
+      // Básica y Profesional no tienen costos ni fiscal en Granos: el menú lo dice.
+      const granosNav = document.querySelector('.nav button[data-view="Granos"] span');
+      if (granosNav) granosNav.textContent = RolesP.tabEnPlan(planPrecision(), 'fiscal') ? 'Granos, costos y fiscal' : 'Granos, insumos y SENASA';
+      // Títulos del menú sin ningún módulo visible debajo.
+      document.querySelectorAll('.nav .nav-label').forEach(label => {
+        let el = label.nextElementSibling, visible = false;
+        while (el && !el.classList.contains('nav-label')) { if (el.matches('button[data-view]') && !el.hidden) visible = true; el = el.nextElementSibling; }
+        label.hidden = !visible;
+      });
+      window.PampaAgroUI?.aplicarPermisos?.();
+      if (typeof activeModuleView !== 'undefined' && !puedeAbrir(activeModuleView)) document.querySelector('button[data-view="Centro operativo"]')?.click();
+    }
+    window.PampaAplicarPermisos = aplicarPermisos;
     let whatsappUserRecipients = loadList('pampa-whatsapp-user-recipients', []);
     let toastTimer;
     function updateConnectionStatus() {
@@ -581,11 +635,13 @@
     userSelector.addEventListener('change', event => { localStorage.setItem('pampa-user', event.target.value); refreshDashboardContext(); showToast(`Usuario activo: ${event.target.value}`); });
     const roleSelector = document.querySelector('#roleSelector');
     function refreshRoleOptions() {
-      roleSelector.innerHTML = registeredRoles.map(role => `<option>${role}</option>`).join('');
-      roleSelector.value = localStorage.getItem('pampa-role') || registeredRoles[0];
+      registeredRoles = rolesDisponibles().map(r => r.nombre);
+      const activo = rolActivo();
+      roleSelector.innerHTML = (activo.invalido ? `<option value="">Elegí un rol (${activo.pedido} no está en esta versión)</option>` : '') + registeredRoles.map(role => `<option>${role}</option>`).join('');
+      roleSelector.value = activo.invalido ? '' : activo.nombre;
     }
     refreshRoleOptions();
-    roleSelector.addEventListener('change', event => { localStorage.setItem('pampa-role', event.target.value); refreshDashboardContext(); showToast(`Rol activo: ${event.target.value}`); });
+    roleSelector.addEventListener('change', event => { if (!event.target.value) return; localStorage.setItem('pampa-role', event.target.value); refreshRoleOptions(); refreshDashboardContext(); aplicarPermisos(); showToast(`Rol activo: ${event.target.value}`); });
     const sidebarCompanySelector = document.querySelector('#sidebarCompanySelector');
     function refreshCompanyOptions() {
       sidebarCompanySelector.innerHTML = registeredCompanies.map(company => `<option>${company.name}</option>`).join('');
@@ -2016,6 +2072,185 @@
         const plotOptions = await agriculturalPlotSeasonOptions();
         if (!plotOptions.length) { showToast('No hay lotes con campaña para registrar el ticket'); return; }
         openNewForm('Registrar ticket de balanza', [{ id: 'ticketPlotSeason', label: 'Lote / campaña', type: 'select', options: plotOptions, full: true }, { id: 'ticketNumber', label: 'Numero de ticket', placeholder: 'BAL-0001' }, { id: 'ticketGross', label: 'Peso bruto (kg)', type: 'number' }, { id: 'ticketTare', label: 'Tara (kg)', type: 'number' }], async formData => { await api.createWeighTicket(activeTenantId, { plotSeasonId: formData.get('ticketPlotSeason'), ticketNumber: formData.get('ticketNumber'), grossKg: Number(formData.get('ticketGross')), tareKg: Number(formData.get('ticketTare')) }); showToast('Ticket de balanza registrado'); loadAgriculturalModule(); });
+      } else if (label === 'Nuevo costo operativo' && window.PampaAgroUI) {
+        openModule('Costos');
+      } else if (label === 'Nuevo costo operativo') {
+        openNewForm('Nuevo costo operativo', [{ id: 'costCategory', label: 'Categoria', type: 'select', options: ['combustible', 'mantenimiento', 'mano_obra', 'servicio', 'arrendamiento', 'aparceria', 'otro'] }, { id: 'costDescription', label: 'Descripcion', placeholder: 'Reparacion de sembradora', full: true }, { id: 'costDate', label: 'Fecha', type: 'date' }, { id: 'costAmount', label: 'Importe (USD)', type: 'number', placeholder: '0' }], async formData => { await api.createOperatingCost(activeTenantId, { category: formData.get('costCategory'), description: formData.get('costDescription'), costDate: formData.get('costDate'), amountUsd: Number(formData.get('costAmount')) }); showToast('Costo operativo registrado'); loadAgriculturalModule(); loadProfitabilityModule(); });
+      } else if (label === 'Nuevo contrato agrario') {
+        openNewForm('Contrato de arrendamiento o aparcería', [{ id: 'agrarianField', label: 'Campo', placeholder: 'La Esperanza' }, { id: 'agrarianType', label: 'Tipo de acuerdo', type: 'select', options: ['Arrendamiento', 'Aparcería / Mediería'] }, { id: 'agrarianOwnerTaxId', label: 'CUIT dueño del campo', placeholder: '20-00000000-0' }, { id: 'agrarianModality', label: 'Modalidad', type: 'select', options: ['Fijo en pesos', 'Porcentaje / canje'] }, { id: 'agrarianAmount', label: 'Importe mensual ($)', type: 'number', required: false }, { id: 'agrarianQuintals', label: 'Quintales/ha (porcentaje o canje)', type: 'number', required: false }, { id: 'agrarianPercent', label: '% grano del dueño', type: 'number', required: false }, { id: 'agrarianStart', label: 'Fecha inicio', type: 'date' }, { id: 'agrarianEnd', label: 'Fecha fin', type: 'date' }, { id: 'agrarianStatus', label: 'Estado', type: 'select', options: ['Borrador', 'Aprobado', 'Vencido', 'Rescindido'] }], formData => { const contract = { field: formData.get('agrarianField'), type: formData.get('agrarianType'), ownerTaxId: formData.get('agrarianOwnerTaxId'), modality: formData.get('agrarianModality'), monthlyAmount: Number(formData.get('agrarianAmount') || 0), quintalsPerHa: Number(formData.get('agrarianQuintals') || 0), grainOwnerPercent: Number(formData.get('agrarianPercent') || 0), startDate: formData.get('agrarianStart'), endDate: formData.get('agrarianEnd'), status: formData.get('agrarianStatus') }; registeredAgrarianContracts.unshift(contract); localStorage.setItem('pampa-agrarian-contracts', JSON.stringify(registeredAgrarianContracts)); recordAudit('Nuevo contrato agrario', `${contract.type} · ${contract.field}`); renderAgrarianContracts(); showToast('Contrato agrario registrado localmente'); });
+      } else if (label === 'Sincronizar ahora') {
+        syncNow();
+      } else if (label === 'Registrar ejecucion') {
+        openNewForm('Registrar ejecucion de labor', [{ id: 'executionOrder', label: 'Orden de trabajo', type: 'select', options: ['OT-0248 · Aplicacion foliar · L-04', 'OT-0247 · Fertilizacion · L-09', 'OT-0241 · Relevamiento · L-12'], full: true }, { id: 'executedArea', label: 'Area ejecutada (ha)', type: 'number', placeholder: '0' }, { id: 'machineHours', label: 'Horas maquina', type: 'number', placeholder: '0' }, { id: 'operatorName', label: 'Operador', placeholder: 'Nombre completo' }, { id: 'wind', label: 'Viento (km/h)', type: 'number', placeholder: '0' }, { id: 'temperature', label: 'Temperatura (C)', type: 'number', placeholder: '0' }, { id: 'humidity', label: 'Humedad relativa (%)', type: 'number', placeholder: '0' }, { id: 'inversion', label: 'Inversion termica', type: 'select', options: ['No', 'Si'] }], formData => { recordAudit('Registro ejecucion y condiciones', formData.get('executionOrder')); });
+      } else if (label === 'Recepcion de compra') {
+        openNewForm('Registrar recepcion', [{ id: 'purchaseOrder', label: 'Orden de compra', type: 'select', options: ['OC-0018 · Fertilizantes', 'OC-0019 · Fitosanitarios'], full: true }, { id: 'receiptNumber', label: 'Numero de remito', placeholder: 'REM-0001' }, { id: 'receivedDate', label: 'Fecha de recepcion', type: 'date' }, { id: 'receivedQty', label: 'Cantidad recibida', type: 'number', placeholder: '0' }], formData => { recordAudit('Registro recepcion de compra', formData.get('purchaseOrder')); });
+      } else if (label === 'Registrar factura') {
+        openNewForm('Registrar factura', [{ id: 'invoiceNumber', label: 'Numero de factura', placeholder: '0001-00001234' }, { id: 'invoiceSupplier', label: 'Proveedor', placeholder: 'Razón social' }, { id: 'invoiceDate', label: 'Fecha', type: 'date' }, { id: 'invoiceTotal', label: 'Total', type: 'number', placeholder: '0' }], formData => { recordAudit('Registro factura', formData.get('invoiceNumber')); });
+      } else if (label === 'Cargar mapa de rinde') {
+        // Mapa de cosecha real: CSV del monitor con latitud, longitud y rinde (t/ha o kg/ha). Se guarda en
+        // la base local (viaja con la sincronización) y PampaIA Premium lo zonifica.
+        const DB = window.PampaAgroDB;
+        const A = window.PampaAgroCore;
+        const lotes = DB ? await DB.todo('lotes') : [];
+        if (!lotes.length) { showToast('Primero registrá un lote en Granos, costos y fiscal → RENSPA y campañas'); return; }
+        openNewForm('Cargar mapa de rinde', [
+          { id: 'yieldLot', label: 'Lote', type: 'select', options: lotes.map(l => ({ value: l.id, label: `${l.codigo} · ${l.campo || ''}` })), full: true },
+          { id: 'yieldCrop', label: 'Cultivo', type: 'select', options: Object.entries(A.CULTIVOS).map(([k, c]) => ({ value: k, label: c.nombre })) },
+          { id: 'yieldDate', label: 'Fecha de cosecha', type: 'date' },
+          { id: 'yieldFile', label: 'Archivo CSV (latitud, longitud, rinde)', type: 'file', accept: '.csv,.txt,text/csv', full: true }
+        ], async formData => {
+          const file = formData.get('yieldFile');
+          if (!file || !file.size) throw new Error('Elegí el archivo CSV del monitor de rinde.');
+          const puntos = leerCsvRinde(await file.text());
+          const limpio = A.limpiarMapaRinde(puntos);
+          if (limpio.validos.length < 9) throw new Error(`El archivo tiene ${limpio.validos.length} punto(s) válidos: se necesitan columnas de latitud, longitud y rinde.`);
+          const cultivo = formData.get('yieldCrop');
+          const fecha = formData.get('yieldDate');
+          await DB.guardar('mapasRinde', { loteId: formData.get('yieldLot'), cultivo, campania: A.campaniaDe(A.CULTIVOS[cultivo].nombre, fecha).campania, fecha, archivo: file.name, puntos: limpio.validos, totalPuntos: puntos.length, descartados: limpio.descartados });
+          recordAudit('Carga y limpieza de mapa de rinde', `${file.name} · ${limpio.validos.length} puntos`);
+          setTimeout(() => showToast(`Mapa cargado: ${limpio.pctValidos.toLocaleString('es-AR')} % de puntos válidos (${limpio.validos.length}). PampaIA ya puede zonificarlo.`), 60);
+        });
+      } else if (label === 'Nueva prescripcion') {
+        const DB = window.PampaAgroDB;
+        const A = window.PampaAgroCore;
+        const mapas = DB ? (await DB.todo('mapasRinde')).sort((a, b) => String(b.fecha).localeCompare(String(a.fecha))) : [];
+        if (!mapas.length) { showToast('Primero cargá un mapa de rinde: la prescripción sale de sus zonas'); return; }
+        const lotes = await DB.todo('lotes');
+        const loteDe = id => lotes.find(l => l.id === id);
+        openNewForm('Nueva prescripcion variable', [
+          { id: 'prescriptionMap', label: 'Mapa de rinde', type: 'select', options: mapas.map(m => ({ value: m.id, label: `${loteDe(m.loteId)?.codigo || 'Lote'} · ${A.CULTIVOS[m.cultivo]?.nombre || ''} ${m.campania || ''} · ${m.archivo || ''}` })), full: true },
+          { id: 'prescriptionOperation', label: 'Operacion', type: 'select', options: ['Siembra', 'Fertilizacion', 'Aplicacion'] },
+          { id: 'prescriptionInput', label: 'Insumo', placeholder: 'Urea / Semilla soja', required: false },
+          { id: 'targetRate', label: 'Dosis objetivo', type: 'number', placeholder: '145' },
+          { id: 'minRate', label: 'Dosis minima', type: 'number', placeholder: '110' },
+          { id: 'maxRate', label: 'Dosis maxima', type: 'number', placeholder: '180' },
+          { id: 'rateUnit', label: 'Unidad', type: 'select', options: ['kg/ha', 'l/ha', 'semillas/ha'] }
+        ], async formData => {
+          const mapa = mapas.find(m => m.id === formData.get('prescriptionMap'));
+          const z = A.zonificar(A.limpiarMapaRinde(mapa.puntos).validos);
+          if (!z) throw new Error('El mapa no tiene puntos suficientes para zonificar.');
+          const params = { operacion: { Fertilizacion: 'Fertilización', Aplicacion: 'Aplicación' }[formData.get('prescriptionOperation')] || formData.get('prescriptionOperation'), insumo: String(formData.get('prescriptionInput') || '').trim(), objetivo: Number(formData.get('targetRate')), minimo: Number(formData.get('minRate')), maximo: Number(formData.get('maxRate')), unidad: formData.get('rateUnit') };
+          if (!(params.objetivo > 0) || params.minimo > params.objetivo || params.maximo < params.objetivo) throw new Error('Revisá las dosis: mínima ≤ objetivo ≤ máxima.');
+          const lote = loteDe(mapa.loteId);
+          const presc = A.prescripcionPorZonas(z, { ...params, ha: Number(lote?.superficieHa) || 0 });
+          const guardada = await DB.guardar('prescripciones', { mapaId: mapa.id, loteId: mapa.loteId, fecha: window.PampaAgroCore.fechaIso(new Date().toLocaleDateString('es-AR')), ...params, zonas: presc.zonas.map(x => ({ zona: x.zona, nombre: x.nombre, dosis: x.dosis, pct: x.pct })) });
+          descargarPrescripcion(guardada, mapa, lote);
+          recordAudit('Creacion de prescripcion variable', `${lote?.codigo || ''} · ${params.operacion}`);
+        });
+      } else if (label === 'Cargar eventos telemetria') {
+        openNewForm('Cargar eventos de maquinaria', [{ id: 'device', label: 'Dispositivo', type: 'select', options: ['GNSS-RTK-01 · Posicionamiento y guiado', 'VRA-SEED-02 · Siembra variable', 'PWM-SPR-03 · Pulverizacion inteligente', 'NIR-HRV-04 · Cosecha y calidad', 'IOT-LORA-05 · Telemetria y conectividad'], full: true }, { id: 'eventCount', label: 'Cantidad de eventos', type: 'number', placeholder: '1000' }, { id: 'eventDate', label: 'Fecha de los eventos', type: 'date' }], formData => { recordAudit('Ingesta bulk de telemetria', formData.get('device')); });
+      } else if (label === 'Configurar ARCA') {
+        const activeCompany = registeredCompanies.find(company => company.name === sidebarCompanySelector.value) || registeredCompanies[0];
+        const profile = await api.getArcaConfig(activeTenantId);
+        openNewForm('Configurar ARCA', [
+          { id: 'arcaEnvironment', label: 'Ambiente', type: 'select', options: [{ value: 'testing', label: 'Homologacion' }, { value: 'production', label: 'Produccion' }], value: profile.environment || 'testing' },
+          { id: 'arcaCuit', label: 'CUIT emisor', placeholder: 'Sin guiones', value: activeCompany?.taxId || profile.tax_id || '' },
+          { id: 'arcaCertificatePath', label: 'Ruta del certificado X.509', placeholder: profile.has_certificate ? 'Ya configurado: indicá la ruta para actualizar' : 'C:\\ARCA\\certs\\empresa.crt' },
+          { id: 'arcaPrivateKeyPath', label: 'Ruta de la clave privada', placeholder: profile.has_private_key ? 'Ya configurada: indicá la ruta para actualizar' : 'C:\\ARCA\\certs\\empresa.key' },
+          { id: 'arcaLpgUrl', label: 'URL servicio LPG', value: profile.lpg_url || '', required: false },
+          { id: 'arcaSisaUrl', label: 'URL servicio SISA', value: profile.sisa_url || '', required: false },
+          { id: 'arcaCpeUrl', label: 'URL Carta de Porte', value: profile.cpe_url || '', required: false },
+          { id: 'arcaLpgOperation', label: 'Operacion LPG', value: profile.lpg_operation || 'autorizarLPG', required: false },
+          { id: 'arcaSisaOperation', label: 'Operacion SISA', value: profile.sisa_operation || 'consultarSISA', required: false },
+          { id: 'arcaCpeOperation', label: 'Operacion CPE', value: profile.cpe_operation || 'solicitarCPE', required: false }
+        ], async formData => {
+          const taxId = formData.get('arcaCuit').trim();
+          await api.updateArcaConfig(activeTenantId, {
+            taxId, environment: formData.get('arcaEnvironment'), certificatePath: formData.get('arcaCertificatePath'), privateKeyPath: formData.get('arcaPrivateKeyPath'),
+            lpgUrl: formData.get('arcaLpgUrl'), sisaUrl: formData.get('arcaSisaUrl'), cpeUrl: formData.get('arcaCpeUrl'),
+            lpgOperation: formData.get('arcaLpgOperation'), sisaOperation: formData.get('arcaSisaOperation'), cpeOperation: formData.get('arcaCpeOperation')
+          });
+          if (activeCompany) activeCompany.taxId = taxId;
+          localStorage.setItem('pampa-companies', JSON.stringify(registeredCompanies));
+          showToast('Configuracion ARCA guardada para la empresa activa');
+          loadArcaModule();
+        });
+      } else if (label === 'Nuevo cheque') {
+        const accounts = await financeCheckAccountOptions();
+        openNewForm('Nuevo cheque', [{ id: 'checkNumber', label: 'Numero', placeholder: 'CH-0001' }, { id: 'checkType', label: 'Tipo', type: 'select', options: ['received', 'issued'] }, { id: 'checkBank', label: 'Banco' }, { id: 'checkHolder', label: 'Titular' }, { id: 'checkIssueDate', label: 'Fecha de emision', type: 'date' }, { id: 'checkDueDate', label: 'Vencimiento', type: 'date' }, { id: 'checkAmount', label: 'Importe (USD)', type: 'number' }, { id: 'checkAccount', label: 'Cuenta asociada', type: 'select', options: ['Sin asignar', ...accounts] }, { id: 'checkNotes', label: 'Observaciones', full: true }], async formData => { const account = formData.get('checkAccount'); await api.createCheck(activeTenantId, { cashAccountId: account === 'Sin asignar' ? null : account.split(' · ')[0], checkNumber: formData.get('checkNumber'), checkType: formData.get('checkType'), bankName: formData.get('checkBank'), holderName: formData.get('checkHolder'), issueDate: formData.get('checkIssueDate'), dueDate: formData.get('checkDueDate'), amountUsd: Number(formData.get('checkAmount')), notes: formData.get('checkNotes') }); showToast('Cheque registrado'); loadFinanceModule(); });
+      } else if (label === 'Nuevo crédito') {
+        openNewForm('Nuevo crédito', [{ id: 'creditNumber', label: 'Numero de credito', placeholder: 'CR-0001' }, { id: 'creditCustomer', label: 'Cliente', placeholder: 'Nombre o razon social', full: true }, { id: 'creditIssueDate', label: 'Fecha de otorgamiento', type: 'date' }, { id: 'creditDueDate', label: 'Vencimiento final', type: 'date' }, { id: 'creditPrincipal', label: 'Capital (USD)', type: 'number', placeholder: '0' }, { id: 'creditInterest', label: 'Interes anual (%)', type: 'number', placeholder: '0' }, { id: 'creditSystem', label: 'Sistema de amortizacion', type: 'select', options: ['french', 'german', 'american'] }, { id: 'creditInstallments', label: 'Cantidad de cuotas', type: 'number', placeholder: '12' }, { id: 'creditFrequency', label: 'Frecuencia', type: 'select', options: ['monthly', 'weekly', 'quarterly'] }, { id: 'creditNotes', label: 'Observaciones', placeholder: 'Condiciones del credito', full: true }], async formData => { await api.createCredit(activeTenantId, { creditNumber: formData.get('creditNumber'), customerName: formData.get('creditCustomer'), issueDate: formData.get('creditIssueDate'), dueDate: formData.get('creditDueDate'), principalAmountUsd: Number(formData.get('creditPrincipal')), interestRate: Number(formData.get('creditInterest') || 0), amortizationSystem: formData.get('creditSystem'), installmentCount: Number(formData.get('creditInstallments') || 1), installmentFrequency: formData.get('creditFrequency'), notes: formData.get('creditNotes') }); showToast('Credito registrado con plan de amortizacion'); loadFinanceModule(); });
+      } else if (label === 'Cobrar crédito') {
+        const [credits, accounts] = await Promise.all([financeCreditOptions(), financeAccountOptions()]);
+        if (!credits.length) { showToast('No hay créditos abiertos'); return; }
+        openNewForm('Cobrar crédito', [{ id: 'creditPaymentCredit', label: 'Credito', type: 'select', options: credits, full: true }, { id: 'creditPaymentAccount', label: 'Cuenta destino', type: 'select', options: accounts, full: true }, { id: 'creditPaymentAmount', label: 'Importe (USD)', type: 'number', placeholder: '0' }, { id: 'creditPaymentDate', label: 'Fecha', type: 'date' }], async formData => { await api.createCreditPayment(formData.get('creditPaymentCredit').split(' · ')[0], { tenantId: activeTenantId, cashAccountId: formData.get('creditPaymentAccount').split(' · ')[0], paymentDate: formData.get('creditPaymentDate'), amountUsd: Number(formData.get('creditPaymentAmount')) }); showToast('Pago de credito registrado'); loadFinanceModule(); });
+      } else if (label === 'Nuevo empleado') {
+        openNewForm('Nuevo empleado', [{ id: 'employeeCode', label: 'Legajo', placeholder: 'LEG-001' }, { id: 'employeeFirstName', label: 'Nombre' }, { id: 'employeeLastName', label: 'Apellido' }, { id: 'employeeNationalId', label: 'DNI / identificacion' }, { id: 'employeeJobTitle', label: 'Puesto', placeholder: 'Operador de maquinaria' }, { id: 'employeeDepartment', label: 'Area', type: 'select', options: ['campo', 'administracion', 'mantenimiento', 'logistica'] }, { id: 'employeeHireDate', label: 'Fecha de ingreso', type: 'date' }, { id: 'employeeMonthlySalary', label: 'Sueldo mensual (USD)', type: 'number', placeholder: '0' }], async formData => { await api.createEmployee(activeTenantId, { employeeCode: formData.get('employeeCode'), firstName: formData.get('employeeFirstName'), lastName: formData.get('employeeLastName'), nationalId: formData.get('employeeNationalId'), jobTitle: formData.get('employeeJobTitle'), department: formData.get('employeeDepartment'), hireDate: formData.get('employeeHireDate'), monthlySalaryUsd: Number(formData.get('employeeMonthlySalary') || 0) }); showToast('Empleado registrado'); loadHrModule(); });
+      } else if (label === 'Registrar asistencia') {
+        const employees = await hrEmployeeOptions();
+        openNewForm('Registrar asistencia', [{ id: 'attendanceEmployee', label: 'Empleado', type: 'select', options: employees, full: true }, { id: 'attendanceDate', label: 'Fecha', type: 'date' }, { id: 'attendanceStatus', label: 'Estado', type: 'select', options: ['present', 'absent', 'leave', 'holiday'] }, { id: 'attendanceHours', label: 'Horas trabajadas', type: 'number', placeholder: '8' }, { id: 'attendanceOvertime', label: 'Horas extra', type: 'number', placeholder: '0' }, { id: 'attendanceNote', label: 'Observacion', placeholder: 'Parte diario / novedad', full: true }], async formData => { await api.createAttendance(activeTenantId, { employeeId: formData.get('attendanceEmployee').split(' · ')[0], workDate: formData.get('attendanceDate'), status: formData.get('attendanceStatus'), hoursWorked: Number(formData.get('attendanceHours') || 0), overtimeHours: Number(formData.get('attendanceOvertime') || 0), note: formData.get('attendanceNote') }); showToast('Asistencia registrada'); loadHrModule(); });
+      } else if (label === 'Nueva liquidacion') {
+        openNewForm('Nuevo periodo de liquidacion', [{ id: 'payrollStart', label: 'Inicio', type: 'date' }, { id: 'payrollEnd', label: 'Fin', type: 'date' }, { id: 'payrollPaymentDate', label: 'Fecha de pago', type: 'date' }], async formData => { await api.createPayrollPeriod(activeTenantId, { periodStart: formData.get('payrollStart'), periodEnd: formData.get('payrollEnd'), paymentDate: formData.get('payrollPaymentDate') }); showToast('Periodo de liquidacion creado'); loadHrModule(); });
+      } else if (label === 'Nueva LPG' && window.PampaAgroUI) {
+        window.PampaAgroUI.abrirLpg();
+        openModule('Granos');
+      } else if (label === 'Nueva LPG') {
+        const lpgConfig = await api.getLpgConfig();
+        const cashAccounts = (await api.getCashAccounts(activeTenantId)).filter(account => ['bank', 'savings_ars', 'savings_usd', 'checking_ars', 'checking_usd'].includes(account.account_type) || String(account.account_type || '').toLowerCase().includes('ahorro') || String(account.account_type || '').toLowerCase().includes('corriente'));
+        window.lpgConfig = lpgConfig;
+        window.lpgCashAccounts = cashAccounts;
+        openNewForm('Liquidación Primaria de Granos', [{ id: 'lpgNumber', label: 'Numero LPG', placeholder: 'LPG-0001' }, { id: 'lpgCoe', label: 'COE ARCA', placeholder: 'Pendiente de autorizacion' }, { id: 'lpgIssueDate', label: 'Fecha de emision', type: 'date' }, { id: 'lpgOperationDate', label: 'Fecha de operacion', type: 'date' }, { id: 'lpgOperationType', label: 'Tipo', type: 'select', options: ['sale', 'consignment'] }, { id: 'lpgIssuerTaxId', label: 'CUIT comprador / emisor' }, { id: 'lpgIssuerName', label: 'Razon social comprador' }, { id: 'lpgIssuerSisa', label: 'SISA comprador', placeholder: 'Activo' }, { id: 'lpgProducerTaxId', label: 'CUIT productor' }, { id: 'lpgProducerName', label: 'Razon social productor' }, { id: 'lpgProducerSisa', label: 'SISA productor', placeholder: 'Inscripto' }, { id: 'lpgEstablishment', label: 'Planta / establecimiento' }, { id: 'lpgOriginProvince', label: 'Provincia de procedencia' }, { id: 'lpgOriginLocality', label: 'Localidad de procedencia' }, { id: 'lpgDestination', label: 'Destino' }, { id: 'lpgGrainCode', label: 'Codigo grano', placeholder: 'SOY / CORN / WHEAT' }, { id: 'lpgGrainName', label: 'Grano', placeholder: 'Soja' }, { id: 'lpgCampaign', label: 'Campana', placeholder: '2025 / 2026' }, { id: 'lpgWeight', label: 'Peso neto (kg)', type: 'number' }, { id: 'lpgPrice', label: 'Precio por tonelada', type: 'number' }, { id: 'lpgCpe', label: 'Carta de Porte Electronica' }, { id: 'lpgDeposit', label: 'Certificado de deposito' }, { id: 'lpgCbu', label: 'CBU productor', placeholder: '22 digitos', full: true }, { id: 'lpgFreight', label: 'Fletes / gastos', type: 'number' }, { id: 'lpgCommission', label: 'Comision corredor', type: 'number' }, { id: 'lpgDrying', label: 'Secado / almacenaje', type: 'number' }, { id: 'lpgVatRate', label: 'IVA (%)', type: 'number', placeholder: '10.5' }, { id: 'lpgVatWithholding', label: 'Retencion IVA', type: 'number' }, { id: 'lpgIncomeWithholding', label: 'Retencion Ganancias', type: 'number' }, { id: 'lpgGrossIncomeWithholding', label: 'Retencion IIBB', type: 'number' }, { id: 'lpgTaxCredit', label: 'Pago a cuenta / devolucion', type: 'number' }], async formData => { await api.createLpg(activeTenantId, { lpgNumber: formData.get('lpgNumber'), coe: formData.get('lpgCoe'), issueDate: formData.get('lpgIssueDate'), operationDate: formData.get('lpgOperationDate'), operationType: formData.get('lpgOperationType'), issuerTaxId: formData.get('lpgIssuerTaxId'), issuerName: formData.get('lpgIssuerName'), issuerSisaStatus: formData.get('lpgIssuerSisa'), producerTaxId: formData.get('lpgProducerTaxId'), producerName: formData.get('lpgProducerName'), producerSisaStatus: formData.get('lpgProducerSisa'), establishmentName: formData.get('lpgEstablishment'), establishmentProvince: formData.get('lpgOriginProvince'), establishmentLocality: formData.get('lpgOriginLocality'), producerCbu: formData.get('lpgCbu'), unitPrice: Number(formData.get('lpgPrice')), vatRate: Number(formData.get('lpgVatRate') || 10.5), vatWithholding: Number(formData.get('lpgVatWithholding') || 0), incomeTaxWithholding: Number(formData.get('lpgIncomeWithholding') || 0), grossIncomeWithholding: Number(formData.get('lpgGrossIncomeWithholding') || 0), taxCredit: Number(formData.get('lpgTaxCredit') || 0), line: { grainCode: formData.get('lpgGrainCode'), grainName: formData.get('lpgGrainName'), campaign: formData.get('lpgCampaign'), originProvince: formData.get('lpgOriginProvince'), originLocality: formData.get('lpgOriginLocality'), destination: formData.get('lpgDestination'), cpeNumber: formData.get('lpgCpe'), depositCertificate: formData.get('lpgDeposit'), netWeightKg: Number(formData.get('lpgWeight')) }, deductions: [{ type: 'freight', description: 'Fletes y gastos', amount: Number(formData.get('lpgFreight') || 0) }, { type: 'broker_commission', description: 'Comision corredor', amount: Number(formData.get('lpgCommission') || 0) }, { type: 'drying_storage', description: 'Secado y almacenaje', amount: Number(formData.get('lpgDrying') || 0) }] }); showToast('LPG registrada y calculada'); loadFinanceModule(); });
+      } else if (label === 'Nueva venta') {
+        if (!window.lpgConfig?.provinces?.length) window.lpgConfig = await api.getLpgConfig();
+        window.lpgCashAccounts = (await api.getCashAccounts(activeTenantId)).filter(account => ['bank', 'savings_ars', 'savings_usd', 'checking_ars', 'checking_usd'].includes(account.account_type) || String(account.account_type || '').toLowerCase().includes('ahorro') || String(account.account_type || '').toLowerCase().includes('corriente'));
+        openNewForm('Nueva venta', [{ id: 'saleNumber', label: 'Numero de comprobante', placeholder: 'V-0001' }, { id: 'saleCustomer', label: 'Cliente', placeholder: 'Nombre o razon social', full: true }, { id: 'saleTaxId', label: 'CUIT / identificacion' }, { id: 'saleIssuerTaxId', label: 'CUIT comprador / emisor', required: false }, { id: 'saleDate', label: 'Fecha', type: 'date' }, { id: 'saleDueDate', label: 'Vencimiento', type: 'date' }, { id: 'saleDescription', label: 'Detalle', placeholder: 'Venta de cereal / servicio', full: true }, { id: 'saleQuantity', label: 'Cantidad', type: 'number', placeholder: '1' }, { id: 'saleUnitPrice', label: 'Precio unitario (USD)', type: 'number', placeholder: '0' }, { id: 'saleTaxRate', label: 'IVA (%)', type: 'number', placeholder: '0' }, { id: 'saleIsGrain', label: '¿Venta de cereal?', type: 'select', options: ['no', 'yes'] }, { id: 'saleGrainName', label: 'Grano', placeholder: 'Soja', required: false }, { id: 'saleGrainCode', label: 'Codigo grano', placeholder: 'SOY', required: false }, { id: 'saleCampaign', label: 'Campana', placeholder: '2025 / 2026', required: false }, { id: 'saleWeightKg', label: 'Peso neto (kg)', type: 'number', placeholder: 'Se calcula desde cantidad si queda vacio', required: false }, { id: 'saleProducerTaxId', label: 'CUIT productor', required: false }, { id: 'saleProducerName', label: 'Productor', required: false }, { id: 'saleProducerCbu', label: 'CBU productor', required: false, full: true }, { id: 'saleCpe', label: 'Carta de Porte Electronica', required: false }, { id: 'saleOrigin', label: 'Procedencia', required: false }, { id: 'saleDestination', label: 'Destino', required: false }], async formData => { const description = formData.get('saleDescription'); const isGrainSale = formData.get('saleIsGrain') === 'yes' || /cereal|soja|ma[ií]z|trigo|girasol|cebada|sorgo|arroz|avena|legumbre/i.test(description || ''); const result = await api.createSale(activeTenantId, { saleNumber: formData.get('saleNumber'), saleCustomer: formData.get('saleCustomer'), customerName: formData.get('saleCustomer'), customerTaxId: formData.get('saleTaxId'), saleDate: formData.get('saleDate'), dueDate: formData.get('saleDueDate'), grainSale: isGrainSale, lpgDraft: { issuerTaxId: formData.get('saleIssuerTaxId'), issuerName: formData.get('saleCustomer'), producerTaxId: formData.get('saleProducerTaxId'), producerName: formData.get('saleProducerName'), producerCbu: formData.get('saleProducerCbu'), grainName: formData.get('saleGrainName'), grainCode: formData.get('saleGrainCode'), campaign: formData.get('saleCampaign'), netWeightKg: Number(formData.get('saleWeightKg') || 0), cpeNumber: formData.get('saleCpe'), originLocality: formData.get('saleOrigin'), destination: formData.get('saleDestination'), unitPrice: Number(formData.get('saleUnitPrice')), vatRate: isGrainSale ? 10.5 : Number(formData.get('saleTaxRate') || 0) }, lines: [{ description, quantity: Number(formData.get('saleQuantity')), unitPrice: Number(formData.get('saleUnitPrice')), taxRate: isGrainSale ? 10.5 : Number(formData.get('saleTaxRate') || 0) }] }); showToast(result.lpg ? 'Venta registrada y LPG draft generada automáticamente' : 'Venta registrada'); loadFinanceModule(); });
+      } else if (label === 'Nueva cuenta de fondos') {
+        openNewForm('Nueva cuenta bancaria', [{ id: 'accountName', label: 'Nombre de la cuenta', placeholder: 'Banco / entidad', full: true }, { id: 'accountType', label: 'Tipo de cuenta', type: 'select', options: ['savings_ars', 'savings_usd', 'checking_ars', 'checking_usd', 'cash', 'wallet'] }, { id: 'accountCbu', label: 'CBU', placeholder: '22 digitos', required: false }, { id: 'accountOpening', label: 'Saldo inicial', type: 'number', placeholder: '0' }], async formData => { await api.createCashAccount(activeTenantId, { name: formData.get('accountName'), accountType: formData.get('accountType'), cbu: formData.get('accountCbu'), openingBalance: Number(formData.get('accountOpening') || 0) }); showToast('Cuenta bancaria creada'); loadFinanceModule(); });
+      } else if (label === 'Nuevo movimiento') {
+        try {
+          const accounts = await financeAccountOptions();
+          if (!accounts.length) { showToast('Primero registra una cuenta de fondos'); return; }
+          const [sales, checks] = await Promise.all([api.getSales(activeTenantId), api.getChecks(activeTenantId)]);
+          const saleOptions = sales.filter(sale => sale.payment_status !== 'paid').map(sale => ({ value: `sale:${sale.id}`, label: `Cobro de venta · ${sale.sale_number} · ${sale.customer_name}` }));
+          const checkOptions = checks.filter(check => check.check_type === 'received' && !['cashed', 'deposited'].includes(check.status)).map(check => ({ value: `check:${check.id}`, label: `Cheque recibido · ${check.check_number} · ${check.bank_name}` }));
+          if (!saleOptions.length) saleOptions.push({ value: 'sale:none', label: 'Cobro de venta · sin ventas pendientes' });
+          if (!checkOptions.length) checkOptions.push({ value: 'check:none', label: 'Cheque recibido · sin cheques pendientes' });
+          const mediumOptions = [{ value: 'cash', label: 'Efectivo' }, { value: 'transfer', label: 'Transferencia bancaria' }, { value: 'check', label: 'Cheque' }];
+          const descriptionOptions = ['Cobro', 'Pago', 'Canje', 'Cobro de venta', 'Pago a proveedor', 'Combustible', 'Mantenimiento', 'Compra de insumos', 'Impuestos y tasas', 'Sueldos y jornales', 'Préstamo o financiación', 'Otro'];
+          openNewForm('Nuevo movimiento de fondos', [{ id: 'movementAccount', label: 'Cuenta destino', type: 'select', options: accounts, full: true }, { id: 'movementSource', label: 'Origen / medio', type: 'select', options: mediumOptions, full: true }, { id: 'movementType', label: 'Tipo', type: 'select', options: [{ value: 'in', label: 'Ingreso' }, { value: 'out', label: 'Egreso' }] }, { id: 'movementDate', label: 'Fecha', type: 'date' }, { id: 'movementDescription', label: 'Descripción', type: 'select', options: descriptionOptions, full: true }, { id: 'movementAmount', label: 'Importe (ARS)', type: 'number', placeholder: '0' }], async formData => { const amountArs = Number(formData.get('movementAmount')); await api.createCashMovement(activeTenantId, { cashAccountId: formData.get('movementAccount').split(' · ')[0], movementType: formData.get('movementType'), sourceType: formData.get('movementSource') || 'cash', sourceId: null, movementDate: formData.get('movementDate'), description: formData.get('movementDescription'), amountArs, currencyCode: 'ARS' }); showToast('Movimiento en pesos registrado'); loadFinanceModule(); });
+        } catch (error) { showToast(error.message || 'No se pudieron cargar las cuentas de fondos'); }
+      } else if (label === 'Registrar cobro') {
+        const [accounts, sales] = await Promise.all([financeAccountOptions(), financeSaleOptions()]);
+        if (!sales.length) { showToast('No hay ventas pendientes de cobro'); return; }
+        openNewForm('Registrar cobro de venta', [{ id: 'collectionSale', label: 'Venta pendiente', type: 'select', options: sales, full: true }, { id: 'collectionAccount', label: 'Cuenta destino', type: 'select', options: accounts, full: true }, { id: 'collectionDate', label: 'Fecha', type: 'date' }], async formData => { const sale = formData.get('collectionSale').split(' · '); const saleData = window.financeData.sales.find(item => item.id === sale[0]); await api.createCashMovement(activeTenantId, { cashAccountId: formData.get('collectionAccount').split(' · ')[0], movementType: 'in', sourceType: 'sale', sourceId: sale[0], movementDate: formData.get('collectionDate'), description: `Cobro ${saleData.sale_number} · ${saleData.customer_name}`, amountUsd: Number(saleData.total_amount) }); showToast('Cobro registrado'); loadFinanceModule(); });
+      } else if (label === 'Planificar siembra' || label === 'Planificar cosecha') {
+        const plotOptions = await agriculturalPlotSeasonOptions();
+        if (!plotOptions.length) { showToast('No hay lotes con campaña para planificar'); return; }
+        openNewForm(label, [{ id: 'agriPlotSeason', label: 'Lote / campaña', type: 'select', options: plotOptions, full: true }, { id: 'agriDate', label: 'Fecha solicitada', type: 'date' }, { id: 'agriArea', label: 'Superficie planificada (ha)', type: 'number', placeholder: '0' }], async formData => {
+          const plotSeasonId = formData.get('agriPlotSeason');
+          await api.request('/campaigns/10000000-0000-0000-0000-000000000010/work-orders', { method: 'POST', body: JSON.stringify({ plotSeasonId, operationType: label === 'Planificar siembra' ? 'siembra' : 'cosecha', requestedDate: formData.get('agriDate'), plannedAreaHa: Number(formData.get('agriArea')) }) });
+          showToast(`${label} registrada`); loadAgriculturalModule();
+        });
+      } else if (label === 'Nueva maquina') {
+        openNewForm('Nueva maquina', [{ id: 'machineCode', label: 'Codigo', placeholder: 'TR-001' }, { id: 'machineCategory', label: 'Categoria', type: 'select', options: ['tractor', 'cosechadora', 'sembradora', 'pulverizadora', 'camion'] }, { id: 'machineBrand', label: 'Marca' }, { id: 'machineModel', label: 'Modelo' }, { id: 'machineHourlyCost', label: 'Costo horario (USD)', type: 'number', placeholder: '35' }], async formData => {
+          const equipment = { code: formData.get('machineCode').trim(), category: formData.get('machineCategory'), brand: formData.get('machineBrand').trim(), model: formData.get('machineModel').trim(), hourlyCostUsd: Number(formData.get('machineHourlyCost') || 35) };
+          if (isTrialMode) {
+            if (registeredEquipment.some(item => item.code === equipment.code)) throw new Error('Ya existe un equipo con ese código');
+            registeredEquipment.push(equipment);
+            localStorage.setItem('pampa-equipment', JSON.stringify(registeredEquipment));
+            recordAudit('Nueva maquina', equipment.code);
+            showToast('Maquina registrada localmente');
+          } else {
+            await api.createMachine(activeTenantId, equipment);
+            showToast('Maquina registrada');
+            loadAgriculturalModule();
+          }
+        });
+      } else if (label === 'Planificar mantenimiento') {
+        const machineOptions = await agriculturalMachineOptions();
+        if (!machineOptions.length) {
+          showToast('Primero registrá una máquina desde Parque de maquinarias');
+          return;
+        }
+        openNewForm('Planificar mantenimiento', [{ id: 'maintenanceMachine', label: 'Maquina', type: 'select', options: machineOptions.map(item => `${item.value} · ${item.label}`), full: true }, { id: 'maintenanceDescription', label: 'Trabajo requerido', placeholder: 'Cambio de aceite y filtros', full: true }, { id: 'maintenanceDue', label: 'Vencimiento', type: 'date' }, { id: 'maintenancePriority', label: 'Prioridad', type: 'select', options: ['low', 'medium', 'high'] }, { id: 'maintenanceCost', label: 'Costo estimado (USD)', type: 'number', placeholder: '0' }], async formData => { await api.createMaintenance(activeTenantId, { machineId: formData.get('maintenanceMachine').split(' · ')[0], description: formData.get('maintenanceDescription'), dueAt: formData.get('maintenanceDue'), priority: formData.get('maintenancePriority'), estimatedCostUsd: Number(formData.get('maintenanceCost') || 0) }); showToast('Mantenimiento planificado'); loadAgriculturalModule(); });
+      } else if (label === 'Registrar estimacion de cosecha') {
+        const plotOptions = await agriculturalPlotSeasonOptions();
+        if (!plotOptions.length) { showToast('No hay lotes con campaña para estimar rinde'); return; }
+        openNewForm('Registrar estimacion de cosecha', [{ id: 'estimatePlotSeason', label: 'Lote / campaña', type: 'select', options: plotOptions, full: true }, { id: 'estimatedYield', label: 'Rinde estimado (tn/ha)', type: 'number', placeholder: '8.5' }], async formData => { await api.createHarvestEstimate(activeTenantId, { plotSeasonId: formData.get('estimatePlotSeason'), estimatedYieldTnHa: Number(formData.get('estimatedYield')) }); showToast('Estimacion de cosecha registrada'); loadAgriculturalModule(); });
+      } else if (label === 'Registrar ticket de balanza') {
+        const plotOptions = await agriculturalPlotSeasonOptions();
+        if (!plotOptions.length) { showToast('No hay lotes con campaña para registrar el ticket'); return; }
+        openNewForm('Registrar ticket de balanza', [{ id: 'ticketPlotSeason', label: 'Lote / campaña', type: 'select', options: plotOptions, full: true }, { id: 'ticketNumber', label: 'Numero de ticket', placeholder: 'BAL-0001' }, { id: 'ticketGross', label: 'Peso bruto (kg)', type: 'number' }, { id: 'ticketTare', label: 'Tara (kg)', type: 'number' }], async formData => { await api.createWeighTicket(activeTenantId, { plotSeasonId: formData.get('ticketPlotSeason'), ticketNumber: formData.get('ticketNumber'), grossKg: Number(formData.get('ticketGross')), tareKg: Number(formData.get('ticketTare')) }); showToast('Ticket de balanza registrado'); loadAgriculturalModule(); });
       } else if (label === 'Nuevo costo operativo') {
         openNewForm('Nuevo costo operativo', [{ id: 'costCategory', label: 'Categoria', type: 'select', options: ['combustible', 'mantenimiento', 'mano_obra', 'servicio', 'arrendamiento', 'aparceria', 'otro'] }, { id: 'costDescription', label: 'Descripcion', placeholder: 'Reparacion de sembradora', full: true }, { id: 'costDate', label: 'Fecha', type: 'date' }, { id: 'costAmount', label: 'Importe (USD)', type: 'number', placeholder: '0' }], async formData => { await api.createOperatingCost(activeTenantId, { category: formData.get('costCategory'), description: formData.get('costDescription'), costDate: formData.get('costDate'), amountUsd: Number(formData.get('costAmount')) }); showToast('Costo operativo registrado'); loadAgriculturalModule(); loadProfitabilityModule(); });
       } else if (label === 'Nuevo contrato agrario') {
@@ -2052,9 +2287,13 @@
       } else if (label === 'CPE exportadas PDF') {
         await downloadDocumentPdf('/api/reports/cpe.pdf', `cpe-${new Date().toISOString().slice(0, 10)}.pdf`, 'Reporte de CPE descargado');
       } else if (label === 'Prescripcion exportada') {
-        downloadFile(JSON.stringify({ format: 'ISOXML', campaign: localStorage.getItem('pampa-campaign') || '2025 / 2026', plot: 'L-04', zones: [{ targetRate: 145, minRate: 110, maxRate: 180 }] }, null, 2), 'prescripcion-L04.json', 'application/json');
-        recordAudit('Exportacion de prescripcion', 'L-04');
-        showToast('Prescripcion exportada');
+        const DB = window.PampaAgroDB;
+        const presc = DB ? (await DB.todo('prescripciones')).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))[0] : null;
+        if (!presc) { showToast('Todavía no hay prescripciones: creá una con Nueva prescripción'); return; }
+        const mapa = await DB.db.mapasRinde.get(presc.mapaId);
+        if (!mapa) { showToast('El mapa de rinde de esa prescripción ya no está'); return; }
+        descargarPrescripcion(presc, mapa, await DB.db.lotes.get(mapa.loteId));
+        recordAudit('Exportacion de prescripcion', presc.loteId);
       } else if (label === 'Exportar GeoJSON precision') {
         const features = importedGeoJson.flatMap(item => item.geoJson?.features || []).filter(feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type));
         if (!features.length) { showToast('No hay geometrías GeoJSON importadas para exportar'); return; }
@@ -2110,7 +2349,9 @@
           showToast(`Reporte preparado para ${recipient.user}`);
         });
       } else if (label === 'Nuevo rol') {
-        openNewForm('Nuevo rol', [{ id: 'roleName', label: 'Nombre del rol', placeholder: 'Ej. Supervisor de campo', full: true }, { id: 'roleDescription', label: 'Descripcion', placeholder: 'Responsabilidades y alcance', full: true }, { id: 'roleModules', label: 'Modulos habilitados', placeholder: 'Operaciones, Campos y lotes', full: true }], formData => { const roleName = formData.get('roleName'); if (roleName && !registeredRoles.includes(roleName)) { registeredRoles.push(roleName); localStorage.setItem('pampa-roles', JSON.stringify(registeredRoles)); refreshRoleOptions(); recordAudit('Creacion de rol', roleName); } });
+        const editor = document.querySelector('#rolPropioEditor');
+        if (editor) { editor.scrollIntoView({ behavior: 'smooth', block: 'start' }); editor.querySelector('input[name="nombre"]')?.focus(); }
+        else showToast('Los roles propios son de la versión Premium: en tu versión se usan los roles definidos.');
       } else if (label === 'Descargar respaldo local') {
         downloadBackup();
       } else if (label === 'Elegir carpeta local') {
@@ -2214,13 +2455,8 @@
         <section class="panel"><div class="panel-head"><div><h2>Legajos de empleados</h2><p class="panel-caption">Puestos, áreas, fechas de ingreso y estado laboral</p></div><button class="text-button" data-action="Nuevo empleado">+ Alta de empleado</button></div><table class="data-table"><thead><tr><th>Legajo</th><th>Puesto</th><th>Area</th><th>Ingreso</th><th>Estado</th></tr></thead><tbody id="hrEmployeeRows"><tr><td colspan="5">Cargando...</td></tr></tbody></table></section>
         <div class="layout" style="margin-top:19px"><section class="panel"><div class="panel-head"><div><h2>Asistencia y novedades</h2><p class="panel-caption">Parte diario de las últimas jornadas</p></div><button class="text-button" data-action="Registrar asistencia">+ Registrar</button></div><table class="data-table"><thead><tr><th>Fecha</th><th>Empleado</th><th>Estado</th><th>Horas</th><th>Extra</th></tr></thead><tbody id="hrAttendanceRows"><tr><td colspan="5">Cargando...</td></tr></tbody></table></section><section class="panel"><div class="panel-head"><div><h2>Liquidaciones</h2><p class="panel-caption">Períodos, personas y costo neto</p></div><button class="text-button" data-action="Nueva liquidacion">+ Nuevo período</button></div><table class="data-table"><thead><tr><th>Período</th><th>Personas</th><th>Total neto</th><th>Estado</th></tr></thead><tbody id="hrPayrollRows"><tr><td colspan="4">Cargando...</td></tr></tbody></table></section></div></section>`,
       'Finanzas': `
-        <header class="topbar"><div><div class="eyebrow">Workspace / Gestion financiera</div><h1>Finanzas</h1></div><div class="toolbar"><button class="button" data-action="Nueva cuenta de fondos">+ Cuenta</button><button class="button" data-action="Nuevo movimiento">+ Movimiento</button><button class="button" data-action="Nueva LPG">+ LPG</button><button class="button primary" data-action="Nueva venta">+ Nueva venta</button></div></header>
-        <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Ventas emitidas</span><strong id="financeSalesTotal">$ 0</strong></article><article class="panel module-stat warning"><span>Por cobrar</span><strong id="financeReceivable">$ 0</strong></article><article class="panel module-stat danger"><span>Por pagar</span><strong id="financePayableTotal">$ 0</strong></article><article class="panel module-stat"><span>Saldo de fondos</span><strong id="financeCashBalance">$ 0</strong></article><article class="panel module-stat"><span>Flujo neto</span><strong id="financeNetFlow">$ 0</strong></article><article class="panel module-stat warning"><span>Créditos abiertos</span><strong id="financeCreditBalance">$ 0</strong></article><article class="panel module-stat danger"><span>Vencidos</span><strong id="financeOverdueCredits">0 · $ 0</strong></article></div>
-        <section class="panel"><div class="panel-head"><div><h2>Liquidaciones Primarias de Granos</h2><p class="panel-caption">COE, productor, grano, documentos de respaldo, retenciones y saldo neto</p></div><button class="text-button" data-action="Nueva LPG">+ Emitir LPG</button></div><table class="data-table"><thead><tr><th>Comprobante / COE</th><th>Productor</th><th>Grano / campana</th><th>Peso neto</th><th>Neto a pagar</th><th>Estado</th></tr></thead><tbody id="financeLpgRows"><tr><td colspan="6">Cargando...</td></tr></tbody></table></section>
-        <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Ventas registradas</h2><p class="panel-caption">Comprobantes, clientes, importes y estado de cobro</p></div><button class="text-button" data-action="Nueva venta">+ Registrar venta</button></div><table class="data-table"><thead><tr><th>Comprobante</th><th>Cliente</th><th>Detalle</th><th>Total</th><th>Cobro</th></tr></thead><tbody id="financeSalesRows"><tr><td colspan="5">Cargando...</td></tr></tbody></table></section>
-        <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Créditos y cuentas por cobrar</h2><p class="panel-caption">Capital, vencimiento, saldo pendiente y estado</p></div><div class="toolbar"><button class="text-button" data-action="Cobrar crédito">Registrar cobro</button><button class="text-button" data-action="Nuevo crédito">+ Nuevo crédito</button></div></div><table class="data-table"><thead><tr><th>Crédito</th><th>Cliente</th><th>Vencimiento</th><th>Saldo</th><th>Estado</th></tr></thead><tbody id="financeCreditRows"><tr><td colspan="5">Cargando...</td></tr></tbody></table></section>
-        <div class="layout" style="margin-top:19px"><section class="panel"><div class="panel-head"><div><h2>Cuentas de fondos</h2><p class="panel-caption">Caja, bancos y billeteras operativas</p></div><button class="text-button" data-action="Nueva cuenta de fondos">+ Nueva cuenta</button></div><table class="data-table"><thead><tr><th>Cuenta</th><th>Moneda</th><th>Saldo</th><th>Estado</th></tr></thead><tbody id="financeAccountRows"><tr><td colspan="4">Cargando...</td></tr></tbody></table></section><section class="panel"><div class="panel-head"><div><h2>Flujo diario</h2><p class="panel-caption">Ingresos y egresos confirmados</p></div><span class="eyebrow">Periodo actual</span></div><table class="data-table"><thead><tr><th>Fecha</th><th>Ingresos</th><th>Egresos</th><th>Neto</th></tr></thead><tbody id="financeFlowRows"><tr><td colspan="4">Cargando...</td></tr></tbody></table></section></div>
-        <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Movimientos de fondos</h2><p class="panel-caption">Registro bancario y de caja</p></div><div class="toolbar"><button class="text-button" data-action="Registrar cobro">Registrar cobro</button><button class="text-button" data-action="Nuevo movimiento">+ Registrar movimiento</button></div></div><table class="data-table"><thead><tr><th>Fecha</th><th>Cuenta</th><th>Descripcion</th><th>Tipo</th><th>Importe</th></tr></thead><tbody id="financeMovementRows"><tr><td colspan="5">Cargando...</td></tr></tbody></table></section></section>`,
+        <header class="topbar"><div><div class="eyebrow">Administración / Caja, bancos, cobros, pagos, cheques y créditos</div><h1>Finanzas</h1></div></header>
+        <section id="agroCoreRoot"></section>`,
       'Rentabilidad': `
         <header class="topbar"><div><div class="eyebrow">Workspace / Decisiones económicas</div><h1>Rentabilidad</h1></div><div class="toolbar"><select id="profitabilityCampaign" aria-label="Campaña"><option>2025 / 2026</option></select><button class="button" data-action="Exportar rentabilidad">Exportar reporte</button><button class="button" data-action="Nuevo costo operativo">+ Registrar costo</button><button class="button primary" data-action="Nuevo ingreso productivo">+ Registrar ingreso</button></div></header>
         <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Ingresos registrados</span><strong id="profitRevenue">$ 0</strong></article><article class="panel module-stat danger"><span>Costos registrados</span><strong id="profitCosts">$ 0</strong></article><article class="panel module-stat warning"><span>Resultado neto</span><strong id="profitNet">$ 0</strong></article><article class="panel module-stat"><span>Margen</span><strong id="profitMargin">0%</strong></article></div>
@@ -2263,6 +2499,12 @@
         <div class="layout" style="margin-top:19px"><section class="panel"><div class="panel-head"><div><h2>Instrumental recomendado</h2><p class="panel-caption">Patrones de contraste y verificacion de campo</p></div></div><table class="data-table"><thead><tr><th>Herramienta</th><th>Uso principal</th></tr></thead><tbody id="calibrationToolRows"></tbody></table></section><section class="panel"><div class="panel-head"><div><h2>Errores que se multiplican</h2><p class="panel-caption">La dosis real no es el valor de una sola pantalla</p></div><span class="pill yellow">Control critico</span></div><div class="footnote" style="line-height:1.7"><strong>Ejemplo acumulado:</strong> 4% velocidad × 5% caudalimetro × 6% picos = hasta 15% de error real de dosis.<br><strong>Regla de cierre:</strong> lo aplicado debe cerrar contra balanza, tanque o bolsa con desvio menor a 3%.<br><strong>Mapa de rinde:</strong> sin calibracion multipunto y registro auditable, no usar para prescripciones.</div></section></div>
         <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Registros de calibracion</h2><p class="panel-caption">Fecha, factor ajustado, desvio encontrado y proxima verificacion</p></div><button class="text-button" data-action="Nuevo registro de calibracion">+ Registrar</button></div><table class="data-table"><thead><tr><th>Fecha</th><th>Sistema / equipo</th><th>Patron</th><th>Factor</th><th>Desvio</th><th>Proxima</th><th>Estado</th></tr></thead><tbody id="calibrationRecordRows"></tbody></table></section></section>`,
       'Plan de equipamiento': `
+        <header class="topbar"><div><div class="eyebrow">Recursos / Maquinaria, mantenimiento y costos</div><h1>Equipo</h1></div></header>
+        <section id="agroCoreRoot"></section>`,
+      'Costos': `
+        <header class="topbar"><div><div class="eyebrow">Administración / Compras, gastos, labores y estructura</div><h1>Costos</h1></div></header>
+        <section id="agroCoreRoot"></section>`,
+      'Plan de equipamiento (catálogo)': `
         <header class="topbar"><div><div class="eyebrow">Workspace / Planificacion por escala</div><h1>Plan de equipamiento</h1></div><div class="toolbar"><button class="button" data-action="Exportar plan equipamiento JSON">Exportar JSON</button><button class="button" id="toggleEquipCatalog" type="button">Mostrar catalogo completo</button><select id="equipScale" class="equip-filter" aria-label="Escala"><option value="E1">E1 · &lt; 500 ha</option><option value="E2" selected>E2 · 500-1.500 ha</option><option value="E3">E3 · 1.500-5.000 ha</option><option value="E4">E4 · &gt; 5.000 ha</option></select><select id="equipMachinery" class="equip-filter" aria-label="Situacion de maquinaria"><option value="M1" selected>M1 · Todo propio</option><option value="M2">M2 · Siembra y pulv. propias</option><option value="M3">M3 · Contratista</option><option value="M4">M4 · Desde cero</option></select><select id="equipCrop" class="equip-filter" aria-label="Cultivo"><option value="ALL" selected>Todos</option><option value="TR">Trigo</option><option value="SJ">Soja</option><option value="MZ">Maiz</option><option value="GI">Girasol</option></select><select id="equipPriority" class="equip-filter" aria-label="Prioridad"><option value="ALL">Todas</option><option value="P1" selected>P1 Insumos</option><option value="P2">P2 Rendimiento</option><option value="P3">P3 Datos</option><option value="P4">P4 Mano de obra</option></select><select id="equipLevel" class="equip-filter" aria-label="Nivel"><option value="ALL" selected>Todos los niveles</option><option value="N0">N0 Base</option><option value="N1">N1 Intermedio</option><option value="N2">N2 Avanzado</option><option value="N3">N3 Frontera</option></select></div></header>
         <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Escenario activo</span><strong id="equipScaleState">-</strong></article><article class="panel module-stat"><span>Modelo de maquinaria</span><strong id="equipMachineryState">-</strong></article><article class="panel module-stat warning"><span>Banda inversion</span><strong id="equipInvestmentBand">-</strong></article><article class="panel module-stat danger"><span>Items recomendados</span><strong id="equipItemsCount">0</strong></article></div>
         <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Planificacion recomendada</h2><p class="panel-caption">Se actualiza al cambiar la escala</p></div><span class="pill">Escala seleccionada</span></div><div class="footnote" id="equipRecommendedPlan" style="line-height:1.7">Selecciona una escala para ver la planificacion recomendada.</div></section>
@@ -2476,6 +2718,11 @@
       const operational = `\n\nCampos: ${registeredFields.length}\nLotes georreferenciados: ${registeredLots.length}\nSuperficie declarada: ${registeredFieldDetails.reduce((total, field) => total + Number(field.surface || 0), 0).toLocaleString('es-AR')} ha`;
       const alertsCount = document.querySelector('#dashboardAlerts')?.textContent || 'Sin calcular';
       const alerts = `\n\nAlertas activas: ${alertsCount}\nÓrdenes en curso: datos del módulo Operaciones\nCumplimiento operativo: datos registrados en el ERP`;
+      // Con PampaIA: el resumen o las alertas calculados con los datos y con lo que puede ver ese rol.
+      if (window.PampaAsistenteIA && typeof datosIA !== 'undefined' && datosIA) {
+        const r = asistenteIA().ejecutar(reportType === 'Alertas y pendientes' ? 'alertas' : 'resumen', null, { rol });
+        return `${header}\n\n${r.texto}\n\nGenerado por Pampa Precision ERP · ${new Date().toLocaleString('es-AR')}`;
+      }
       return `${header}${operational}${reportType === 'Alertas y pendientes' ? alerts : ''}\n\nGenerado por Pampa Precision ERP · ${new Date().toLocaleString('es-AR')}`;
     }
     async function downloadReportPdf(type) {
@@ -2946,6 +3193,8 @@
     document.querySelectorAll('button[data-view]').forEach(button => {
       button.addEventListener('click', () => {
         setMobileSidebarOpen(false);
+        if (!RolesP.vistaEnPlan(planPrecision(), button.dataset.view)) { showToast(`Este módulo es de la versión ${NOMBRE_VERSION[RolesP.planMinimoVista(button.dataset.view)]}`); return; }
+        if (!RolesP.puedeVista(rolActivo(), button.dataset.view)) { showToast(`Tu rol (${rolActivo().nombre}) no tiene acceso a este módulo`); return; }
         document.querySelector('button[data-view].active')?.classList.remove('active');
         button.classList.add('active');
         activeModuleView = button.dataset.view;
@@ -2955,6 +3204,11 @@
           window.PampaIA?.mount();
         } else if (button.dataset.view === 'Campos y lotes') {
           showFieldsAndLotsModule();
+        } else if (['Plan de equipamiento', 'Costos', 'Finanzas'].includes(button.dataset.view) && window.PampaAgroUI) {
+          main.innerHTML = moduleViews[button.dataset.view];
+          bindModuleActions();
+          const grupo = { 'Plan de equipamiento': ['equipos', 'equipo'], Costos: ['compras', 'costos'], Finanzas: ['fondos', 'finanzas'] }[button.dataset.view];
+          window.PampaAgroUI.montar(main.querySelector('#agroCoreRoot'), grupo[0], { conjunto: grupo[1] });
         } else if (button.dataset.view === 'Rentabilidad' && window.PampaAgroUI) {
           // Costos y rentabilidad en pesos (USD informativo), con el núcleo agrícola.
           main.innerHTML = moduleViews['Granos'].replace('<h1>Granos, costos y fiscal</h1>', '<h1>Costos y rentabilidad</h1>');
@@ -2984,10 +3238,62 @@
           if (button.dataset.view === 'Auditoria') bindAuditFilter();
           if (button.dataset.view === 'ARCA') loadArcaModule();
           if (button.dataset.view === 'Licencias') loadLicensesModule();
+          if (button.dataset.view === 'Usuarios y roles') renderRolesModule();
             if (button.dataset.view === 'Conectividad y sincronizacion') loadConnectivityModule();
         }
       });
     });
+    // Pantalla "Usuarios y roles": los roles de la versión con lo que ve cada uno y, en Premium, roles propios.
+    function renderRolesModule() {
+      const page = main.querySelector('.module-page');
+      if (!page) return;
+      const plan = planPrecision();
+      const premium = plan === 'premium' || plan === 'trial';
+      const nombrePlan = { basica: 'Básica', profesional: 'Profesional', premium: 'Premium', trial: 'Prueba gratis (Premium)' }[plan];
+      const etiquetaVista = Object.fromEntries(RolesP.VISTAS);
+      const etiquetaTab = Object.fromEntries(RolesP.TABS);
+      const lista = (valor, etiquetas) => (valor === RolesP.TODO ? (plan === 'premium' || plan === 'trial' ? '<strong>Todo</strong>' : `<strong>Todo lo de la versión</strong>`) : valor.filter(v => (etiquetas === etiquetaTab ? RolesP.tabEnPlan(plan, v) : RolesP.vistaEnPlan(plan, v))).map(v => etiquetas[v] || v).join(', ') || '—');
+      const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+      const activo = rolActivo();
+      const filas = rolesDisponibles().map(r => `<tr><td><strong>${esc(r.nombre)}</strong><small>${esc(r.descripcion || '')}</small>${r.nombre === activo.nombre ? ' <span class="pill green">Activo</span>' : ''}</td><td>${lista(r.vistas, etiquetaVista)}</td><td>${RolesP.puedeVista(r, 'Granos') || r.vistas === RolesP.TODO ? lista(r.tabs, etiquetaTab) : '—'}</td><td>${r.propio ? `<button class="text-button" type="button" data-borrar-rol="${esc(r.nombre)}">Borrar</button>` : `<small>${r.plan === 'basica' ? 'Todas las versiones' : 'Profesional y Premium'}</small>`}</td></tr>`).join('');
+      const editor = premium ? `<section class="panel" style="margin-top:19px" id="rolPropioEditor"><div class="panel-head"><div><h2>Nuevo rol propio</h2><p class="panel-caption">Premium: perfiles propios de la empresa, con los módulos y pestañas que elijas</p></div><span class="pill">Premium</span></div>
+          <form id="rolPropioForm" style="display:grid;gap:12px"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px"><label>Nombre del rol<input name="nombre" required placeholder="Ej. Supervisor de cosecha" style="width:100%"></label><label>Descripción<input name="descripcion" placeholder="Responsabilidades" style="width:100%"></label></div>
+          <div><strong>Módulos</strong><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:4px;margin-top:6px">${RolesP.VISTAS.filter(([v]) => v !== 'Centro operativo').map(([v, t]) => `<label style="display:flex;gap:6px;align-items:center"><input type="checkbox" name="vista" value="${esc(v)}"> ${esc(t)}</label>`).join('')}</div></div>
+          <div><strong>Pestañas de Granos, costos y fiscal</strong><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:4px;margin-top:6px">${RolesP.TABS.map(([v, t]) => `<label style="display:flex;gap:6px;align-items:center"><input type="checkbox" name="tab" value="${esc(v)}"> ${esc(t)}</label>`).join('')}</div></div>
+          <div><button class="button primary" type="submit">Guardar rol</button></div></form></section>` : `<section class="panel" style="margin-top:19px"><p class="panel-caption">Los roles propios (perfiles con permisos a medida) son de la versión Premium. Tu versión: ${esc(nombrePlan)}.</p></section>`;
+      page.innerHTML = `<div class="module-grid"><article class="panel module-stat"><span>Usuarios</span><strong>${registeredUsers.length}</strong></article><article class="panel module-stat"><span>Roles de tu versión</span><strong>${rolesDisponibles().length}</strong></article><article class="panel module-stat"><span>Versión</span><strong style="font-size:18px">${esc(nombrePlan)}</strong></article></div>
+        <section class="panel"><div class="panel-head"><div><h2>Roles y permisos</h2><p class="panel-caption">Cada rol ve solo sus módulos y pestañas; PampaIA responde con los mismos permisos. El rol activo se elige arriba, junto al usuario.</p></div><span class="pill">${esc(activo.nombre)}</span></div>
+        <table class="data-table"><thead><tr><th>Rol</th><th>Módulos</th><th>Pestañas de Granos</th><th></th></tr></thead><tbody>${filas}</tbody></table></section>${editor}`;
+      page.querySelectorAll('[data-borrar-rol]').forEach(b => b.addEventListener('click', () => {
+        if (!confirm(`¿Borrar el rol "${b.dataset.borrarRol}"? Quien lo tenga asignado no va a ver ningún módulo hasta que elija otro.`)) return;
+        localStorage.setItem(ROLES_PROPIOS_KEY, JSON.stringify(rolesPropios().filter(r => r.nombre !== b.dataset.borrarRol)));
+        recordAudit('Baja de rol propio', b.dataset.borrarRol);
+        refreshRoleOptions(); aplicarPermisos(); renderRolesModule();
+      }));
+      page.querySelector('#rolPropioForm')?.addEventListener('submit', event => {
+        event.preventDefault();
+        const f = event.currentTarget;
+        const nombre = f.elements.nombre.value.trim();
+        if (!nombre) return;
+        if (rolesDisponibles().some(r => RolesP.norm(r.nombre) === RolesP.norm(nombre))) { showToast('Ya existe un rol con ese nombre'); return; }
+        const vistas = [...f.querySelectorAll('input[name="vista"]:checked')].map(i => i.value);
+        const tabs = [...f.querySelectorAll('input[name="tab"]:checked')].map(i => i.value);
+        if (tabs.length && !vistas.includes('Granos')) vistas.push('Granos');
+        localStorage.setItem(ROLES_PROPIOS_KEY, JSON.stringify([...rolesPropios(), { nombre, descripcion: f.elements.descripcion.value.trim(), vistas, tabs }]));
+        recordAudit('Creación de rol propio', `${nombre} · ${vistas.length} módulo(s)`);
+        refreshRoleOptions(); renderRolesModule();
+        showToast(`Rol "${nombre}" creado`);
+      });
+    }
+    // Planificación de equipamiento por escala (pantalla anterior), dentro de la pestaña Planificación de Equipo.
+    window.PampaPrecisionLegacy = {
+      montarPlanEquipamiento(el) {
+        if (!el) return;
+        el.innerHTML = moduleViews['Plan de equipamiento (catálogo)'].replace(/<header class="topbar">[\s\S]*?<\/header>/, '');
+        bindModuleActions();
+        loadEquipmentPlanModule().catch(error => console.warn('Planificación de equipamiento', error));
+      },
+    };
     function openModule(view) {
       const button = [...document.querySelectorAll('button[data-view]')].find(item => item.dataset.view === view);
       button?.click();
@@ -3094,6 +3400,89 @@
     document.querySelector('#deepCleanupButton').addEventListener('click', runDeepCleanup);
     bindDashboardActions();
 
+    // ---- Mapas de rinde y prescripciones (Precisión) ----
+    // CSV del monitor: separador ; , o tabulación; columnas de latitud, longitud y rinde (por nombre o, si
+    // no hay encabezado, en ese orden). Rinde en kg/ha se pasa a t/ha.
+    function leerCsvRinde(texto) {
+      const filas = String(texto || '').split(/\r?\n/).map(f => f.trim()).filter(Boolean);
+      if (!filas.length) return [];
+      const sep = [';', '\t', ','].find(s => filas[0].includes(s)) || ',';
+      const decimalComa = sep !== ',';
+      const valor = v => { const t = String(v ?? '').trim().replace(/^"|"$/g, ''); return Number(decimalComa && t.includes(',') ? t.replace(/\./g, '').replace(',', '.') : t); };
+      const cab = filas[0].split(sep).map(c => c.trim().replace(/^"|"$/g, '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''));
+      const idx = (re) => cab.findIndex(c => re.test(c));
+      let iLat = idx(/^(lat|latitud|latitude|y)$|lat/), iLon = idx(/^(lon|lng|long|longitud|longitude|x)$|lon|lng/), iRinde = idx(/rinde|rend|yield|rto|masa|vrya|dry/);
+      const conCabecera = iLat >= 0 || iLon >= 0 || iRinde >= 0;
+      if (!conCabecera) { iLat = 0; iLon = 1; iRinde = 2; }
+      const puntos = filas.slice(conCabecera ? 1 : 0).map(f => { const c = f.split(sep); return { lat: valor(c[iLat]), lon: valor(c[iLon]), rinde: valor(c[iRinde]) }; }).filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lon) && Number.isFinite(p.rinde));
+      const ordenados = puntos.map(p => p.rinde).filter(r => r > 0).sort((a, b) => a - b);
+      const mediana = ordenados[Math.floor(ordenados.length / 2)] || 0;
+      return mediana > 100 ? puntos.map(p => ({ ...p, rinde: p.rinde / 1000 })) : puntos;
+    }
+    function descargarPrescripcion(presc, mapa, lote) {
+      const A = window.PampaAgroCore;
+      const puntos = A.limpiarMapaRinde(mapa.puntos).validos;
+      const z = A.zonificar(puntos);
+      const zonas = A.prescripcionPorZonas(z, { ...presc, ha: Number(lote?.superficieHa) || 0 });
+      const geo = A.prescripcionGeoJson(puntos, z, zonas, { lote: lote?.codigo || '', operacion: presc.operacion, unidad: presc.unidad });
+      const nombre = `prescripcion-${(lote?.codigo || 'lote').replace(/[^\w-]+/g, '_')}-${presc.fecha || window.PampaAgroCore.fechaIso(new Date().toLocaleDateString('es-AR'))}`;
+      downloadFile(JSON.stringify(geo), `${nombre}.geojson`, 'application/geo+json');
+      setTimeout(() => showToast(`Prescripción exportada: ${zonas.zonas.map(x => `${x.nombre} ${x.dosis} ${presc.unidad}`).join(' · ')}`), 60);
+    }
+
+    // ---- PampaIA: capacidades por versión (asistente-ia.js), igual que Tambo y Ganadería ----
+    // Básica / Profesional / Premium según la licencia; la prueba ve todo. Calcula con la misma base local
+    // y el mismo resumen que el tablero (PampaAgroUI.instantaneaIA), que se refresca con cada cambio.
+    window.PAMPA_LICENSE_STORAGE_KEY = 'PampaPrecisionLicense';
+    const planIAPrecision = planPrecision;
+    let datosIA = null;
+    let asistenteIACache = null;
+    function asistenteIA() {
+      if (!window.PampaAsistenteIA) throw new Error('No se cargó el asistente de PampaIA (asistente-ia.js).');
+      if (!asistenteIACache) asistenteIACache = window.PampaAsistenteIA.crearAsistente({
+        datos: () => datosIA,
+        plan: planIAPrecision,
+        rol: () => rolActivo().nombre,
+        acceso: (rol, dato) => RolesP.puedeDatoIA(RolesP.rolEfectivo(rol, planPrecision(), rolesPropios()), dato),
+      });
+      return asistenteIACache;
+    }
+    const cargandoIA = { titulo: 'PampaIA', lineas: [{ nivel: 'ok', texto: 'Leyendo los datos de este equipo…' }], texto: '*PampaIA*\n\nLeyendo los datos de este equipo…' };
+    function mostrarResultadoIA(r) {
+      const html = window.PampaAsistenteIA.aHtml(r.texto) + (r.nota ? `<br><br><small>${window.PampaAsistenteIA.aHtml(r.nota)}</small>` : '');
+      const respuesta = document.getElementById('pampaIAAnswer');
+      if (respuesta) respuesta.innerHTML = html;
+      return html;
+    }
+    function montarCapacidadesIA() {
+      const panel = document.getElementById('pampaiaPanel');
+      if (!panel || !window.PampaAsistenteIA) return;
+      try { window.PampaAsistenteIA.montarCapacidades(panel, asistenteIA(), r => mostrarResultadoIA(datosIA ? r : cargandoIA)); } catch (error) { console.error('PampaIA: no se pudieron mostrar las capacidades:', error); }
+    }
+    // Lo usa pampaia-source.js (panel del Centro operativo) para calcular con los datos de la app.
+    window.PampaIAAdapter = {
+      getState: () => datosIA?.E || {},
+      getRole: () => rolActivo().nombre,
+      getPlan: planIAPrecision,
+      analizar: tipo => (datosIA ? asistenteIA().analizar(tipo) : cargandoIA),
+      responder: pregunta => (datosIA ? asistenteIA().responder(pregunta) : cargandoIA),
+      mostrar: mostrarResultadoIA,
+      montarCapacidades: montarCapacidadesIA,
+    };
+    // Al llegar los datos, y con cada cambio, sincronización, licencia o rol, se recalcula el panel.
+    let refrescoIA = null;
+    function refrescarIA() {
+      clearTimeout(refrescoIA);
+      refrescoIA = setTimeout(async () => {
+        try { if (window.PampaAgroUI?.instantaneaIA) datosIA = await window.PampaAgroUI.instantaneaIA(); } catch (error) { console.warn('PampaIA: no se pudieron leer los datos.', error); }
+        if (document.getElementById('pampaiaPanel')) { window.pampaIAAnalizar?.('empresa'); montarCapacidadesIA(); }
+      }, 300);
+    }
+    window.PampaAgroDB?.alCambiar(refrescarIA);
+    window.addEventListener('pampa-agro-sync', refrescarIA);
+    document.addEventListener('change', event => { if (['roleSelector', 'dashboardRoleSelector'].includes(event.target?.id)) refrescarIA(); });
+    refrescarIA();
+
     // ---- Licencia y prueba gratis (mismas condiciones que Agro, Ganadería, Tambo y Porcinos) ----
     // Web: hace falta una licencia firmada o la prueba de 10 días. El servidor (pampa-trial-guard.js,
     // en el <head>) recuerda el primer inicio: borrar los datos del navegador, usar otro o volver a
@@ -3177,6 +3566,10 @@
         banner?.remove();
         if (label) label.textContent = raw?.plan && !esTrial(raw) ? `Licencia ${raw.plan}` : 'Sin licencia activa';
       }
+      refrescarIA();
+      refreshRoleOptions();
+      refreshDashboardContext();
+      aplicarPermisos();
     }
 
     async function initPrecisionLicenseCheck() {
@@ -3240,6 +3633,7 @@
     });
 
     initPrecisionLicenseCheck();
+    aplicarPermisos();
 
     // Vigilante de red + badge de estado en la barra lateral, vía el paquete compartido @pampa/core-sync.
     window.PampaCoreSync?.activarSincronizacionAutomatica({
@@ -3256,7 +3650,7 @@
       }
     });
   </script>
-<script src="pampaia-source.js?v=pampaia-published-6"></script>
+<script src="pampaia-source.js?v=pampaia-published-8"></script>
   <script src="./pampa-privacy-popup.js"></script>
 <script src="vendor/pampa-seat-control.js" data-product="pampa-precision"></script>
   <script src="./trial-progress.js"></script>

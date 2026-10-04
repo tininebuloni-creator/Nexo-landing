@@ -36,6 +36,12 @@
   });
   // Versión 4: marcas de borrado, para que un borrado viaje a los otros equipos al sincronizar.
   db.version(4).stores({ borrados: '&id, tabla, rowId, borradoEn' });
+  // Versión 5: mapas de rinde (puntos del monitor de cosecha) y prescripciones variables (PampaIA Premium).
+  db.version(5).stores({ mapasRinde: '&id, loteId, campania, fecha', prescripciones: '&id, mapaId, loteId, fecha' });
+  // Versión 6: recetas agronómicas y residuos agrícolas (silobolsas, plásticos y peligrosos).
+  db.version(6).stores({ recetas: '&id, numero, fecha, loteId, estado', residuos: '&id, fecha, tipo, estado, ubicacionId' });
+  // Versión 7: mantenimiento de equipos y finanzas (cuentas, movimientos de fondos, cheques y créditos).
+  db.version(7).stores({ mantenimientos: '&id, equipoId, fecha, tipo, estado', cuentas: '&id, nombre, tipo', movimientosFondos: '&id, fecha, cuentaId, tipo, origen, origenId', cheques: '&id, numero, vencimiento, sentido, estado', creditos: '&id, entidad, fecha' });
   const TABLAS = db.tables.map((t) => t.name).filter((n) => n !== 'meta');
 
   const nuevoId = () => (window.crypto?.randomUUID ? window.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`);

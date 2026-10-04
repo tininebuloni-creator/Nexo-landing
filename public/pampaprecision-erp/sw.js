@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pampa-precision-v97-trial';
+const CACHE_NAME = 'pampa-precision-v102-versiones';
 // Todo lo que la app necesita para abrir sin conexión desde la primera visita (mismas URLs que index.html).
 const APP_SHELL = [
   './', './index.html', './manifest.webmanifest', './logo2.png', './logo-sm-esquina.png', './logo-sm-esquina.webp',
@@ -6,8 +6,8 @@ const APP_SHELL = [
   './vendor/pampa-licensing.js', './vendor/pampa-license-key.js', './vendor/pampa-license-verify.js', './vendor/dexie.min.js',
   './pampa-core-sync.js', './vendor/pampa-search.js?v=2', './shared/pampa-onpremise-disclaimer.js',
   './shared/core-fiscal-arca/normative-update.browser.js', './shared/core-offline/report-voice.js',
-  './vendor/leaflet/leaflet.js', './pampa-trial-guard.js', './offline-db.js?v=1', './agro-core.js?v=8', './agro-db.js?v=6', './agro-sync.js?v=1', './agro-ui.js?v=8',
-  './sync-manager.js?v=2', './api-client.js?v=8', './sync-handlers.js?v=1', './pampaia-source.js?v=pampaia-published-6',
+  './vendor/leaflet/leaflet.js', './pampa-trial-guard.js', './offline-db.js?v=1', './precision-roles.js?v=3', './agro-core.js?v=12', './asistente-ia.js?v=2', './agro-db.js?v=9', './agro-sync.js?v=1', './agro-ui.js?v=13',
+  './sync-manager.js?v=2', './api-client.js?v=8', './sync-handlers.js?v=1', './pampaia-source.js?v=pampaia-published-8',
   './pampa-privacy-popup.js', './vendor/pampa-seat-control.js',
 ];
 

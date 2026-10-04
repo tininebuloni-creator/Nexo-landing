@@ -488,12 +488,13 @@
         push({ fecha: `${m}-01`, grupo: 'Personal', origen: 'Sueldos', concepto: `${e.nombre} (cargas ${cargas} %)`, importe: num(e.sueldo) * (1 + cargas / 100) });
       });
     });
-    // Amortización lineal de equipos: (valor − residual) / vida útil, por mes.
+    // Amortización lineal de equipos: (valor − residual) / vida útil, por mes, desde el alta, durante la
+    // vida útil y hasta la baja del equipo.
     (d.equipos || []).forEach((e) => {
       const anual = num(e.vidaUtilAnios) > 0 ? (num(e.valor) - num(e.valorResidual)) / num(e.vidaUtilAnios) : 0;
       if (!(anual > 0)) return;
       meses.forEach((m) => {
-        if (e.fechaAlta && fechaIso(e.fechaAlta).slice(0, 7) > m) return;
+        if (!amortizaEnMes(e, m)) return;
         push({ fecha: `${m}-01`, grupo: 'Amortizaciones', origen: 'Equipos', concepto: e.nombre, importe: anual / 12 });
       });
     });
@@ -653,13 +654,13 @@
     return out;
   }
   const LEY_FITO = 'Ley 27.279 (envases vacíos de fitosanitarios) y leyes provinciales de agroquímicos (receta agronómica)';
-  function alertasSenasa({ labores = [], productos = [], equipos = [], envases = [], renspa = [], lotes = [], lotesCampania = [], movimientosGrano = [], hoy } = {}) {
+  function alertasSenasa({ labores = [], productos = [], equipos = [], envases = [], recetas = [], renspa = [], lotes = [], lotesCampania = [], movimientosGrano = [], hoy } = {}) {
     const h = fechaIso(hoy) || fechaIso(new Date().toISOString());
     const dias = (f) => Math.round((Date.parse(`${fechaIso(f)}T12:00:00Z`) - Date.parse(`${h}T12:00:00Z`)) / 864e5);
     const loteCod = (id) => lotes.find((l) => l.id === id)?.codigo || id;
     const alertas = [];
     labores.filter((l) => l.tipo === 'Aplicación').forEach((l) => {
-      if (l.estado === 'REALIZADA' && (!l.agronomo || !l.matricula || !l.receta)) alertas.push({ nivel: 'danger', texto: `Aplicación del ${l.fecha} en ${loteCod(l.loteId)} sin receta agronómica completa (ingeniero, matrícula y número).` });
+      alertas.push(...controlesAplicacion(l, { recetas, productos, lotes }));
       (l.insumos || []).forEach((u) => {
         const p = productos.find((x) => normNombre(x.nombre) === normNombre(u.insumo));
         if (!p) alertas.push({ nivel: 'warn', texto: `${u.insumo} (aplicación ${l.fecha}): no está en el registro de fitosanitarios (n.º SENASA y carencia).` });
@@ -676,6 +677,7 @@
       if (d < 0) alertas.push({ nivel: 'danger', texto: `${e.nombre}: habilitación de aplicador vencida hace ${-d} día(s).` });
       else if (d <= 30) alertas.push({ nivel: 'warn', texto: `${e.nombre}: habilitación de aplicador vence en ${d} día(s).` });
     });
+    recetas.filter((r) => r.estado !== 'ANULADA').forEach((r) => alertas.push(...controlesReceta(r, { productos, equipos, hoy: h }).map((a) => ({ ...a, texto: a.texto }))));
     carencias({ labores, productos, hoy: h }).filter((c) => c.activa).forEach((c) => alertas.push({ nivel: 'warn', texto: `${loteCod(c.loteId)} (${CULTIVOS[c.cultivo]?.nombre || ''}): en carencia por ${c.producto} hasta el ${c.libera} — no cosechar antes.` }));
     violacionesCarencia({ labores, productos, movimientosGrano }).forEach((c) => alertas.push({ nivel: 'danger', texto: `${loteCod(c.loteId)}: cosechado el ${c.cosecha} dentro de la carencia de ${c.producto} (liberaba el ${c.libera}).` }));
     const pendientes = envases.filter((x) => x.estado !== 'ENTREGADO_CAT');
@@ -683,6 +685,467 @@
     if (viejos.length) alertas.push({ nivel: 'warn', texto: `${viejos.reduce((s, x) => s + num(x.cantidad), 0)} envase(s) de fitosanitarios con más de 30 días sin entregar al CAT.` });
     pendientes.filter((x) => x.estado === 'PENDIENTE_LAVADO').forEach((x) => alertas.push({ nivel: 'warn', texto: `${x.cantidad} envase(s) de ${x.producto} sin triple lavado.` }));
     return alertas;
+  }
+
+  // ================= Equipo: amortización, mantenimiento y costo operativo =================
+  // El costo horario cargado en cada equipo (combustible, mantenimiento y operario) es el que se imputa a
+  // las labores; la amortización va a estructura. Los registros de mantenimiento y el combustible de las
+  // labores sirven para comparar el costo real por hora con el cargado (no se suman dos veces).
+  const CATEGORIAS_EQUIPO = ['Tractor', 'Sembradora', 'Pulverizadora', 'Cosechadora', 'Fertilizadora', 'Tolva / acoplado', 'Camión / utilitario', 'Embolsadora / extractora', 'Otro'];
+  const TIPOS_MANTENIMIENTO = { SERVICE: 'Service preventivo', REPARACION: 'Reparación', INSPECCION: 'Inspección / control', NEUMATICOS: 'Neumáticos', COMBUSTIBLE: 'Carga de combustible', OTRO: 'Otro' };
+  const mesesEntre = (a, b) => { const [ya, ma] = fechaIso(a).split('-').map(Number); const [yb, mb] = fechaIso(b).split('-').map(Number); return (yb - ya) * 12 + (mb - ma); };
+  function amortizacionEquipo(e, hoy) {
+    const h = fechaIso(hoy) || fechaIso(new Date().toISOString());
+    const vida = num(e.vidaUtilAnios);
+    const base = num(e.valor) - num(e.valorResidual);
+    const anual = vida > 0 && base > 0 ? base / vida : 0;
+    const hasta = e.baja && fechaIso(e.baja) < h ? fechaIso(e.baja) : h;
+    const meses = e.fechaAlta ? Math.max(0, Math.min(vida * 12, mesesEntre(e.fechaAlta, hasta) + 1)) : 0;
+    const acumulada = anual / 12 * meses;
+    return { anual: redondear(anual), mensual: redondear(anual / 12), acumulada: redondear(acumulada), valorLibro: redondear(num(e.valor) - acumulada), amortizado: vida > 0 && meses >= vida * 12, mesesRestantes: vida > 0 ? Math.max(0, vida * 12 - meses) : null };
+  }
+  // ¿Corresponde amortizar el equipo en ese mes? (desde el alta, durante la vida útil y hasta la baja)
+  function amortizaEnMes(e, mes) {
+    if (!(num(e.vidaUtilAnios) > 0)) return false;
+    if (e.fechaAlta && fechaIso(e.fechaAlta).slice(0, 7) > mes) return false;
+    if (e.baja && fechaIso(e.baja).slice(0, 7) < mes) return false;
+    return !e.fechaAlta || mesesEntre(e.fechaAlta, `${mes}-01`) < num(e.vidaUtilAnios) * 12;
+  }
+  // Vencimientos del equipo: seguro, VTV / RTO y habilitación de aplicador.
+  function vencimientosEquipo(e, hoy) {
+    const h = fechaIso(hoy) || fechaIso(new Date().toISOString());
+    return [['seguroVence', 'Seguro'], ['vtvVence', 'VTV / RTO'], ['habilitacionVence', 'Habilitación de aplicador']].filter(([k]) => e[k]).map(([k, nombre]) => {
+      const dias = Math.round((Date.parse(`${fechaIso(e[k])}T12:00:00Z`) - Date.parse(`${h}T12:00:00Z`)) / 864e5);
+      return { nombre, vence: fechaIso(e[k]), dias, estado: dias < 0 ? 'VENCIDO' : dias <= 30 ? 'POR_VENCER' : 'VIGENTE' };
+    });
+  }
+  function alertasEquipos({ equipos = [], labores = [], mantenimientos = [], hoy } = {}) {
+    const out = [];
+    const activos = equipos.filter((e) => !e.baja);
+    mantenimientoEquipos({ equipos: activos, labores, hoy }).forEach((m) => {
+      if (m.vencido) out.push({ nivel: 'danger', texto: `${m.nombre}: service vencido (${Math.round(-m.restan)} h equivalentes de más).` });
+      else if (m.restan <= m.intervalo * 0.15 || (m.dias !== null && m.dias <= 15)) out.push({ nivel: 'warn', texto: `${m.nombre}: faltan ${Math.round(m.restan)} h para el service${m.dias !== null ? ` (~${m.dias} día(s) al ritmo actual)` : ''}.` });
+    });
+    // La habilitación de aplicador la avisa SENASA (no se repite acá).
+    activos.forEach((e) => vencimientosEquipo(e, hoy).filter((v) => v.nombre !== 'Habilitación de aplicador').forEach((v) => {
+      if (v.estado === 'VENCIDO') out.push({ nivel: 'danger', texto: `${e.nombre}: ${v.nombre} vencido el ${v.vence}.` });
+      else if (v.estado === 'POR_VENCER') out.push({ nivel: 'warn', texto: `${e.nombre}: ${v.nombre} vence en ${v.dias} día(s) (${v.vence}).` });
+    }));
+    mantenimientos.filter((m) => m.estado === 'PENDIENTE').forEach((m) => {
+      const e = equipos.find((x) => x.id === m.equipoId);
+      out.push({ nivel: m.fecha && fechaIso(m.fecha) < (fechaIso(hoy) || '') ? 'danger' : 'warn', texto: `${e?.nombre || 'Equipo'}: ${TIPOS_MANTENIMIENTO[m.tipo] || m.tipo} pendiente${m.fecha ? ` para el ${m.fecha}` : ''}${m.detalle ? ` (${m.detalle})` : ''}.` });
+    });
+    return out;
+  }
+  // Costo operativo real de cada equipo en los últimos 12 meses: amortización + mantenimiento + combustible
+  // de sus labores + seguros y patentes, por hora trabajada, contra el costo horario cargado.
+  function costosOperativosEquipos({ equipos = [], labores = [], mantenimientos = [], compras = [], condicionIva, hoy } = {}) {
+    const h = fechaIso(hoy) || fechaIso(new Date().toISOString());
+    const desde = sumarDiasIso(h, -365);
+    const ingresos = ingresosInsumo(compras, condicionIva);
+    const categoriaDe = (insumo) => compras.find((c) => normNombre(c.insumo) === normNombre(insumo))?.categoriaInsumo || '';
+    return equipos.map((e) => {
+      const labs = labores.filter((l) => l.estado === 'REALIZADA' && l.equipoId === e.id && fechaIso(l.fecha) > desde && fechaIso(l.fecha) <= h);
+      const horas = labs.reduce((s, l) => s + num(l.horas), 0);
+      const delPeriodo = (m) => m.equipoId === e.id && m.estado !== 'PENDIENTE' && fechaIso(m.fecha) > desde && fechaIso(m.fecha) <= h;
+      const cargas = mantenimientos.filter((m) => delPeriodo(m) && m.tipo === 'COMBUSTIBLE');
+      const litros = cargas.reduce((s, m) => s + num(m.litros), 0);
+      const combustible = cargas.reduce((s, m) => s + num(m.costo), 0) + labs.reduce((s, l) => s + (l.insumos || []).filter((u) => /combustible|gasoil|diesel/i.test(categoriaDe(u.insumo) || u.insumo)).reduce((t, u) => t + num(u.cantidad) * (precioInsumo(ingresos, u.insumo, l.fecha) || 0), 0), 0);
+      const mant = mantenimientos.filter((m) => delPeriodo(m) && m.tipo !== 'COMBUSTIBLE').reduce((s, m) => s + num(m.costo), 0);
+      const am = amortizacionEquipo(e, h);
+      const amortizacion = am.amortizado ? 0 : am.anual;
+      const fijos = num(e.costosFijosAnuales);
+      const total = amortizacion + mant + combustible + fijos;
+      const operativo = mant + combustible;
+      return { id: e.id, nombre: e.nombre, horas: redondear(horas), litros: redondear(litros), litrosHora: horas && litros ? redondear(litros / horas) : null, amortizacion: redondear(amortizacion), mantenimiento: redondear(mant), combustible: redondear(combustible), fijos: redondear(fijos), total: redondear(total), porHora: horas ? redondear(total / horas) : null, operativoPorHora: horas ? redondear(operativo / horas) : null, costoHoraCargado: num(e.costoHora), diferenciaPct: horas && num(e.costoHora) ? redondear((operativo / horas / num(e.costoHora) - 1) * 100) : null };
+    });
+  }
+
+  // ================= Finanzas: caja y bancos, a cobrar, a pagar, cheques y créditos =================
+  function saldosCuentas(cuentas = [], movimientos = []) {
+    return cuentas.map((c) => {
+      const movs = movimientos.filter((m) => m.cuentaId === c.id || m.cuentaDestinoId === c.id);
+      const saldo = num(c.saldoInicial) + movs.reduce((s, m) => {
+        if (m.tipo === 'TRANSFERENCIA') return s + (m.cuentaDestinoId === c.id ? num(m.importe) : -num(m.importe));
+        return s + (m.tipo === 'INGRESO' ? num(m.importe) : -num(m.importe));
+      }, 0);
+      return { ...c, saldo: redondear(saldo), movimientos: movs.length };
+    });
+  }
+  const totalCompra = (c) => { const neto = num(c.neto); const iva = c.iva != null && c.iva !== '' ? num(c.iva) : redondear(neto * num(c.ivaPct ?? 21) / 100); return redondear(neto + iva + num(c.percepciones)); };
+  // LPG sin cobrar (neto a cobrar) y compras sin pagar (total con IVA).
+  function cuentasACobrar({ lpg = [], movimientos = [] } = {}) {
+    return lpg.filter((l) => l.calculo && (l.calculo.signo || 1) > 0).map((l) => {
+      const cobrado = movimientos.filter((m) => m.origen === 'LPG' && m.origenId === l.id && m.tipo === 'INGRESO').reduce((s, m) => s + num(m.importe), 0);
+      return { id: l.id, fecha: l.calculo.fecha, numero: l.numero || '', comprador: l.comprador || '', grano: l.calculo.grano, total: redondear(l.calculo.neto), cobrado: redondear(cobrado), saldo: redondear(l.calculo.neto - cobrado) };
+    }).filter((x) => x.saldo > 0.5);
+  }
+  function cuentasAPagar({ compras = [], movimientos = [] } = {}) {
+    return compras.map((c) => {
+      const pagado = movimientos.filter((m) => m.origen === 'COMPRA' && m.origenId === c.id && m.tipo === 'EGRESO').reduce((s, m) => s + num(m.importe), 0);
+      const total = totalCompra(c);
+      // Compras marcadas pagadas al cargarlas (sin movimiento de fondos): no quedan a pagar.
+      const saldo = String(c.pagado).toUpperCase() === 'SI' && !pagado ? 0 : total - pagado;
+      return { id: c.id, fecha: fechaIso(c.fecha), vencimiento: fechaIso(c.vencimiento) || '', proveedor: c.proveedor || '', comprobante: c.comprobante || '', concepto: c.insumo || c.concepto || c.categoria || '', total, pagado: redondear(pagado), saldo: redondear(saldo) };
+    }).filter((x) => x.saldo > 0.5);
+  }
+  // Créditos: sistema francés (cuota fija) con tasa nominal anual.
+  function cuotasCredito(cr) {
+    const capital = num(cr.capital), n = Math.max(1, Math.round(num(cr.cuotas))), i = num(cr.tasaAnual) / 100 / 12;
+    const cuota = i > 0 ? capital * i / (1 - Math.pow(1 + i, -n)) : capital / n;
+    let saldo = capital;
+    const out = [];
+    for (let k = 1; k <= n; k++) {
+      const interes = saldo * i;
+      const amort = cuota - interes;
+      saldo = Math.max(0, saldo - amort);
+      const d = new Date(`${fechaIso(cr.primeraCuota) || fechaIso(cr.fecha)}T12:00:00Z`);
+      d.setUTCMonth(d.getUTCMonth() + k - 1);
+      out.push({ numero: k, vence: d.toISOString().slice(0, 10), cuota: redondear(cuota), interes: redondear(interes), capital: redondear(amort), saldo: redondear(saldo) });
+    }
+    return out;
+  }
+  function estadoCredito(cr, movimientos = [], hoy) {
+    const h = fechaIso(hoy) || fechaIso(new Date().toISOString());
+    const plan = cuotasCredito(cr);
+    const pagadas = movimientos.filter((m) => m.origen === 'CREDITO' && m.origenId === cr.id && m.tipo === 'EGRESO').length;
+    const pendientes = plan.slice(pagadas);
+    const vencidas = pendientes.filter((c) => c.vence < h);
+    return { plan, pagadas, pendientes: pendientes.length, proxima: pendientes[0] || null, vencidas: vencidas.length, montoVencido: redondear(vencidas.reduce((s, c) => s + c.cuota, 0)), saldoCapital: redondear(pagadas ? plan[pagadas - 1].saldo : num(cr.capital)), cancelado: !pendientes.length };
+  }
+  function alertasFinanzas({ cheques = [], creditos = [], movimientos = [], compras = [], hoy } = {}) {
+    const h = fechaIso(hoy) || fechaIso(new Date().toISOString());
+    const dias = (f) => Math.round((Date.parse(`${fechaIso(f)}T12:00:00Z`) - Date.parse(`${h}T12:00:00Z`)) / 864e5);
+    const out = [];
+    cheques.filter((c) => c.estado === 'EN_CARTERA' || c.estado === 'EMITIDO').forEach((c) => {
+      const d = dias(c.vencimiento);
+      const que = c.sentido === 'RECIBIDO' ? `Cheque a cobrar ${c.numero}` : `Cheque emitido ${c.numero}`;
+      if (d < 0) out.push({ nivel: 'danger', texto: `${que} (${c.banco || ''}) venció hace ${-d} día(s): ${c.sentido === 'RECIBIDO' ? 'depositalo o reclamalo' : 'verificá que se haya debitado'}.` });
+      else if (d <= 7) out.push({ nivel: 'warn', texto: `${que} vence en ${d} día(s) por $ ${Math.round(num(c.importe)).toLocaleString('es-AR')}.` });
+    });
+    creditos.forEach((cr) => {
+      const e = estadoCredito(cr, movimientos, h);
+      if (e.vencidas) out.push({ nivel: 'danger', texto: `Crédito ${cr.entidad}: ${e.vencidas} cuota(s) vencida(s) por $ ${Math.round(e.montoVencido).toLocaleString('es-AR')}.` });
+      else if (e.proxima && dias(e.proxima.vence) <= 10) out.push({ nivel: 'warn', texto: `Crédito ${cr.entidad}: cuota ${e.proxima.numero} vence el ${e.proxima.vence} ($ ${Math.round(e.proxima.cuota).toLocaleString('es-AR')}).` });
+    });
+    cuentasAPagar({ compras, movimientos }).filter((x) => x.vencimiento && x.vencimiento < h).forEach((x) => out.push({ nivel: 'warn', texto: `Factura ${x.comprobante || ''} de ${x.proveedor} vencida el ${x.vencimiento}: saldo $ ${Math.round(x.saldo).toLocaleString('es-AR')}.` }));
+    return out;
+  }
+
+  // ================= Receta agronómica y residuos agrícolas =================
+  // Receta agronómica: la exigen las leyes provinciales de agroquímicos (la firma un ingeniero agrónomo
+  // matriculado antes de aplicar). Se controla contra la aplicación realizada: producto recetado, dosis,
+  // vigencia, aplicador habilitado, distancias y condiciones de aplicación.
+  const ESTADOS_RECETA = ['EMITIDA', 'APLICADA', 'ANULADA'];
+  // Distancias mínimas a zonas urbanas por banda toxicológica. Córdoba: Ley 9164 (aplicación terrestre de
+  // clases Ia, Ib y II a menos de 500 m, y aérea de Ia, Ib y II a menos de 1.500 m y de III y IV a menos
+  // de 500 m, prohibidas). Otras provincias y municipios fijan las suyas: se cargan en la receta.
+  const DISTANCIAS_PROVINCIA = {
+    CORDOBA: { norma: 'Ley 9164 (Córdoba)', TERRESTRE: { Ia: 500, Ib: 500, II: 500 }, AEREA: { Ia: 1500, Ib: 1500, II: 1500, III: 500, IV: 500 } },
+  };
+  // Buenas prácticas de aplicación (referencia técnica; no es norma): viento entre 3 y 15 km/h,
+  // temperatura hasta 30 °C, humedad relativa desde 50 % y sin inversión térmica.
+  const CONDICIONES_APLICACION = { vientoMin: 3, vientoMax: 15, temperaturaMax: 30, humedadMin: 50 };
+  const VIGENCIA_RECETA_DIAS = 30;
+  function distanciaMinima(receta, productos = []) {
+    const prov = DISTANCIAS_PROVINCIA[provincia(receta.provincia)] || null;
+    const tipo = receta.tipoAplicacion === 'AEREA' ? 'AEREA' : 'TERRESTRE';
+    const bandas = (receta.productos || []).map((r) => productos.find((p) => normNombre(p.nombre) === normNombre(r.producto))?.banda).filter(Boolean);
+    const porLey = prov ? Math.max(0, ...bandas.map((b) => prov[tipo][b] || 0)) : 0;
+    const cargada = num(receta.distanciaMinimaM);
+    return { metros: Math.max(porLey, cargada), norma: porLey >= cargada && porLey ? prov.norma : cargada ? 'cargada en la receta' : '', bandas };
+  }
+  function controlesReceta(receta, { productos = [], equipos = [], hoy } = {}) {
+    const h = fechaIso(hoy) || fechaIso(new Date().toISOString());
+    const out = [];
+    const n = receta.numero ? `Receta ${receta.numero}` : 'Receta sin número';
+    if (!receta.agronomo || !receta.matricula) out.push({ nivel: 'danger', texto: `${n}: falta el ingeniero agrónomo o su matrícula.` });
+    if (!(receta.productos || []).length) out.push({ nivel: 'danger', texto: `${n}: sin productos recetados.` });
+    (receta.productos || []).forEach((r) => {
+      const p = productos.find((x) => normNombre(x.nombre) === normNombre(r.producto));
+      if (!p) out.push({ nivel: 'warn', texto: `${n}: ${r.producto} no está en el registro de fitosanitarios (n.º SENASA, banda y carencia).` });
+      else if (!p.registroSenasa) out.push({ nivel: 'warn', texto: `${n}: ${p.nombre} sin número de inscripción en SENASA.` });
+      if (!(num(r.dosis) > 0)) out.push({ nivel: 'danger', texto: `${n}: ${r.producto} sin dosis por hectárea.` });
+    });
+    const dm = distanciaMinima(receta, productos);
+    if (dm.metros && receta.distanciaUrbanaM !== '' && receta.distanciaUrbanaM != null && num(receta.distanciaUrbanaM) < dm.metros) out.push({ nivel: 'danger', texto: `${n}: el lote está a ${num(receta.distanciaUrbanaM)} m de zona urbana y la aplicación ${receta.tipoAplicacion === 'AEREA' ? 'aérea' : 'terrestre'} de banda ${dm.bandas.join('/')} exige al menos ${dm.metros} m (${dm.norma}).` });
+    if (dm.metros && (receta.distanciaUrbanaM === '' || receta.distanciaUrbanaM == null)) out.push({ nivel: 'warn', texto: `${n}: falta la distancia del lote a la zona urbana (mínimo ${dm.metros} m, ${dm.norma}).` });
+    const e = equipos.find((x) => x.id === receta.aplicadorEquipoId);
+    if (e && !e.habilitacion) out.push({ nivel: 'danger', texto: `${n}: ${e.nombre} sin habilitación provincial de aplicador.` });
+    else if (e && e.habilitacionVence && fechaIso(e.habilitacionVence) < fechaIso(receta.fecha)) out.push({ nivel: 'danger', texto: `${n}: la habilitación de ${e.nombre} venció el ${e.habilitacionVence}.` });
+    if (receta.estado === 'EMITIDA' && receta.vence && fechaIso(receta.vence) < h) out.push({ nivel: 'warn', texto: `${n}: venció el ${receta.vence} sin aplicarse. Anulala o emití una nueva.` });
+    return out;
+  }
+  // Aplicación realizada contra su receta: producto recetado, dosis (±10 %), vigencia y condiciones.
+  function controlesAplicacion(labor, { recetas = [], productos = [], lotes = [] } = {}) {
+    if (labor.tipo !== 'Aplicación' || labor.estado !== 'REALIZADA') return [];
+    const out = [];
+    const lote = lotes.find((l) => l.id === labor.loteId)?.codigo || '';
+    const q = `Aplicación del ${labor.fecha} en ${lote}`;
+    const receta = recetas.find((r) => r.id === labor.recetaId);
+    if (!receta) {
+      if (!labor.agronomo || !labor.matricula || !labor.receta) out.push({ nivel: 'danger', texto: `${q} sin receta agronómica (elegila en la labor o cargá ingeniero, matrícula y número).` });
+    } else {
+      if (receta.estado === 'ANULADA') out.push({ nivel: 'danger', texto: `${q}: la receta ${receta.numero} está anulada.` });
+      if (receta.vence && fechaIso(labor.fecha) > fechaIso(receta.vence)) out.push({ nivel: 'danger', texto: `${q}: se aplicó con la receta ${receta.numero} vencida (${receta.vence}).` });
+      if (fechaIso(labor.fecha) < fechaIso(receta.fecha)) out.push({ nivel: 'danger', texto: `${q}: es anterior a la receta ${receta.numero} (${receta.fecha}).` });
+      if (receta.loteId && receta.loteId !== labor.loteId) out.push({ nivel: 'danger', texto: `${q}: la receta ${receta.numero} es de otro lote.` });
+      const ha = num(labor.ha) || num(receta.ha);
+      (labor.insumos || []).forEach((u) => {
+        const p = productos.find((x) => normNombre(x.nombre) === normNombre(u.insumo));
+        const r = (receta.productos || []).find((x) => normNombre(x.producto) === normNombre(u.insumo));
+        if (!r) { if (p) out.push({ nivel: 'danger', texto: `${q}: ${u.insumo} no figura en la receta ${receta.numero}.` }); return; }
+        const dosisReal = ha ? num(u.cantidad) / ha : 0;
+        if (dosisReal && num(r.dosis) && dosisReal > num(r.dosis) * 1.1) out.push({ nivel: 'danger', texto: `${q}: ${u.insumo} a ${redondear(dosisReal)} ${r.unidad || ''}/ha, más de lo recetado (${r.dosis}).`.replace(' /ha', '/ha') });
+      });
+    }
+    const c = CONDICIONES_APLICACION;
+    if (labor.inversionTermica === 'SI') out.push({ nivel: 'danger', texto: `${q}: con inversión térmica (deriva del producto).` });
+    if (labor.viento !== undefined && labor.viento !== '' && labor.viento !== null) {
+      if (num(labor.viento) > c.vientoMax) out.push({ nivel: 'warn', texto: `${q}: viento de ${num(labor.viento)} km/h (más de ${c.vientoMax}: riesgo de deriva).` });
+      else if (num(labor.viento) < c.vientoMin) out.push({ nivel: 'warn', texto: `${q}: viento de ${num(labor.viento)} km/h (menos de ${c.vientoMin}: posible inversión térmica).` });
+    }
+    if (labor.temperatura !== undefined && labor.temperatura !== '' && labor.temperatura !== null && num(labor.temperatura) > c.temperaturaMax) out.push({ nivel: 'warn', texto: `${q}: ${num(labor.temperatura)} °C (más de ${c.temperaturaMax} °C: evaporación y deriva).` });
+    if (labor.humedad !== undefined && labor.humedad !== '' && labor.humedad !== null && num(labor.humedad) < c.humedadMin) out.push({ nivel: 'warn', texto: `${q}: humedad relativa ${num(labor.humedad)} % (menos de ${c.humedadMin} %).` });
+    return out;
+  }
+
+  // Residuos agrícolas. Envases de fitosanitarios: Ley 27.279 (triple lavado y entrega a un Centro de
+  // Almacenamiento Transitorio). Peligrosos (aceites, filtros, baterías): Ley 24.051 y leyes provinciales
+  // (entrega a operador habilitado con manifiesto). Silobolsas y plásticos: retiro para reciclado.
+  const TIPOS_RESIDUO = {
+    SILOBOLSA: { nombre: 'Silobolsa usada', unidad: 'kg', peligroso: false },
+    PLASTICOS: { nombre: 'Bolsas, big bags y otros plásticos', unidad: 'kg', peligroso: false },
+    ACEITE_USADO: { nombre: 'Aceite y lubricante usado', unidad: 'l', peligroso: true },
+    FILTROS: { nombre: 'Filtros usados', unidad: 'u', peligroso: true },
+    BATERIAS: { nombre: 'Baterías', unidad: 'u', peligroso: true },
+    NEUMATICOS: { nombre: 'Neumáticos fuera de uso', unidad: 'u', peligroso: false },
+    OTRO: { nombre: 'Otro', unidad: 'kg', peligroso: false },
+  };
+  const LEY_RESIDUOS = 'Ley 27.279 (envases de fitosanitarios), Ley 24.051 y leyes provinciales (residuos peligrosos)';
+  const KG_POR_METRO_SILOBOLSA = 3.8; // estimado para bolsa de 9 pies
+  // Silobolsas que quedaron vacías (tuvieron grano y hoy no tienen) y todavía no se registró su retiro.
+  function silobolsasVacias({ ubicaciones = [], movimientosGrano = [], residuos = [] } = {}) {
+    const st = stockPorUbicacion(movimientosGrano).stock;
+    return ubicaciones.filter((u) => u.tipo === 'SILOBOLSA' && movimientosGrano.some((m) => m.ubicacionId === u.id) && (st[u.id]?.kg || 0) <= 0 && !residuos.some((r) => r.ubicacionId === u.id))
+      .map((u) => {
+        const ultimo = movimientosGrano.filter((m) => m.ubicacionId === u.id).map((m) => fechaIso(m.fecha)).sort().pop();
+        return { ubicacionId: u.id, nombre: u.nombre || u.codigo || 'Silobolsa', metros: num(u.metros), kg: Math.round(num(u.metros) * KG_POR_METRO_SILOBOLSA), desde: ultimo };
+      });
+  }
+  function alertasResiduos({ residuos = [], ubicaciones = [], movimientosGrano = [], hoy, diasPeligrosos = 180 } = {}) {
+    const h = fechaIso(hoy) || fechaIso(new Date().toISOString());
+    const dias = (f) => Math.round((Date.parse(`${h}T12:00:00Z`) - Date.parse(`${fechaIso(f)}T12:00:00Z`)) / 864e5);
+    const out = [];
+    silobolsasVacias({ ubicaciones, movimientosGrano, residuos }).forEach((s) => out.push({ nivel: 'warn', texto: `${s.nombre} vacía desde el ${s.desde}: registrá su retiro para reciclado${s.kg ? ` (~${s.kg.toLocaleString('es-AR')} kg de plástico)` : ''}.` }));
+    residuos.filter((r) => r.estado !== 'ENTREGADO').forEach((r) => {
+      const t = TIPOS_RESIDUO[r.tipo] || TIPOS_RESIDUO.OTRO;
+      if (t.peligroso && dias(r.fecha) > diasPeligrosos) out.push({ nivel: 'warn', texto: `${t.nombre}: ${num(r.cantidad)} ${r.unidad || t.unidad} almacenado(s) desde el ${r.fecha}. Coordiná el retiro con un operador habilitado.` });
+      else if (!t.peligroso && dias(r.fecha) > 365) out.push({ nivel: 'warn', texto: `${t.nombre}: ${num(r.cantidad)} ${r.unidad || t.unidad} sin entregar desde el ${r.fecha}.` });
+    });
+    residuos.filter((r) => r.estado === 'ENTREGADO' && (TIPOS_RESIDUO[r.tipo] || {}).peligroso && !r.comprobante).forEach((r) => out.push({ nivel: 'danger', texto: `${TIPOS_RESIDUO[r.tipo].nombre} entregado el ${r.entregaFecha || r.fecha} sin manifiesto: es residuo peligroso, guardá el manifiesto del operador.` }));
+    return out;
+  }
+
+  // ================= PampaIA: cálculos de las 9 funciones por versión =================
+  // Ningún número sale de un modelo de lenguaje: todo se calcula con los registros cargados, con las
+  // mismas funciones de Costos, Granos y SENASA. Si falta historial, se dice.
+  const media = (xs) => (xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : 0);
+  const sumarDiasIso = (f, dias) => { const d = new Date(`${fechaIso(f)}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + dias); return d.toISOString().slice(0, 10); };
+  const diasEntre = (a, b) => Math.round((Date.parse(`${fechaIso(b)}T12:00:00Z`) - Date.parse(`${fechaIso(a)}T12:00:00Z`)) / 864e5);
+
+  // Rinde de cada lote y campaña (kilos de cosecha con lote ÷ hectáreas del vínculo).
+  function rindesHistoricos({ movimientosGrano = [], lotesCampania = [], lotes = [] } = {}) {
+    const porId = Object.fromEntries(lotes.map((l) => [l.id, l]));
+    return lotesCampania.map((v) => {
+      const g = grano(v.cultivo);
+      const kg = movimientosGrano.filter((m) => m.tipo === 'INGRESO_COSECHA' && m.loteId === v.loteId && grano(m.grano) === g && campaniaDe(CULTIVOS[g].nombre, m.fecha).campania === v.campania).reduce((s, m) => s + num(m.kg), 0);
+      const ha = num(v.superficieHa);
+      const fechas = movimientosGrano.filter((m) => m.tipo === 'INGRESO_COSECHA' && m.loteId === v.loteId && grano(m.grano) === g).map((m) => fechaIso(m.fecha)).sort();
+      return { loteId: v.loteId, lote: porId[v.loteId]?.codigo || '', campo: porId[v.loteId]?.campo || '', cultivo: g, campania: v.campania, tipo: v.tipo, ha, kg, rindeTnHa: ha && kg ? redondear(kg / 1000 / ha) : 0, fecha: fechas[fechas.length - 1] || '' };
+    }).filter((r) => r.kg > 0);
+  }
+
+  // Básica · desvíos simples: precio de un insumo o rinde de un lote fuera del promedio histórico.
+  function desviosPrecioInsumo(compras, condicionIva, { umbral = 0.2 } = {}) {
+    const porInsumo = {};
+    ingresosInsumo(compras, condicionIva).filter((i) => i.precio > 0).forEach((i) => { (porInsumo[i.insumo] ||= []).push(i); });
+    return Object.entries(porInsumo).flatMap(([insumo, lista]) => {
+      lista.sort((a, b) => a.fecha.localeCompare(b.fecha));
+      if (lista.length < 2) return [];
+      const ultima = lista[lista.length - 1];
+      const promedio = media(lista.slice(0, -1).map((i) => i.precio));
+      const desvio = promedio ? ultima.precio / promedio - 1 : 0;
+      return Math.abs(desvio) >= umbral ? [{ insumo, fecha: ultima.fecha, precio: redondear(ultima.precio), promedio: redondear(promedio), desvio: redondear(desvio * 100), unidad: ultima.unidad, compras: lista.length }] : [];
+    });
+  }
+  function desviosRinde(historicos, { umbral = 0.2 } = {}) {
+    return historicos.flatMap((r) => {
+      // Promedio histórico del campo para ese cultivo (otras campañas u otros lotes del mismo campo).
+      const base = historicos.filter((x) => x !== r && x.cultivo === r.cultivo && normNombre(x.campo) === normNombre(r.campo));
+      if (!base.length) return [];
+      const ha = base.reduce((s, x) => s + x.ha, 0);
+      const promedio = ha ? base.reduce((s, x) => s + x.rindeTnHa * x.ha, 0) / ha : 0;
+      const desvio = promedio ? r.rindeTnHa / promedio - 1 : 0;
+      return Math.abs(desvio) >= umbral ? [{ ...r, promedio: redondear(promedio), desvio: redondear(desvio * 100), registros: base.length }] : [];
+    });
+  }
+
+  // Profesional · quiebre de stock: al ritmo de consumo real (labores realizadas de la ventana) y con lo
+  // planificado, en cuántos días se acaba cada insumo.
+  function proyeccionInsumos({ compras = [], labores = [], ajustes = [], condicionIva, hoy, ventanaDias = 60 } = {}) {
+    const st = stockInsumos(compras, labores, ajustes, condicionIva);
+    const desde = sumarDiasIso(hoy, -ventanaDias);
+    const consumo = {};
+    const planificado = {};
+    labores.forEach((l) => (l.insumos || []).forEach((u) => {
+      const n = normNombre(u.insumo);
+      const f = fechaIso(l.fecha);
+      if (l.estado === 'REALIZADA' && f > desde && f <= fechaIso(hoy)) consumo[n] = (consumo[n] || 0) + num(u.cantidad);
+      if (l.estado !== 'REALIZADA' && f >= fechaIso(hoy)) planificado[n] = (planificado[n] || 0) + num(u.cantidad);
+    }));
+    return Object.values(st).map((s) => {
+      const porDia = (consumo[s.insumo] || 0) / ventanaDias;
+      const plan = planificado[s.insumo] || 0;
+      return { insumo: s.insumo, unidad: s.unidad, stock: s.cantidad, porDia: redondear(porDia), dias: porDia > 0 ? Math.max(0, Math.floor(s.cantidad / porDia)) : null, planificado: plan, faltantePlanificado: redondear(Math.max(0, plan - Math.max(0, s.cantidad))) };
+    }).filter((x) => x.stock !== 0 || x.porDia || x.planificado).sort((a, b) => (a.dias ?? 1e9) - (b.dias ?? 1e9));
+  }
+
+  // Profesional · mantenimiento: horas acumuladas (horómetro al alta + horas de las labores realizadas),
+  // ponderadas por el tipo de labor (cosecha y siembra exigen más), contra el intervalo de service.
+  const FACTOR_DESGASTE = { COSECHA: 1.25, SIEMBRA: 1.15, LABRANZA: 1.2, APLICACION: 1, FERTILIZACION: 1, OTRO: 1 };
+  const SERVICE_DEFECTO_HORAS = 250;
+  function mantenimientoEquipos({ equipos = [], labores = [], hoy, ventanaDias = 60 } = {}) {
+    const desde = sumarDiasIso(hoy, -ventanaDias);
+    return equipos.filter((e) => !/contratist/i.test(e.nombre || '')).map((e) => {
+      const propias = labores.filter((l) => l.estado === 'REALIZADA' && l.equipoId === e.id);
+      const horasLabores = propias.reduce((s, l) => s + num(l.horas), 0);
+      const equivalentes = propias.reduce((s, l) => s + num(l.horas) * (FACTOR_DESGASTE[sinAcentos(l.tipo)] || 1), 0);
+      const horometro = num(e.horometro) + horasLabores;
+      const intervalo = num(e.serviceCadaHoras) || SERVICE_DEFECTO_HORAS;
+      const base = e.horasUltimoService !== undefined && e.horasUltimoService !== '' ? num(e.horasUltimoService) : num(e.horometro);
+      // Desde el último service: horas equivalentes de las labores posteriores al horómetro de ese service.
+      const factorMedio = horasLabores ? equivalentes / horasLabores : 1;
+      const desdeService = Math.max(0, (horometro - base) * factorMedio);
+      const restan = redondear(intervalo - desdeService);
+      const horasVentana = propias.filter((l) => fechaIso(l.fecha) > desde && fechaIso(l.fecha) <= fechaIso(hoy)).reduce((s, l) => s + num(l.horas) * (FACTOR_DESGASTE[sinAcentos(l.tipo)] || 1), 0);
+      const porDia = horasVentana / ventanaDias;
+      return { id: e.id, nombre: e.nombre, codigo: e.codigo || '', horometro: redondear(horometro), intervalo, intervaloDefecto: !num(e.serviceCadaHoras), desdeService: redondear(desdeService), restan, factorMedio: redondear(factorMedio), porDia: redondear(porDia), dias: restan <= 0 ? 0 : porDia > 0 ? Math.floor(restan / porDia) : null, vencido: restan <= 0 };
+    }).sort((a, b) => a.restan - b.restan);
+  }
+
+  // Profesional · costo y margen proyectado por lote antes de cosechar: costos ya hechos + labores
+  // planificadas (al último precio y costo horario) e ingreso esperado con el rinde histórico del lote o
+  // del campo y el último precio de LPG del grano.
+  function proyeccionLotes(d, campania, { hoy, tipoCambio } = {}) {
+    const r = resultadoCampania(d, campania, { tipoCambio });
+    const hist = rindesHistoricos(d);
+    const planificadas = (d.labores || []).filter((l) => l.estado !== 'REALIZADA' && (!l.campania || l.campania === campania)).map((l) => ({ ...l, estado: 'REALIZADA' }));
+    const filasPlan = planificadas.length ? costosDelPeriodo({ ...d, compras: d.compras, labores: planificadas, empleados: [], contratos: [], lpg: [] }, '0000-01-01', '9999-12-31').filter((f) => f.origen.startsWith('Labor')) : [];
+    const precio = (g) => (d.lpg || []).filter((l) => l.calculo?.grano === g && (l.calculo.signo || 1) > 0).sort((a, b) => b.calculo.fecha.localeCompare(a.calculo.fecha))[0]?.calculo.precioTn || null;
+    const lotes = r.lotes.map((x) => {
+      const pendiente = filasPlan.filter((f) => f.loteId === x.loteId && (!f.cultivo || f.cultivo === x.cultivo)).reduce((s, f) => s + f.importe, 0);
+      const costoProyectado = x.directos + x.estructura + pendiente;
+      let rindeEsperado = x.rindeTnHa || null;
+      let fuente = x.rindeTnHa ? 'cosechado' : '';
+      if (!rindeEsperado) {
+        const delLote = hist.filter((h) => h.loteId === x.loteId && h.cultivo === x.cultivo && h.campania !== campania);
+        const delCampo = hist.filter((h) => normNombre(h.campo) === normNombre(x.campo) && h.cultivo === x.cultivo && h.campania !== campania);
+        const delCultivo = hist.filter((h) => h.cultivo === x.cultivo && h.campania !== campania);
+        const base = delLote.length ? delLote : delCampo.length ? delCampo : delCultivo;
+        fuente = delLote.length ? 'histórico del lote' : delCampo.length ? 'histórico del campo' : delCultivo.length ? 'histórico del cultivo' : '';
+        rindeEsperado = base.length ? redondear(media(base.map((h) => h.rindeTnHa))) : null;
+      }
+      const p = precio(x.cultivo);
+      const ingresoProyectado = x.rindeTnHa ? x.ingresos : rindeEsperado && p ? rindeEsperado * x.ha * p : null;
+      const margen = ingresoProyectado === null ? null : ingresoProyectado - costoProyectado;
+      return { ...x, pendiente: redondear(pendiente), costoProyectado: redondear(costoProyectado), costoHaProyectado: x.ha ? redondear(costoProyectado / x.ha) : 0, rindeEsperado, fuente, precioTn: p, ingresoProyectado: ingresoProyectado === null ? null : redondear(ingresoProyectado), margenProyectado: margen === null ? null : redondear(margen), margenHa: margen === null || !x.ha ? null : redondear(margen / x.ha), rindeIndiferencia: p && x.ha ? redondear(costoProyectado / p / x.ha) : null, cosechado: Boolean(x.rindeTnHa) };
+    });
+    return { campania, lotes, planificadas: planificadas.length };
+  }
+
+  // Premium · mapas de rinde: limpieza (sin rindes nulos, coordenadas inválidas ni valores fuera de ±3
+  // desvíos) y zonificación de potencial por agrupamiento (k-medias sobre el rinde).
+  function limpiarMapaRinde(puntos = []) {
+    const base = puntos.map((p) => ({ lat: num(p.lat), lon: num(p.lon), rinde: num(p.rinde) })).filter((p) => p.rinde > 0 && Math.abs(p.lat) <= 90 && Math.abs(p.lon) <= 180 && (p.lat || p.lon));
+    const m = media(base.map((p) => p.rinde));
+    const sd = Math.sqrt(media(base.map((p) => (p.rinde - m) ** 2)));
+    const validos = sd ? base.filter((p) => Math.abs(p.rinde - m) <= 3 * sd) : base;
+    return { validos, total: puntos.length, descartados: puntos.length - validos.length, pctValidos: puntos.length ? redondear(validos.length / puntos.length * 100) : 0 };
+  }
+  function zonificar(puntos = [], k = 3) {
+    const vals = puntos.map((p) => p.rinde).sort((a, b) => a - b);
+    if (vals.length < k * 3) return null;
+    let centros = Array.from({ length: k }, (_, i) => vals[Math.floor((i + 0.5) * vals.length / k)]);
+    let asignacion = [];
+    for (let it = 0; it < 50; it++) {
+      asignacion = puntos.map((p) => centros.reduce((mejor, c, i) => (Math.abs(p.rinde - c) < Math.abs(p.rinde - centros[mejor]) ? i : mejor), 0));
+      const nuevos = centros.map((c, i) => { const xs = puntos.filter((_, j) => asignacion[j] === i).map((p) => p.rinde); return xs.length ? media(xs) : c; });
+      if (nuevos.every((c, i) => Math.abs(c - centros[i]) < 1e-9)) break;
+      centros = nuevos;
+    }
+    const orden = centros.map((c, i) => [c, i]).sort((a, b) => a[0] - b[0]).map(([, i]) => i);
+    const nombres = k === 3 ? ['Bajo potencial', 'Potencial medio', 'Alto potencial'] : orden.map((_, i) => `Zona ${i + 1}`);
+    const general = media(puntos.map((p) => p.rinde));
+    const zonas = orden.map((i, pos) => {
+      const xs = puntos.filter((_, j) => asignacion[j] === i).map((p) => p.rinde);
+      return { zona: pos + 1, nombre: nombres[pos], n: xs.length, pct: redondear(xs.length / puntos.length * 100), rindeMedio: redondear(media(xs)), min: redondear(Math.min(...xs)), max: redondear(Math.max(...xs)), indice: redondear(media(xs) / general) };
+    });
+    const zonaDe = Object.fromEntries(orden.map((i, pos) => [i, pos + 1]));
+    return { zonas, rindeGeneral: redondear(general), asignacion: asignacion.map((i) => zonaDe[i]) };
+  }
+  // Premium · prescripción variable: dosis por zona proporcional al potencial (índice de rinde de la zona),
+  // dentro de la dosis mínima y máxima; con el área del lote, el total de insumo.
+  function prescripcionPorZonas(z, { objetivo, minimo, maximo, ha = 0 } = {}) {
+    if (!z) return null;
+    const obj = num(objetivo);
+    const lo = num(minimo) || obj * 0.7;
+    const hi = num(maximo) || obj * 1.3;
+    const zonas = z.zonas.map((x) => {
+      const dosis = Math.round(Math.min(hi, Math.max(lo, obj * x.indice)) * 10) / 10;
+      const haZona = ha * x.pct / 100;
+      return { ...x, dosis, ha: redondear(haZona), total: redondear(dosis * haZona) };
+    });
+    const total = zonas.reduce((s, x) => s + x.total, 0);
+    return { zonas, total: redondear(total), totalUniforme: redondear(obj * ha), ahorro: redondear(obj * ha - total) };
+  }
+  function prescripcionGeoJson(puntos, z, presc, { lote = '', operacion = '', unidad = '' } = {}) {
+    const dosis = Object.fromEntries((presc?.zonas || []).map((x) => [x.zona, x.dosis]));
+    return { type: 'FeatureCollection', name: `Prescripcion_${lote}`, properties: { lote, operacion, unidad }, features: puntos.map((p, i) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [p.lon, p.lat] }, properties: { zona: z.asignacion[i], rinde: p.rinde, dosis: dosis[z.asignacion[i]] } })) };
+  }
+
+  // Premium · análisis multi-campo: rinde, costo y resultado por hectárea de cada campo, y patrones por
+  // equipo de siembra o cosecha y por operador (rinde de sus lotes contra el promedio del cultivo).
+  function analisisMultiCampo(d, campania, { tipoCambio } = {}) {
+    const r = resultadoCampania(d, campania, { tipoCambio });
+    const campos = {};
+    r.lotes.forEach((x) => {
+      const c = (campos[x.campo || 'Sin campo'] ||= { campo: x.campo || 'Sin campo', ha: 0, resultado: 0, costo: 0, lotes: 0, cultivos: {} });
+      c.ha += x.ha; c.resultado += x.resultado; c.costo += x.directos + x.estructura; c.lotes++;
+      if (x.rindeTnHa) { const k = (c.cultivos[x.cultivo] ||= { ha: 0, t: 0 }); k.ha += x.ha; k.t += x.rindeTnHa * x.ha; }
+    });
+    const lista = Object.values(campos).map((c) => ({ ...c, resultadoHa: c.ha ? redondear(c.resultado / c.ha) : 0, costoHa: c.ha ? redondear(c.costo / c.ha) : 0, rindes: Object.fromEntries(Object.entries(c.cultivos).map(([g, k]) => [g, redondear(k.t / k.ha)])) })).sort((a, b) => b.resultadoHa - a.resultadoHa);
+    const promedioCultivo = {};
+    r.lotes.filter((x) => x.rindeTnHa).forEach((x) => { const p = (promedioCultivo[x.cultivo] ||= { ha: 0, t: 0 }); p.ha += x.ha; p.t += x.rindeTnHa * x.ha; });
+    const prom = (g) => (promedioCultivo[g]?.ha ? promedioCultivo[g].t / promedioCultivo[g].ha : 0);
+    const patrones = [];
+    const agrupar = (clave, etiqueta, tipos) => {
+      const grupos = {};
+      (d.labores || []).filter((l) => l.estado === 'REALIZADA' && tipos.includes(sinAcentos(l.tipo)) && (!l.campania || l.campania === campania) && l[clave]).forEach((l) => {
+        const x = r.lotes.find((y) => y.loteId === l.loteId && y.cultivo === grano(l.cultivo) && y.rindeTnHa);
+        if (!x || !prom(x.cultivo)) return;
+        const nombre = clave === 'equipoId' ? ((d.equipos || []).find((e) => e.id === l.equipoId)?.nombre || l.equipoId) : String(l[clave]);
+        const g = (grupos[nombre] ||= { nombre, ha: 0, indice: 0, lotes: new Set() });
+        if (g.lotes.has(x.loteId)) return;
+        g.lotes.add(x.loteId); g.ha += x.ha; g.indice += (x.rindeTnHa / prom(x.cultivo)) * x.ha;
+      });
+      const gs = Object.values(grupos).filter((g) => g.ha > 0).map((g) => ({ nombre: g.nombre, ha: g.ha, lotes: g.lotes.size, difPct: redondear((g.indice / g.ha - 1) * 100) }));
+      if (gs.length >= 2) patrones.push({ etiqueta, grupos: gs.sort((a, b) => b.difPct - a.difPct) });
+    };
+    agrupar('equipoId', 'Equipo de siembra', ['SIEMBRA']);
+    agrupar('equipoId', 'Equipo de cosecha', ['COSECHA']);
+    agrupar('operador', 'Operador', ['SIEMBRA', 'COSECHA', 'APLICACION', 'FERTILIZACION', 'LABRANZA']);
+    return { campania, campos: lista, patrones, totales: r.totales, haTotal: r.haTotal };
   }
 
   // ================= SINCRONIZACIÓN ENTRE EQUIPOS =================
@@ -758,6 +1221,12 @@
 
   return {
     CLAVE_TABLA, DERIVADAS, fusionarDatos,
+    CATEGORIAS_EQUIPO, TIPOS_MANTENIMIENTO, amortizacionEquipo, amortizaEnMes, vencimientosEquipo, alertasEquipos, costosOperativosEquipos,
+    saldosCuentas, totalCompra, cuentasACobrar, cuentasAPagar, cuotasCredito, estadoCredito, alertasFinanzas,
+    ESTADOS_RECETA, DISTANCIAS_PROVINCIA, CONDICIONES_APLICACION, VIGENCIA_RECETA_DIAS, distanciaMinima, controlesReceta, controlesAplicacion,
+    TIPOS_RESIDUO, LEY_RESIDUOS, KG_POR_METRO_SILOBOLSA, silobolsasVacias, alertasResiduos, sumarDiasIso,
+    rindesHistoricos, desviosPrecioInsumo, desviosRinde, proyeccionInsumos, mantenimientoEquipos, FACTOR_DESGASTE, SERVICE_DEFECTO_HORAS,
+    proyeccionLotes, limpiarMapaRinde, zonificar, prescripcionPorZonas, prescripcionGeoJson, analisisMultiCampo,
     RG5017, ESTADOS_CPE, alertasCpe, carencias, violacionesCarencia, envasesDeAplicaciones, alertasSenasa, LEY_FITO,
     CARGAS_SOCIALES_PCT_DEFECTO, TIPOS_LABOR, CATEGORIAS_INSUMO, CATEGORIAS_SERVICIO, periodoCampania, costoCompra, ingresosInsumo,
     precioInsumo, stockInsumos, costosDelPeriodo, resultadoCampania, movimientosIvaDeCompra,

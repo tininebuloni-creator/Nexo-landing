@@ -13,7 +13,7 @@
   }, 0);
 
   function getStoredLicense() {
-    const keys = ['nexoAgroLicense', 'tambo_license', 'PampaPorcinosLicense', 'pampa-license-cache'];
+    const keys = (window.PAMPA_LICENSE_STORAGE_KEY ? [window.PAMPA_LICENSE_STORAGE_KEY] : ['nexoAgroLicense', 'tambo_license', 'PampaPorcinosLicense', 'pampa-license-cache']);
     for (const key of keys) {
       try {
         const stored = JSON.parse(localStorage.getItem(key) || 'null');
@@ -41,6 +41,8 @@
   }
 
   function mountPlanCapabilities(panel) {
+    // Con el asistente de la app: tarjetas con una función real por botón (asistente-ia.js).
+    if (typeof adapter.montarCapacidades === 'function') return adapter.montarCapacidades();
     if (panel.querySelector('#pampaIAPlanCapabilities')) return;
     const plan = getAiPlan();
     const levels = { basica: 1, profesional: 2, premium: 3, trial: 3 };
@@ -102,6 +104,14 @@
     const role = document.querySelector('#pampaiaPanel #pampaiaRole');
     if (!insights || !answer) return;
     if (role) role.textContent = 'IA ' + String(getRole()).toUpperCase();
+    // Con el asistente de la app, los números salen de los mismos cálculos que cada módulo.
+    if (typeof adapter.analizar === 'function') {
+      const r = adapter.analizar(type);
+      insights.innerHTML = window.PampaAsistenteIA.insightsHtml(r.lineas);
+      answer.innerHTML = '<strong>' + window.PampaAsistenteIA.aHtml(r.titulo) + '</strong><br><small>Calculado con los datos cargados.</small>';
+      mountPlanCapabilities(document.getElementById(panelId));
+      return;
+    }
     const data = {
       campos: state.campos || [], lotes: state.lotes || [], hacienda: state.hacienda || [],
       inventario: state.inventario || [], maquinarias: state.maquinarias || state.equipos || [],
@@ -152,7 +162,7 @@
     const dashboardSummary = dashboard.querySelector('.dashboard-home-layout') || dashboard.querySelector('.dashboard-top + .dashboard-shortcuts') || dashboard.querySelector('.dashboard-top');
     if (dashboardSummary) dashboardSummary.insertAdjacentElement('afterend', panel);
     else dashboard.appendChild(panel);
-    document.body.insertAdjacentHTML('beforeend', "<div id=\"pampaV10Overlay\" aria-hidden=\"true\"><div id=\"pampaV10Modal\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"pampaV10Title\">\n  <div style=\"display:flex;justify-content:space-between;align-items:center\"><div><h2 id=\"pampaV10Title\" style=\"margin:0\">Configuración de PampaIA</h2><small>Servicio y dispositivo</small></div><button type=\"button\" class=\"btn\" onclick=\"pampaV10CloseConfig()\" aria-label=\"Cerrar configuración\">X</button></div>\n  <div class=\"pv10-tabs\"><button type=\"button\" id=\"pv10tAI\" class=\"pv10-tab active\" onclick=\"pampaV10Tab('ai')\">PampaIA</button><button type=\"button\" id=\"pv10tDev\" class=\"pv10-tab\" onclick=\"pampaV10Tab('dev')\">Dispositivo</button></div>\n  <section id=\"pv10sAI\" class=\"pv10-sec active\"><h3>PampaIA</h3><div class=\"pv10-field\"><label for=\"pv10AIUrl\">Endpoint de IA</label><input id=\"pv10AIUrl\" placeholder=\"/api/ia\"></div><div class=\"pv10-field\"><label for=\"pv10AIMode\">Modo</label><select id=\"pv10AIMode\"><option value=\"server\">IA del servidor</option><option value=\"hybrid\">Híbrida: local + servidor</option></select></div><div class=\"pv10-actions\"><button type=\"button\" class=\"btn btn-primary\" onclick=\"pampaV10Save()\">Guardar</button><button type=\"button\" class=\"btn\" onclick=\"pampaV10TestAI()\">Probar IA</button></div><div id=\"pv10AIStatus\" class=\"pv10-status\">Sin probar.</div></section>\n  <section id=\"pv10sDev\" class=\"pv10-sec\"><h3>Dispositivo</h3><div class=\"pv10-field\"><label for=\"pv10DeviceId\">ID único</label><input id=\"pv10DeviceId\" readonly></div><div id=\"pv10DevStatus\" class=\"pv10-status\">-</div><button type=\"button\" class=\"btn\" onclick=\"pampaV10RefreshDevice()\">Actualizar estado</button></section>\n  <p style=\"font-size:11px;color:#64748b\">Las claves y permisos se administran exclusivamente en el backend.</p>\n</div></div>");
+    document.body.insertAdjacentHTML('beforeend', "<div id=\"pampaV10Overlay\" aria-hidden=\"true\"><div id=\"pampaV10Modal\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"pampaV10Title\">\n  <div style=\"display:flex;justify-content:space-between;align-items:center\"><div><h2 id=\"pampaV10Title\" style=\"margin:0\">Configuración de PampaIA</h2><small>Servicio y dispositivo</small></div><button type=\"button\" class=\"btn\" onclick=\"pampaV10CloseConfig()\" aria-label=\"Cerrar configuración\">X</button></div>\n  <div class=\"pv10-tabs\"><button type=\"button\" id=\"pv10tAI\" class=\"pv10-tab active\" onclick=\"pampaV10Tab('ai')\">PampaIA</button><button type=\"button\" id=\"pv10tDev\" class=\"pv10-tab\" onclick=\"pampaV10Tab('dev')\">Dispositivo</button></div>\n  <section id=\"pv10sAI\" class=\"pv10-sec active\"><h3>PampaIA</h3><div class=\"pv10-field\"><label for=\"pv10AIUrl\">Endpoint de IA</label><input id=\"pv10AIUrl\" placeholder=\"/api/ia\"></div><div class=\"pv10-field\"><label for=\"pv10AIKey\">Tu clave de OpenAI</label><input id=\"pv10AIKey\" type=\"password\" autocomplete=\"off\" spellcheck=\"false\" placeholder=\"sk-...\"><small>Se guarda solo en este equipo y se envía únicamente a tu servidor de PampaIA, que no la almacena.</small></div><div class=\"pv10-field\"><label for=\"pv10AIMode\">Modo</label><select id=\"pv10AIMode\"><option value=\"server\">IA del servidor</option><option value=\"hybrid\">Híbrida: local + servidor</option></select></div><div class=\"pv10-actions\"><button type=\"button\" class=\"btn btn-primary\" onclick=\"pampaV10Save()\">Guardar</button><button type=\"button\" class=\"btn\" onclick=\"pampaV10TestAI()\">Probar IA</button></div><div id=\"pv10AIStatus\" class=\"pv10-status\">Sin probar.</div></section>\n  <section id=\"pv10sDev\" class=\"pv10-sec\"><h3>Dispositivo</h3><div class=\"pv10-field\"><label for=\"pv10DeviceId\">ID único</label><input id=\"pv10DeviceId\" readonly></div><div id=\"pv10DevStatus\" class=\"pv10-status\">-</div><button type=\"button\" class=\"btn\" onclick=\"pampaV10RefreshDevice()\">Actualizar estado</button></section>\n  <p style=\"font-size:11px;color:#64748b\">Las claves y permisos se administran exclusivamente en el backend.</p>\n</div></div>");
     panel.querySelectorAll('[data-pampaia]').forEach((button) => button.addEventListener('click', () => render(button.dataset.pampaia)));
     panel.querySelectorAll('.pampaia-btn').forEach((button) => {
       const text = button.textContent || '';
@@ -165,14 +175,15 @@
       const question = input?.value.trim();
       if (!question) return;
       const answer = panel.querySelector('#pampaIAAnswer');
-      answer.innerHTML = '<strong>Consulta registrada</strong><br>' + question + '<br><small>El análisis local usa los datos disponibles en este ERP.</small>';
+      if (typeof adapter.responder === 'function') adapter.mostrar(adapter.responder(question));
+      else answer.textContent = 'Consulta registrada: ' + question;
       input.value = '';
     };
     submit?.addEventListener('click', reply);
     input?.addEventListener('keydown', (event) => { if (event.key === 'Enter') reply(); });
     render('empresa');
     mountTrialDemos(panel);
-    // mountPlanCapabilities(panel);
+    mountPlanCapabilities(panel);
   }
 
   window.pampaIAAnalizar = render;
@@ -180,6 +191,14 @@
     const panel = document.getElementById(panelId);
     const input = panel?.querySelector('#pampaIAQuestion');
     const button = panel?.querySelector('.pampaia-question button');
+    // El botón del panel llama a esta misma función (onclick): con el asistente se responde acá,
+    // porque un click() dentro de su propio onclick el navegador lo ignora.
+    if (input && typeof adapter.responder === 'function') {
+      const question = input.value.trim();
+      if (question) adapter.mostrar(adapter.responder(question));
+      input.value = '';
+      return;
+    }
     if (input && button) button.click();
   };
   window.pampaIAToggleVoice = () => {
@@ -261,9 +280,10 @@
         lotes: (state.lotes || []).map((item) => ({ codigo: item.codigo, nombre: item.nombre })),
         maquinarias: (state.maquinarias || state.equipos || []).map((item) => ({ codigo: item.codigo, equipo: item.equipo || item.nombre }))
       };
-      const response = await fetch('/api/ia/documento', {
+      // Antes estaba fijo en /api/ia e ignoraba el endpoint configurado en el panel.
+      const response = await fetch(iaEndpoint() + '/documento', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: iaHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ imagenBase64: base64, mimeType: file.type, contexto: context })
       });
       const result = await response.json().catch(() => ({}));
@@ -282,12 +302,19 @@
   const configStorageKey = 'pampaIA.services';
   const config = () => { try { return JSON.parse(localStorage.getItem(configStorageKey) || '{}'); } catch { return {}; } };
   const configElement = (id) => document.getElementById(id);
+  // Clave de OpenAI del cliente: queda en este equipo y viaja en cada pedido (x-ai-key).
+  const iaEndpoint = () => (config().aiUrl || '/api/ia').replace(/\/$/, '');
+  const iaHeaders = (extra = {}, clave = config().aiKey) => {
+    const valor = String(clave || '').trim();
+    return valor ? { ...extra, 'x-ai-key': valor } : { ...extra };
+  };
   window.pampaV10OpenConfig = () => {
     const overlay = configElement('pampaV10Overlay');
     if (!overlay) return;
     const current = config();
     configElement('pv10AIUrl').value = current.aiUrl || '/api/ia';
     configElement('pv10AIMode').value = current.aiMode || 'server';
+    configElement('pv10AIKey').value = current.aiKey || '';
     configElement('pv10DeviceId').value = current.deviceId || window.crypto?.randomUUID?.() || 'device-' + Date.now();
     overlay.style.display = 'flex';
     overlay.setAttribute('aria-hidden', 'false');
@@ -300,17 +327,19 @@
   });
   window.pampaV10Save = () => {
     const current = config();
-    localStorage.setItem(configStorageKey, JSON.stringify({ ...current, aiUrl: configElement('pv10AIUrl').value.trim() || '/api/ia', aiMode: configElement('pv10AIMode').value, deviceId: configElement('pv10DeviceId').value }));
-    configElement('pv10AIStatus').textContent = 'Configuración guardada. Las claves permanecen en el backend.';
+    localStorage.setItem(configStorageKey, JSON.stringify({ ...current, aiUrl: configElement('pv10AIUrl').value.trim() || '/api/ia', aiMode: configElement('pv10AIMode').value, aiKey: configElement('pv10AIKey').value.trim(), deviceId: configElement('pv10DeviceId').value }));
+    configElement('pv10AIStatus').textContent = 'Configuración guardada. La clave de OpenAI queda solo en este equipo.';
   };
   window.pampaV10TestAI = async () => {
     const status = configElement('pv10AIStatus');
     const endpoint = (configElement('pv10AIUrl').value.trim() || '/api/ia').replace(/\/$/, '');
     status.textContent = 'Probando el servicio...';
     try {
-      const response = await fetch(endpoint + '/estado', { cache: 'no-store' });
+      const response = await fetch(endpoint + '/estado', { cache: 'no-store', headers: iaHeaders({}, configElement('pv10AIKey').value) });
       const result = await response.json().catch(() => ({}));
-      status.textContent = response.ok ? (result.configurada ? 'Servicio disponible y configurado.' : 'Servicio disponible, pero falta configurar la clave en el backend.') : 'El servicio respondió HTTP ' + response.status + '.';
+      // El servidor responde "configurado" (antes se leía "configurada" y siempre decía que faltaba la clave).
+      const configurado = result.configurado ?? result.configurada;
+      status.textContent = response.ok ? (configurado ? 'Servicio disponible y con clave de OpenAI.' : 'Servicio disponible, pero falta tu clave de OpenAI.') : 'El servicio respondió HTTP ' + response.status + '.';
     } catch { status.textContent = 'No se pudo conectar al servicio de IA.'; }
   };
   window.pampaV10RefreshDevice = () => { const status = configElement('pv10DevStatus'); if (status) status.textContent = navigator.onLine ? 'Online. Listo para usar el servicio local.' : 'Offline. Las operaciones se reintentarán al recuperar conexión.'; };
