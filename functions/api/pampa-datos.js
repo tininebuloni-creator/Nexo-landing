@@ -74,7 +74,7 @@ async function obtenerPizarra() {
 
 // ─── Agromonitoring ───────────────────────────────────────────────────────────────────────
 const lugar = ({ polyid, lat, lon }) => (polyid ? `polyid=${encodeURIComponent(polyid)}` : `lat=${Number(lat)}&lon=${Number(lon)}`);
-const agroUrl = (ruta, clave) => `${AGRO_URL}${ruta}${ruta.includes('?') ? '&' : '?'}appid=${encodeURIComponent(clave)}`;
+const agroUrl = (ruta, clave) => `${AGRO_URL}${ruta}${ruta.includes('?') ? '&' : '?'}appid=${encodeURIComponent(clave)}&lang=es`;
 function normalizarClima(x) {
   return { fecha: unixAIso(x.dt), temperatura: kACelsius(x.main?.temp), humedad: x.main?.humidity ?? null, vientoKmh: msAKmh(x.wind?.speed), rafagaKmh: msAKmh(x.wind?.gust), vientoDireccion: x.wind?.deg ?? null, lluviaMm: Number(x.rain?.['3h'] ?? x.rain?.['1h'] ?? 0) || 0, nubes: x.clouds?.all ?? null, descripcion: x.weather?.[0]?.description || '' };
 }
@@ -83,7 +83,9 @@ async function pronostico(p, clave) { const l = await pedirJson(agroUrl(`/weathe
 async function lluviaAcumulada(p, clave, dias = 7) {
   const fin = Math.floor(Date.now() / 1000);
   const ini = fin - dias * 86400;
-  const l = await pedirJson(agroUrl(`/weather/history/accumulated_precipitation?${lugar(p)}&start=${ini}&end=${fin}`, clave));
+  let l;
+  // El histórico de lluvia no está en todas las cuentas de Agromonitoring (la gratuita responde 401): se informa sin error.
+  try { l = await pedirJson(agroUrl(`/weather/history/accumulated_precipitation?${lugar(p)}&start=${ini}&end=${fin}`, clave)); } catch (e) { if (/HTTP 40[13]/.test(e.message)) return { dias, mm: null, noDisponible: true, motivo: 'La lluvia acumulada no está incluida en el plan de Agromonitoring.' }; throw e; }
   const total = (Array.isArray(l) ? l : []).reduce((s, x) => s + (Number(x.rain) || 0), 0);
   return { dias, mm: Math.round(total * 10) / 10 };
 }

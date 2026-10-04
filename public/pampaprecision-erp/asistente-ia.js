@@ -198,7 +198,7 @@
       lotesConClima().slice(0, 2).forEach(({ l, clima, lluvia }) => {
         if (!clima) return;
         const v = A.ventanasAplicacion((clima.pronostico || []).slice(0, 8));
-        lineas.push(linea('ok', `🌦️ *${l.codigo}*: ${clima.actual?.temperatura} °C, viento ${clima.actual?.vientoKmh} km/h · lluvia prevista 24 h ${v.lluviaPrevista} mm${lluvia ? ` · últimos ${lluvia.dias} días ${lluvia.mm} mm` : ''} · ${v.ventanas.length ? 'hay ventana para aplicar' : 'sin ventana para aplicar'}`));
+        lineas.push(linea('ok', `🌦️ *${l.codigo}*: ${clima.actual?.temperatura} °C, viento ${clima.actual?.vientoKmh} km/h · lluvia prevista 24 h ${v.lluviaPrevista} mm${lluvia?.mm != null ? ` · últimos ${lluvia.dias} días ${lluvia.mm} mm` : ''} · ${v.ventanas.length ? 'hay ventana para aplicar' : 'sin ventana para aplicar'}`));
       });
       const alertas = (X().r?.alertas || []).filter((a) => a.nivel === 'danger');
       if (alertas.length) lineas.push(linea('risk', `⚠️ ${alertas.length} alerta(s) urgente(s): ${alertas.slice(0, 2).map((a) => a.texto).join(' · ')}`));
@@ -357,7 +357,7 @@
         const ahora = A.evaluarCondicion(a);
         const v = A.ventanasAplicacion((clima.pronostico || []).slice(0, 16));
         lineas.push(linea(ahora.apta ? 'ok' : 'warn', `*${l.codigo}*: ahora ${a.temperatura} °C, humedad ${a.humedad} %, viento ${a.vientoKmh} km/h · ${ahora.apta ? '*apto para aplicar*' : `*no conviene aplicar* (${ahora.motivos.join(', ')})`}`));
-        lineas.push(linea('ok', `  Ventanas aptas próximas 48 h: ${v.ventanas.slice(0, 3).map((w) => `${horaCorta(w.desde)} a ${horaCorta(new Date(Date.parse(w.hasta) + 3 * 3600 * 1000).toISOString())}`).join(' · ') || 'ninguna'} · lluvia prevista ${v.lluviaPrevista} mm${lluvia ? ` · llovieron ${lluvia.mm} mm en ${lluvia.dias} días` : ''}`));
+        lineas.push(linea('ok', `  Ventanas aptas próximas 48 h: ${v.ventanas.slice(0, 3).map((w) => `${horaCorta(w.desde)} a ${horaCorta(new Date(Date.parse(w.hasta) + 3 * 3600 * 1000).toISOString())}`).join(' · ') || 'ninguna'} · lluvia prevista ${v.lluviaPrevista} mm${lluvia?.mm != null ? ` · llovieron ${lluvia.mm} mm en ${lluvia.dias} días` : ''}`));
         A.alertasClima({ clima, lote: l.codigo }).forEach((x) => lineas.push(linea(x.nivel === 'danger' ? 'risk' : 'warn', `  ${x.texto}`)));
       });
       lineas.push(linea('ok', `_Condiciones de la receta: viento ${A.CONDICIONES_APLICACION.vientoMin}–${A.CONDICIONES_APLICACION.vientoMax} km/h, hasta ${A.CONDICIONES_APLICACION.temperaturaMax} °C, humedad desde ${A.CONDICIONES_APLICACION.humedadMin} % y sin lluvia. Fuente: Agromonitoring._`));
