@@ -5,7 +5,7 @@
 <script src="pampa-trial-guard.js"></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pampa Precision ERP | Centro operativo</title>
+  <title>Pampa Precision ERP | Dashboard</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <script src="vendor/pampa-licensing.js"></script>
   <script src="vendor/pampa-license-key.js"></script>
@@ -13,7 +13,7 @@
   <script src="vendor/dexie.min.js"></script>
   <script src="vendor/chart.umd.min.js"></script>
   <script src="./pampa-core-sync.js"></script>
-  <script src="vendor/pampa-search.js?v=2"></script>
+  <script src="vendor/pampa-search.js?v=3"></script>
   <script src="./shared/pampa-onpremise-disclaimer.js"></script>
   <script src="./shared/core-fiscal-arca/normative-update.browser.js" data-app="agro"></script>
   <script src="./shared/core-offline/report-voice.js"></script>
@@ -76,6 +76,7 @@
     .sidebar-context select { width: 100%; padding: 5px; border: 0; border-radius: 4px; color: var(--ink); background: #f4f7f2; font-size: 11px; }
     .nav-label { color: #90b19d; font-size: 10px; font-weight: 700; letter-spacing: 1.7px; margin: 0 12px 10px; text-transform: uppercase; }
     .nav { display: grid; gap: 4px; }
+    .nav-dashboard { margin: 0 0 14px; }
     .nav button {
       border: 0; border-radius: 9px; padding: 11px 12px; text-align: left; color: #c5d9ca;
       background: transparent; display: flex; align-items: center; gap: 12px;
@@ -371,11 +372,11 @@
       </div>
       <span id="pampaSyncNavBadge" style="display:flex;justify-content:center;margin:4px 0 8px;"></span>
       <div class="sidebar-company"><div class="company-heading"><label for="sidebarCompanySelector">Empresa activa</label><button class="new-company" id="newCompany" type="button" aria-label="Cargar nueva empresa" title="Cargar nueva empresa">+</button></div><select id="sidebarCompanySelector" aria-label="Empresa activa en la barra lateral"></select></div>
+        <!-- Dashboard (vista interna "Centro operativo") justo debajo de la empresa activa. -->
+        <nav class="nav nav-dashboard" aria-label="Dashboard"><button class="active" data-view="Centro operativo"><b class="nav-icon">+</b><span>Dashboard</span></button></nav>
         <div class="sidebar-context"><label for="campaignSelector">Campaña activa</label><select id="campaignSelector" aria-label="Campaña activa"><option>2025 / 2026</option><option>2024 / 2025</option><option>2023 / 2024</option></select></div>
         <button class="sidebar-fiscal-entry" data-view="ARCA"><b class="nav-icon">F</b><span>Fiscal agrario / ARCA</span></button>
-      <div class="nav-label">Inicio</div>
       <nav class="nav" aria-label="Navegacion principal">
-          <button class="active" data-view="Centro operativo"><b class="nav-icon">+</b><span>Centro operativo</span></button>
         <div class="nav-label">Produccion</div>
         <button data-view="Campos y lotes"><b class="nav-icon">G</b><span>Campos y lotes</span></button>
         <button data-view="Agricola"><b class="nav-icon">C</b><span>Campañas, siembra y cosecha</span></button>
@@ -412,7 +413,7 @@
 
     <main>
       <header class="topbar">
-        <div><div class="eyebrow">Vista general / Hoy, 16 de agosto</div><h1>Centro operativo</h1><div class="operational-tools"><span class="operational-status" id="operationalNetworkStatus" role="status">Online</span><button class="button" id="backupButton" type="button" title="Descargar respaldo local">Respaldo</button><button class="button" id="cleanupButton" type="button" title="Limpiar caché local">Limpiar caché</button></div></div>
+        <div><div class="eyebrow">Vista general / Hoy, 16 de agosto</div><h1>Dashboard</h1><div class="operational-tools"><span class="operational-status" id="operationalNetworkStatus" role="status">Online</span><button class="button" id="backupButton" type="button" title="Descargar respaldo local">Respaldo</button><button class="button" id="cleanupButton" type="button" title="Limpiar caché local">Limpiar caché</button></div></div>
       </header>
 
       <section class="dashboard-hero" aria-label="Empresa y operatividad">
@@ -518,7 +519,7 @@
   <div class="connection-status" id="connectionStatus" role="status"></div>
   <script src="vendor/leaflet/leaflet.js"></script>
   <script src="./offline-db.js?v=1"></script>
-  <script src="./precision-roles.js?v=4"></script>
+  <script src="./precision-roles.js?v=5"></script>
   <script src="./agro-core.js?v=15"></script>
   <script src="./asistente-ia.js?v=6"></script>
   <script src="./agro-db.js?v=11"></script>

@@ -14,7 +14,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
   const VISTAS = [
-    ['Centro operativo', 'Centro operativo'], ['Campos y lotes', 'Campos y lotes'], ['Agricola', 'Campañas, siembra y cosecha'], ['Operaciones', 'Labores y aplicaciones'],
+    ['Centro operativo', 'Dashboard'], ['Campos y lotes', 'Campos y lotes'], ['Agricola', 'Campañas, siembra y cosecha'], ['Operaciones', 'Labores y aplicaciones'],
     ['Granos', 'Granos, costos y fiscal'], ['Rentabilidad', 'Rentabilidad'], ['Precision', 'Precisión (mapas y prescripciones)'], ['Inventario', 'Inventario'],
     ['Plan de equipamiento', 'Equipo (maquinaria, mantenimiento y costos)'], ['Calibraciones', 'Calibraciones'], ['Telemetria y clima', 'Telemetría y clima'], ['Analitica', 'Analítica'],
     ['Finanzas', 'Finanzas'], ['Costos', 'Costos'], ['Documentos', 'Documentos'], ['ARCA', 'ARCA'], ['RRHH', 'RRHH'], ['Usuarios y roles', 'Usuarios y roles'], ['Auditoria', 'Auditoría'],
