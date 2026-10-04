@@ -23,7 +23,7 @@
 //     (&desde=<ISO> opcional: inicio de un trial local anterior a este control; se acota a los
 //      últimos DIAS_TRIAL días para que no sirva para alargar la prueba)
 
-const APPS_TRIAL = ['agro', 'ganaderia', 'tambo', 'topografia', 'porcinos'];
+const APPS_TRIAL = ['agro', 'ganaderia', 'tambo', 'topografia', 'porcinos', 'precision'];
 const DIAS_TRIAL = 10;
 const CONSERVAR_DIAS = 730; // cuánto se recuerda una prueba ya usada
 const DIA_MS = 24 * 60 * 60 * 1000;

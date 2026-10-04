@@ -2,7 +2,8 @@
 <html lang="es">
 <head>
 <script id="pampa-web-trial-guard">(function(){try{const url=new URL(window.location.href);if(url.searchParams.get('trial')==='auto'){window.__pampaTrialAutoRequested=true;url.searchParams.delete('trial');window.history.replaceState({},document.title,url.pathname+url.search+url.hash);}}catch(error){}}());</script>
-<meta charset="utf-8">
+<script src="pampa-trial-guard.js"></script>
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pampa Precision ERP | Centro operativo</title>
   <link rel="manifest" href="./manifest.webmanifest">
@@ -344,13 +345,15 @@
   <div id="precisionLicenseActivationOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(15,20,25,0.96); align-items:center; justify-content:center;">
     <div class="panel" style="max-width:500px; width:90%; padding:28px; border-radius:14px; background:#161a27; border:1px solid #f59e0b; color:#f1f5f9; box-shadow:0 20px 50px rgba(0,0,0,0.8);">
       <div style="font-size:20px; font-weight:700; margin-bottom:8px; color:#f59e0b;">🔐 Activar Licencia · PampaPrecisión ERP</div>
-      <p style="font-size:13px; color:#94a3b8; margin-bottom:18px; line-height:1.4;">Ingresá la clave de licencia firmada (PAMPAN1...) enviada por el proveedor para activar esta instalación de PampaPrecisión ERP en escritorio.</p>
+      <p style="font-size:13px; color:#94a3b8; margin-bottom:18px; line-height:1.4;">Ingresá la clave de licencia firmada (PAMPAN1...) enviada por el proveedor para activar PampaPrecisión ERP.</p>
       <div style="margin-bottom:18px;">
         <label style="display:block; font-size:12px; font-weight:600; margin-bottom:6px; color:#cbd5e1;">Clave de Licencia Comercial</label>
         <textarea id="precisionLicenseTokenInput" rows="3" placeholder="PAMPAN1.eyJwbGFuIjoi..." style="width:100%; padding:10px 12px; border:1px solid #334155; border-radius:8px; background:#0f1419; color:#fff; font-family:monospace; font-size:11px; box-sizing:border-box; resize:vertical;"></textarea>
         <div id="precisionLicenseTokenError" style="color:#ef4444; font-size:12px; margin-top:6px; display:none;"></div>
       </div>
       <button type="button" id="btnActivatePrecisionLicense" class="button primary" style="width:100%; padding:12px; font-weight:700; background:#f59e0b; color:#000; border:none; border-radius:8px; cursor:pointer; font-size:14px;">Activar Licencia Comercial</button>
+      <button type="button" id="precisionLicenseTrialBtn" hidden style="width:100%; margin-top:10px; padding:12px; font-weight:700; background:#16a34a; color:#fff; border:none; border-radius:8px; cursor:pointer; font-size:14px;">Iniciar prueba gratis (10 días)</button>
+      <div style="font-size:12px; color:#94a3b8; margin-top:14px; line-height:1.4;">La licencia pertenece al sistema Pampa ERP. La prueba gratis es de 10 días por equipo y no se puede reiniciar.</div>
     </div>
   </div>
   <button class="mobile-menu-button" id="mobileMenuButton" type="button" aria-label="Abrir menú" aria-expanded="false">☰</button>
@@ -359,7 +362,7 @@
     <aside class="sidebar">
       <div class="brand">
         <div class="brand-container"><img class="brand-mark" src="./logo2.png" alt="Logo Pampa Precision ERP"></div>
-        <div><strong>PampaPrecision</strong><small>TRIAL • 10 días</small><em class="mobile-version-label">Versión móvil</em></div>
+        <div><strong>PampaPrecision</strong><small id="precisionLicenseLabel">TRIAL • 10 días</small><em class="mobile-version-label">Versión móvil</em></div>
       </div>
       <span id="pampaSyncNavBadge" style="display:flex;justify-content:center;margin:4px 0 8px;"></span>
       <div class="sidebar-company"><div class="company-heading"><label for="sidebarCompanySelector">Empresa activa</label><button class="new-company" id="newCompany" type="button" aria-label="Cargar nueva empresa" title="Cargar nueva empresa">+</button></div><select id="sidebarCompanySelector" aria-label="Empresa activa en la barra lateral"><option>Pampa Agropecuaria S.A.</option><option>PampaPrecision Demo</option><option>Establecimiento La Esperanza</option></select></div>
@@ -3091,35 +3094,126 @@
     document.querySelector('#deepCleanupButton').addEventListener('click', runDeepCleanup);
     bindDashboardActions();
 
-    async function initPrecisionLicenseCheck() {
-      // OJO: antes esto tambien miraba "!window.location.hostname.includes('nexo-landing')" para
-      // detectar el trial web por descarte. Eso rompia el trial en el dominio propio
-      // (solucioneseningenieria.com.ar), que nunca contiene "nexo-landing" en el hostname:
-      // SIEMPRE se detectaba como escritorio ahi, y la pantalla de activacion nunca se iba.
-      // El escritorio real ya se identifica solo con PAMPA_DESKTOP_MODE (el guard) o protocolo file:.
-      const isDesktop = window.PAMPA_DESKTOP_MODE || (typeof process !== 'undefined' && process.env?.PAMPA_DESKTOP_MODE === '1') || window.location.protocol === 'file:';
-      const stored = localStorage.getItem('PampaPrecisionLicense') || localStorage.getItem('pampa_precision_license');
-      let isSignedValid = false;
-
-      if (stored && window.PampaLicenseSigned) {
-        try {
-          const parsed = typeof stored === 'string' ? JSON.parse(stored) : stored;
-          const token = parsed.token || parsed.key || (typeof stored === 'string' ? stored : '');
-          if (token && token.startsWith('PAMPAN1.')) {
-            const res = await window.PampaLicenseSigned.verifyLicense(token, { product: 'pampaprecision' });
-            if (res.valid) isSignedValid = true;
-          }
-        } catch (e) { console.warn(e); }
+    // ---- Licencia y prueba gratis (mismas condiciones que Agro, Ganadería, Tambo y Porcinos) ----
+    // Web: hace falta una licencia firmada o la prueba de 10 días. El servidor (pampa-trial-guard.js,
+    // en el <head>) recuerda el primer inicio: borrar los datos del navegador, usar otro o volver a
+    // entrar con ?trial=auto no da 10 días nuevos. Sin servidor que responda manda el control local.
+    // Escritorio: solo licencia firmada (la prueba es de la web).
+    const PRECISION_LICENSE_KEY = 'PampaPrecisionLicense';
+    const TRIAL_DIAS = 10;
+    const TRIAL_AGOTADO_KEY = 'pampa_trial_exhausted_precision';
+    const TRIAL_INICIO_KEY = 'pampa_trial_init:precision';
+    const isPrecisionDesktop = () => Boolean(window.PAMPA_DESKTOP_MODE || (typeof process !== 'undefined' && process.env?.PAMPA_DESKTOP_MODE === '1') || window.location.protocol === 'file:');
+    function rawPrecisionLicense() { try { return JSON.parse(localStorage.getItem(PRECISION_LICENSE_KEY) || localStorage.getItem('pampa_precision_license') || 'null'); } catch { return null; } }
+    const esTrial = (r) => Boolean(r && (r.type === 'trial' || r.trial));
+    const trialVigente = (r) => esTrial(r) && r.expiresAt && new Date(r.expiresAt).getTime() > Date.now();
+    function estadoTrialServidor(registrar, desde) {
+      const guard = window.PampaTrialGuard;
+      if (!guard || typeof guard.estado !== 'function') return Promise.resolve({ disponible: false });
+      const pedido = registrar ? guard.registrar(desde) : guard.estado();
+      // Sin respuesta en 6 s se sigue con el control local (no se bloquea la app).
+      return Promise.race([pedido.catch(() => ({ disponible: false })), new Promise(r => setTimeout(() => r({ disponible: false }), 6000))]);
+    }
+    function inicioTrialLocal() {
+      const raw = rawPrecisionLicense();
+      const fechas = [localStorage.getItem(TRIAL_INICIO_KEY), esTrial(raw) ? raw.activatedAt : null].filter(Boolean).map(f => new Date(f)).filter(f => !isNaN(f.getTime()));
+      return fechas.length ? new Date(Math.min(...fechas)).toISOString() : '';
+    }
+    function marcarTrialAgotado() {
+      try { localStorage.setItem(TRIAL_AGOTADO_KEY, '1'); } catch {}
+      if (esTrial(rawPrecisionLicense())) localStorage.removeItem(PRECISION_LICENSE_KEY);
+      window.PampaTrialGuard?.mostrarAgotado?.();
+    }
+    // Prueba con el inicio y el vencimiento del servidor: reactivarla no suma días. null = ya se usó.
+    async function crearTrial() {
+      if (localStorage.getItem(TRIAL_AGOTADO_KEY) === '1') return null;
+      const desdeLocal = inicioTrialLocal();
+      const servidor = await estadoTrialServidor(true, desdeLocal || undefined);
+      if (servidor.disponible && servidor.agotado) return null;
+      const inicio = servidor.disponible && servidor.activatedAt ? servidor.activatedAt : (desdeLocal || new Date().toISOString());
+      const vence = servidor.disponible && servidor.expiresAt ? servidor.expiresAt : new Date(new Date(inicio).getTime() + TRIAL_DIAS * 864e5).toISOString();
+      if (new Date(vence).getTime() <= Date.now()) return null;
+      try { localStorage.setItem(TRIAL_INICIO_KEY, inicio); } catch {}
+      return { key: 'NEXO-MTRI-AL10-0001', plan: 'trial', type: 'trial', expiresAt: vence, activatedAt: inicio };
+    }
+    // Al entrar con una prueba guardada, el vencimiento del servidor manda (nunca la alarga).
+    async function verificarTrialServidor() {
+      const raw = rawPrecisionLicense();
+      if (isPrecisionDesktop() || !esTrial(raw)) return;
+      let estado = await estadoTrialServidor(false);
+      if (estado.disponible && !estado.activo && !estado.agotado) estado = await estadoTrialServidor(true, inicioTrialLocal() || undefined); // prueba anterior a este control
+      if (!estado.disponible) return;
+      if (estado.agotado) { marcarTrialAgotado(); mostrarEstadoLicencia(); return; }
+      if (estado.expiresAt && new Date(estado.expiresAt) < new Date(raw.expiresAt)) {
+        localStorage.setItem(PRECISION_LICENSE_KEY, JSON.stringify({ ...raw, expiresAt: estado.expiresAt, activatedAt: estado.activatedAt || raw.activatedAt }));
+        mostrarEstadoLicencia();
       }
-
-      const overlay = document.getElementById('precisionLicenseActivationOverlay');
-      if (overlay) {
-        if (isDesktop && !isSignedValid) {
-          overlay.style.display = 'flex';
-        } else {
-          overlay.style.display = 'none';
+    }
+    async function licenciaFirmadaValida() {
+      const raw = rawPrecisionLicense();
+      const token = raw?.token || raw?.key || '';
+      if (!token.startsWith('PAMPAN1.') || !window.PampaLicenseSigned) return false;
+      try { return Boolean((await window.PampaLicenseSigned.verifyLicense(token, { product: 'pampaprecision' })).valid); } catch (e) { console.warn(e); return false; }
+    }
+    // Etiqueta de la barra lateral y aviso con los días que quedan de prueba.
+    function mostrarEstadoLicencia() {
+      const raw = rawPrecisionLicense();
+      const label = document.getElementById('precisionLicenseLabel');
+      const banner = document.getElementById('trialBlueBanner');
+      if (trialVigente(raw)) {
+        const dias = Math.max(0, Math.ceil((new Date(raw.expiresAt).getTime() - Date.now()) / 864e5));
+        if (label) label.textContent = `TRIAL • ${dias} día${dias === 1 ? '' : 's'}`;
+        const texto = `Prueba gratuita activa: quedan ${dias} día${dias === 1 ? '' : 's'}.`;
+        if (banner) banner.textContent = texto;
+        else {
+          const b = document.createElement('div');
+          b.id = 'trialBlueBanner'; b.setAttribute('role', 'status'); b.textContent = texto; b.title = 'Tocá para ocultar';
+          b.style.cssText = 'position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:100000;background:#2563eb;color:#fff;padding:10px 18px;border-radius:8px;box-shadow:0 6px 20px rgba(15,23,42,.25);font:600 14px Arial,sans-serif;max-width:calc(100vw - 32px);text-align:center;cursor:pointer';
+          b.addEventListener('click', () => b.remove());
+          document.body.appendChild(b);
+          setTimeout(() => b.remove(), 8000);
         }
+      } else {
+        banner?.remove();
+        if (label) label.textContent = raw?.plan && !esTrial(raw) ? `Licencia ${raw.plan}` : 'Sin licencia activa';
       }
+    }
+
+    async function initPrecisionLicenseCheck() {
+      const overlay = document.getElementById('precisionLicenseActivationOverlay');
+      const desktop = isPrecisionDesktop();
+      const raw = rawPrecisionLicense();
+      // Una prueba vencida en este navegador queda marcada: no se vuelve a crear sola.
+      if (!desktop && esTrial(raw) && raw.expiresAt && new Date(raw.expiresAt).getTime() <= Date.now()) marcarTrialAgotado();
+      // En escritorio no vale la prueba de la web.
+      if (desktop && esTrial(raw)) localStorage.removeItem(PRECISION_LICENSE_KEY);
+      let valida = await licenciaFirmadaValida() || (!desktop && trialVigente(rawPrecisionLicense()));
+      // Entrada desde el catálogo (?trial=auto; el guard del <head> lo saca de la URL y deja la marca).
+      const params = new URLSearchParams(window.location.search);
+      if (!desktop && !valida && (window.__pampaTrialAutoRequested || params.get('trial') === 'auto')) {
+        const trial = await crearTrial();
+        if (trial) { localStorage.setItem(PRECISION_LICENSE_KEY, JSON.stringify(trial)); valida = true; }
+        else marcarTrialAgotado();
+        window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.hash}`);
+      }
+      // Web: la prueba también se puede iniciar desde la pantalla de activación.
+      const trialBtn = document.getElementById('precisionLicenseTrialBtn');
+      if (trialBtn && !desktop && !trialBtn.dataset.bound) {
+        trialBtn.dataset.bound = '1';
+        trialBtn.hidden = false;
+        trialBtn.addEventListener('click', async () => {
+          trialBtn.disabled = true;
+          const trial = await crearTrial();
+          trialBtn.disabled = false;
+          if (!trial) { marcarTrialAgotado(); alert('La prueba gratis de 10 días ya se usó en este equipo. Para seguir usando PampaPrecisión, activá una licencia.'); return; }
+          localStorage.setItem(PRECISION_LICENSE_KEY, JSON.stringify(trial));
+          if (overlay) overlay.style.display = 'none';
+          mostrarEstadoLicencia();
+        });
+      }
+      if (overlay) overlay.style.display = valida ? 'none' : 'flex';
+      mostrarEstadoLicencia();
+      verificarTrialServidor().catch(err => console.warn('No se pudo consultar el trial en el servidor.', err));
     }
 
     document.getElementById('btnActivatePrecisionLicense')?.addEventListener('click', async () => {
@@ -3138,10 +3232,11 @@
         if (errorEl) { errorEl.textContent = res.error || 'Licencia inválida o vencida.'; errorEl.style.display = 'block'; }
         return;
       }
-      localStorage.setItem('PampaPrecisionLicense', JSON.stringify({ token: input, ...res }));
+      localStorage.setItem(PRECISION_LICENSE_KEY, JSON.stringify({ token: input, ...res }));
       if (typeof showToast === 'function') showToast(`✅ Licencia activada correctamente: Plan ${res.plan || 'Comercial'}`);
       const overlay = document.getElementById('precisionLicenseActivationOverlay');
       if (overlay) overlay.style.display = 'none';
+      mostrarEstadoLicencia();
     });
 
     initPrecisionLicenseCheck();
