@@ -1,0 +1,1176 @@
+{
+  "_meta": {
+    "tipo": "pampa-seed-demo",
+    "version": 1,
+    "app": "PampaPrecision",
+    "fechaReferencia": "2026-10-01",
+    "descripcion": "Establecimiento agrícola ficticio (sur de Córdoba): Soja, Trigo, Maíz y Girasol en dos campos, silobolsas y celda, LPG con distintos estados SISA. CUIT, RENSPA, COE y comprobantes son de prueba (DEMO).",
+    "alertasIncluidas": [
+      "RENSPA de El Mangrullo por vencer",
+      "Lote EM-03 sin RENSPA",
+      "SISA: existencias por vencer y áreas sembradas de gruesa vencidas",
+      "LPG calculadas con la tabla SISA por defecto",
+      "Reintegro de IVA pendiente (LPG de trigo, estado 1)"
+    ],
+    "comoBorrar": "Limpieza profunda (barra lateral)."
+  },
+  "estado": {
+    "renspa": [
+      {
+        "id": "demo-renspa-1",
+        "numero": "20.077.0.04512/00",
+        "campo": "La Candelaria",
+        "titular": "Agro Los Tilos S.A. (DEMO)",
+        "vence": "2027-05-29"
+      },
+      {
+        "id": "demo-renspa-2",
+        "numero": "20.077.0.04513/00",
+        "campo": "El Mangrullo",
+        "titular": "Agro Los Tilos S.A. (DEMO)",
+        "vence": "2026-10-19"
+      }
+    ],
+    "lotes": [
+      {
+        "id": "demo-lote-1",
+        "codigo": "LC-01",
+        "campo": "La Candelaria",
+        "superficieHa": 120
+      },
+      {
+        "id": "demo-lote-2",
+        "codigo": "LC-02",
+        "campo": "La Candelaria",
+        "superficieHa": 95
+      },
+      {
+        "id": "demo-lote-3",
+        "codigo": "EM-01",
+        "campo": "El Mangrullo",
+        "superficieHa": 140
+      },
+      {
+        "id": "demo-lote-4",
+        "codigo": "EM-02",
+        "campo": "El Mangrullo",
+        "superficieHa": 80
+      },
+      {
+        "id": "demo-lote-5",
+        "codigo": "EM-03",
+        "campo": "El Mangrullo",
+        "superficieHa": 60
+      }
+    ],
+    "lotesCampania": [
+      {
+        "id": "demo-camp-1",
+        "loteId": "demo-lote-1",
+        "cultivo": "TRIGO",
+        "fechaSiembra": "2025-06-08",
+        "superficieHa": 120,
+        "renspaId": "demo-renspa-1"
+      },
+      {
+        "id": "demo-camp-2",
+        "loteId": "demo-lote-1",
+        "cultivo": "SOJA",
+        "fechaSiembra": "2025-12-15",
+        "superficieHa": 120,
+        "renspaId": "demo-renspa-1"
+      },
+      {
+        "id": "demo-camp-3",
+        "loteId": "demo-lote-2",
+        "cultivo": "MAIZ",
+        "fechaSiembra": "2025-10-26",
+        "superficieHa": 95,
+        "renspaId": "demo-renspa-1"
+      },
+      {
+        "id": "demo-camp-4",
+        "loteId": "demo-lote-3",
+        "cultivo": "SOJA",
+        "fechaSiembra": "2025-11-15",
+        "superficieHa": 140,
+        "renspaId": "demo-renspa-2"
+      },
+      {
+        "id": "demo-camp-5",
+        "loteId": "demo-lote-4",
+        "cultivo": "GIRASOL",
+        "fechaSiembra": "2025-10-16",
+        "superficieHa": 80,
+        "renspaId": "demo-renspa-2"
+      },
+      {
+        "id": "demo-camp-6",
+        "loteId": "demo-lote-2",
+        "cultivo": "TRIGO",
+        "fechaSiembra": "2026-06-13",
+        "superficieHa": 95,
+        "renspaId": "demo-renspa-1"
+      }
+    ],
+    "ubicaciones": [
+      {
+        "id": "demo-ub-1",
+        "tipo": "SILOBOLSA",
+        "nombre": "Silobolsa 1",
+        "grano": "SOJA",
+        "campo": "La Candelaria",
+        "capacidadTn": 300,
+        "metros": 60,
+        "fechaEmbolsado": "2026-04-14"
+      },
+      {
+        "id": "demo-ub-2",
+        "tipo": "SILOBOLSA",
+        "nombre": "Silobolsa 2",
+        "grano": "MAIZ",
+        "campo": "La Candelaria",
+        "capacidadTn": 250,
+        "metros": 60,
+        "fechaEmbolsado": "2026-05-04"
+      },
+      {
+        "id": "demo-ub-3",
+        "tipo": "SILOBOLSA",
+        "nombre": "Silobolsa 3",
+        "grano": "GIRASOL",
+        "campo": "El Mangrullo",
+        "capacidadTn": 200,
+        "metros": 60,
+        "fechaEmbolsado": "2026-03-25"
+      },
+      {
+        "id": "demo-ub-5",
+        "tipo": "CELDA",
+        "nombre": "Planta de acopio · soja (terceros)",
+        "grano": "SOJA",
+        "campo": "Acopio San Martín (DEMO)",
+        "capacidadTn": 600,
+        "metros": "",
+        "fechaEmbolsado": ""
+      },
+      {
+        "id": "demo-ub-6",
+        "tipo": "CELDA",
+        "nombre": "Planta de acopio · maíz (terceros)",
+        "grano": "MAIZ",
+        "campo": "Acopio San Martín (DEMO)",
+        "capacidadTn": 900,
+        "metros": "",
+        "fechaEmbolsado": ""
+      },
+      {
+        "id": "demo-ub-4",
+        "tipo": "CELDA",
+        "nombre": "Celda planta A",
+        "grano": "TRIGO",
+        "campo": "La Candelaria",
+        "capacidadTn": 400,
+        "metros": "",
+        "fechaEmbolsado": ""
+      }
+    ],
+    "movimientosGrano": [
+      {
+        "id": "demo-mov-1",
+        "fecha": "2025-12-15",
+        "tipo": "INGRESO_COSECHA",
+        "grano": "TRIGO",
+        "ubicacionId": "demo-ub-4",
+        "kg": 384000,
+        "loteId": "demo-lote-1",
+        "detalle": "Cosecha trigo LC-01 (3,2 t/ha)"
+      },
+      {
+        "id": "demo-mov-2",
+        "fecha": "2026-04-14",
+        "tipo": "INGRESO_COSECHA",
+        "grano": "SOJA",
+        "ubicacionId": "demo-ub-1",
+        "kg": 250000,
+        "loteId": "demo-lote-3",
+        "detalle": "Cosecha soja EM-01"
+      },
+      {
+        "id": "demo-mov-3",
+        "fecha": "2026-05-04",
+        "tipo": "INGRESO_COSECHA",
+        "grano": "MAIZ",
+        "ubicacionId": "demo-ub-2",
+        "kg": 240000,
+        "loteId": "demo-lote-2",
+        "detalle": "Cosecha maíz LC-02"
+      },
+      {
+        "id": "demo-mov-3b",
+        "fecha": "2026-05-04",
+        "tipo": "INGRESO_COSECHA",
+        "grano": "MAIZ",
+        "ubicacionId": "demo-ub-6",
+        "kg": 520000,
+        "loteId": "demo-lote-2",
+        "detalle": "Cosecha maíz LC-02 (al acopio)"
+      },
+      {
+        "id": "demo-mov-4",
+        "fecha": "2026-03-25",
+        "tipo": "INGRESO_COSECHA",
+        "grano": "GIRASOL",
+        "ubicacionId": "demo-ub-3",
+        "kg": 192000,
+        "loteId": "demo-lote-4",
+        "detalle": "Cosecha girasol EM-02"
+      },
+      {
+        "id": "demo-mov-2c",
+        "fecha": "2026-04-14",
+        "tipo": "INGRESO_COSECHA",
+        "grano": "SOJA",
+        "ubicacionId": "demo-ub-5",
+        "kg": 184000,
+        "loteId": "demo-lote-3",
+        "detalle": "Cosecha soja EM-01 (al acopio)"
+      },
+      {
+        "id": "demo-mov-2b",
+        "fecha": "2026-04-24",
+        "tipo": "INGRESO_COSECHA",
+        "grano": "SOJA",
+        "ubicacionId": "demo-ub-5",
+        "kg": 276000,
+        "loteId": "demo-lote-1",
+        "detalle": "Cosecha soja de segunda LC-01"
+      },
+      {
+        "id": "demo-mov-6",
+        "fecha": "2026-05-04",
+        "tipo": "EGRESO_VENTA",
+        "grano": "SOJA",
+        "ubicacionId": "demo-ub-1",
+        "kg": 30000,
+        "detalle": "Arrendamiento El Mangrullo (300 qq)"
+      },
+      {
+        "id": "demo-mov-5",
+        "fecha": "2026-08-02",
+        "tipo": "MERMA",
+        "grano": "MAIZ",
+        "ubicacionId": "demo-ub-2",
+        "kg": 1800,
+        "detalle": "Rotura de silobolsa (DEMO)"
+      }
+    ],
+    "sisaProductor": [
+      {
+        "id": "demo-sisa",
+        "cuit": "30-71999012-2",
+        "estado": "2",
+        "actualizado": "2026-03-15",
+        "vencimientos": [
+          {
+            "tipo": "EXISTENCIAS",
+            "vence": "2026-10-10",
+            "presentado": false
+          },
+          {
+            "tipo": "AREAS_GRUESA",
+            "vence": "2026-09-19",
+            "presentado": false
+          },
+          {
+            "tipo": "AREAS_FINA",
+            "vence": "2026-06-23",
+            "presentado": true
+          }
+        ]
+      }
+    ],
+    "reglasSisa": [
+      {
+        "id": "demo-regla-1",
+        "grano": "GIRASOL",
+        "estado": "3",
+        "ivaPct": 8,
+        "gananciasPct": 15,
+        "reintegro": false,
+        "vigenciaDesde": "2025-08-27",
+        "vigenciaHasta": "",
+        "estadoRegla": "VALIDADA",
+        "fuente": "Verificada con el contador (DEMO)"
+      }
+    ],
+    "reglasIibb": [
+      {
+        "id": "demo-iibb-1",
+        "provincia": "BUENOS AIRES",
+        "alicuotaPct": 0,
+        "vigenciaDesde": "2025-08-27",
+        "vigenciaHasta": "",
+        "estadoRegla": "VALIDADA",
+        "fuente": "ARBA: productor primario exento (DEMO)"
+      }
+    ],
+    "contratosArrendamiento": [
+      {
+        "id": "demo-contrato-1",
+        "campo": "El Mangrullo",
+        "arrendador": "Familia Ortega (DEMO)",
+        "cuit": "20-99887711-3",
+        "modalidad": "QUINTALES",
+        "grano": "SOJA",
+        "cantidad": 300,
+        "inscripto": true,
+        "personaJuridica": false,
+        "vigenciaHasta": "2028-02-13",
+        "pagos": [
+          {
+            "fecha": "2026-05-04",
+            "kg": 30000,
+            "movimientoId": "demo-mov-6"
+          }
+        ]
+      },
+      {
+        "id": "demo-contrato-2",
+        "campo": "La Candelaria (fracción norte)",
+        "arrendador": "Rural del Este S.R.L. (DEMO)",
+        "cuit": "30-71999013-0",
+        "modalidad": "PESOS",
+        "grano": "SOJA",
+        "cantidad": 4500000,
+        "inscripto": true,
+        "personaJuridica": true,
+        "vigenciaHasta": "2027-07-28",
+        "pagos": [
+          {
+            "fecha": "2026-06-03",
+            "importe": 4500000,
+            "retencion": 269328,
+            "base": 4488800,
+            "alicuotaPct": 6,
+            "norma": "RG (AFIP) 830/2000 — locación de inmuebles rurales",
+            "depositada": true
+          }
+        ]
+      }
+    ],
+    "lpg": [
+      {
+        "id": "demo-lpg-1",
+        "numero": "LPG-DEMO-0001",
+        "coe": "330120000101",
+        "comprador": "Acopio San Martín S.A. (DEMO)",
+        "cuitComprador": "30-71999010-6",
+        "salida": {
+          "ubicacionId": "demo-ub-4",
+          "kg": 300000
+        },
+        "datos": {
+          "fecha": "2026-02-03",
+          "fechaCosecha": "2025-12-15",
+          "tipo": "COMPRAVENTA",
+          "grano": "TRIGO",
+          "estadoSisa": "1",
+          "provincia": "CORDOBA",
+          "kgBrutos": 300000,
+          "humedad": 14,
+          "impurezasPct": 0.5,
+          "precioTn": 205000,
+          "sellos": true,
+          "certificadoIva": "RET-IVA-DEMO-11",
+          "certificadoGanancias": "",
+          "deducciones": [
+            {
+              "tipo": "COMISION",
+              "importe": 1230000
+            },
+            {
+              "tipo": "FLETE_CORTO",
+              "importe": 2100000
+            },
+            {
+              "tipo": "PARITARIAS",
+              "importe": 90000
+            }
+          ],
+          "cpe": "CPE-DEMO-70011"
+        }
+      },
+      {
+        "id": "demo-lpg-2",
+        "numero": "LPG-DEMO-0002",
+        "coe": "330120000102",
+        "comprador": "Cerealera del Sur S.A. (DEMO)",
+        "cuitComprador": "30-71999011-4",
+        "salida": {
+          "ubicacionId": "demo-ub-1",
+          "kg": 120000
+        },
+        "datos": {
+          "fecha": "2026-07-03",
+          "fechaCosecha": "2026-04-14",
+          "tipo": "COMPRAVENTA",
+          "grano": "SOJA",
+          "estadoSisa": "2",
+          "provincia": "CORDOBA",
+          "kgBrutos": 120000,
+          "humedad": 14.5,
+          "impurezasPct": 1,
+          "precioTn": 320000,
+          "sellos": true,
+          "certificadoIva": "RET-IVA-DEMO-21",
+          "certificadoGanancias": "RET-GAN-DEMO-21",
+          "deducciones": [
+            {
+              "tipo": "COMISION",
+              "importe": 760000
+            },
+            {
+              "tipo": "FLETE_LARGO",
+              "importe": 1450000
+            },
+            {
+              "tipo": "SECADO",
+              "importe": 180000
+            }
+          ],
+          "cpe": "CPE-DEMO-70022"
+        }
+      },
+      {
+        "id": "demo-lpg-3",
+        "numero": "LPG-DEMO-0003",
+        "coe": "330120000103",
+        "comprador": "Cerealera del Sur S.A. (DEMO)",
+        "cuitComprador": "30-71999011-4",
+        "lpgOrigenId": "demo-lpg-2",
+        "salida": {
+          "ubicacionId": "demo-ub-1",
+          "kg": 2000
+        },
+        "datos": {
+          "fecha": "2026-07-13",
+          "fechaCosecha": "2026-04-14",
+          "tipo": "COMPRAVENTA",
+          "ajuste": "CREDITO",
+          "grano": "SOJA",
+          "estadoSisa": "2",
+          "provincia": "CORDOBA",
+          "kgBrutos": 2000,
+          "humedad": 13.5,
+          "precioTn": 320000,
+          "sellos": false,
+          "deducciones": [],
+          "cpe": ""
+        }
+      },
+      {
+        "id": "demo-lpg-4",
+        "numero": "LPG-DEMO-0004",
+        "coe": "",
+        "comprador": "Acopio San Martín S.A. (DEMO)",
+        "cuitComprador": "30-71999010-6",
+        "salida": {
+          "ubicacionId": "demo-ub-2",
+          "kg": 150000
+        },
+        "datos": {
+          "fecha": "2026-09-26",
+          "fechaCosecha": "2026-05-04",
+          "tipo": "COMPRAVENTA",
+          "grano": "MAIZ",
+          "estadoSisa": "3",
+          "provincia": "BUENOS AIRES",
+          "kgBrutos": 150000,
+          "humedad": 16.5,
+          "impurezasPct": 1.5,
+          "volatilizacionPct": 0.25,
+          "precioTn": 185000,
+          "sellos": true,
+          "deducciones": [
+            {
+              "tipo": "COMISION",
+              "importe": 550000
+            },
+            {
+              "tipo": "FLETE_CORTO",
+              "importe": 980000
+            },
+            {
+              "tipo": "SECADO",
+              "importe": 620000
+            },
+            {
+              "tipo": "ZARANDEO",
+              "importe": 120000
+            }
+          ],
+          "cpe": "CPE-DEMO-70044"
+        }
+      },
+      {
+        "id": "demo-lpg-5",
+        "numero": "LPG-DEMO-0005",
+        "coe": "330120000105",
+        "comprador": "Aceitera General Deheza (DEMO)",
+        "cuitComprador": "30-71999014-9",
+        "salida": {
+          "ubicacionId": "demo-ub-3",
+          "kg": 80000
+        },
+        "datos": {
+          "fecha": "2026-06-03",
+          "fechaCosecha": "2026-03-25",
+          "tipo": "COMPRAVENTA",
+          "grano": "GIRASOL",
+          "estadoSisa": "3",
+          "provincia": "CORDOBA",
+          "kgBrutos": 80000,
+          "humedad": 11.5,
+          "impurezasPct": 1,
+          "precioTn": 380000,
+          "sellos": true,
+          "deducciones": [
+            {
+              "tipo": "COMISION",
+              "importe": 600000
+            },
+            {
+              "tipo": "FLETE_LARGO",
+              "importe": 1100000
+            }
+          ],
+          "cpe": "CPE-DEMO-70055"
+        }
+      }
+    ],
+    "compras": [
+      {
+        "id": "demo-compra-1",
+        "fecha": "2025-05-29",
+        "tipo": "INSUMO",
+        "proveedor": "Semillera Pampeana (DEMO)",
+        "comprobante": "A-0003-00004501",
+        "insumo": "Semilla trigo",
+        "categoriaInsumo": "Semilla",
+        "cantidad": 15000,
+        "unidad": "kg",
+        "neto": 6300000,
+        "ivaPct": 10.5,
+        "pagado": "SI"
+      },
+      {
+        "id": "demo-compra-2",
+        "fecha": "2025-09-16",
+        "tipo": "INSUMO",
+        "proveedor": "Agroquímicos del Sur (DEMO)",
+        "comprobante": "A-0011-00012010",
+        "insumo": "Glifosato",
+        "categoriaInsumo": "Fitosanitario",
+        "cantidad": 1200,
+        "unidad": "l",
+        "neto": 5760000,
+        "ivaPct": 21,
+        "pagado": "SI"
+      },
+      {
+        "id": "demo-compra-3",
+        "fecha": "2025-10-06",
+        "tipo": "INSUMO",
+        "proveedor": "Fertilizantes Córdoba (DEMO)",
+        "comprobante": "A-0002-00007788",
+        "insumo": "Urea",
+        "categoriaInsumo": "Fertilizante",
+        "cantidad": 20000,
+        "unidad": "kg",
+        "neto": 12400000,
+        "ivaPct": 10.5,
+        "pagado": "SI"
+      },
+      {
+        "id": "demo-compra-4",
+        "fecha": "2025-10-11",
+        "tipo": "INSUMO",
+        "proveedor": "Semillera Pampeana (DEMO)",
+        "comprobante": "A-0003-00004620",
+        "insumo": "Semilla girasol",
+        "categoriaInsumo": "Semilla",
+        "cantidad": 30,
+        "unidad": "bolsa",
+        "neto": 5400000,
+        "ivaPct": 10.5,
+        "pagado": "SI"
+      },
+      {
+        "id": "demo-compra-5",
+        "fecha": "2025-10-21",
+        "tipo": "INSUMO",
+        "proveedor": "Semillera Pampeana (DEMO)",
+        "comprobante": "A-0003-00004655",
+        "insumo": "Semilla maíz",
+        "categoriaInsumo": "Semilla",
+        "cantidad": 50,
+        "unidad": "bolsa",
+        "neto": 10500000,
+        "ivaPct": 10.5,
+        "pagado": "SI"
+      },
+      {
+        "id": "demo-compra-6",
+        "fecha": "2025-11-05",
+        "tipo": "INSUMO",
+        "proveedor": "Semillera Pampeana (DEMO)",
+        "comprobante": "A-0003-00004701",
+        "insumo": "Semilla soja",
+        "categoriaInsumo": "Semilla",
+        "cantidad": 20000,
+        "unidad": "kg",
+        "neto": 11000000,
+        "ivaPct": 10.5,
+        "pagado": "SI"
+      },
+      {
+        "id": "demo-compra-13",
+        "fecha": "2026-03-25",
+        "tipo": "INSUMO",
+        "proveedor": "Agroquímicos del Sur (DEMO)",
+        "comprobante": "A-0011-00012390",
+        "insumo": "Fungicida azoxistrobina + ciproconazole",
+        "categoriaInsumo": "Fitosanitario",
+        "cantidad": 60,
+        "unidad": "l",
+        "neto": 2100000,
+        "ivaPct": 21,
+        "pagado": "SI"
+      },
+      {
+        "id": "demo-compra-7",
+        "fecha": "2025-12-05",
+        "tipo": "SERVICIO",
+        "proveedor": "Seguros Rurales (DEMO)",
+        "comprobante": "POL-DEMO-9921",
+        "categoria": "Seguros",
+        "concepto": "Seguro contra granizo",
+        "neto": 1800000,
+        "ivaPct": 21,
+        "pagado": "SI"
+      },
+      {
+        "id": "demo-compra-8",
+        "fecha": "2026-03-15",
+        "tipo": "SERVICIO",
+        "proveedor": "Estudio Contable (DEMO)",
+        "comprobante": "C-0001-00000210",
+        "categoria": "Honorarios",
+        "concepto": "Honorarios contables",
+        "neto": 450000,
+        "ivaPct": 21,
+        "pagado": "SI"
+      },
+      {
+        "id": "demo-compra-9",
+        "fecha": "2026-04-09",
+        "tipo": "SERVICIO",
+        "proveedor": "Cosechas del Centro (DEMO)",
+        "comprobante": "A-0005-00003312",
+        "categoria": "Contratista",
+        "concepto": "Cosecha soja EM-01",
+        "loteId": "demo-lote-3",
+        "cultivo": "SOJA",
+        "fechaCosecha": "2026-04-14",
+        "neto": 11200000,
+        "ivaPct": 10.5,
+        "pagado": "SI"
+      },
+      {
+        "id": "demo-compra-10",
+        "fecha": "2026-04-29",
+        "tipo": "SERVICIO",
+        "proveedor": "Cosechas del Centro (DEMO)",
+        "comprobante": "A-0005-00003390",
+        "categoria": "Contratista",
+        "concepto": "Cosecha maíz LC-02",
+        "loteId": "demo-lote-2",
+        "cultivo": "MAIZ",
+        "fechaCosecha": "2026-05-04",
+        "neto": 9500000,
+        "ivaPct": 10.5,
+        "pagado": "SI"
+      },
+      {
+        "id": "demo-compra-11",
+        "fecha": "2026-06-23",
+        "tipo": "SERVICIO",
+        "proveedor": "Estudio Contable (DEMO)",
+        "comprobante": "C-0001-00000255",
+        "categoria": "Honorarios",
+        "concepto": "Honorarios contables",
+        "neto": 450000,
+        "ivaPct": 21,
+        "pagado": "SI"
+      },
+      {
+        "id": "demo-compra-12",
+        "fecha": "2026-09-11",
+        "tipo": "INSUMO",
+        "proveedor": "Fertilizantes Córdoba (DEMO)",
+        "comprobante": "A-0002-00008102",
+        "insumo": "Urea",
+        "categoriaInsumo": "Fertilizante",
+        "cantidad": 8000,
+        "unidad": "kg",
+        "neto": 5600000,
+        "ivaPct": 10.5,
+        "pagado": "NO"
+      }
+    ],
+    "labores": [
+      {
+        "id": "demo-labor-1",
+        "fecha": "2025-06-08",
+        "loteId": "demo-lote-1",
+        "cultivo": "TRIGO",
+        "tipo": "Siembra",
+        "ha": 120,
+        "estado": "REALIZADA",
+        "equipoId": "demo-eq-1",
+        "horas": 30,
+        "insumos": [
+          {
+            "insumo": "Semilla trigo",
+            "cantidad": 14400,
+            "unidad": "kg"
+          }
+        ]
+      },
+      {
+        "id": "demo-labor-2",
+        "fecha": "2025-07-08",
+        "loteId": "demo-lote-1",
+        "cultivo": "TRIGO",
+        "tipo": "Fertilización",
+        "ha": 120,
+        "estado": "REALIZADA",
+        "equipoId": "demo-eq-1",
+        "horas": 12,
+        "insumos": [
+          {
+            "insumo": "Urea",
+            "cantidad": 12000,
+            "unidad": "kg"
+          }
+        ]
+      },
+      {
+        "id": "demo-labor-3",
+        "fecha": "2025-12-10",
+        "loteId": "demo-lote-1",
+        "cultivo": "TRIGO",
+        "tipo": "Cosecha",
+        "ha": 120,
+        "estado": "REALIZADA",
+        "contratista": "Cosechas del Centro (DEMO)",
+        "contratistaNeto": 9000000,
+        "insumos": []
+      },
+      {
+        "id": "demo-labor-4",
+        "fecha": "2025-10-16",
+        "loteId": "demo-lote-4",
+        "cultivo": "GIRASOL",
+        "tipo": "Siembra",
+        "ha": 80,
+        "estado": "REALIZADA",
+        "equipoId": "demo-eq-1",
+        "horas": 22,
+        "insumos": [
+          {
+            "insumo": "Semilla girasol",
+            "cantidad": 28,
+            "unidad": "bolsa"
+          }
+        ]
+      },
+      {
+        "id": "demo-labor-5",
+        "fecha": "2025-10-26",
+        "loteId": "demo-lote-2",
+        "cultivo": "MAIZ",
+        "tipo": "Siembra",
+        "ha": 95,
+        "estado": "REALIZADA",
+        "equipoId": "demo-eq-1",
+        "horas": 26,
+        "insumos": [
+          {
+            "insumo": "Semilla maíz",
+            "cantidad": 48,
+            "unidad": "bolsa"
+          },
+          {
+            "insumo": "Urea",
+            "cantidad": 7600,
+            "unidad": "kg"
+          }
+        ]
+      },
+      {
+        "id": "demo-labor-6",
+        "fecha": "2025-11-10",
+        "loteId": "demo-lote-3",
+        "cultivo": "SOJA",
+        "tipo": "Aplicación",
+        "ha": 140,
+        "estado": "REALIZADA",
+        "equipoId": "demo-eq-2",
+        "horas": 9,
+        "agronomo": "Ing. Agr. Paula Méndez (DEMO)",
+        "matricula": "MP-CBA-0000",
+        "receta": "RA-DEMO-1182",
+        "provinciaReceta": "Córdoba",
+        "insumos": [
+          {
+            "insumo": "Glifosato",
+            "cantidad": 420,
+            "unidad": "l"
+          }
+        ]
+      },
+      {
+        "id": "demo-labor-7",
+        "fecha": "2025-11-15",
+        "loteId": "demo-lote-3",
+        "cultivo": "SOJA",
+        "tipo": "Siembra",
+        "ha": 140,
+        "estado": "REALIZADA",
+        "equipoId": "demo-eq-1",
+        "horas": 35,
+        "insumos": [
+          {
+            "insumo": "Semilla soja",
+            "cantidad": 11200,
+            "unidad": "kg"
+          }
+        ]
+      },
+      {
+        "id": "demo-labor-8",
+        "fecha": "2025-12-15",
+        "loteId": "demo-lote-1",
+        "cultivo": "SOJA",
+        "tipo": "Siembra",
+        "ha": 120,
+        "estado": "REALIZADA",
+        "equipoId": "demo-eq-1",
+        "horas": 30,
+        "insumos": [
+          {
+            "insumo": "Semilla soja",
+            "cantidad": 8400,
+            "unidad": "kg"
+          }
+        ]
+      },
+      {
+        "id": "demo-labor-9",
+        "fecha": "2025-12-25",
+        "loteId": "demo-lote-1",
+        "cultivo": "SOJA",
+        "tipo": "Aplicación",
+        "ha": 120,
+        "estado": "REALIZADA",
+        "equipoId": "demo-eq-2",
+        "horas": 8,
+        "insumos": [
+          {
+            "insumo": "Glifosato",
+            "cantidad": 360,
+            "unidad": "l"
+          }
+        ]
+      },
+      {
+        "id": "demo-labor-12",
+        "fecha": "2026-03-30",
+        "loteId": "demo-lote-1",
+        "cultivo": "SOJA",
+        "tipo": "Aplicación",
+        "ha": 120,
+        "estado": "REALIZADA",
+        "equipoId": "demo-eq-2",
+        "horas": 7,
+        "agronomo": "Ing. Agr. Paula Méndez (DEMO)",
+        "matricula": "MP-CBA-0000",
+        "receta": "RA-DEMO-1240",
+        "provinciaReceta": "Córdoba",
+        "insumos": [
+          {
+            "insumo": "Fungicida azoxistrobina + ciproconazole",
+            "cantidad": 48,
+            "unidad": "l"
+          }
+        ]
+      },
+      {
+        "id": "demo-labor-10",
+        "fecha": "2026-06-13",
+        "loteId": "demo-lote-2",
+        "cultivo": "TRIGO",
+        "tipo": "Siembra",
+        "ha": 95,
+        "estado": "REALIZADA",
+        "equipoId": "demo-eq-1",
+        "horas": 24,
+        "insumos": []
+      },
+      {
+        "id": "demo-labor-11",
+        "fecha": "2026-10-11",
+        "loteId": "demo-lote-2",
+        "cultivo": "TRIGO",
+        "tipo": "Fertilización",
+        "ha": 95,
+        "estado": "PLANIFICADA",
+        "equipoId": "demo-eq-1",
+        "horas": 10,
+        "insumos": [
+          {
+            "insumo": "Urea",
+            "cantidad": 7600,
+            "unidad": "kg"
+          }
+        ]
+      }
+    ],
+    "equipos": [
+      {
+        "id": "demo-eq-1",
+        "codigo": "TR-01",
+        "nombre": "Tractor John Deere 6130 + sembradora (DEMO)",
+        "costoHora": 45000,
+        "valor": 150000000,
+        "valorResidual": 30000000,
+        "vidaUtilAnios": 10,
+        "fechaAlta": "2021-03-01"
+      },
+      {
+        "id": "demo-eq-2",
+        "codigo": "PU-01",
+        "nombre": "Pulverizadora autopropulsada (DEMO)",
+        "costoHora": 60000,
+        "valor": 220000000,
+        "valorResidual": 40000000,
+        "vidaUtilAnios": 8,
+        "fechaAlta": "2022-08-01",
+        "esAplicador": true,
+        "habilitacion": "HAB-CBA-DEMO-221",
+        "habilitacionVence": "2026-10-21"
+      }
+    ],
+    "empleados": [
+      {
+        "id": "demo-emp-1",
+        "nombre": "Ramón Quiroga (DEMO)",
+        "legajo": "001",
+        "puesto": "Encargado",
+        "sueldo": 1600000,
+        "cargasPct": "",
+        "ingreso": "2022-02-01",
+        "baja": "",
+        "estado": "ACTIVO"
+      },
+      {
+        "id": "demo-emp-2",
+        "nombre": "Lucas Ferreyra (DEMO)",
+        "legajo": "002",
+        "puesto": "Tractorista",
+        "sueldo": 1300000,
+        "cargasPct": "",
+        "ingreso": "2023-09-01",
+        "baja": "",
+        "estado": "ACTIVO"
+      }
+    ],
+    "tiposCambio": [
+      {
+        "fecha": "2025-07-08",
+        "ars": 1050
+      },
+      {
+        "fecha": "2025-08-07",
+        "ars": 1075
+      },
+      {
+        "fecha": "2025-09-06",
+        "ars": 1100
+      },
+      {
+        "fecha": "2025-10-06",
+        "ars": 1125
+      },
+      {
+        "fecha": "2025-11-05",
+        "ars": 1150
+      },
+      {
+        "fecha": "2025-12-05",
+        "ars": 1175
+      },
+      {
+        "fecha": "2026-01-04",
+        "ars": 1200
+      },
+      {
+        "fecha": "2026-02-03",
+        "ars": 1225
+      },
+      {
+        "fecha": "2026-03-05",
+        "ars": 1250
+      },
+      {
+        "fecha": "2026-04-04",
+        "ars": 1275
+      },
+      {
+        "fecha": "2026-05-04",
+        "ars": 1300
+      },
+      {
+        "fecha": "2026-06-03",
+        "ars": 1325
+      },
+      {
+        "fecha": "2026-07-03",
+        "ars": 1350
+      },
+      {
+        "fecha": "2026-08-02",
+        "ars": 1375
+      },
+      {
+        "fecha": "2026-09-01",
+        "ars": 1400
+      },
+      {
+        "fecha": "2026-10-01",
+        "ars": 1425
+      }
+    ],
+    "fitosanitarios": [
+      {
+        "id": "demo-fito-1",
+        "nombre": "Glifosato",
+        "principioActivo": "Glifosato sal potásica 66,2 %",
+        "registroSenasa": "SENASA-DEMO-30101",
+        "banda": "IV",
+        "carenciaDias": 0,
+        "litrosPorEnvase": 20,
+        "unidad": "l"
+      },
+      {
+        "id": "demo-fito-2",
+        "nombre": "Fungicida azoxistrobina + ciproconazole",
+        "principioActivo": "Azoxistrobina 20 % + ciproconazole 8 %",
+        "registroSenasa": "SENASA-DEMO-33870",
+        "banda": "III",
+        "carenciaDias": 30,
+        "litrosPorEnvase": 5,
+        "unidad": "l"
+      }
+    ],
+    "cpes": [
+      {
+        "id": "demo-cpe-1",
+        "numero": "CPE-DEMO-70011",
+        "fecha": "2026-02-01",
+        "tipo": "VENTA",
+        "grano": "TRIGO",
+        "ubicacionId": "demo-ub-4",
+        "destino": "Acopio San Martín S.A. (DEMO)",
+        "cuitDestino": "30-71999010-6",
+        "transportista": "Transportes Río Cuarto (DEMO)",
+        "cuitTransportista": "30-71999020-3",
+        "patente": "AF123BC",
+        "chofer": "José Díaz (DEMO)",
+        "kgOrigen": 300000,
+        "kgDestino": 299400,
+        "estado": "CONFIRMADA",
+        "lpgId": "demo-lpg-1"
+      },
+      {
+        "id": "demo-cpe-2",
+        "numero": "CPE-DEMO-70022",
+        "fecha": "2026-07-01",
+        "tipo": "VENTA",
+        "grano": "SOJA",
+        "ubicacionId": "demo-ub-1",
+        "destino": "Cerealera del Sur S.A. (DEMO)",
+        "cuitDestino": "30-71999011-4",
+        "transportista": "Transportes Río Cuarto (DEMO)",
+        "cuitTransportista": "30-71999020-3",
+        "patente": "AG456DE",
+        "chofer": "José Díaz (DEMO)",
+        "kgOrigen": 120000,
+        "kgDestino": 119700,
+        "estado": "CONFIRMADA",
+        "lpgId": "demo-lpg-2"
+      },
+      {
+        "id": "demo-cpe-3",
+        "numero": "CPE-DEMO-70044",
+        "fecha": "2026-09-25",
+        "tipo": "VENTA",
+        "grano": "MAIZ",
+        "ubicacionId": "demo-ub-2",
+        "destino": "Acopio San Martín S.A. (DEMO)",
+        "cuitDestino": "30-71999010-6",
+        "transportista": "Transportes Río Cuarto (DEMO)",
+        "cuitTransportista": "30-71999020-3",
+        "patente": "AF123BC",
+        "chofer": "Mario Gómez (DEMO)",
+        "kgOrigen": 150000,
+        "kgDestino": 148200,
+        "estado": "CONFIRMADA",
+        "lpgId": "demo-lpg-4"
+      },
+      {
+        "id": "demo-cpe-4",
+        "numero": "CPE-DEMO-80001",
+        "fecha": "2026-09-23",
+        "tipo": "TRASLADO",
+        "grano": "MAIZ",
+        "ubicacionId": "demo-ub-2",
+        "ubicacionDestinoId": "demo-ub-6",
+        "destino": "",
+        "cuitDestino": "",
+        "transportista": "Flete propio",
+        "cuitTransportista": "",
+        "patente": "AB987CD",
+        "chofer": "Lucas Ferreyra (DEMO)",
+        "kgOrigen": 30000,
+        "kgDestino": 0,
+        "estado": "ACTIVA",
+        "lpgId": ""
+      }
+    ],
+    "envases": [
+      {
+        "id": "auto-demo-labor-6-0",
+        "origenLaborId": "demo-labor-6",
+        "fecha": "2025-11-10",
+        "producto": "Glifosato",
+        "cantidad": 21,
+        "capacidad": "20 l",
+        "loteId": "demo-lote-3",
+        "estado": "PENDIENTE_LAVADO"
+      }
+    ]
+  }
+}

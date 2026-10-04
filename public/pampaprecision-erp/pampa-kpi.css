@@ -1,0 +1,71 @@
+/* Tarjetas, paneles y tablas con la misma estructura visual que Agro, Ganadería y Tambo
+   (copiado de apps/pampaagro/public/index.html). Acotado a .pampa-ui para no alterar el resto de Precisión. */
+.pampa-ui {
+  --bg-primary: #0f1419;
+  --bg-secondary: #1a1f2e;
+  --bg-tertiary: #252b3b;
+  --bg-card: #1e2433;
+  --border: #2d3548;
+  --border-light: #3d4558;
+  --green: #f59e0b;
+  --green-dim: #d97706;
+  --blue: #3b82f6;
+  --purple: #8b5cf6;
+  --orange: #f97316;
+  --red: #ef4444;
+  --yellow: #eab308;
+  --cyan: #06b6d4;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-dim: #64748b;
+  --font-main: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --radius: 8px;
+  --radius-lg: 12px;
+  color: var(--text-primary);
+  font-family: var(--font-main);
+}
+.pampa-ui .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 16px; }
+.pampa-ui .card-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+.pampa-ui .card-title { font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+.pampa-ui .card-sub { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+.pampa-ui .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px; }
+.pampa-ui .kpi { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; position: relative; overflow: hidden; }
+.pampa-ui .kpi::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.pampa-ui .kpi.green::before { background: var(--green); }
+.pampa-ui .kpi.blue::before { background: var(--blue); }
+.pampa-ui .kpi.purple::before { background: var(--purple); }
+.pampa-ui .kpi.orange::before { background: var(--orange); }
+.pampa-ui .kpi.red::before { background: var(--red); }
+.pampa-ui .kpi.cyan::before { background: var(--cyan); }
+.pampa-ui .kpi-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.pampa-ui .kpi-value { font-size: clamp(16px, 1.35vw, 28px); font-weight: 700; font-family: var(--font-mono); white-space: nowrap; }
+.pampa-ui .kpi-sub { font-size: 12px; color: var(--text-secondary); margin-top: 6px; }
+.pampa-ui .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.pampa-ui .tag { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+.pampa-ui .tag.green { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+.pampa-ui .tag.blue { background: rgba(59, 130, 246, 0.15); color: var(--blue); }
+.pampa-ui .tag.orange { background: rgba(245, 158, 11, 0.15); color: var(--orange); }
+.pampa-ui .tag.red { background: rgba(239, 68, 68, 0.15); color: var(--red); }
+.pampa-ui .chart-container { position: relative; height: 260px; }
+.pampa-ui .tabla { width: 100%; border-collapse: collapse; font-size: 13px; }
+.pampa-ui .tabla th { text-align: left; font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .5px; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+.pampa-ui .tabla td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.pampa-ui .tabla td.num, .pampa-ui .tabla th.num { text-align: right; font-family: var(--font-mono); }
+.pampa-ui .tabla small { display: block; color: var(--text-dim); font-size: 11px; }
+.pampa-ui .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+.pampa-ui .tab { background: var(--bg-tertiary); color: var(--text-secondary); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 14px; font-size: 13px; cursor: pointer; }
+.pampa-ui .tab.active { color: #0f1419; background: var(--green); border-color: var(--green); font-weight: 600; }
+.pampa-ui .btn { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-light); border-radius: var(--radius); padding: 8px 14px; font-size: 13px; cursor: pointer; }
+.pampa-ui .btn.primary { background: var(--green); color: #0f1419; border-color: var(--green); font-weight: 600; }
+.pampa-ui .btn.small { padding: 4px 9px; font-size: 12px; }
+.pampa-ui .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px 12px; }
+.pampa-ui .form-grid label { display: grid; gap: 4px; font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .5px; }
+.pampa-ui .form-grid input, .pampa-ui .form-grid select { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 10px; font-size: 13px; text-transform: none; letter-spacing: 0; }
+.pampa-ui .alerta { padding: 10px 12px; border-radius: var(--radius); font-size: 13px; margin-bottom: 8px; border-left: 3px solid var(--yellow); background: rgba(234, 179, 8, .08); }
+.pampa-ui .alerta.danger { border-left-color: var(--red); background: rgba(239, 68, 68, .08); }
+.pampa-ui .nota { font-size: 11px; color: var(--text-dim); margin-top: 6px; }
+.pampa-ui .desglose { display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; font-size: 13px; }
+.pampa-ui .desglose .total { font-weight: 700; border-top: 1px solid var(--border); padding-top: 6px; }
+.pampa-ui .desglose .menos { color: var(--text-secondary); }
+@media (max-width: 760px) { .pampa-ui .grid-2 { grid-template-columns: 1fr; } .pampa-ui .kpi-value { font-size: 22px; } }

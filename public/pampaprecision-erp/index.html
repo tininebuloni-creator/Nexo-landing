@@ -12,16 +12,16 @@
   <script src="vendor/dexie.min.js"></script>
   <script src="./pampa-core-sync.js"></script>
   <script src="vendor/pampa-search.js?v=2"></script>
-  <script src="/shared/pampa-privacy-popup.js"></script>
-  <script src="/shared/pampa-onpremise-disclaimer.js"></script>
-  <script src="/shared/core-fiscal-arca/normative-update.browser.js" data-app="agro"></script>
-  <script src="/shared/core-offline/report-voice.js"></script>
+  <script src="./shared/pampa-onpremise-disclaimer.js"></script>
+  <script src="./shared/core-fiscal-arca/normative-update.browser.js" data-app="agro"></script>
+  <script src="./shared/core-offline/report-voice.js"></script>
   <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-  <link rel="stylesheet" href="/shared/share-styles/global.css">
+  <link rel="stylesheet" href="./shared/share-styles/global.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./pampa-brand.css">
+<link rel="stylesheet" href="./pampa-kpi.css?v=3">
   <style>
     :root {
       --ink: #f1f5f9;
@@ -371,6 +371,7 @@
         <div class="nav-label">Produccion</div>
         <button data-view="Campos y lotes"><b class="nav-icon">G</b><span>Campos y lotes</span></button>
         <button data-view="Agricola"><b class="nav-icon">C</b><span>Campañas, siembra y cosecha</span></button>
+        <button data-view="Granos"><b class="nav-icon">🌾</b><span>Granos, costos y fiscal</span></button>
         <button data-view="Operaciones"><b class="nav-icon">O</b><span>Labores y aplicaciones</span></button>
         <div class="nav-label">Agricultura de precision</div>
         <button data-view="Precision"><b class="nav-icon">P</b><span>Precision</span></button>
@@ -448,12 +449,13 @@
 
       <section id="pampaia-dashboard-mount"></section>
 
-      <section class="metrics" aria-label="Indicadores principales">
-        <article class="metric"><div class="metric-label">Superficie activa</div><div class="metric-value" id="dashboardSurface">0 ha</div><div class="trend" id="dashboardSurfaceTrend">Sin lotes registrados</div></article>
-        <article class="metric"><div class="metric-label">Ordenes en curso</div><div class="metric-value" id="dashboardOrders">0</div><div class="trend" id="dashboardOrdersTrend">Sin ordenes registradas</div></article>
-        <article class="metric"><div class="metric-label">Cumplimiento operativo</div><div class="metric-value" id="dashboardCompliance">0%</div><div class="trend" id="dashboardComplianceTrend">Sin datos operativos</div></article>
-        <article class="metric"><div class="metric-label">Alertas pendientes</div><div class="metric-value" id="dashboardAlerts">0</div><div class="trend warn" id="dashboardAlertsTrend">Sin alertas registradas</div></article>
-      </section>
+      <section class="pampa-ui" aria-label="Indicadores principales"><div class="kpi-grid">
+        <div class="kpi green"><div class="kpi-label">Superficie activa</div><div class="kpi-value" id="dashboardSurface">0 ha</div><div class="kpi-sub" id="dashboardSurfaceTrend">Sin lotes registrados</div></div>
+        <div class="kpi blue"><div class="kpi-label">Órdenes en curso</div><div class="kpi-value" id="dashboardOrders">0</div><div class="kpi-sub" id="dashboardOrdersTrend">Sin órdenes registradas</div></div>
+        <div class="kpi purple"><div class="kpi-label">Cumplimiento operativo</div><div class="kpi-value" id="dashboardCompliance">0%</div><div class="kpi-sub" id="dashboardComplianceTrend">Sin datos operativos</div></div>
+        <div class="kpi red"><div class="kpi-label">Alertas pendientes</div><div class="kpi-value" id="dashboardAlerts">0</div><div class="kpi-sub" id="dashboardAlertsTrend">Sin alertas registradas</div></div>
+      </div></section>
+      <section id="agroDashboard" aria-label="Granos, almacenaje y fiscal"></section>
 
       <div class="layout">
         <div>
@@ -489,7 +491,11 @@
   <div class="connection-status" id="connectionStatus" role="status"></div>
   <script src="vendor/leaflet/leaflet.js"></script>
   <script src="./offline-db.js?v=1"></script>
-  <script src="./sync-manager.js?v=1"></script>
+  <script src="./agro-core.js?v=8"></script>
+  <script src="./agro-db.js?v=6"></script>
+  <script src="./agro-sync.js?v=1"></script>
+  <script src="./agro-ui.js?v=8"></script>
+  <script src="./sync-manager.js?v=2"></script>
   <script src="./api-client.js?v=8"></script>
     <script src="./sync-handlers.js?v=1"></script>
   <script>
@@ -1433,6 +1439,11 @@
       return { exportedAt: new Date().toISOString(), fields: registeredFields, fieldDetails: registeredFieldDetails, lots: registeredLots, lotDetails: registeredLotDetails, importedGeoJson, settings: { driveUrl: localStorage.getItem('pampa-drive-url') || '', serverUrl: localStorage.getItem('pampa-server-url') || '' } };
     }
     function downloadBackup() {
+      // Respaldo completo: base local (granos, LPG, costos, ARCA, SENASA) + campos, lotes y configuración.
+      if (window.PampaAgroSync) {
+        window.PampaAgroSync.descargarRespaldo().then(() => showToast('Respaldo completo descargado')).catch(() => showToast('No se pudo generar el respaldo'));
+        return;
+      }
       const link = document.createElement('a');
       link.href = URL.createObjectURL(new Blob([JSON.stringify(buildBackup(), null, 2)], { type: 'application/json' }));
       link.download = `pampa-precision-backup-${new Date().toISOString().slice(0, 10)}.json`;
@@ -1465,6 +1476,7 @@
       if (!finalConfirmation) return;
       try {
         await offlineDB.clear();
+        await window.PampaAgroDB?.vaciar();
         const cacheKeys = await caches.keys();
         await Promise.all(cacheKeys.filter(key => key.startsWith('pampa-precision-')).map(key => caches.delete(key)));
         Object.keys(localStorage).filter(key => key.startsWith('pampa-')).forEach(key => localStorage.removeItem(key));
@@ -1482,7 +1494,22 @@
       URL.revokeObjectURL(link.href);
     }
     async function chooseLocalFolder() {
-      if (!window.showDirectoryPicker) { showToast('Tu navegador no permite elegir carpetas. Usa Descargar respaldo.'); return; }
+      if (!window.showDirectoryPicker) { showToast('Tu navegador no permite elegir carpetas. Usa Exportar / Importar archivo en Conectividad.'); return; }
+      // Carpeta de sincronización: cada equipo deja su archivo y lee el de los demás (no una copia única).
+      if (window.PampaAgroSync) {
+        try {
+          const result = await window.PampaAgroSync.elegirCarpeta();
+          const state = await window.PampaAgroSync.estado();
+          if (typeof syncManager !== 'undefined') syncManager.configureLocalSync(state.carpeta);
+          localStorage.setItem('pampa-folder-name', state.carpeta);
+          localStorage.setItem('pampa-last-sync', new Date().toLocaleString('es-AR'));
+          showToast(result.estado === 'ok' ? `Carpeta ${state.carpeta} conectada · ${result.cambios} cambio(s) recibidos` : (result.mensaje || 'Carpeta conectada'));
+        } catch (error) {
+          if (error.name !== 'AbortError') showToast(error.message || 'No se pudo usar la carpeta elegida');
+        }
+        if (document.querySelector('[data-agro-sync]')) loadConnectivityModule();
+        return;
+      }
       try {
         const directory = await window.showDirectoryPicker({ mode: 'readwrite' });
         const file = await directory.getFileHandle('pampa-precision-backup.json', { create: true });
@@ -1499,15 +1526,52 @@
     async function syncNow() {
       const manager = typeof syncManager !== 'undefined' ? syncManager : null;
       const config = manager?.getConfig();
-      if (!config?.enabled || !config.destination) {
-        showToast('Configurá un destino en Conectividad antes de sincronizar');
+      const folder = window.PampaAgroSync ? await window.PampaAgroSync.estado() : null;
+      const remote = config?.enabled && (config.destination === 'drive' || config.destination === 'server');
+      if (!folder?.conectada && !remote) {
+        showToast('Elegí una carpeta de sincronización o un destino en Conectividad');
         openModule('Conectividad y sincronizacion');
         return;
       }
-      const result = await manager.sync();
-      if (result.success) showToast(`Sincronización completada: ${result.itemsSynced || 0} cambios enviados`);
-      else showToast(result.message || 'No se pudo completar la sincronización');
+      const messages = [];
+      if (folder?.conectada) {
+        const r = await window.PampaAgroSync.sincronizar({ interactivo: true });
+        messages.push(r.estado === 'ok' ? `Carpeta: ${r.cambios} cambio(s) recibidos de ${r.equipos.length} equipo(s)` : (r.mensaje || `Carpeta: ${r.estado}`));
+      }
+      if (remote) {
+        const result = await manager.sync();
+        messages.push(result.success ? `${config.destination === 'drive' ? 'Drive' : 'Servidor'}: ${result.itemsSynced || 0} cambio(s) enviados` : (result.message || result.error || 'No se pudo enviar al destino'));
+      }
+      showToast(messages.join(' · '));
+      if (document.querySelector('[data-agro-sync]')) loadConnectivityModule();
     }
+    // Pantalla Conectividad: estado de red, cola pendiente y panel de sincronización entre equipos.
+    async function loadConnectivityModule() {
+      const setText = (id, value) => { const element = document.querySelector(`#${id}`); if (element) element.textContent = value; };
+      setText('syncNetworkState', navigator.onLine ? 'Online' : 'Sin conexión (todo sigue funcionando)');
+      try {
+        const status = typeof syncManager !== 'undefined' ? await syncManager.getStatus() : null;
+        const folder = window.PampaAgroSync ? await window.PampaAgroSync.estado() : null;
+        const config = typeof syncManager !== 'undefined' ? syncManager.getConfig() : {};
+        const destinations = { drive: 'Drive / WebDAV', server: 'Servidor propio' };
+        setText('syncPendingCount', String(status?.pendingUnsynced ?? 0));
+        setText('syncLastTime', folder?.ultima?.cuando ? new Date(folder.ultima.cuando).toLocaleString('es-AR') : (status?.lastSync ? new Date(status.lastSync).toLocaleString('es-AR') : 'Nunca'));
+        const estimate = navigator.storage?.estimate ? await navigator.storage.estimate().catch(() => null) : null;
+        setText('syncDbSize', `${((estimate?.usage ?? status?.databaseSize ?? 0) / 1048576).toFixed(1)} MB`);
+        setText('syncLocalStatus', folder?.conectada ? `Conectada: ${folder.carpeta}` : 'Disponible');
+        setText('syncDriveStatus', config.enabled && config.destination === 'drive' ? 'Configurado' : 'No configurado');
+        setText('syncServerStatus', config.enabled && config.destination === 'server' ? 'Configurado' : 'No configurado');
+        const active = [folder?.conectada ? 'Carpeta' : '', config.enabled ? destinations[config.destination] || '' : ''].filter(Boolean).join(' + ');
+        setText('syncConfigPill', active || 'No configurado');
+        const queue = document.querySelector('#syncQueueStatus');
+        if (queue) queue.innerHTML = `<strong>${status?.pendingUnsynced ?? 0}</strong> cambio(s) en la cola para el servidor o Drive. ${folder?.conectada ? `La carpeta <strong>${folder.carpeta}</strong> recibe la copia completa automáticamente unos segundos después de cada cambio.` : 'Sin carpeta conectada: los datos quedan en este equipo (usá Exportar o Descargar respaldo).'}`;
+      } catch (error) {
+        console.warn('Conectividad', error);
+      }
+      const main = document.querySelector('main');
+      if (main?.querySelector('#syncQueueStatus')) await window.PampaAgroUI?.panelSincronizacion(main);
+    }
+    window.addEventListener('pampa-agro-sync', () => { if (document.querySelector('[data-agro-sync]')) loadConnectivityModule(); });
     async function loadAgriculturalModule() {
       try {
         const [summary, machines, maintenance, harvest, costs, compliance] = await Promise.all([
@@ -1879,6 +1943,9 @@
         openNewForm('Registrar asistencia', [{ id: 'attendanceEmployee', label: 'Empleado', type: 'select', options: employees, full: true }, { id: 'attendanceDate', label: 'Fecha', type: 'date' }, { id: 'attendanceStatus', label: 'Estado', type: 'select', options: ['present', 'absent', 'leave', 'holiday'] }, { id: 'attendanceHours', label: 'Horas trabajadas', type: 'number', placeholder: '8' }, { id: 'attendanceOvertime', label: 'Horas extra', type: 'number', placeholder: '0' }, { id: 'attendanceNote', label: 'Observacion', placeholder: 'Parte diario / novedad', full: true }], async formData => { await api.createAttendance(activeTenantId, { employeeId: formData.get('attendanceEmployee').split(' · ')[0], workDate: formData.get('attendanceDate'), status: formData.get('attendanceStatus'), hoursWorked: Number(formData.get('attendanceHours') || 0), overtimeHours: Number(formData.get('attendanceOvertime') || 0), note: formData.get('attendanceNote') }); showToast('Asistencia registrada'); loadHrModule(); });
       } else if (label === 'Nueva liquidacion') {
         openNewForm('Nuevo periodo de liquidacion', [{ id: 'payrollStart', label: 'Inicio', type: 'date' }, { id: 'payrollEnd', label: 'Fin', type: 'date' }, { id: 'payrollPaymentDate', label: 'Fecha de pago', type: 'date' }], async formData => { await api.createPayrollPeriod(activeTenantId, { periodStart: formData.get('payrollStart'), periodEnd: formData.get('payrollEnd'), paymentDate: formData.get('payrollPaymentDate') }); showToast('Periodo de liquidacion creado'); loadHrModule(); });
+      } else if (label === 'Nueva LPG' && window.PampaAgroUI) {
+        window.PampaAgroUI.abrirLpg();
+        openModule('Granos');
       } else if (label === 'Nueva LPG') {
         const lpgConfig = await api.getLpgConfig();
         const cashAccounts = (await api.getCashAccounts(activeTenantId)).filter(account => ['bank', 'savings_ars', 'savings_usd', 'checking_ars', 'checking_usd'].includes(account.account_type) || String(account.account_type || '').toLowerCase().includes('ahorro') || String(account.account_type || '').toLowerCase().includes('corriente'));
@@ -2045,6 +2112,14 @@
         downloadBackup();
       } else if (label === 'Elegir carpeta local') {
         chooseLocalFolder();
+      } else if (label === 'Configurar Carpeta Local') {
+        chooseLocalFolder();
+      } else if (label === 'Configurar Drive WebDAV') {
+        const current = typeof syncManager !== 'undefined' ? syncManager.getConfig() : {};
+        openNewForm('Configurar Drive / WebDAV', [{ id: 'syncDriveUrl', label: 'URL WebDAV / S3', placeholder: 'https://drive.miempresa.local', full: true, value: current.driveUrl || '' }, { id: 'syncDriveUser', label: 'Usuario', required: false, value: current.driveUsername || '' }, { id: 'syncDrivePassword', label: 'Contraseña (solo esta sesión)', type: 'password', required: false }], formData => { syncManager.configureDriveSync(String(formData.get('syncDriveUrl') || '').trim(), formData.get('syncDriveUser'), formData.get('syncDrivePassword')); syncManager.startAutoSync(); showToast('Drive configurado. La contraseña no queda guardada en el equipo.'); loadConnectivityModule(); });
+      } else if (label === 'Configurar Servidor Propio') {
+        const current = typeof syncManager !== 'undefined' ? syncManager.getConfig() : {};
+        openNewForm('Configurar servidor propio', [{ id: 'syncServerUrl', label: 'URL del servidor', placeholder: 'https://erp.miempresa.local', full: true, value: current.serverUrl || '' }, { id: 'syncServerKey', label: 'API key', required: false }], formData => { syncManager.configureServerSync(String(formData.get('syncServerUrl') || '').trim(), formData.get('syncServerKey')); syncManager.startAutoSync(); showToast('Servidor propio configurado'); loadConnectivityModule(); });
       } else if (label === 'Configurar Drive propio') {
         openNewForm('Configurar Drive propio', [{ id: 'driveUrl', label: 'URL WebDAV / S3', placeholder: 'https://drive.miempresa.local', full: true }], formData => { localStorage.setItem('pampa-drive-url', formData.get('driveUrl')); showToast('Drive propio configurado'); });
       } else if (label === 'Configurar servidor propio') {
@@ -2148,6 +2223,9 @@
         <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Ingresos registrados</span><strong id="profitRevenue">$ 0</strong></article><article class="panel module-stat danger"><span>Costos registrados</span><strong id="profitCosts">$ 0</strong></article><article class="panel module-stat warning"><span>Resultado neto</span><strong id="profitNet">$ 0</strong></article><article class="panel module-stat"><span>Margen</span><strong id="profitMargin">0%</strong></article></div>
         <section class="panel"><div class="panel-head"><div><h2>Resultado económico</h2><p class="panel-caption">Ingresos, costos y margen de la campaña activa</p></div><span class="pill" id="profitabilityState">Sin datos</span></div><table class="data-table"><thead><tr><th>Concepto</th><th>Importe</th><th>Origen</th><th>Estado</th></tr></thead><tbody id="profitabilitySummaryRows"><tr><td colspan="4">Sin datos de rentabilidad registrados.</td></tr></tbody></table></section>
         <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Rentabilidad por lote</h2><p class="panel-caption">Comparación de ingresos, costos directos y resultado</p></div><span class="pill yellow">Pendiente de datos</span></div><table class="data-table"><thead><tr><th>Lote</th><th>Ingresos</th><th>Costos</th><th>Resultado</th><th>Margen</th></tr></thead><tbody id="profitabilityLotRows"><tr><td colspan="5">Registrá ingresos y costos para calcular la rentabilidad por lote.</td></tr></tbody></table></section></section>`,
+      'Granos': `
+        <header class="topbar"><div><div class="eyebrow">Producción / Soja · Trigo · Maíz · Girasol</div><h1>Granos, costos y fiscal</h1></div></header>
+        <section id="agroCoreRoot"></section>`,
       'Agricola': `
         <header class="topbar"><div><div class="eyebrow">Workspace / Produccion agricola</div><h1>Modulo agricola</h1></div><div class="toolbar"><button class="button" data-action="Planificar siembra">+ Siembra</button><button class="button" data-action="Planificar cosecha">+ Cosecha</button><button class="button primary" data-action="Nuevo costo operativo">+ Costo operativo</button></div></header>
         <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Maquinas activas</span><strong id="agriMachinesCount">0</strong></article><article class="panel module-stat warning"><span>Mantenimientos pendientes</span><strong id="agriMaintenanceCount">0</strong></article><article class="panel module-stat"><span>Cosecha registrada</span><strong id="agriHarvestTotal">0 tn</strong></article><article class="panel module-stat danger"><span>Costos operativos</span><strong id="agriCostTotal">$ 0</strong></article></div>
@@ -2166,8 +2244,8 @@
       'Conectividad y sincronizacion': `
         <header class="topbar"><div><div class="eyebrow">Workspace / Datos y respaldo</div><h1>Conectividad</h1></div><div class="toolbar"><span class="pill" id="syncStatusPill">Offline-First</span><button class="button primary" data-action="Sincronizar ahora">Sincronizar ahora</button></div></header>
         <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Estado de red</span><strong id="syncNetworkState">Online</strong></article><article class="panel module-stat"><span>Cambios pendientes</span><strong id="syncPendingCount">0</strong></article><article class="panel module-stat warning"><span>Último sync</span><strong id="syncLastTime">Nunca</strong></article><article class="panel module-stat"><span>Tamaño BD local</span><strong id="syncDbSize">0 MB</strong></article></div>
-        <section class="panel"><div class="panel-head"><div><h2>Destinos de sincronización</h2><p class="panel-caption">Elige dónde guardar tus datos. Los cambios se sincronizan automáticamente cada 2 minutos cuando hay conexión.</p></div><span class="pill green" id="syncConfigPill">No configurado</span></div><table class="data-table"><thead><tr><th>Destino</th><th>Estado</th><th>Descripción</th><th>Acción</th></tr></thead><tbody><tr><td><strong>💾 Carpeta Local</strong><small>Equipo actual</small></td><td><span class="pill" id="syncLocalStatus">Disponible</span></td><td>Descargar datos JSON a tu computadora. Ideal para respaldos manuales.</td><td><button class="text-button" data-action="Configurar Carpeta Local">Configurar</button></td></tr><tr><td><strong>☁️ Drive / WebDAV</strong><small>S3, Nextcloud, etc.</small></td><td><span class="pill yellow" id="syncDriveStatus">No configurado</span></td><td>Sincronizar a almacenamiento en la nube personal. WebDAV, S3 compatible.</td><td><button class="text-button" data-action="Configurar Drive WebDAV">Configurar</button></td></tr><tr><td><strong>🔗 Servidor Propio</strong><small>API REST privada</small></td><td><span class="pill yellow" id="syncServerStatus">No configurado</span></td><td>Sincronizar a tu propio servidor/backend con autenticación. Máximo control.</td><td><button class="text-button" data-action="Configurar Servidor Propio">Configurar</button></td></tr></tbody></table></section>
-        <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Cómo funciona Offline-First</h2><p class="panel-caption">Tu trabajo está siempre disponible, incluso sin conexión</p></div></div><div class="footnote" style="line-height:1.8;"><strong>1️⃣ Guardar localmente:</strong> Todos los cambios se guardan inmediatamente en tu dispositivo (IndexedDB)<br><strong>2️⃣ Trabajar sin conexión:</strong> Seguís accediendo a datos y creando registros normalmente<br><strong>3️⃣ Sincronizar al conectar:</strong> Cuando recuperas conexión, los datos se envían automáticamente al destino configurado<br><strong>4️⃣ Resolver conflictos:</strong> Si hay cambios en ambos lados, se fusionan inteligentemente</div></section>
+        <section class="panel"><div class="panel-head"><div><h2>Destinos de sincronización</h2><p class="panel-caption">Elige dónde guardar tus datos. Los cambios se sincronizan automáticamente cada 2 minutos cuando hay conexión.</p></div><span class="pill green" id="syncConfigPill">No configurado</span></div><table class="data-table"><thead><tr><th>Destino</th><th>Estado</th><th>Descripción</th><th>Acción</th></tr></thead><tbody><tr><td><strong>💾 Carpeta Local</strong><small>Equipo actual</small></td><td><span class="pill" id="syncLocalStatus">Disponible</span></td><td>Carpeta compartida entre equipos (la de Google Drive, Dropbox u OneDrive de la computadora, o de red). Cada equipo deja su copia y recibe la de los demás; funciona sin internet.</td><td><button class="text-button" data-action="Configurar Carpeta Local">Elegir carpeta</button></td></tr><tr><td><strong>☁️ Drive / WebDAV</strong><small>S3, Nextcloud, etc.</small></td><td><span class="pill yellow" id="syncDriveStatus">No configurado</span></td><td>Envía los cambios a un endpoint propio de Drive / WebDAV. La contraseña no se guarda en el equipo: se pide en cada sesión.</td><td><button class="text-button" data-action="Configurar Drive WebDAV">Configurar</button></td></tr><tr><td><strong>🔗 Servidor Propio</strong><small>API REST privada</small></td><td><span class="pill yellow" id="syncServerStatus">No configurado</span></td><td>Sincronizar a tu propio servidor/backend con autenticación. Máximo control.</td><td><button class="text-button" data-action="Configurar Servidor Propio">Configurar</button></td></tr></tbody></table></section>
+        <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Cómo funciona Offline-First</h2><p class="panel-caption">Tu trabajo está siempre disponible, incluso sin conexión</p></div></div><div class="footnote" style="line-height:1.8;"><strong>1️⃣ Guardar localmente:</strong> Todos los cambios se guardan inmediatamente en tu dispositivo (IndexedDB)<br><strong>2️⃣ Trabajar sin conexión:</strong> Seguís accediendo a datos y creando registros normalmente<br><strong>3️⃣ Sincronizar al conectar:</strong> Cuando recuperas conexión, los datos se envían automáticamente al destino configurado<br><strong>4️⃣ Resolver conflictos:</strong> Si el mismo registro cambió en dos equipos, gana el cambio más nuevo; los borrados también viajan y las retenciones e IVA de una LPG siguen siempre a su LPG<br><strong>5️⃣ Respaldo:</strong> Descargar respaldo guarda todo (granos, LPG, costos, ARCA, SENASA, campos y lotes) y se restaura con Importar archivo</div></section>
         <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Estado de sincronización</h2><p class="panel-caption">Cambios pendientes por sincronizar</p></div></div><div id="syncQueueStatus" style="padding:15px;background:#f0f0f0;border-radius:6px;"><i>Cargando estado...</i></div></section></section>`,
       'Inventario': `
         <header class="topbar"><div><div class="eyebrow">Workspace / Abastecimiento</div><h1>Inventario</h1></div><div class="toolbar"><button class="button" data-action="Recepcion de compra">Recepcion</button><button class="button" data-action="Registrar factura">Factura</button><button class="button primary" data-action="Nueva orden de compra creada">+ Nueva compra</button></div></header>
@@ -2192,7 +2270,7 @@
         <div class="layout" style="margin-top:19px"><section class="panel"><div class="panel-head"><div><h2 id="equipStrategyTitle">Matriz por escala seleccionada</h2><p class="panel-caption">Qué incluir, contratar o evitar en el escenario elegido</p></div></div><div class="footnote" id="equipStrategyBox" style="line-height:1.7">Selecciona una escala para ver estrategia.</div></section><section class="panel"><div class="panel-head"><div><h2 id="equipMachineryTitle">Matriz por maquinaria seleccionada</h2><p class="panel-caption">Reglas para el modelo de maquinaria elegido</p></div></div><div class="footnote" id="equipMachineryBox" style="line-height:1.7">Selecciona el modelo de maquinaria.</div><div class="panel-head" style="margin-top:12px"><div><h2 id="equipCropTitle">Foco por cultivo seleccionado</h2><p class="panel-caption">Prioridades técnicas para el cultivo elegido</p></div></div><div class="footnote" id="equipCropBox" style="line-height:1.7">Selecciona un cultivo para desplegar focos.</div></section></div>
         <section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Reglas del motor</h2><p class="panel-caption">Condiciones R1-R12 para bloquear o priorizar decisiones</p></div><span class="pill yellow">Deterministico</span></div><table class="data-table"><thead><tr><th>Regla</th><th>Condicion operativa</th></tr></thead><tbody id="equipRuleRows"></tbody></table></section></section>`,
       'Analitica': `
-        <header class="topbar"><div><div class="eyebrow">Workspace / Datos productivos</div><h1>Analitica</h1></div><div class="toolbar"><select id="analyticsCrop" aria-label="Cultivo"><option value="maiz">Maiz</option><option value="soja">Soja</option><option value="trigo">Trigo</option></select><button class="button" data-action="Reporte generado">Generar reporte</button></div></header>
+        <header class="topbar"><div><div class="eyebrow">Workspace / Datos productivos</div><h1>Analitica</h1></div><div class="toolbar"><select id="analyticsCrop" aria-label="Cultivo"><option value="maiz">Maiz</option><option value="soja">Soja</option><option value="trigo">Trigo</option><option value="girasol">Girasol</option></select><button class="button" data-action="Reporte generado">Generar reporte</button></div></header>
         <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Rinde promedio</span><strong id="analyticsAverageYield">8,6 t/ha</strong></article><article class="panel module-stat"><span>Costo operativo</span><strong id="analyticsOperatingCost">$ 412/ha</strong></article><article class="panel module-stat"><span>Datos integrados</span><strong id="analyticsDataQuality">98,4%</strong></article></div><section class="panel"><div class="panel-head"><div><h2>Evolucion de rinde por lote</h2><p class="panel-caption" id="analyticsChartCaption">Comparativa de la campana 2025 / 2026 · Maiz</p></div><span class="eyebrow" id="analyticsCropLabel">Maiz</span></div><div class="chart large" id="analyticsYieldChart"></div></section></section>`,
       'Reportes': `
         <header class="topbar"><div><div class="eyebrow">Workspace / Información de gestión</div><h1>Reportes</h1></div><div class="toolbar"><button class="button" data-action="Configurar reporte WhatsApp">Configurar WhatsApp</button><button class="button primary" data-action="Enviar reporte instantáneo WhatsApp">Reporte instantáneo · WhatsApp</button></div></header>
@@ -2709,7 +2787,8 @@
       const datasets = {
         maiz: { label: 'Maiz', average: '8,6 t/ha', cost: '$ 412/ha', quality: '98,4%', values: [55, 83, 69, 46, 63] },
         soja: { label: 'Soja', average: '3,4 t/ha', cost: '$ 286/ha', quality: '96,8%', values: [72, 61, 88, 54, 77] },
-        trigo: { label: 'Trigo', average: '4,2 t/ha', cost: '$ 318/ha', quality: '97,5%', values: [64, 78, 52, 71, 59] }
+        trigo: { label: 'Trigo', average: '4,2 t/ha', cost: '$ 318/ha', quality: '97,5%', values: [64, 78, 52, 71, 59] },
+        girasol: { label: 'Girasol', average: 'Sin datos', cost: 'Sin datos', quality: 'Sin datos', values: [0, 0, 0, 0, 0] }
       };
       const render = () => {
         const dataset = datasets[selector.value] || datasets.maiz;
@@ -2873,6 +2952,10 @@
           window.PampaIA?.mount();
         } else if (button.dataset.view === 'Campos y lotes') {
           showFieldsAndLotsModule();
+        } else if (button.dataset.view === 'Rentabilidad' && window.PampaAgroUI) {
+          // Costos y rentabilidad en pesos (USD informativo), con el núcleo agrícola.
+          main.innerHTML = moduleViews['Granos'].replace('<h1>Granos, costos y fiscal</h1>', '<h1>Costos y rentabilidad</h1>');
+          window.PampaAgroUI.montar(main.querySelector('#agroCoreRoot'), 'resultados');
         } else {
           main.innerHTML = moduleViews[button.dataset.view];
           if (button.dataset.view === 'ARCA') main.querySelector('.module-page')?.setAttribute('id', 'mod-arca');
@@ -2882,6 +2965,9 @@
           bindModuleActions();
           addHistoricalImportAction(button.dataset.view);
           if (button.dataset.view === 'Agricola' && !isTrialMode) loadAgriculturalModule();
+          if (button.dataset.view === 'Granos') window.PampaAgroUI?.montar(main.querySelector('#agroCoreRoot'));
+          if (button.dataset.view === 'Inventario') window.PampaAgroUI?.avisoEnVistaAnterior(main, 'compras', 'Las compras con IVA, el stock de insumos y su costo se cargan en Granos, costos y fiscal → Compras e insumos (funciona sin servidor).');
+          if (button.dataset.view === 'Operaciones') window.PampaAgroUI?.avisoEnVistaAnterior(main, 'labores', 'Las labores con costo (insumos al último precio, horas de máquina, contratista) se cargan en Granos, costos y fiscal → Labores.');
           if (button.dataset.view === 'Finanzas' && !isTrialMode) loadFinanceModule();
           if (button.dataset.view === 'RRHH' && !isTrialMode) loadHrModule();
           if (button.dataset.view === 'Rentabilidad') loadProfitabilityModule();
@@ -2988,6 +3074,7 @@
     }
     function bindDashboardActions() {
       addHistoricalImportAction('Centro operativo');
+      window.PampaAgroUI?.montarDashboard(document.querySelector('#agroDashboard')).catch(error => console.warn('Granos: no se pudo armar el resumen.', error));
       refreshDashboardData();
       refreshMachineComplianceAlerts();
       refreshDashboardContext();

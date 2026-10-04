@@ -1,0 +1,24 @@
+:root {
+	--pampa-font-sans: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+	--pampa-font-display: Georgia, "Times New Roman", serif;
+	--pampa-radius-sm: 6px;
+	--pampa-radius-md: 8px;
+	--pampa-shadow-soft: 0 10px 30px rgba(23, 34, 29, 0.06);
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+body {
+	font-family: var(--pampa-font-sans);
+}
+
+button,
+input,
+select,
+textarea {
+	font: inherit;
+}

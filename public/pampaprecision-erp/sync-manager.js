@@ -1,6 +1,8 @@
 /**
  * Pampa Precision ERP - Sync Manager
  * Sincroniza datos offline a: Carpeta local, Drive/WebDAV, o Servidor REST propio
+ * - Carpeta local: la maneja PampaAgroSync (cada equipo deja su copia completa y combina la de los demás).
+ * - La contraseña de Drive vive solo en memoria (se pide en cada sesión); nunca se guarda en localStorage.
  */
 
 class SyncManager {
@@ -32,6 +34,11 @@ class SyncManager {
       console.error('Error cargando config de sync:', err);
       this.config = { enabled: false, destination: null };
     }
+    // Versiones anteriores guardaban la contraseña en texto plano: se borra del equipo.
+    if (this.config.drivePassword) {
+      this.config.drivePassword = null;
+      try { localStorage.setItem('pampa-sync-config', JSON.stringify(this.config)); } catch (err) { /* sin espacio */ }
+    }
   }
 
   /**
@@ -40,7 +47,8 @@ class SyncManager {
   saveConfig(config) {
     try {
       this.config = { ...this.config, ...config };
-      localStorage.setItem('pampa-sync-config', JSON.stringify(this.config));
+      if (config.drivePassword !== undefined) this.drivePassword = config.drivePassword || null;
+      localStorage.setItem('pampa-sync-config', JSON.stringify({ ...this.config, drivePassword: null }));
       console.log('✅ Configuración de sincronización guardada:', this.config.destination);
       return true;
     } catch (err) {
@@ -112,6 +120,9 @@ class SyncManager {
       console.log('⏳ Sincronización ya en progreso...');
       return { success: false, message: 'Sync en progreso' };
     }
+
+    // La carpeta funciona sin internet: combina con los otros equipos y la cola queda cubierta por la copia completa.
+    if (this.config.destination === 'local') return this.syncToLocal();
 
     if (!navigator.onLine) {
       console.log('📵 Sin conexión - sincronización pospuesta');
@@ -192,24 +203,18 @@ class SyncManager {
   /**
    * Sincronizar a carpeta local
    */
-  async syncToLocal(item) {
+  async syncToLocal() {
+    if (!window.PampaAgroSync) return { success: false, message: 'Sincronización por carpeta no disponible' };
+    const r = await window.PampaAgroSync.sincronizar();
+    if (r.estado !== 'ok') return { success: false, message: r.mensaje || (r.estado === 'sin-carpeta' ? 'Elegí la carpeta en Conectividad' : r.estado) };
     try {
-      // Simular descarga de archivo con datos
-      const dataStr = JSON.stringify(item, null, 2);
-      const blob = new Blob([dataStr], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `sync-${item.id}-${Date.now()}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      
-      console.log(`💾 Item ${item.id} descargado a carpeta local`);
-      return true;
-    } catch (err) {
-      console.error('Error en sincronización local:', err);
-      return false;
-    }
+      const pending = await offlineDB.getPendingSync();
+      for (const item of pending) await offlineDB.markSynced(item.id);
+      await offlineDB.clearSyncedItems();
+      await offlineDB.setMetadata('lastSync', r.cuando);
+    } catch (err) { /* la cola es opcional */ }
+    this.lastSyncTime = new Date();
+    return { success: true, itemsSynced: r.cambios, message: 'Carpeta sincronizada' };
   }
 
   /**
@@ -218,7 +223,8 @@ class SyncManager {
   async syncToDrive(item) {
     try {
       const driveUrl = this.config.driveUrl;
-      const auth = btoa(`${this.config.driveUsername}:${this.config.drivePassword}`);
+      if (!this.drivePassword) throw new Error('Falta la contraseña de Drive (se pide en cada sesión: Conectividad → Configurar)');
+      const auth = btoa(`${this.config.driveUsername}:${this.drivePassword}`);
 
       const response = await fetch(`${driveUrl}/api/sync`, {
         method: 'POST',
@@ -312,17 +318,20 @@ class SyncManager {
    * Iniciar sincronización automática periódica
    */
   startAutoSync() {
-    if (!this.config.enabled) return;
+    if (!this.config.enabled || this.autoSyncStarted) return;
+    this.autoSyncStarted = true;
 
     // Sincronizar inmediatamente al conectar
     window.addEventListener('online', () => {
+      if (!this.config.enabled || this.config.destination === 'local') return;
       console.log('🔌 Conexión restaurada - sincronizando...');
       this.sync().catch(console.error);
     });
 
     // Sincronizar periódicamente
     setInterval(() => {
-      if (navigator.onLine && this.config.enabled) {
+      // La carpeta local ya se sincroniza sola (PampaAgroSync); acá solo Drive o servidor.
+      if (navigator.onLine && this.config.enabled && this.config.destination !== 'local') {
         this.sync().catch(console.error);
       }
     }, this.syncInterval);
