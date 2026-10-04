@@ -123,16 +123,50 @@ export async function onRequestPost({ request, env }) {
   if (!APPS_IA.includes(String(body?.app || ''))) return respuestaJson({ ok: false, error: 'App desconocida.' }, 400);
   const config = configDesdeEntorno(env);
   if (!servidorConfigurado(config)) return respuestaJson({ ok: false, error: 'El servidor de IA todavía no está configurado.' }, 503);
-  // Límite diario por IP para que nadie use el servidor como IA gratis.
-  const kv = env.PAMPA_TRIAL_KV;
-  const limite = Number(env.PAMPA_IA_LIMITE_DIARIO) || 200;
+  // Tamaño: una pregunta de WhatsApp y el contexto que arma la app (asistente-ia.js lo corta en 12.000).
+  const pregunta = String(body.pregunta || '').trim();
+  const contexto = String(body.contexto || '');
+  if (!pregunta) return respuestaJson({ ok: false, error: 'Ingresá una consulta para la IA.' }, 400);
+  if (pregunta.length > MAX_PREGUNTA || contexto.length > MAX_CONTEXTO) return respuestaJson({ ok: false, error: 'La consulta es demasiado larga.' }, 413);
+  // Límites para no saturar el servidor de IA (una PC con Ollama atiende de a una consulta):
+  //   por minuto y por IP (caché del borde, sin gastar escrituras del KV),
+  //   por día por equipo (sesión que manda la app) y por día por IP (KV PAMPA_TRIAL_KV, una escritura por consulta).
   const ip = request.headers.get('CF-Connecting-IP') || 'sin-ip';
-  const clave = `ia:${new Date().toISOString().slice(0, 10)}:${ip}`;
-  if (kv) {
-    const usadas = Number(await kv.get(clave)) || 0;
-    if (usadas >= limite) return respuestaJson({ ok: false, error: 'Se alcanzó el límite diario de consultas a PampaIA.' }, 429);
-    await kv.put(clave, String(usadas + 1), { expirationTtl: 60 * 60 * 26 });
+  const sesion = String(body.sesion || '').slice(0, 64) || 'sin-sesion';
+  const porMinuto = Number(env.PAMPA_IA_LIMITE_MINUTO) || 6;
+  const porDiaIp = Number(env.PAMPA_IA_LIMITE_DIARIO) || 150;
+  const porDiaEquipo = Number(env.PAMPA_IA_LIMITE_DISPOSITIVO) || 40;
+  const cache = typeof caches !== 'undefined' ? caches.default : null;
+  // Tope general por minuto (todos los usuarios juntos): lo que alcanza a atender la PC del servidor de IA.
+  const globalPorMinuto = Number(env.PAMPA_IA_LIMITE_GLOBAL_MINUTO) || 12;
+  if (cache) {
+    const minuto = Math.floor(Date.now() / 60000);
+    const contar = async (url) => { const k = new Request(url); return { k, n: Number(await (await cache.match(k))?.text()) || 0 }; };
+    const deIp = await contar(`https://limite.pampa-ia/ip/${encodeURIComponent(ip)}/${minuto}`);
+    if (deIp.n >= porMinuto) return respuestaJson({ ok: false, limite: 'minuto', error: 'Muchas consultas seguidas: esperá un minuto y volvé a preguntar.' }, 429);
+    const general = await contar(`https://limite.pampa-ia/general/${minuto}`);
+    if (general.n >= globalPorMinuto) return respuestaJson({ ok: false, limite: 'servidor', error: 'PampaIA está atendiendo muchas consultas: probá de nuevo en un minuto.' }, 429);
+    const guardar = (x) => cache.put(x.k, new Response(String(x.n + 1), { headers: { 'Cache-Control': 'max-age=70' } }));
+    await Promise.all([guardar(deIp), guardar(general)]);
   }
-  const r = await consultarServidorIA({ pregunta: body.pregunta, contexto: body.contexto, sesion: body.sesion }, config);
-  return r.ok ? respuestaJson({ ok: true, respuesta: r.respuesta, modelo: r.modelo || r.proveedor }) : respuestaJson({ ok: false, error: r.error }, 502);
+  const kv = env.PAMPA_TRIAL_KV;
+  if (kv) {
+    const claveDia = `ia:${new Date().toISOString().slice(0, 10)}:${ip}`;
+    let uso; try { uso = JSON.parse(await kv.get(claveDia)) || {}; } catch { uso = {}; }
+    if (typeof uso !== 'object' || Array.isArray(uso)) uso = { total: Number(uso) || 0 };
+    uso.total = Number(uso.total) || 0;
+    uso.equipos = uso.equipos || {};
+    if (uso.total >= porDiaIp) return respuestaJson({ ok: false, limite: 'dia', error: 'Se alcanzó el límite diario de consultas a PampaIA desde esta conexión. Mañana se renueva.' }, 429);
+    if ((Number(uso.equipos[sesion]) || 0) >= porDiaEquipo) return respuestaJson({ ok: false, limite: 'dia', error: `Llegaste a las ${porDiaEquipo} consultas de hoy a PampaIA en este equipo. Mañana se renueva; mientras tanto siguen las respuestas calculadas.` }, 429);
+    uso.total += 1;
+    uso.equipos[sesion] = (Number(uso.equipos[sesion]) || 0) + 1;
+    await kv.put(claveDia, JSON.stringify(uso), { expirationTtl: 60 * 60 * 26 });
+  }
+  const r = await consultarServidorIA({ pregunta, contexto, sesion }, config);
+  if (r.ok) return respuestaJson({ ok: true, respuesta: r.respuesta, modelo: r.modelo || r.proveedor });
+  // Flowise con su tope general por minuto (lo protege de muchos usuarios a la vez).
+  if (/429/.test(r.error || '')) return respuestaJson({ ok: false, limite: 'servidor', error: 'PampaIA está atendiendo muchas consultas: probá de nuevo en un minuto.' }, 429);
+  return respuestaJson({ ok: false, error: r.error }, 502);
 }
+const MAX_PREGUNTA = 600;
+const MAX_CONTEXTO = 14000;

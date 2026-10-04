@@ -6393,7 +6393,7 @@ start().catch(err=>{
 <script src="vendor/qrcode.js"></script>
 <script src="./porcinos-modulos.js"></script>
 <script src="./porcinos-residuos.js"></script>
-<script src="./asistente-ia.js"></script>
+<script src="./asistente-ia.js?v=servidor-ia"></script>
 <script>
 /* === PampaIA: capacidades por versión (asistente-ia.js), igual que PampaGanaderia y PampaAgro === */
 // El asistente calcula en el momento con una foto de los datos: se actualiza en cada refresh().
@@ -6411,7 +6411,15 @@ async function refreshIASnapshot(){
  return snap;
 }
 // Plan de la licencia: el trial tiene todo; sin licencia, lo básico.
-function planIA(){
+// En escritorio, la versión instalada (window.PAMPA_PACK, la publica preload.js) es el techo del plan:
+// un exe Básica con licencia Premium queda en Básica (la prueba gratis es solo de la web).
+function planIA() {
+  const plan = planIASinTecho();
+  const rango = { basica: 1, profesional: 2, premium: 3 };
+  const pack = window.PAMPA_PACK;
+  return rango[pack] && (plan === "trial" || rango[plan] > rango[pack]) ? pack : plan;
+}
+function planIASinTecho() {
  const lic=storedLicense();
  if(!lic) return 'basica';
  if(lic.type==='trial'||lic.trial) return 'trial';
@@ -6436,7 +6444,7 @@ function asistenteIA(){
  return asistenteIACache;
 }
 function mostrarResultadoIA(r){
- const html=window.PampaAsistenteIA.aHtml(r.texto);
+ const html=window.PampaAsistenteIA.aHtml(r.texto)+(r.nota?`<br><br><small>${window.PampaAsistenteIA.aHtml(r.nota)}</small>`:'');
  const respuesta=document.getElementById('pampaIAAnswer');
  if(respuesta) respuesta.innerHTML=html+`<div style="margin-top:6px"><button type="button" class="pampaia-report-btn" style="float:none" onclick="enviarReporteIAWhatsApp()">Enviar por WhatsApp</button></div>`;
  ultimoReporteConsulta=r.texto;
@@ -6449,12 +6457,60 @@ function montarCapacidadesIA(){
  catch(err){ console.error('PampaIA: no se pudieron mostrar las capacidades:',err); }
 }
 // Lo usa pampaia-source.js (panel del tablero) para calcular con los datos de la app.
+// Servidor de IA propio de Pampa (Flowise + Ollama), igual que Precisión: redacta la respuesta a una
+// pregunta libre con los datos que calculó la app (los que el rol y la versión pueden ver); el cliente
+// no necesita ninguna clave. Web: /api/pampa-ia (Nexo-landing). Escritorio: /api/ia/consulta del
+// servidor local. Si no responde, queda la respuesta calculada.
+const endpointServidorIA = () => localStorage.getItem("pampa-ia-servidor-url") || (window.PAMPA_DESKTOP_MODE || window.electronAPI || /\bElectron\//.test(navigator.userAgent) ? "/api/ia/consulta" : "/api/pampa-ia");
+const sesionServidorIA = () => { try { let s = localStorage.getItem("pampa-ia-sesion"); if (!s) { s = window.crypto?.randomUUID ? window.crypto.randomUUID() : String(Date.now()); localStorage.setItem("pampa-ia-sesion", s); } return s; } catch (e) { return ""; } };
+let consultaServidorIA = 0;
+// Para no saturar el servidor de IA: una consulta a la vez y como mínimo 10 segundos entre una y otra
+// (el servidor además tiene sus propios límites por minuto y por día). Queda siempre la respuesta calculada.
+let ultimaConsultaServidorIA = 0;
+let servidorIAOcupado = false;
+function avisoServidorIA(texto) {
+  const caja = document.createElement("div");
+  caja.style.cssText = "margin-top:8px;opacity:.75";
+  caja.innerHTML = "<small></small>";
+  caja.firstChild.textContent = texto;
+  document.getElementById("pampaIAAnswer")?.appendChild(caja);
+}
+async function consultarServidorIA(pregunta, local) {
+  if (servidorIAOcupado) return avisoServidorIA("PampaIA todavía está redactando la consulta anterior: quedó la respuesta calculada.");
+  if (Date.now() - ultimaConsultaServidorIA < 10000) return avisoServidorIA("Para no saturar el servidor, PampaIA redacta una consulta cada 10 segundos: quedó la respuesta calculada.");
+  ultimaConsultaServidorIA = Date.now();
+  servidorIAOcupado = true;
+  try { await redactarConServidorIA(pregunta, local); } finally { servidorIAOcupado = false; }
+}
+async function redactarConServidorIA(pregunta, local) {
+  const id = ++consultaServidorIA;
+  document.getElementById("pampaIAAnswer")?.insertAdjacentHTML("beforeend", '<div id="pampaIAServidor" style="margin-top:8px;opacity:.75"><small>✦ PampaIA está redactando la respuesta…</small></div>');
+  try {
+    const contexto = asistenteIA().contextoParaIA(pregunta);
+    const control = new AbortController();
+    const espera = setTimeout(() => control.abort(), 90000);
+    const r = await fetch(endpointServidorIA(), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ app: "porcinos", pregunta, contexto, sesion: sesionServidorIA() }), signal: control.signal });
+    clearTimeout(espera);
+    const data = await r.json().catch(() => ({}));
+    if (id !== consultaServidorIA) return;
+    if (!r.ok || !data.ok) throw new Error(data.error || "HTTP " + r.status);
+    const texto = String(data.respuesta).replace(/\*\*/g, "*").replace(/^#+\s*/gm, "");
+    const nota = /No entendí/.test(local.titulo || "") ? "_Redactado por el servidor de IA con los resultados de las funciones de PampaIA habilitadas para tu usuario (calculados por el sistema)._" : "_Redactado por el servidor de IA con estos datos calculados por el sistema:_\n\n" + local.texto;
+    mostrarResultadoIA({ texto: "*✦ PampaIA*\n\n" + texto, nota, titulo: "PampaIA" });
+  } catch (error) {
+    if (id !== consultaServidorIA) return;
+    document.getElementById("pampaIAServidor")?.remove();
+    if (/límite|consultas|esperá un minuto/i.test(error.message || "")) avisoServidorIA(error.message);
+    console.info("PampaIA: el servidor de IA no está disponible; queda la respuesta calculada.", error.message);
+  }
+}
+
 window.PampaIAAdapter={
  getState:()=>iaSnapshot,
  getRole:activeDashboardRole,
  getPlan:planIA,
  analizar:tipo=>asistenteIA().analizar(tipo),
- responder:pregunta=>asistenteIA().responder(pregunta),
+ responder: (pregunta) => { const local = asistenteIA().responder(pregunta); if (!local.bloqueado) setTimeout(() => consultarServidorIA(pregunta, local), 0); return local; },
  mostrar:mostrarResultadoIA,
  montarCapacidades:montarCapacidadesIA
 };

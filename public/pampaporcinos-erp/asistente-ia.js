@@ -388,7 +388,28 @@
       }));
     }
 
-    return { plan, puede, capacidades, ejecutar, analizar, responder, esConsulta, resumenDiario, alertasDesvios, existenciasPorCategoria, proyeccionStock, costoPorCabeza, equiposYMantenimiento, rentabilidad, cumplimiento, cajaA90Dias, existencias, saldos };
+    // Datos para el servidor de IA propio de Pampa (Flowise + Ollama): lo que el rol y la versión pueden ver,
+    // calculado por la app. El servidor solo redacta la respuesta; nunca recibe datos que el usuario no ve.
+    const quitarFormato = (t) => String(t || '').replace(/[*_]/g, '');
+    function contextoParaIA(pregunta, opciones = {}) {
+      return conRol(opciones, () => {
+        const hoy = opciones.hoy || new Date();
+        const util = (r) => r && !r.bloqueado && !/No entendí/.test(r.titulo || '');
+        const directo = responder(pregunta, { hoy });
+        const empresa = analizarConRol('empresa', hoy);
+        // Si la pregunta coincide con una función, alcanza con esos datos (más rápido en un servidor sin GPU).
+        if (util(directo)) return quitarFormato([directo.texto, util(empresa) ? empresa.texto : ''].filter(Boolean).join('\n\n')).slice(0, 12000);
+        const partes = util(empresa) ? [empresa.texto] : [];
+        CAPACIDADES.forEach((c) => {
+          try { const r = ejecutarConRol(c.id, hoy); if (util(r) && !partes.includes(r.texto)) partes.push(r.texto); } catch (e) { /* una función sin datos no frena el resto */ }
+        });
+        const bloqueadas = CAPACIDADES.filter((c) => !puede(c.id)).map((c) => `${c.titulo} (versión ${planMinimo(c.nivel)})`);
+        if (bloqueadas.length) partes.push(`Funciones no incluidas en la versión ${NOMBRE_PLAN[plan()]}: ${bloqueadas.join(', ')}.`);
+        return quitarFormato(partes.join('\n\n')).slice(0, 12000);
+      });
+    }
+
+    return { plan, puede, capacidades, ejecutar, analizar, responder, esConsulta, contextoParaIA, resumenDiario, alertasDesvios, existenciasPorCategoria, proyeccionStock, costoPorCabeza, equiposYMantenimiento, rentabilidad, cumplimiento, cajaA90Dias, existencias, saldos };
   }
 
   // ─── Presentación en el panel (navegador) ─────────────────────────────────────────────

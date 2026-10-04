@@ -596,7 +596,15 @@
     // (Básica 4, Profesional 10, Premium 10 + roles propios). La prueba gratis ve los de Premium.
     const RolesP = window.PampaRolesPrecision;
     const ROLES_PROPIOS_KEY = 'pampa-roles-propios';
+    // En escritorio, la versión instalada (window.PAMPA_PACK, la publica preload.js) es el techo del plan:
+    // un exe Básica con licencia Premium queda en Básica (la prueba gratis es solo de la web).
     function planPrecision() {
+      const plan = planPrecisionSinTecho();
+      const rango = { basica: 1, profesional: 2, premium: 3 };
+      const pack = window.PAMPA_PACK;
+      return rango[pack] && (plan === "trial" || rango[plan] > rango[pack]) ? pack : plan;
+    }
+    function planPrecisionSinTecho() {
       let raw = null;
       try { raw = JSON.parse(localStorage.getItem('PampaPrecisionLicense') || 'null'); } catch { raw = null; }
       if (raw && (raw.type === 'trial' || raw.trial) && new Date(raw.expiresAt).getTime() > Date.now()) return 'trial';
@@ -3525,7 +3533,25 @@
     // Si no responde, queda la respuesta calculada.
     const endpointServidorIA = () => localStorage.getItem('pampa-ia-servidor-url') || (isPrecisionDesktop() ? '/api/ia/consulta' : '/api/pampa-ia');
     let consultaServidorIA = 0;
+    // Para no saturar el servidor de IA: una consulta a la vez y como mínimo 10 segundos entre una y otra
+    // (el servidor además tiene sus propios límites por minuto y por día). Queda siempre la respuesta calculada.
+    let ultimaConsultaServidorIA = 0;
+    let servidorIAOcupado = false;
+    function avisoServidorIA(texto) {
+      const caja = document.createElement("div");
+      caja.style.cssText = "margin-top:8px;opacity:.75";
+      caja.innerHTML = "<small></small>";
+      caja.firstChild.textContent = texto;
+      document.getElementById("pampaIAAnswer")?.appendChild(caja);
+    }
     async function consultarServidorIA(pregunta, local) {
+      if (servidorIAOcupado) return avisoServidorIA("PampaIA todavía está redactando la consulta anterior: quedó la respuesta calculada.");
+      if (Date.now() - ultimaConsultaServidorIA < 10000) return avisoServidorIA("Para no saturar el servidor, PampaIA redacta una consulta cada 10 segundos: quedó la respuesta calculada.");
+      ultimaConsultaServidorIA = Date.now();
+      servidorIAOcupado = true;
+      try { await redactarConServidorIA(pregunta, local); } finally { servidorIAOcupado = false; }
+    }
+    async function redactarConServidorIA(pregunta, local) {
       const id = ++consultaServidorIA;
       document.getElementById('pampaIAAnswer')?.insertAdjacentHTML('beforeend', '<div id="pampaIAServidor" style="margin-top:8px;opacity:.75"><small>✦ PampaIA está redactando la respuesta…</small></div>');
       try {
@@ -3543,6 +3569,7 @@
       } catch (error) {
         if (id !== consultaServidorIA) return;
         document.getElementById('pampaIAServidor')?.remove();
+        if (/límite|consultas|esperá un minuto/i.test(error.message || "")) avisoServidorIA(error.message);
         console.info('PampaIA: el servidor de IA no está disponible; queda la respuesta calculada.', error.message);
       }
     }

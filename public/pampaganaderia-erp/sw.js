@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pampaganaderia-erp-v18-sin-instalar';
+const CACHE_NAME = 'pampaganaderia-erp-v20-limite-ia';
 // Rutas relativas: la web se publica en /pampaganaderia-erp/ (con "/" se guardaba y se abría la
 // página de la landing en vez de la app).
 const STATIC_ASSETS = [

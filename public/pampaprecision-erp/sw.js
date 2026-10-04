@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pampa-precision-v117-dashboard';
+const CACHE_NAME = 'pampa-precision-v118-limite-ia';
 // Todo lo que la app necesita para abrir sin conexión desde la primera visita (mismas URLs que index.html).
 const APP_SHELL = [
   './', './index.html', './manifest.webmanifest', './logo2.png', './logo-sm-esquina.png', './logo-sm-esquina.webp',
