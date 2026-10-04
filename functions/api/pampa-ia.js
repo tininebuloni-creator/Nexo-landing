@@ -136,22 +136,15 @@ export async function onRequestPost({ request, env }) {
   const porMinuto = Number(env.PAMPA_IA_LIMITE_MINUTO) || 6;
   const porDiaIp = Number(env.PAMPA_IA_LIMITE_DIARIO) || 150;
   const porDiaEquipo = Number(env.PAMPA_IA_LIMITE_DISPOSITIVO) || 40;
-  // Tope general por minuto (todos los usuarios juntos): lo que alcanza a atender la PC del servidor de IA.
-  // Va en el KV (la caché del borde no funciona en *.pages.dev): una sola clave por minuto con el total y
-  // las consultas de cada IP, o sea una escritura más por consulta.
-  const globalPorMinuto = Number(env.PAMPA_IA_LIMITE_GLOBAL_MINUTO) || 12;
+  // Por minuto y por IP: contador en memoria de la función (aproximado: cada instancia cuenta lo suyo; el KV
+  // guarda lecturas hasta 60 s y la caché del borde no funciona en *.pages.dev). El tope general exacto
+  // (2 a la vez, 12 por minuto entre todos) lo pone limitador-ia.js en la PC, delante de Flowise.
+  const minuto = Math.floor(Date.now() / 60000);
+  if (CONTEO_MINUTO.minuto !== minuto) { CONTEO_MINUTO.minuto = minuto; CONTEO_MINUTO.ips = new Map(); }
+  const deIp = CONTEO_MINUTO.ips.get(ip) || 0;
+  if (deIp >= porMinuto) return respuestaJson({ ok: false, limite: 'minuto', error: 'Muchas consultas seguidas: esperá un minuto y volvé a preguntar.' }, 429);
+  CONTEO_MINUTO.ips.set(ip, deIp + 1);
   const kv = env.PAMPA_TRIAL_KV;
-  if (kv) {
-    const claveMinuto = `ia-min:${Math.floor(Date.now() / 60000)}`;
-    let min; try { min = JSON.parse(await kv.get(claveMinuto)) || {}; } catch { min = {}; }
-    min.total = Number(min.total) || 0;
-    min.ips = min.ips || {};
-    if ((Number(min.ips[ip]) || 0) >= porMinuto) return respuestaJson({ ok: false, limite: 'minuto', error: 'Muchas consultas seguidas: esperá un minuto y volvé a preguntar.' }, 429);
-    if (min.total >= globalPorMinuto) return respuestaJson({ ok: false, limite: 'servidor', error: 'PampaIA está atendiendo muchas consultas: probá de nuevo en un minuto.' }, 429);
-    min.total += 1;
-    min.ips[ip] = (Number(min.ips[ip]) || 0) + 1;
-    await kv.put(claveMinuto, JSON.stringify(min), { expirationTtl: 120 });
-  }
   if (kv) {
     const claveDia = `ia:${new Date().toISOString().slice(0, 10)}:${ip}`;
     let uso; try { uso = JSON.parse(await kv.get(claveDia)) || {}; } catch { uso = {}; }
@@ -171,4 +164,5 @@ export async function onRequestPost({ request, env }) {
   return respuestaJson({ ok: false, error: r.error }, 502);
 }
 const MAX_PREGUNTA = 600;
+const CONTEO_MINUTO = { minuto: 0, ips: new Map() };
 const MAX_CONTEXTO = 14000;
