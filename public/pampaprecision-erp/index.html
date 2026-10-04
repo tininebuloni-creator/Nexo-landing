@@ -11,6 +11,7 @@
   <script src="vendor/pampa-license-key.js"></script>
   <script src="vendor/pampa-license-verify.js"></script>
   <script src="vendor/dexie.min.js"></script>
+  <script src="vendor/chart.umd.min.js"></script>
   <script src="./pampa-core-sync.js"></script>
   <script src="vendor/pampa-search.js?v=2"></script>
   <script src="./shared/pampa-onpremise-disclaimer.js"></script>
@@ -306,8 +307,12 @@
     margin-bottom: 6px;
     color: #86efac;
     }
+    /* Mercado: precios dentro del texto, no como títulos. */
+    .agroenso-tip-texto .nota { margin-top: 6px; }
+    .agroenso-tip-texto .nota strong { display: inline; margin: 0; color: #fff; }
+    /* Se abre al pasar el mouse o al llegar con el teclado; al hacer clic no queda abierto. */
     .agroenso-tip:hover .agroenso-tip-texto,
-    .agroenso-tip:focus-within .agroenso-tip-texto {
+    .agroenso-tip:has(:focus-visible) .agroenso-tip-texto {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
@@ -433,6 +438,25 @@
                       ><strong>🌱 AgroENSO · El Niño en tu zona</strong>Podés consultar cómo va a pegar El Niño en los cultivos de tu zona. Analiza las últimas 35 campañas agrícolas para entender cómo reacciona el suelo y el rendimiento de cultivos frente a los cambios del clima. Gráficos sencillos de los rindes históricos reales. Es clave para que el campo tome mejores decisiones, administre los riesgos y aproveche al máximo el agua disponible.</span
                     >
                   </span>
+            <span class="agroenso-tip">
+                    <button
+                      class="button"
+                      type="button"
+                      aria-describedby="granosarInfo"
+                      onclick="window.open('https://granos.ar/', '_blank', 'noopener,noreferrer')"
+                    >
+                      📈 GRANOS.AR
+                    </button>
+                    <span class="agroenso-tip-texto" id="granosarInfo" role="tooltip"
+                      ><strong>📈 GRANOS.AR · Mercado al momento</strong>Acá están todos los datos necesarios actualizados al momento para todos los ítems de la app: pizarras de Rosario y otras plazas, futuros, dólar, fletes, insumos y clima.</span
+                    >
+                  </span>
+            <span class="agroenso-tip">
+                    <button class="button" type="button" aria-describedby="mercadoInfo">💹 Mercado</button>
+                    <span class="agroenso-tip-texto" id="mercadoInfo" role="tooltip"
+                      ><strong>💹 Mercado</strong>Pizarra de Rosario y cotización del día: se traen solas cuando hay conexión.</span
+                    >
+                  </span>
           </div>
         </div>
         <aside class="dashboard-operativity">
@@ -461,32 +485,29 @@
       </div></section>
       <section id="agroDashboard" aria-label="Granos, almacenaje y fiscal"></section>
 
+      <!-- Mapa a todo el ancho; debajo, órdenes y rinde. "Alertas que requieren acción" se muestra debajo del stock por grano (agro-ui.js). -->
       <div class="layout">
-        <div>
-          <section class="panel">
+          <section class="panel" style="grid-column:1/-1">
             <div class="panel-head"><div><h2>Superficie por ambiente</h2><p class="panel-caption" id="dashboardMapCaption">Sin lotes registrados</p></div><button class="text-button" id="mapButton">Abrir mapa</button></div>
-            <div class="field-map" id="dashboardFieldMap" aria-label="Mapa esquematico de lotes productivos">
+            <div class="field-map" id="dashboardFieldMap" style="height:clamp(260px, 32vw, 440px)" aria-label="Mapa esquematico de lotes productivos">
               <div class="map-legend">No hay lotes registrados para mostrar.</div>
             </div>
           </section>
-          <section class="panel jobs">
+          <section class="panel jobs" style="margin-top:0">
             <div class="panel-head"><div><h2>Ordenes de trabajo recientes</h2><p class="panel-caption">Ejecuciones y avance de campo</p></div><button class="text-button" id="jobsButton">Ver todas</button></div>
             <div id="dashboardJobsEmpty" class="job"><i class="status"></i><div><strong>Sin ordenes de trabajo</strong><span>Las ordenes apareceran cuando se registren.</span></div></div>
           </section>
-        </div>
-        <div>
           <section class="panel">
+            <div class="panel-head"><div><h2>Rinde estimado</h2><p class="panel-caption">Toneladas por hectarea · maiz</p></div><span class="eyebrow">Campana actual</span></div>
+            <div class="chart" id="dashboardYieldChart"><div class="map-legend">Sin datos de rinde registrados.</div></div>
+            <div class="footnote">Promedio del establecimiento: <strong id="dashboardYieldAverage">Sin datos</strong></div>
+          </section>
+          <section class="panel" id="dashboardAlertsPanel">
             <div class="panel-head"><div><h2>Alertas que requieren accion</h2><p class="panel-caption">Actualizado hace 12 minutos</p></div><button class="text-button" id="alertsButton">Gestionar</button></div>
             <div class="alerts" id="dashboardAlertsList">
               <div class="alert info"><div class="alert-head"><span>Sin alertas</span><span>Informacion</span></div><p>No hay alertas operativas registradas.</p></div>
             </div>
           </section>
-          <section class="panel" style="margin-top:19px">
-            <div class="panel-head"><div><h2>Rinde estimado</h2><p class="panel-caption">Toneladas por hectarea · maiz</p></div><span class="eyebrow">Campana actual</span></div>
-            <div class="chart" id="dashboardYieldChart"><div class="map-legend">Sin datos de rinde registrados.</div></div>
-            <div class="footnote">Promedio del establecimiento: <strong id="dashboardYieldAverage">Sin datos</strong></div>
-          </section>
-        </div>
       </div>
     </main>
   </div>
@@ -500,7 +521,7 @@
   <script src="./asistente-ia.js?v=6"></script>
   <script src="./agro-db.js?v=10"></script>
   <script src="./agro-sync.js?v=1"></script>
-  <script src="./agro-ui.js?v=16"></script>
+  <script src="./agro-ui.js?v=20"></script>
   <script src="./sync-manager.js?v=2"></script>
   <script src="./api-client.js?v=8"></script>
     <script src="./sync-handlers.js?v=1"></script>
@@ -3698,8 +3719,8 @@
       }
     });
   </script>
-<script src="pampaia-source.js?v=pampaia-published-8"></script>
-  <script src="./pampa-privacy-popup.js"></script>
+<script src="pampaia-source.js?v=pampaia-published-9"></script>
+  <script src="./pampa-privacy-popup.js?v=sin-instalar"></script>
 <script src="vendor/pampa-seat-control.js" data-product="pampa-precision"></script>
   <script src="./trial-progress.js"></script>
 </body>

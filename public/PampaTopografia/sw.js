@@ -1,5 +1,5 @@
 // v2: el index.html de v1 quedó cacheado con el guard de escritorio (bloqueaba el trial web)
-const CACHE_NAME = 'pampatopografia-pwa-v5-offline';
+const CACHE_NAME = 'pampatopografia-pwa-v6-sin-instalar';
 const APP_SHELL = [
   './',
   './index.html',

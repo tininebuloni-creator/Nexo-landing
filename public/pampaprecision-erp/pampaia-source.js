@@ -201,21 +201,79 @@
     }
     if (input && button) button.click();
   };
-  window.pampaIAToggleVoice = () => {
+  // Dictado por voz con el reconocimiento del navegador (Chrome, Edge y Safari; Firefox no lo trae).
+  // Un toque empieza a escuchar y otro lo corta; el texto se va escribiendo en la pregunta.
+  // Cada error dice qué pasó (permiso, micrófono, conexión) en vez de un mensaje genérico.
+  let dictado = null;
+  window.pampaIAToggleVoice = async () => {
     const panel = document.getElementById(panelId);
     const status = panel?.querySelector('#pampaIAVoiceStatus');
     const input = panel?.querySelector('#pampaIAQuestion');
+    const boton = panel?.querySelector('#pampaIAMic');
+    const avisar = (texto) => { if (status) status.textContent = texto; };
+    if (dictado) { dictado.stop(); return; }
     const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!Recognition) {
-      if (status) status.textContent = 'El navegador no dispone de reconocimiento de voz.';
+    const escritorio = /electron/i.test(navigator.userAgent);
+    if (!Recognition || escritorio) {
+      avisar(escritorio
+        ? 'La app de escritorio no trae dictado propio: tocá la pregunta y usá el dictado de Windows (tecla Windows + H).'
+        : 'Este navegador no trae dictado por voz (Firefox no lo tiene). Usá Chrome o Edge, o el dictado del teclado del teléfono.');
+      input?.focus();
       return;
+    }
+    if (!window.isSecureContext) { avisar('El dictado necesita la página en https.'); return; }
+    // Pide el permiso del micrófono antes de escuchar: así el navegador muestra el aviso y se sabe si hay micrófono.
+    if (navigator.mediaDevices?.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach((t) => t.stop());
+      } catch (error) {
+        const nombre = error?.name || '';
+        avisar(nombre === 'NotAllowedError' || nombre === 'SecurityError'
+          ? 'El micrófono está bloqueado para esta página: habilitalo desde el candado de la barra de direcciones y volvé a tocar 🎤.'
+          : nombre === 'NotFoundError' ? 'No se encontró ningún micrófono conectado.'
+          : nombre === 'NotReadableError' ? 'Otra aplicación está usando el micrófono. Cerrala y volvé a probar.'
+          : `No se pudo abrir el micrófono (${nombre || error?.message || 'error desconocido'}).`);
+        return;
+      }
     }
     const recognition = new Recognition();
     recognition.lang = 'es-AR';
-    recognition.interimResults = false;
-    recognition.onresult = (event) => { if (input) input.value = event.results[0][0].transcript; if (status) status.textContent = 'Dictado listo. Podés consultar PampaIA.'; };
-    recognition.onerror = () => { if (status) status.textContent = 'No se pudo tomar el dictado.'; };
-    recognition.start();
+    recognition.interimResults = true;
+    recognition.continuous = false;
+    recognition.maxAlternatives = 1;
+    const previo = input ? input.value.trim() : '';
+    let textoFinal = '';
+    let fallo = false;
+    recognition.onstart = () => { if (boton) boton.textContent = '⏹ Detener'; avisar('🎙️ Escuchando… hablá ahora.'); };
+    recognition.onresult = (event) => {
+      let parcial = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const r = event.results[i];
+        if (r.isFinal) textoFinal += r[0].transcript; else parcial += r[0].transcript;
+      }
+      if (input) input.value = [previo, (textoFinal + parcial).trim()].filter(Boolean).join(' ');
+    };
+    recognition.onerror = (event) => {
+      fallo = true;
+      const mensajes = {
+        'not-allowed': 'El micrófono está bloqueado para esta página: habilitalo desde el candado de la barra de direcciones.',
+        'service-not-allowed': 'El navegador no permite el servicio de dictado (Brave y algunos navegadores lo desactivan). Probá con Chrome o Edge.',
+        'audio-capture': 'No se encontró ningún micrófono o no se pudo usar.',
+        'no-speech': 'No se escuchó nada. Tocá 🎤 y hablá cerca del micrófono.',
+        network: 'El dictado necesita conexión a internet (el navegador transcribe en sus servidores).',
+        aborted: 'Dictado cancelado.',
+        'language-not-supported': 'El navegador no tiene dictado en castellano.',
+      };
+      avisar(mensajes[event.error] || `No se pudo tomar el dictado (${event.error || 'error desconocido'}).`);
+    };
+    recognition.onend = () => {
+      dictado = null;
+      if (boton) boton.textContent = '🎤 Dictar';
+      if (!fallo) avisar(textoFinal.trim() ? 'Dictado listo. Revisalo y tocá Consultar.' : 'No se escuchó nada. Tocá 🎤 y hablá cerca del micrófono.');
+    };
+    dictado = recognition;
+    try { recognition.start(); } catch (error) { dictado = null; avisar(`No se pudo iniciar el dictado (${error.message}).`); }
   };
   window.pampaIAOpenCamera = async () => {
     const panel = document.getElementById(panelId);

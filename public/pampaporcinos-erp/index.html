@@ -6820,7 +6820,7 @@ window.PampaCoreSync?.activarSincronizacionAutomatica({
   // El trial web (?trial=auto) lo resuelve initLicense(); acá solo se registra el service worker.
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch((error) => console.warn('No se pudo registrar el service worker.', error));
 </script>
-  <script src="./pampa-privacy-popup.js"></script>
+  <script src="./pampa-privacy-popup.js?v=sin-instalar"></script>
 <script src="vendor/pampa-seat-control.js" data-product="pampa-porcinos"></script>
   <script src="./trial-progress.js"></script>
 </body>

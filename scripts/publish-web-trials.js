@@ -129,7 +129,7 @@ for (const [folderName, source] of Object.entries(sources)) {
   if (!html.includes(trialProgressTag)) {
     html = injectBeforeFinalBody(html, trialProgressTag);
   }
-  if (!html.includes(popupTag)) {
+  if (!html.includes('pampa-privacy-popup.js')) { // la fuente puede traerlo con ?v=
     html = injectBeforeFinalBody(html, popupTag);
   }
   fs.writeFileSync(entryPoint, html, 'utf8');

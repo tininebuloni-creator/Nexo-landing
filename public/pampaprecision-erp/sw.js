@@ -1,14 +1,14 @@
-const CACHE_NAME = 'pampa-precision-v107-clima-es';
+const CACHE_NAME = 'pampa-precision-v113-alertas-mapa';
 // Todo lo que la app necesita para abrir sin conexión desde la primera visita (mismas URLs que index.html).
 const APP_SHELL = [
   './', './index.html', './manifest.webmanifest', './logo2.png', './logo-sm-esquina.png', './logo-sm-esquina.webp',
   './pampa-brand.css', './pampa-kpi.css?v=3', './shared/share-styles/global.css', './vendor/leaflet/leaflet.css',
-  './vendor/pampa-licensing.js', './vendor/pampa-license-key.js', './vendor/pampa-license-verify.js', './vendor/dexie.min.js',
+  './vendor/pampa-licensing.js', './vendor/pampa-license-key.js', './vendor/pampa-license-verify.js', './vendor/dexie.min.js', './vendor/chart.umd.min.js',
   './pampa-core-sync.js', './vendor/pampa-search.js?v=2', './shared/pampa-onpremise-disclaimer.js',
   './shared/core-fiscal-arca/normative-update.browser.js', './shared/core-offline/report-voice.js',
-  './vendor/leaflet/leaflet.js', './pampa-trial-guard.js', './offline-db.js?v=1', './precision-roles.js?v=3', './agro-core.js?v=15', './asistente-ia.js?v=6', './agro-db.js?v=10', './agro-sync.js?v=1', './agro-ui.js?v=16',
-  './sync-manager.js?v=2', './api-client.js?v=8', './sync-handlers.js?v=1', './pampaia-source.js?v=pampaia-published-8',
-  './pampa-privacy-popup.js', './vendor/pampa-seat-control.js',
+  './vendor/leaflet/leaflet.js', './pampa-trial-guard.js', './offline-db.js?v=1', './precision-roles.js?v=3', './agro-core.js?v=15', './asistente-ia.js?v=6', './agro-db.js?v=10', './agro-sync.js?v=1', './agro-ui.js?v=20',
+  './sync-manager.js?v=2', './api-client.js?v=8', './sync-handlers.js?v=1', './pampaia-source.js?v=pampaia-published-9',
+  './pampa-privacy-popup.js?v=sin-instalar', './vendor/pampa-seat-control.js',
 ];
 
 self.addEventListener('install', event => {

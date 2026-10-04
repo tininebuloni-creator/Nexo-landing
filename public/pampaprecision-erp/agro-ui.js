@@ -833,15 +833,11 @@
   const serieMep = () => datoExterno('dolarHistorico')?.valor?.serie || [];
   const pizarra = () => datoExterno('pizarra')?.valor || null;
   const preciosPizarra = () => Object.fromEntries(Object.entries(pizarra()?.precios || {}).filter(([g, p]) => A.CULTIVOS[g] && p.pesos).map(([g, p]) => [g, p.pesos]));
-  const NOTA_GRANOS_AR = 'En <a href="https://granos.ar/" target="_blank" rel="noopener noreferrer">GRANOS.AR</a> están todos los datos del mercado actualizados al momento (pizarras, futuros, dólar, fletes, hacienda) para todos los ítems de la app.';
-  function enlacesMercadoHtml() {
-    return `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><a class="btn small" href="https://granos.ar/" target="_blank" rel="noopener noreferrer" title="Monitor agropecuario: pizarras, futuros, dólar, fletes, hacienda y clima. Ahí están todos los datos necesarios actualizados al momento para todos los ítems de la app.">📈 GRANOS.AR</a><a class="btn small" href="https://agroenso.netlify.app/" target="_blank" rel="noopener noreferrer" title="AgroENSO · El Niño en tu zona: cómo pega en los cultivos de tu zona, con las últimas 35 campañas.">🌱 AgroENSO</a></div>`;
-  }
   function pizarraHtml({ boton = false } = {}) {
     const p = pizarra();
-    if (!p?.precios || !Object.keys(p.precios).length) return `<div class="nota">Pizarra de Rosario: sin datos todavía (se trae sola cuando hay conexión). ${NOTA_GRANOS_AR}</div>`;
+    if (!p?.precios || !Object.keys(p.precios).length) return `<div class="nota">Pizarra de Rosario: sin datos todavía (se trae sola cuando hay conexión).</div>`;
     const items = Object.keys(A.CULTIVOS).filter((g) => p.precios[g]).map((g) => { const x = p.precios[g]; return `${esc(A.CULTIVOS[g].nombre)} <strong>${pesos(x.pesos)}</strong>/t${x.usd ? ` (US$ ${x.usd.toLocaleString('es-AR')})` : ''}${x.estimado ? ' (E)' : ''}${x.tendencia === 'sube' ? ' ▲' : x.tendencia === 'baja' ? ' ▼' : ''}${boton ? ` <button class="btn small" type="button" data-usar-pizarra="${esc(g)}" data-precio="${esc(x.pesos)}">Usar</button>` : ''}`; }).join(' · ');
-    return `<div class="nota">🌾 Pizarra Rosario del ${esc(p.fecha || '')} (Cámara Arbitral de Cereales, BCR): ${items}. ${NOTA_GRANOS_AR}</div>`;
+    return `<div class="nota">🌾 Pizarra Rosario del ${esc(p.fecha || '')} (Cámara Arbitral de Cereales, BCR): ${items}.</div>`;
   }
 
   // Dólar del día (para el tipo de cambio informativo de Costos y para PampaIA).
@@ -852,7 +848,7 @@
     const mep = c('bolsa');
     const dias = A.diasDesde(mep?.fecha, hoy());
     const lista = ['bolsa', 'oficial', 'blue', 'contadoconliqui'].map(c).filter(Boolean).map((x) => `${esc(x.nombre)} <strong>${pesos(x.venta)}</strong>`).join(' · ');
-    return `<div class="nota">💵 Hoy (venta): ${lista} · ${esc(dol.fuente || 'DolarAPI')}, ${esc(String(mep?.fecha || '').slice(0, 16).replace('T', ' '))}${dias > 2 ? ` · ⚠️ cotización de hace ${dias} días` : ''}.${nota ? ` ${NOTA_GRANOS_AR}` : ''}</div>${serieMep().length ? '<button class="btn small" type="button" data-completar-tc>Completar los meses sin tipo de cambio con el MEP promedio</button> ' : ''}${mep ? `<button class="btn small" type="button" data-usar-mep="${esc(mep.venta)}">Usar MEP ${pesos(mep.venta)} para ${esc(hoy().slice(0, 7))}</button>` : ''}`;
+    return `<div class="nota">💵 Hoy (venta): ${lista} · ${esc(dol.fuente || 'DolarAPI')}, ${esc(String(mep?.fecha || '').slice(0, 16).replace('T', ' '))}${dias > 2 ? ` · ⚠️ cotización de hace ${dias} días` : ''}.</div>${serieMep().length ? '<button class="btn small" type="button" data-completar-tc>Completar los meses sin tipo de cambio con el MEP promedio</button> ' : ''}${mep ? `<button class="btn small" type="button" data-usar-mep="${esc(mep.venta)}">Usar MEP ${pesos(mep.venta)} para ${esc(hoy().slice(0, 7))}</button>` : ''}`;
   }
 
   // ================= Módulo Clima y satélite =================
@@ -1326,6 +1322,10 @@
     const r = resumen();
     const vacio = !DB.TABLAS.filter((t) => t !== 'borrados').some((t) => (E[t] || []).length);
     const aviso = vacio && !esEscritorio() ? `<div id="demoBannerDashboard" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;padding:12px 16px;border:1px dashed #3fa66a;border-radius:12px;background:rgba(63,166,106,.08)"><div style="flex:1;min-width:220px"><strong>¿Querés ver la app funcionando con datos?</strong><div class="nota">Cargá un establecimiento de ejemplo con Soja, Trigo, Maíz y Girasol: stock en silobolsas, LPG con retenciones SISA, RENSPA y campañas, fiscal completo y alertas. Se borra con Limpieza profunda.</div></div><button class="btn primary" type="button" data-cargar-ejemplo>📥 Cargar datos de ejemplo</button></div>` : '';
+    // "Alertas que requieren acción" del Centro operativo va debajo del stock por grano: se saca antes de
+    // redibujar (si no, se perdería con el innerHTML) y se vuelve a poner en su lugar.
+    const panelAlertas = document.getElementById('dashboardAlertsPanel');
+    panelAlertas?.remove();
     el.innerHTML = `${aviso}
       <div class="kpi-grid">
         ${kpi('blue', `Superficie fina ${r.campania.fina}`, `${r.haFina.toLocaleString('es-AR')} ha`, 'Trigo')}
@@ -1337,10 +1337,10 @@
         ${kpi(r.lotesSinRenspa.length || r.renspaPorVencer.length ? 'red' : 'green', 'RENSPA', `${E.lotes.length - r.lotesSinRenspa.length}/${E.lotes.length}`, `lotes con RENSPA · ${r.renspaPorVencer.length} por vencer`)}
       </div>
       <div class="grid-2">
-        <div class="card" style="grid-column:1/-1"><div class="card-header"><div class="card-title">📈 Mercado</div>${enlacesMercadoHtml()}</div>${pizarraHtml()}${cotizacionHtml({ nota: false }).replace(/<button[\s\S]*$/, '')}</div>
-        <div class="card"><div class="card-header"><div class="card-title">🌾 Stock por grano</div><button class="btn small" type="button" data-abrir-granos>Ver granos y almacenaje</button></div><div class="chart-container"><canvas id="agroStockChart"></canvas></div></div>
+        <div style="align-self:start;display:grid;gap:16px;min-width:0"><div class="card"><div class="card-header"><div class="card-title">🌾 Stock por grano</div><button class="btn small" type="button" data-abrir-granos>Ver granos y almacenaje</button></div><div class="chart-container"><canvas id="agroStockChart"></canvas></div></div><div id="agroAlertasOperativas"></div></div>
         <div class="card"><div class="card-header"><div class="card-title">⚠️ Alertas agrícolas y fiscales</div><span class="tag orange">${r.alertas.length} pendiente(s)</span></div>${alertasHtml(r.alertas)}</div>
       </div>`;
+    if (panelAlertas) el.querySelector('#agroAlertasOperativas').appendChild(panelAlertas);
     // "Superficie activa" del Centro operativo: suma también los lotes del núcleo agrícola.
     const haLotes = E.lotes.reduce((s, l) => s + (Number(l.superficieHa) || 0), 0);
     const supEl = document.getElementById('dashboardSurface');
@@ -1349,6 +1349,9 @@
       const sub = document.getElementById('dashboardSurfaceTrend');
       if (sub) sub.textContent = `${E.lotes.length} lote(s) registrado(s)`;
     }
+    // Botón "Mercado" de la portada (junto a AgroENSO y GRANOS.AR): pizarra de Rosario y dólar del día en el cartel.
+    const mercado = document.getElementById('mercadoInfo');
+    if (mercado) mercado.innerHTML = `<strong>💹 Mercado</strong>${pizarraHtml()}${cotizacionHtml().replace(/<button[\s\S]*$/, '')}`;
     el.querySelector('[data-cargar-ejemplo]')?.addEventListener('click', () => cargarDatosEjemplo().catch((e) => alert(e.message || e)));
     el.querySelector('[data-abrir-granos]')?.addEventListener('click', () => (typeof window.openModule === 'function' ? window.openModule('Granos') : document.querySelector('button[data-view="Granos"]')?.click()));
     const canvas = el.querySelector('#agroStockChart');
