@@ -141,7 +141,7 @@
       if (insumoPedido.length && ve(['insumos'])) {
         insumoPedido.forEach((x) => {
           const precio = valorInsumo(x.insumo, hoy);
-          lineas.push(linea(x.cantidad <= 0 ? 'risk' : 'ok', `🧪 *${capitalizar(x.insumo)}*: ${num(x.cantidad, 1)} ${x.unidad}${precio && x.cantidad > 0 ? ` · valor ${pesos(x.cantidad * precio)}` : ''}${x.cantidad < 0 ? ' _(se usó más de lo comprado: falta cargar una compra o un ajuste)_' : ''}`));
+          lineas.push(linea(x.cantidad <= 0 ? 'risk' : 'ok', `🧪 *${capitalizar(x.insumo)}*: ${num(x.cantidad, 1)} ${x.unidad}${precio && x.cantidad > 0 && ve(['costos']) ? ` · valor ${pesos(x.cantidad * precio)}` : ''}${x.cantidad < 0 ? ' _(se usó más de lo comprado: falta cargar una compra o un ajuste)_' : ''}`));
         });
         return resultado('📦 Stock de insumos', lineas);
       }
@@ -160,7 +160,7 @@
       if (ve(['insumos'])) {
         const con = insumos.filter((x) => x.cantidad > 0).sort((a, b) => a.insumo.localeCompare(b.insumo));
         const valor = con.reduce((s, x) => s + x.cantidad * (valorInsumo(x.insumo, hoy) || 0), 0);
-        lineas.push(linea('ok', `🧪 Insumos en el galpón: ${con.length}${valor ? ` · valor ${pesos(valor)}` : ''}`));
+        lineas.push(linea('ok', `🧪 Insumos en el galpón: ${con.length}${valor && ve(['costos']) ? ` · valor ${pesos(valor)}` : ''}`));
         con.slice(0, 8).forEach((x) => lineas.push(linea('ok', `• ${capitalizar(x.insumo)}: ${num(x.cantidad, 1)} ${x.unidad}`)));
         insumos.filter((x) => x.cantidad < 0).forEach((x) => lineas.push(linea('risk', `• ${capitalizar(x.insumo)}: ${num(x.cantidad, 1)} ${x.unidad} (falta cargar una compra)`)));
       }
@@ -195,6 +195,11 @@
         const vencidas = plan.filter((l) => A.fechaIso(l.fecha) < hoy);
         lineas.push(linea(vencidas.length ? 'warn' : 'ok', `🗓️ Planificado hasta el ${fechaCorta(semana)}: ${plan.length} labor(es)${horas ? `, quedan *${num(horas, 1)} h* de máquina/operario` : ''}${vencidas.length ? ` · ${vencidas.length} atrasada(s): ${vencidas.slice(0, 3).map((l) => `${l.tipo} ${lote(l.loteId)?.codigo || ''}`.trim()).join(', ')}` : ''}`));
       }
+      lotesConClima().slice(0, 2).forEach(({ l, clima, lluvia }) => {
+        if (!clima) return;
+        const v = A.ventanasAplicacion((clima.pronostico || []).slice(0, 8));
+        lineas.push(linea('ok', `🌦️ *${l.codigo}*: ${clima.actual?.temperatura} °C, viento ${clima.actual?.vientoKmh} km/h · lluvia prevista 24 h ${v.lluviaPrevista} mm${lluvia ? ` · últimos ${lluvia.dias} días ${lluvia.mm} mm` : ''} · ${v.ventanas.length ? 'hay ventana para aplicar' : 'sin ventana para aplicar'}`));
+      });
       const alertas = (X().r?.alertas || []).filter((a) => a.nivel === 'danger');
       if (alertas.length) lineas.push(linea('risk', `⚠️ ${alertas.length} alerta(s) urgente(s): ${alertas.slice(0, 2).map((a) => a.texto).join(' · ')}`));
       return resultado(`📋 Resumen del ${fechaCorta(hoy)}`, lineas);
@@ -205,6 +210,7 @@
       const lineas = [];
       if (ve(['insumos'])) A.desviosPrecioInsumo(e.compras, e.condicionIva).forEach((x) => lineas.push(linea(Math.abs(x.desvio) >= 40 ? 'risk' : 'warn', `💲 *${capitalizar(x.insumo)}*: la compra del ${fechaCorta(x.fecha)} salió ${pesos(x.precio)}/${x.unidad || 'u'}, ${x.desvio > 0 ? '+' : ''}${num(x.desvio)} % contra el promedio de ${x.compras - 1} compra(s) anterior(es) (${pesos(x.promedio)}). ¿Está bien cargado?`)));
       if (ve(['granos'])) A.desviosRinde(A.rindesHistoricos(e)).forEach((x) => lineas.push(linea(x.desvio < 0 ? 'warn' : 'ok', `🌾 *${x.lote}* (${nombreGrano(x.cultivo)} ${x.campania}): rindió ${num(x.rindeTnHa, 2)} t/ha, ${x.desvio > 0 ? '+' : ''}${num(x.desvio)} % contra el promedio del campo ${x.campo} (${num(x.promedio, 2)} t/ha). ${x.desvio < 0 ? 'Revisá el dato o la causa.' : ''}`.trim())));
+      if (ve(['precision', 'labores'])) alertasSatelite().forEach((a) => lineas.push(linea('warn', `🛰️ ${a.texto}`)));
       (X().r?.alertas || []).filter((a) => !/^(SENASA|ARCA)/.test(a.texto) || ve(['fiscal', 'precision', 'labores'])).slice(0, 8).forEach((a) => lineas.push(linea(a.nivel === 'danger' ? 'risk' : 'warn', `• ${a.texto}`)));
       if (!lineas.length) lineas.push(linea('ok', 'Sin desvíos: precios de insumos y rindes dentro del promedio histórico, y sin alertas pendientes.'));
       return resultado('⚠️ Alertas de desvíos', lineas);
@@ -312,6 +318,60 @@
       return resultado(`🏢 Análisis multi-campo · ${camp}`, lineas);
     }
 
+    // ─── Datos externos: dólar (DolarAPI) y clima (Agromonitoring) ───────────────────────────
+    const externo = (clave) => (E().datosExternos || []).find((x) => x.clave === clave);
+    const horaCorta = (iso) => { const d = new Date(iso); return isNaN(d) ? '' : `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')} h`; };
+    function consultaDolar(hoyFecha) {
+      const dol = externo('dolar')?.valor;
+      if (!dol?.cotizaciones?.length) return resultado('💵 Dólar', [linea('warn', 'Todavía no hay cotización guardada: se trae sola cuando hay conexión.')]);
+      const lineas = ['bolsa', 'oficial', 'blue', 'contadoconliqui', 'mayorista'].map((c) => dol.cotizaciones.find((x) => x.casa === c)).filter(Boolean).map((x) => linea('ok', `• *${x.nombre}*: compra ${pesos(x.compra)} · venta *${pesos(x.venta)}*`));
+      const mep = dol.cotizaciones.find((x) => x.casa === 'bolsa');
+      const dias = A.diasDesde(mep?.fecha, hoyDe(hoyFecha));
+      lineas.push(linea(dias > 2 ? 'warn' : 'ok', `_${dol.fuente || 'DolarAPI'} · actualizado ${horaCorta(mep?.fecha)}${dias > 2 ? ` (hace ${dias} días: puede estar desactualizado)` : ''}._`));
+      const tc = (E().tiposCambio || []).find((t) => t.mes === hoyDe(hoyFecha).slice(0, 7));
+      if (ve(['costos'])) lineas.push(linea('ok', tc ? `Tipo de cambio informativo de ${tc.mes} en Costos: ${pesos(tc.ars)}.` : 'Este mes todavía no tiene tipo de cambio informativo en Costos: podés usar el MEP con un toque (Costos → Costos por lote y campaña).'));
+      return resultado('💵 Dólar hoy', lineas);
+    }
+    function consultaPizarra(t = '') {
+      const p = externo('pizarra')?.valor;
+      if (!p?.precios || !Object.keys(p.precios).length) return resultado('🌾 Pizarra Rosario', [linea('warn', 'Todavía no hay pizarra guardada: se trae sola cuando hay conexión. Todos los datos del mercado actualizados están en GRANOS.AR (granos.ar).')]);
+      const pedidos = Object.keys(A.CULTIVOS).filter((g) => t.includes(normalizar(A.CULTIVOS[g].nombre)));
+      const porGrano = A.stockPorGrano(E().movimientosGrano || []).porGrano;
+      const lineas = (pedidos.length ? pedidos : Object.keys(A.CULTIVOS)).filter((g) => p.precios[g]).map((g) => {
+        const x = p.precios[g];
+        const kg = porGrano[g] || 0;
+        return linea('ok', `• *${A.CULTIVOS[g].nombre}*: *${pesos(x.pesos)}/t*${x.usd ? ` (US$ ${num(x.usd, 2)})` : ''}${x.estimado ? ' _estimado_' : ''}${x.tendencia === 'sube' ? ' ▲' : x.tendencia === 'baja' ? ' ▼' : ''}${kg && ve(['granos']) ? ` · tu stock ${tn(kg)} ≈ ${pesos(kg / 1000 * x.pesos)}` : ''}`);
+      });
+      lineas.push(linea('ok', `_Pizarra del ${p.fecha || '-'} · Cámara Arbitral de Cereales de la Bolsa de Comercio de Rosario. Todos los datos del mercado actualizados al momento: GRANOS.AR (granos.ar)._`));
+      return resultado(`🌾 Pizarra Rosario${p.fecha ? ` · ${p.fecha}` : ''}`, lineas);
+    }
+    function lotesConClima() { return (E().lotes || []).map((l) => ({ l, clima: externo(`clima:${l.id}`)?.valor, lluvia: externo(`lluvia:${l.id}`)?.valor, ndvi: externo(`ndvi:${l.id}`)?.valor })).filter((x) => x.clima || x.ndvi); }
+    function consultaClima(t) {
+      const todos = lotesConClima();
+      if (!todos.length) return resultado('🌦️ Clima', [linea('warn', 'Todavía no hay clima de ningún lote: cargá la ubicación o el polígono del lote en *Clima y satélite*.')]);
+      const pedidos = todos.filter(({ l }) => t.includes(normalizar(l.codigo)) || (l.campo && t.includes(normalizar(l.campo))));
+      const lineas = [];
+      (pedidos.length ? pedidos : todos.slice(0, 3)).forEach(({ l, clima, lluvia }) => {
+        if (!clima) return;
+        const a = clima.actual || {};
+        const ahora = A.evaluarCondicion(a);
+        const v = A.ventanasAplicacion((clima.pronostico || []).slice(0, 16));
+        lineas.push(linea(ahora.apta ? 'ok' : 'warn', `*${l.codigo}*: ahora ${a.temperatura} °C, humedad ${a.humedad} %, viento ${a.vientoKmh} km/h · ${ahora.apta ? '*apto para aplicar*' : `*no conviene aplicar* (${ahora.motivos.join(', ')})`}`));
+        lineas.push(linea('ok', `  Ventanas aptas próximas 48 h: ${v.ventanas.slice(0, 3).map((w) => `${horaCorta(w.desde)} a ${horaCorta(new Date(Date.parse(w.hasta) + 3 * 3600 * 1000).toISOString())}`).join(' · ') || 'ninguna'} · lluvia prevista ${v.lluviaPrevista} mm${lluvia ? ` · llovieron ${lluvia.mm} mm en ${lluvia.dias} días` : ''}`));
+        A.alertasClima({ clima, lote: l.codigo }).forEach((x) => lineas.push(linea(x.nivel === 'danger' ? 'risk' : 'warn', `  ${x.texto}`)));
+      });
+      lineas.push(linea('ok', `_Condiciones de la receta: viento ${A.CONDICIONES_APLICACION.vientoMin}–${A.CONDICIONES_APLICACION.vientoMax} km/h, hasta ${A.CONDICIONES_APLICACION.temperaturaMax} °C, humedad desde ${A.CONDICIONES_APLICACION.humedadMin} % y sin lluvia. Fuente: Agromonitoring._`));
+      return resultado('🌦️ Clima y aplicación', lineas);
+    }
+    function alertasSatelite() {
+      return lotesConClima().flatMap(({ l, ndvi }) => {
+        if (!ndvi?.serie) return [];
+        const mapa = (E().mapasRinde || []).filter((m) => m.loteId === l.id).sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)))[0];
+        const z = mapa ? A.zonificar(A.limpiarMapaRinde(mapa.puntos).validos) : null;
+        return A.alertasNdvi({ serie: ndvi.serie, lote: l.codigo, bajoPotencialPct: z ? z.zonas[0].pct : null });
+      });
+    }
+
     const EJECUTAR = { stock: (h) => consultaStock(h), resumen: resumenDiario, alertas: alertasDesvios, quiebre: quiebreStock, costos: costosProyectados, mantenimiento, zonas: zonificacion, prescripcion, multicampo: multiCampo };
     // Primero el plan (qué compró la empresa) y después el rol (qué puede ver este usuario).
     function ejecutarConRol(id, hoy) {
@@ -359,6 +419,11 @@
     }
 
     // ─── Consultas en texto libre (panel, nota de voz, WhatsApp) ───────────────────────────
+    const RUTAS_EXTERNAS = [
+      { patron: /\b(dolar|dolares|mep|blue|ccl|contado con liqui|cotizacion|tipo de cambio)\b/, fn: (t, hoy) => consultaDolar(hoy) },
+      { patron: /\b(pizarra|rosario|precio (de la |del |de )?(soja|maiz|trigo|girasol)|cuanto (vale|paga|esta|cotiza) (la |el )?(soja|maiz|trigo|girasol)|cuanto vale mi (stock|grano))/, fn: (t) => consultaPizarra(t) },
+      { patron: /\b(clima|lluvia|llueve|llovio|llover|pronostico|viento|helada|temperatura|aplicar hoy|conviene aplicar|puedo aplicar|pulverizar|fumigar)\b/, fn: (t) => consultaClima(t) },
+    ];
     const RUTAS = [
       { id: 'prescripcion', patron: /\b(prescripcion|dosis variable|dosis por zona|cuanto (fertilizante|semilla) (pongo|poner|tiro|tirar))/ },
       { id: 'zonas', patron: /\b(zona|zonas|zonificacion|ambiente|ambientes|mapa de rinde|potencial)\b/ },
@@ -379,6 +444,8 @@
     function responderConRol(pregunta, hoy) {
       const t = normalizar(pregunta);
       if (!t.trim()) return ayuda();
+      const externa = RUTAS_EXTERNAS.find((r) => r.patron.test(t));
+      if (externa) return externa.fn(t, hoy);
       const ruta = RUTAS.find((r) => r.patron.test(t));
       if (!ruta) {
         // Un insumo por su nombre ("¿y el glifosato?").
@@ -399,7 +466,29 @@
       }));
     }
 
-    return { plan, puede, capacidades, ejecutar, analizar, responder, esConsulta, consultaStock, resumenDiario, alertasDesvios, quiebreStock, costosProyectados, mantenimiento, zonificacion, prescripcion, multiCampo };
+    // Contexto para el servidor de IA (Flowise + Ollama): los resultados ya calculados que este usuario puede
+    // ver según su versión y su rol. Si la pregunta coincide con una función, va esa primero.
+    const quitarFormato = (t) => String(t || '').replace(/[*_]/g, '');
+    function contextoParaIA(pregunta, opciones = {}) {
+      return conRol(opciones, () => {
+        const partes = [];
+        const directo = responderConRol(pregunta, opciones.hoy);
+        // Si la pregunta coincide con una función, alcanza con esos datos (más rápido en un servidor sin GPU).
+        if (directo && !/No entendí/.test(directo.titulo) && !directo.bloqueado) return quitarFormato([directo.texto, analizarConRol('empresa').texto, externo('dolar') && !/Dólar/.test(directo.titulo) ? consultaDolar(opciones.hoy).texto : ''].filter(Boolean).join('\n\n')).slice(0, 12000);
+        partes.push(analizarConRol('empresa').texto);
+        if (externo('dolar')) partes.push(consultaDolar(opciones.hoy).texto);
+        if (externo('pizarra')) partes.push(consultaPizarra('').texto);
+        if (lotesConClima().length) partes.push(consultaClima('').texto);
+        CAPACIDADES.filter((c) => puede(c.id) && ve(MODULOS_REQUERIDOS[c.id])).forEach((c) => {
+          try { const r = EJECUTAR[c.id](opciones.hoy); if (r && !partes.includes(r.texto)) partes.push(r.texto); } catch (e) { /* una función sin datos no frena el resto */ }
+        });
+        const bloqueadas = CAPACIDADES.filter((c) => !puede(c.id)).map((c) => `${c.titulo} (versión ${planMinimo(c.nivel)})`);
+        if (bloqueadas.length) partes.push(`Funciones no incluidas en la versión ${NOMBRE_PLAN[plan()]}: ${bloqueadas.join(', ')}.`);
+        return quitarFormato(partes.join('\n\n')).slice(0, 12000);
+      });
+    }
+
+    return { plan, puede, capacidades, ejecutar, analizar, responder, esConsulta, contextoParaIA, consultaDolar, consultaClima, consultaPizarra, consultaStock, resumenDiario, alertasDesvios, quiebreStock, costosProyectados, mantenimiento, zonificacion, prescripcion, multiCampo };
   }
 
   // ─── Presentación en el panel (navegador) ─────────────────────────────────────────────

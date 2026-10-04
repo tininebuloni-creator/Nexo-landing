@@ -36,31 +36,41 @@
         "id": "demo-lote-1",
         "codigo": "LC-01",
         "campo": "La Candelaria",
-        "superficieHa": 120
+        "superficieHa": 120,
+        "latitud": -33.7012,
+        "longitud": -62.1043
       },
       {
         "id": "demo-lote-2",
         "codigo": "LC-02",
         "campo": "La Candelaria",
-        "superficieHa": 95
+        "superficieHa": 95,
+        "latitud": -33.7088,
+        "longitud": -62.0961
       },
       {
         "id": "demo-lote-3",
         "codigo": "EM-01",
         "campo": "El Mangrullo",
-        "superficieHa": 140
+        "superficieHa": 140,
+        "latitud": -33.9175,
+        "longitud": -61.8475
       },
       {
         "id": "demo-lote-4",
         "codigo": "EM-02",
         "campo": "El Mangrullo",
-        "superficieHa": 80
+        "superficieHa": 80,
+        "latitud": -33.9302,
+        "longitud": -61.8611
       },
       {
         "id": "demo-lote-5",
         "codigo": "EM-03",
         "campo": "El Mangrullo",
-        "superficieHa": 60
+        "superficieHa": 60,
+        "latitud": -33.9411,
+        "longitud": -61.839
       }
     ],
     "lotesCampania": [

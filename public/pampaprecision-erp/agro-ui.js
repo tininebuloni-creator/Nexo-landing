@@ -27,6 +27,8 @@
 
   async function cargar() {
     E = await DB.todoElEstado();
+    E.datosExternos = await DB.db.datosExternos.toArray();
+    E.datosExternosEstado = await DB.meta.get('datosExternosEstado');
     E.condicionIva = (await DB.meta.get('condicionIva')) || 'RI';
     // Equipos de la versión anterior con costo horario en USD: se pasan a pesos con el último tipo de
     // cambio cargado (queda la nota para confirmarlo; al editar el equipo se borra).
@@ -40,7 +42,7 @@
     }
     return E;
   }
-  const datosCostos = () => ({ condicionIva: E.condicionIva, compras: E.compras, labores: E.labores, equipos: E.equipos, empleados: E.empleados, lotes: E.lotes, lotesCampania: E.lotesCampania, lpg: E.lpg, contratos: E.contratosArrendamiento, movimientosGrano: E.movimientosGrano });
+  const datosCostos = () => ({ preciosReferencia: preciosPizarra(), condicionIva: E.condicionIva, compras: E.compras, labores: E.labores, equipos: E.equipos, empleados: E.empleados, lotes: E.lotes, lotesCampania: E.lotesCampania, lpg: E.lpg, contratos: E.contratosArrendamiento, movimientosGrano: E.movimientosGrano });
   // Tipo de cambio informativo: el del mes pedido o el último anterior.
   const tipoCambio = (mes) => [...(E.tiposCambio || [])].filter((t) => !mes || t.mes <= mes).sort((a, b) => b.mes.localeCompare(a.mes))[0]?.ars || null;
   const usd = (n, tc) => (tc ? `USD ${Math.round((Number(n) || 0) / tc).toLocaleString('es-AR')}` : 'sin tipo de cambio');
@@ -80,6 +82,7 @@
     alertas.push(...A.alertasSenasa({ labores: E.labores, productos: E.fitosanitarios, equipos: E.equipos, envases: E.envases, recetas: E.recetas, lotes: E.lotes, movimientosGrano: E.movimientosGrano, hoy: hoy() }).map((a) => ({ ...a, texto: `SENASA: ${a.texto}` })));
     alertas.push(...A.alertasEquipos({ equipos: E.equipos, labores: E.labores, mantenimientos: E.mantenimientos, hoy: hoy() }).map((a) => ({ ...a, texto: `Equipo: ${a.texto}` })));
     alertas.push(...A.alertasFinanzas({ cheques: E.cheques, creditos: E.creditos, movimientos: E.movimientosFondos, compras: E.compras, hoy: hoy() }).map((a) => ({ ...a, texto: `Finanzas: ${a.texto}` })));
+    alertas.push(...alertasExternas().map((a) => ({ ...a, texto: `Clima: ${a.texto}` })));
     alertas.push(...A.alertasResiduos({ residuos: E.residuos, ubicaciones: E.ubicaciones, movimientosGrano: E.movimientosGrano, hoy: hoy() }).map((a) => ({ ...a, texto: `Residuos: ${a.texto}` })));
     alertas.push(...A.alertasCpe({ cpes: E.cpes, lpg: E.lpg, hoy: hoy() }).map((a) => ({ ...a, texto: `ARCA: ${a.texto}` })));
     const lpgDefecto = E.lpg.filter((l) => l.calculo?.usaDefecto).length;
@@ -193,6 +196,7 @@
         <label>Impurezas / chamico (%)<input name="impurezasPct" type="number" step="0.01" value="${esc(d.impurezasPct || '')}"></label>
         <label>Volatilización (%)<input name="volatilizacionPct" type="number" step="0.01" value="${esc(d.volatilizacionPct || '')}"></label>
         <label>Precio por tonelada<input name="precioTn" type="number" min="0" value="${esc(d.precioTn || '')}" required></label>
+        <div style="grid-column:1/-1">${pizarraHtml({ boton: true })}</div>
         ${Object.entries(A.DEDUCCIONES).map(([t, x]) => `<label>${esc(x.nombre)} ($ neto)<input name="ded_${t}" type="number" min="0" value="${esc(dedVal(t))}"></label>`).join('')}
         <label>Impuesto de Sellos<select name="sellos">${opciones([['on', 'Descontar según provincia'], ['off', 'No corresponde']], d.sellos === false ? 'off' : 'on')}</select></label>
         <label>CPE (carta de porte)<input name="cpe" value="${esc(d.cpe || '')}"></label>
@@ -435,27 +439,31 @@
     const tc = tipoCambio(per.hasta.slice(0, 7)) || tipoCambio();
     const r = A.resultadoCampania(datosCostos(), camp, { tipoCambio: tc });
     const t = r.totales;
-    const filasLote = r.lotes.map((x) => `<tr><td><strong>${esc(x.lote)}</strong><small>${esc(x.campo)}</small></td><td>${esc(A.CULTIVOS[x.cultivo]?.nombre || x.cultivo)}<small>${esc(x.tipo)}</small></td><td class="num">${x.ha.toLocaleString('es-AR')}</td><td class="num">${x.rindeTnHa ? `${x.rindeTnHa.toLocaleString('es-AR')} t/ha` : '-'}</td><td class="num">${pesos(x.ingresos)}${x.stockValuado ? `<small>ventas ${pesos(x.ventas)} · stock ${pesos(x.stockValuado)}</small>` : ''}</td><td class="num">${pesos(x.directos)}</td><td class="num">${pesos(x.margenBruto)}</td><td class="num">${pesos(x.estructura)}</td><td class="num"><strong style="color:${x.resultado < 0 ? 'var(--red)' : '#10b981'}">${pesos(x.resultado)}</strong></td><td class="num">${pesos(x.costoHa)}</td><td class="num">${x.costoTn === null ? '-' : pesos(x.costoTn)}${x.costoTnUsd !== null ? `<small>USD ${x.costoTnUsd.toLocaleString('es-AR')}/t</small>` : ''}</td></tr>`).join('') || '<tr><td colspan="11" class="nota">Vinculá lotes a la campaña en "RENSPA y campañas".</td></tr>';
+    // US$ día por día: cada movimiento con el MEP de su fecha (histórico de argentinadatos); sin histórico, el tipo de cambio del mes.
+    const u = A.resultadoCampaniaUsd(r, { lpg: E.lpg, serie: serieMep(), hoy: hoy() });
+    const enUsd = (k, divisor = 1) => (u ? `USD ${Math.round(u[k] / divisor).toLocaleString('es-AR')}` : usd(t[k] / divisor, tc));
+    const loteUsd = (x) => u?.lotes.find((y) => y.loteId === x.loteId && y.cultivo === x.cultivo);
+    const filasLote = r.lotes.map((x) => `<tr><td><strong>${esc(x.lote)}</strong><small>${esc(x.campo)}</small></td><td>${esc(A.CULTIVOS[x.cultivo]?.nombre || x.cultivo)}<small>${esc(x.tipo)}</small></td><td class="num">${x.ha.toLocaleString('es-AR')}</td><td class="num">${x.rindeTnHa ? `${x.rindeTnHa.toLocaleString('es-AR')} t/ha` : '-'}</td><td class="num">${pesos(x.ingresos)}${x.stockValuado ? `<small>ventas ${pesos(x.ventas)} · stock ${pesos(x.stockValuado)}</small>` : ''}</td><td class="num">${pesos(x.directos)}</td><td class="num">${pesos(x.margenBruto)}</td><td class="num">${pesos(x.estructura)}</td><td class="num"><strong style="color:${x.resultado < 0 ? 'var(--red)' : '#10b981'}">${pesos(x.resultado)}</strong></td><td class="num">${pesos(x.costoHa)}</td><td class="num">${x.costoTn === null ? '-' : pesos(x.costoTn)}${(u ? loteUsd(x)?.costoTn : x.costoTnUsd) != null ? `<small>USD ${(u ? loteUsd(x).costoTn : x.costoTnUsd).toLocaleString('es-AR')}/t</small>` : ''}</td></tr>`).join('') || '<tr><td colspan="11" class="nota">Vinculá lotes a la campaña en "RENSPA y campañas".</td></tr>';
     const filasGrupo = Object.entries(r.porGrupo).filter(([, v]) => v).sort((a, b) => b[1] - a[1]).map(([g, v]) => `<tr><td>${esc(g)}</td><td class="num">${pesos(v)}</td><td class="num">${r.haTotal ? pesos(v / r.haTotal) : '-'}</td></tr>`).join('') || '<tr><td colspan="3" class="nota">Sin costos en la campaña.</td></tr>';
     const detalle = [...r.filas].sort((a, b) => String(b.fecha).localeCompare(String(a.fecha))).slice(0, 80).map((f) => `<tr><td>${esc(f.fecha)}</td><td>${esc(f.grupo)}</td><td>${esc(f.origen)}</td><td>${esc(f.concepto)}${f.motivo ? `<small>${esc(f.motivo)}</small>` : ''}</td><td>${f.loteId ? esc(lote(f.loteId)?.codigo || '') : f.directo ? 'Por cultivo' : 'Estructura'}</td><td class="num">${pesos(f.importe)}</td></tr>`).join('');
     const empleados = E.empleados.map((e) => `<tr><td><strong>${esc(e.nombre)}</strong><small>${esc(e.legajo || '')} · ${esc(e.puesto || '')}</small></td><td class="num">${pesos(e.sueldo)}</td><td class="num">${pct(e.cargasPct === '' || e.cargasPct == null ? A.CARGAS_SOCIALES_PCT_DEFECTO : e.cargasPct)}</td><td>${esc(e.ingreso || '-')}${e.baja ? ` → ${esc(e.baja)}` : ''}</td><td><button class="btn small" data-borrar="empleados" data-id="${esc(e.id)}">Borrar</button></td></tr>`).join('') || '<tr><td colspan="5" class="nota">Sin personal cargado.</td></tr>';
     const equipos = E.equipos.map((e) => `<tr><td><strong>${esc(e.nombre)}</strong><small>${esc(e.codigo || '')}${e.revisar ? ` · ⚠️ ${esc(e.revisar)}${e.costoHoraUsd ? ` (USD ${esc(e.costoHoraUsd)}/h)` : ''}` : ''}</small></td><td class="num">${pesos(e.costoHora)}/h</td><td class="num">${pesos(e.valor)}</td><td class="num">${esc(e.vidaUtilAnios || '-')} años</td><td><button class="btn small" data-editar-equipo="${esc(e.id)}">Editar</button> <button class="btn small" data-borrar="equipos" data-id="${esc(e.id)}">Borrar</button></td></tr>`).join('') || '<tr><td colspan="5" class="nota">Sin equipos.</td></tr>';
     return `
-      <div class="card"><div class="card-header"><div><div class="card-title">💵 Costos y resultado por lote</div><div class="card-sub">Campaña ${esc(camp)} (fina y gruesa) · estructura del período ${esc(r.periodo.desde)} a ${esc(per.hasta)} repartida por hectárea · ${tc ? `USD informativo a $ ${tc.toLocaleString('es-AR')}` : 'cargá el tipo de cambio para ver USD'}</div></div>
+      <div class="card"><div class="card-header"><div><div class="card-title">💵 Costos y resultado por lote</div><div class="card-sub">Campaña ${esc(camp)} (fina y gruesa) · estructura del período ${esc(r.periodo.desde)} a ${esc(per.hasta)} repartida por hectárea · ${u ? `USD día por día con el MEP de cada movimiento (último ${pesos(u.dolarHoy?.venta)} del ${esc(u.dolarHoy?.fecha || '')})${u.sinCotizacion ? ` · ${u.sinCotizacion} movimiento(s) anteriores al histórico` : ''}` : tc ? `USD informativo a $ ${tc.toLocaleString('es-AR')}` : 'cargá el tipo de cambio para ver USD'}</div></div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><select data-campania-resultados>${opciones((camps.length ? camps : [camp]).map((x) => [x, `Campaña ${x}`]), camp)}</select>
           <select data-condicion-iva>${opciones([['RI', 'Responsable inscripto'], ['MONOTRIBUTO', 'Monotributo']], E.condicionIva)}</select></div></div>
         <div class="kpi-grid">
-          ${kpi('green', 'Producción valuada', pesos(t.ingresos), `Ventas LPG ${pesos(t.ventas)} + sin vender ${pesos(t.stockValuado)} · ${usd(t.ingresos, tc)}`)}
-          ${kpi('orange', 'Costos directos', pesos(t.directos), `${usd(t.directos, tc)} · ${r.haTotal ? pesos(t.directos / r.haTotal) + '/ha' : ''}`)}
-          ${kpi('blue', 'Margen bruto', pesos(t.margenBruto), `${usd(t.margenBruto, tc)} · ${r.haTotal ? pesos(t.margenBruto / r.haTotal) + '/ha' : ''}`)}
-          ${kpi('purple', 'Estructura', pesos(t.estructura), `Personal, amortizaciones, arrendamientos y gastos sin lote · ${usd(t.estructura, tc)}`)}
-          ${kpi(t.resultado < 0 ? 'red' : 'green', 'Resultado', pesos(t.resultado), `${usd(t.resultado, tc)} · ${r.haTotal ? `${usd(t.resultado / r.haTotal, tc)}/ha` : ''}`)}
+          ${kpi('green', 'Producción valuada', pesos(t.ingresos), `Ventas LPG ${pesos(t.ventas)} + sin vender ${pesos(t.stockValuado)}${Object.values(r.porCultivo).some((c) => c.fuentePrecio === 'pizarra Rosario' && c.kgSinVender) ? ' (a pizarra Rosario)' : ''} · ${enUsd('ingresos')}`)}
+          ${kpi('orange', 'Costos directos', pesos(t.directos), `${enUsd('directos')} · ${r.haTotal ? pesos(t.directos / r.haTotal) + '/ha' : ''}`)}
+          ${kpi('blue', 'Margen bruto', pesos(t.margenBruto), `${enUsd('margenBruto')} · ${r.haTotal ? pesos(t.margenBruto / r.haTotal) + '/ha' : ''}`)}
+          ${kpi('purple', 'Estructura', pesos(t.estructura), `Personal, amortizaciones, arrendamientos y gastos sin lote · ${enUsd('estructura')}`)}
+          ${kpi(t.resultado < 0 ? 'red' : 'green', 'Resultado', pesos(t.resultado), `${enUsd('resultado')} · ${r.haTotal ? `${enUsd('resultado', r.haTotal)}/ha` : ''}`)}
         </div>
         <div style="overflow-x:auto"><table class="tabla"><thead><tr><th>Lote</th><th>Cultivo</th><th class="num">Ha</th><th class="num">Rinde</th><th class="num">Producción</th><th class="num">Directos</th><th class="num">Margen bruto</th><th class="num">Estructura</th><th class="num">Resultado</th><th class="num">Costo/ha</th><th class="num">Costo/t</th></tr></thead><tbody>${filasLote}</tbody></table></div>
         <div class="nota">Producción valuada: ventas (subtotal neto de las LPG de la campaña) + lo cosechado y todavía no vendido, al último precio de LPG del grano; se reparte según lo cosechado por cada lote (sin cosecha cargada, por hectárea). Rinde: ingresos de cosecha al stock con lote. Los arrendamientos de un campo van solo a los lotes de ese campo.${Object.entries(r.porCultivo).filter(([, c]) => c.sinPrecio).map(([g]) => ` ⚠️ ${A.CULTIVOS[g].nombre}: hay grano sin vender y ninguna LPG para valuarlo.`).join('')}</div></div>
       <div class="grid-2">
         <div class="card"><div class="card-header"><div class="card-title">📊 Costos por rubro</div></div><table class="tabla"><thead><tr><th>Rubro</th><th class="num">Total</th><th class="num">Por ha</th></tr></thead><tbody>${filasGrupo}</tbody></table></div>
-        <div class="card"><div class="card-header"><div class="card-title">💱 Tipo de cambio (informativo)</div></div>
+        <div class="card"><div class="card-header"><div class="card-title">💱 Tipo de cambio (informativo)</div></div>${cotizacionHtml()}
           <table class="tabla"><thead><tr><th>Mes</th><th class="num">$ por USD</th><th></th></tr></thead><tbody>${[...E.tiposCambio].sort((a, b) => b.mes.localeCompare(a.mes)).slice(0, 12).map((x) => `<tr><td>${esc(x.mes)}</td><td class="num">${pesos(x.ars)}</td><td><button class="btn small" data-borrar-tc="${esc(x.mes)}">Borrar</button></td></tr>`).join('') || '<tr><td colspan="3" class="nota">Sin cargar.</td></tr>'}</tbody></table>
           <form data-form="tipoCambio" class="form-grid" style="margin-top:10px"><label>Mes<input name="mes" type="month" value="${hoy().slice(0, 7)}" required></label><label>$ por USD<input name="ars" type="number" step="0.01" min="0" required></label><label>&nbsp;<button class="btn" type="submit">Guardar</button></label></form></div>
       </div>
@@ -775,15 +783,150 @@
     return DB.guardar('movimientosFondos', { fecha: hoy(), cuentaId: cuentaOperacion || E.cuentas[0].id, ...datos });
   }
 
+  // ================= Datos externos: dólar (DolarAPI), clima, suelo y NDVI (Agromonitoring) =================
+  // Se piden a /api/pampa-datos (la función de Cloudflare en la web, el servidor local en escritorio), que guarda
+  // la clave de Agromonitoring. Se guardan en una caché local (funciona sin conexión y no gasta el cupo).
+  const MIN_CACHE_EXTERNO = { pizarra: 60, dolarHistorico: 360, dolar: 30, clima: 60, lluvia: 360, suelo: 180, ndvi: 720 };
+  const datoExterno = (clave) => (E?.datosExternos || []).find((d) => d.clave === clave);
+  async function pedirDatoExterno(params, opciones) {
+    const r = await fetch(params ? `/api/pampa-datos?${new URLSearchParams(params)}` : '/api/pampa-datos', { cache: 'no-store', ...(opciones || {}) });
+    const data = await r.json().catch(() => ({ ok: false, error: 'el servidor de datos no está disponible' }));
+    if (!data.ok) throw new Error(data.error || `HTTP ${r.status}`);
+    return data;
+  }
+  let actualizandoExternos = null;
+  async function actualizarDatosExternos({ forzar = false } = {}) {
+    if (actualizandoExternos) return actualizandoExternos;
+    actualizandoExternos = (async () => {
+      const previos = Object.fromEntries((await DB.db.datosExternos.toArray()).map((d) => [d.clave, d]));
+      const vigente = (k, min) => !forzar && previos[k] && Date.now() - Date.parse(previos[k].fecha) < min * 60000;
+      const guardar = (clave, valor) => DB.db.datosExternos.put({ clave, valor, fecha: new Date().toISOString() });
+      const errores = [];
+      let cambios = 0;
+      for (const [clave, params, nombre] of [['dolar', { tipo: 'dolar' }, 'Dólar'], ['pizarra', { tipo: 'pizarra' }, 'Pizarra Rosario'], ['dolarHistorico', { tipo: 'dolarHistorico', casa: 'bolsa' }, 'Histórico del MEP']]) {
+        if (vigente(clave, MIN_CACHE_EXTERNO[clave])) continue;
+        try { await guardar(clave, await pedirDatoExterno(params)); cambios++; } catch (e) { errores.push(`${nombre}: ${e.message}`); }
+      }
+      const lotes = (await DB.todo('lotes')).filter((l) => l.agroPolyId || (Number(l.latitud) && Number(l.longitud))).slice(0, 12);
+      let sinServidorAgro = false;
+      for (const l of lotes) {
+        if (sinServidorAgro) break;
+        const lugar = l.agroPolyId ? { polyid: l.agroPolyId } : { lat: l.latitud, lon: l.longitud };
+        const tareas = ['clima', 'lluvia', ...(l.agroPolyId ? ['suelo', 'ndvi'] : [])];
+        for (const tipo of tareas) {
+          const k = `${tipo}:${l.id}`;
+          if (vigente(k, MIN_CACHE_EXTERNO[tipo])) continue;
+          try { await guardar(k, await pedirDatoExterno({ tipo, ...lugar })); cambios++; } catch (e) {
+            errores.push(`${l.codigo} (${tipo}): ${e.message}`);
+            if (/no está configurado|no está disponible/.test(e.message)) { sinServidorAgro = true; break; }
+          }
+        }
+      }
+      await DB.meta.set('datosExternosEstado', { cuando: new Date().toISOString(), errores: errores.slice(0, 6), lotesConUbicacion: lotes.length });
+      if (cambios || forzar) window.dispatchEvent(new CustomEvent('pampa-datos-externos', { detail: { cambios } }));
+      return { cambios, errores };
+    })().finally(() => { actualizandoExternos = null; });
+    return actualizandoExternos;
+  }
+  window.addEventListener('pampa-datos-externos', () => { if (root?.isConnected) refrescar(); const dash = document.querySelector('#agroDashboard'); if (dash?.isConnected) montarDashboard(dash); });
+
+  const serieMep = () => datoExterno('dolarHistorico')?.valor?.serie || [];
+  const pizarra = () => datoExterno('pizarra')?.valor || null;
+  const preciosPizarra = () => Object.fromEntries(Object.entries(pizarra()?.precios || {}).filter(([g, p]) => A.CULTIVOS[g] && p.pesos).map(([g, p]) => [g, p.pesos]));
+  const NOTA_GRANOS_AR = 'En <a href="https://granos.ar/" target="_blank" rel="noopener noreferrer">GRANOS.AR</a> están todos los datos del mercado actualizados al momento (pizarras, futuros, dólar, fletes, hacienda) para todos los ítems de la app.';
+  function enlacesMercadoHtml() {
+    return `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><a class="btn small" href="https://granos.ar/" target="_blank" rel="noopener noreferrer" title="Monitor agropecuario: pizarras, futuros, dólar, fletes, hacienda y clima. Ahí están todos los datos necesarios actualizados al momento para todos los ítems de la app.">📈 GRANOS.AR</a><a class="btn small" href="https://agroenso.netlify.app/" target="_blank" rel="noopener noreferrer" title="AgroENSO · El Niño en tu zona: cómo pega en los cultivos de tu zona, con las últimas 35 campañas.">🌱 AgroENSO</a></div>`;
+  }
+  function pizarraHtml({ boton = false } = {}) {
+    const p = pizarra();
+    if (!p?.precios || !Object.keys(p.precios).length) return `<div class="nota">Pizarra de Rosario: sin datos todavía (se trae sola cuando hay conexión). ${NOTA_GRANOS_AR}</div>`;
+    const items = Object.keys(A.CULTIVOS).filter((g) => p.precios[g]).map((g) => { const x = p.precios[g]; return `${esc(A.CULTIVOS[g].nombre)} <strong>${pesos(x.pesos)}</strong>/t${x.usd ? ` (US$ ${x.usd.toLocaleString('es-AR')})` : ''}${x.estimado ? ' (E)' : ''}${x.tendencia === 'sube' ? ' ▲' : x.tendencia === 'baja' ? ' ▼' : ''}${boton ? ` <button class="btn small" type="button" data-usar-pizarra="${esc(g)}" data-precio="${esc(x.pesos)}">Usar</button>` : ''}`; }).join(' · ');
+    return `<div class="nota">🌾 Pizarra Rosario del ${esc(p.fecha || '')} (Cámara Arbitral de Cereales, BCR): ${items}. ${NOTA_GRANOS_AR}</div>`;
+  }
+
+  // Dólar del día (para el tipo de cambio informativo de Costos y para PampaIA).
+  function cotizacionHtml({ nota = true } = {}) {
+    const dol = datoExterno('dolar')?.valor;
+    if (!dol?.cotizaciones?.length) return '<div class="nota">Cotización del día: sin datos todavía (se trae sola cuando hay conexión).</div>';
+    const c = (casa) => dol.cotizaciones.find((x) => x.casa === casa);
+    const mep = c('bolsa');
+    const dias = A.diasDesde(mep?.fecha, hoy());
+    const lista = ['bolsa', 'oficial', 'blue', 'contadoconliqui'].map(c).filter(Boolean).map((x) => `${esc(x.nombre)} <strong>${pesos(x.venta)}</strong>`).join(' · ');
+    return `<div class="nota">💵 Hoy (venta): ${lista} · ${esc(dol.fuente || 'DolarAPI')}, ${esc(String(mep?.fecha || '').slice(0, 16).replace('T', ' '))}${dias > 2 ? ` · ⚠️ cotización de hace ${dias} días` : ''}.${nota ? ` ${NOTA_GRANOS_AR}` : ''}</div>${serieMep().length ? '<button class="btn small" type="button" data-completar-tc>Completar los meses sin tipo de cambio con el MEP promedio</button> ' : ''}${mep ? `<button class="btn small" type="button" data-usar-mep="${esc(mep.venta)}">Usar MEP ${pesos(mep.venta)} para ${esc(hoy().slice(0, 7))}</button>` : ''}`;
+  }
+
+  // ================= Módulo Clima y satélite =================
+  const lotesClima = () => E.lotes.map((l) => ({ l, clima: datoExterno(`clima:${l.id}`)?.valor, lluvia: datoExterno(`lluvia:${l.id}`)?.valor, suelo: datoExterno(`suelo:${l.id}`)?.valor, ndvi: datoExterno(`ndvi:${l.id}`)?.valor, fecha: datoExterno(`clima:${l.id}`)?.fecha }));
+  const horaCorta = (iso) => { const d = new Date(iso); return isNaN(d) ? '' : `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')} h`; };
+  function estadoExternosHtml() {
+    const e = E.datosExternosEstado;
+    if (!e) return '<div class="nota">Todavía no se consultó el clima.</div>';
+    return `<div class="nota">Última consulta: ${esc(horaCorta(e.cuando))}${e.errores?.length ? ` · ⚠️ ${esc(e.errores.join(' · '))}` : ''}</div>`;
+  }
+  function bajoPotencialDe(loteId) {
+    const mapa = [...(E.mapasRinde || [])].filter((m) => m.loteId === loteId).sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)))[0];
+    if (!mapa) return null;
+    const z = A.zonificar(A.limpiarMapaRinde(mapa.puntos).validos);
+    return z ? z.zonas[0].pct : null;
+  }
+  function alertasExternas() {
+    const out = [];
+    lotesClima().forEach(({ l, clima, ndvi }) => {
+      if (clima) out.push(...A.alertasClima({ clima, lote: l.codigo }));
+      if (ndvi?.serie) out.push(...A.alertasNdvi({ serie: ndvi.serie, lote: l.codigo, bajoPotencialPct: bajoPotencialDe(l.id) }));
+    });
+    return out;
+  }
+  function vistaClimaLotes() {
+    const filas = lotesClima().map(({ l, clima, lluvia, fecha }) => {
+      if (!clima) {
+        return `<div class="card"><div class="card-header"><div class="card-title">📍 ${esc(l.codigo)} · ${esc(l.campo || '')}</div></div>${Number(l.latitud) ? '<div class="nota">Ubicación cargada: el clima se trae en la próxima actualización.</div>' : `<form data-form="ubicacionLote" class="form-grid"><input type="hidden" name="loteId" value="${esc(l.id)}"><label>Latitud<input name="latitud" type="number" step="0.00001" placeholder="-33.91234" required></label><label>Longitud<input name="longitud" type="number" step="0.00001" placeholder="-61.84321" required></label><label>&nbsp;<button class="btn" type="submit">Guardar ubicación</button></label></form><div class="nota">Con la ubicación (o el polígono en NDVI y suelo) se trae el clima y el pronóstico del lote.</div>`}</div>`;
+      }
+      const a = clima.actual || {};
+      const ahora = A.evaluarCondicion(a);
+      const v = A.ventanasAplicacion((clima.pronostico || []).slice(0, 16));
+      const ventanas = v.ventanas.slice(0, 4).map((w) => `${horaCorta(w.desde)} a ${horaCorta(new Date(Date.parse(w.hasta) + 3 * 3600 * 1000).toISOString())}`).join(' · ');
+      const alertas = A.alertasClima({ clima, lote: l.codigo });
+      const pasos = v.pasos.slice(0, 8).map((p) => `<td class="num" title="${esc(p.motivos.join(', ') || 'apta')}" style="color:${p.apta ? 'var(--green, #3fa66a)' : 'var(--orange, #f59e0b)'}">${esc(horaCorta(p.fecha).split(' ')[1])} h<br>${esc(p.temperatura)}°<br>${esc(p.vientoKmh)} km/h<br>${esc(p.humedad)} %${p.lluviaMm ? `<br>${esc(p.lluviaMm)} mm` : ''}</td>`).join('');
+      return `<div class="card"><div class="card-header"><div><div class="card-title">🌦️ ${esc(l.codigo)} · ${esc(l.campo || '')}</div><div class="card-sub">${esc(a.descripcion || '')} · ${esc(a.temperatura)} °C · humedad ${esc(a.humedad)} % · viento ${esc(a.vientoKmh)} km/h${a.rafagaKmh ? ` (ráfagas ${esc(a.rafagaKmh)})` : ''} · ${esc(horaCorta(fecha))}</div></div><span class="tag ${ahora.apta ? 'green' : 'orange'}">${ahora.apta ? 'Apto para aplicar ahora' : `No apto: ${esc(ahora.motivos.join(', '))}`}</span></div>
+        ${alertas.length ? alertasHtml(alertas) : ''}
+        <div class="nota">🗓️ Ventanas aptas en las próximas 48 h: <strong>${esc(ventanas || 'ninguna')}</strong> · lluvia prevista ${esc(v.lluviaPrevista)} mm${lluvia ? ` · llovieron ${esc(lluvia.mm)} mm en los últimos ${esc(lluvia.dias)} días` : ''}</div>
+        <div style="overflow-x:auto"><table class="tabla"><tbody><tr>${pasos}</tr></tbody></table></div></div>`;
+    }).join('') || '<div class="card"><div class="nota">Cargá los lotes en RENSPA y campañas.</div></div>';
+    return `<div class="card"><div class="card-header"><div><div class="card-title">🌦️ Clima, pronóstico y ventanas de aplicación</div><div class="card-sub">Condiciones de aplicación de la receta: viento ${A.CONDICIONES_APLICACION.vientoMin}–${A.CONDICIONES_APLICACION.vientoMax} km/h, hasta ${A.CONDICIONES_APLICACION.temperaturaMax} °C, humedad desde ${A.CONDICIONES_APLICACION.humedadMin} % y sin lluvia. Fuente: Agromonitoring (OpenWeather).</div></div><button class="btn small" type="button" data-actualizar-externos>Actualizar ahora</button></div>${estadoExternosHtml()}</div>${filas}`;
+  }
+  function geoJsonImportados() {
+    try {
+      return (JSON.parse(localStorage.getItem('pampa-imported-geojson') || '[]') || []).flatMap((item, i) => (item.geoJson?.features || []).filter((f) => ['Polygon', 'MultiPolygon'].includes(f.geometry?.type)).map((f, j) => ({ id: `${i}-${j}`, nombre: `${item.name || 'GeoJSON'} · ${f.properties?.name || f.properties?.lote || f.properties?.codigo || `polígono ${j + 1}`}`, feature: { type: 'Feature', properties: f.properties || {}, geometry: f.geometry } })));
+    } catch { return []; }
+  }
+  function vistaSatelite() {
+    const importados = geoJsonImportados();
+    const filas = lotesClima().map(({ l, suelo, ndvi }) => {
+      if (!l.agroPolyId) {
+        return `<div class="card"><div class="card-header"><div class="card-title">🛰️ ${esc(l.codigo)} · ${esc(l.campo || '')}</div><span class="tag blue">Sin polígono</span></div>
+          <form data-form="poligonoLote" class="form-grid"><input type="hidden" name="loteId" value="${esc(l.id)}"><label>Polígono importado<select name="importado"><option value="">— Pegar GeoJSON abajo —</option>${opciones(importados.map((x) => [x.id, x.nombre]))}</select></label><label style="grid-column:1/-1">o GeoJSON del lote (Feature Polygon)<textarea name="geojson" rows="2" placeholder='{"type":"Feature","geometry":{"type":"Polygon","coordinates":[...]}}'></textarea></label><label>&nbsp;<button class="btn" type="submit">Registrar polígono</button></label></form></div>`;
+      }
+      const serie = ndvi?.serie || [];
+      const alertas = A.alertasNdvi({ serie, lote: l.codigo, bajoPotencialPct: bajoPotencialDe(l.id) });
+      return `<div class="card"><div class="card-header"><div><div class="card-title">🛰️ ${esc(l.codigo)} · ${esc(l.campo || '')}</div><div class="card-sub">Polígono ${esc(l.agroPolyId)}${l.agroHa ? ` · ${esc(l.agroHa)} ha` : ''}${suelo ? ` · humedad del suelo ${esc(suelo.humedad)} % · ${esc(suelo.temperatura10cm)} °C a 10 cm` : ''}</div></div>${serie[0] ? `<span class="tag ${serie[0].media >= 0.5 ? 'green' : serie[0].media >= 0.3 ? 'orange' : 'red'}">NDVI ${esc(serie[0].media)}</span>` : '<span class="tag blue">Sin imágenes recientes</span>'}</div>
+        ${alertas.length ? alertasHtml(alertas) : ''}
+        <table class="tabla"><thead><tr><th>Imagen</th><th>Satélite</th><th class="num">Nubes</th><th class="num">NDVI medio</th><th class="num">Mín – máx</th></tr></thead><tbody>${serie.map((s) => `<tr><td>${esc(String(s.fecha).slice(0, 10))}</td><td>${esc(s.satelite || '')}</td><td class="num">${esc(s.nubes)} %</td><td class="num"><strong>${esc(s.media)}</strong></td><td class="num">${esc(s.min)} – ${esc(s.max)}</td></tr>`).join('') || '<tr><td colspan="5" class="nota">Sin imágenes con pocas nubes en los últimos 60 días.</td></tr>'}</tbody></table></div>`;
+    }).join('');
+    return `<div class="card"><div class="card-header"><div><div class="card-title">🛰️ NDVI y humedad del suelo por lote</div><div class="card-sub">Agromonitoring: imágenes Sentinel-2 y Landsat (sin nubes) y humedad del suelo. Cada lote necesita su polígono; la cuenta tiene un límite de hectáreas, registrá los lotes que quieras seguir.</div></div><button class="btn small" type="button" data-actualizar-externos>Actualizar ahora</button></div>${estadoExternosHtml()}</div>${filas}`;
+  }
+  function vistaTelemetria() { return '<div id="telemetriaLegacy"><div class="nota">Cargando…</div></div>'; }
+
   // ---------- Render y eventos ----------
-  const TABS = [['stock', '🌾 Stock'], ['lpg', '🧾 Liquidaciones (LPG)'], ['cpe', '🚚 Cartas de Porte'], ['renspa', '🪪 RENSPA y campañas'], ['compras', '📦 Compras e insumos'], ['labores', '🚜 Labores'], ['senasa', '🌱 SENASA y recetas'], ['residuos', '♻️ Residuos'], ['resultados', '💵 Costos y resultados'], ['fiscal', '🏛️ Fiscal'], ['equipos', '🚜 Equipos'], ['mantenimiento', '🔧 Mantenimiento'], ['equipoCostos', '💲 Costos operativos'], ['planificacion', '📐 Planificación'], ['fondos', '🏦 Caja y bancos'], ['cobrarPagar', '🧾 A cobrar, a pagar y cheques'], ['creditos', '💳 Créditos']];
+  const TABS = [['stock', '🌾 Stock'], ['lpg', '🧾 Liquidaciones (LPG)'], ['cpe', '🚚 Cartas de Porte'], ['renspa', '🪪 RENSPA y campañas'], ['compras', '📦 Compras e insumos'], ['labores', '🚜 Labores'], ['senasa', '🌱 SENASA y recetas'], ['residuos', '♻️ Residuos'], ['resultados', '💵 Costos y resultados'], ['fiscal', '🏛️ Fiscal'], ['equipos', '🚜 Equipos'], ['mantenimiento', '🔧 Mantenimiento'], ['equipoCostos', '💲 Costos operativos'], ['planificacion', '📐 Planificación'], ['fondos', '🏦 Caja y bancos'], ['cobrarPagar', '🧾 A cobrar, a pagar y cheques'], ['creditos', '💳 Créditos'], ['climaLotes', '🌦️ Clima y aplicación'], ['satelite', '🛰️ NDVI y suelo'], ['telemetria', '📡 Telemetría']];
   const CONJUNTOS = {
     granos: ['stock', 'lpg', 'cpe', 'renspa', 'compras', 'labores', 'senasa', 'residuos', 'resultados', 'fiscal'],
     equipo: ['equipos', 'mantenimiento', 'equipoCostos', 'planificacion'],
     costos: ['compras', 'resultados', 'equipoCostos'],
     finanzas: ['fondos', 'cobrarPagar', 'creditos', 'lpg'],
+    clima: ['climaLotes', 'satelite', 'telemetria'],
   };
-  const VISTA_CONJUNTO = { equipo: 'Plan de equipamiento', costos: 'Costos', finanzas: 'Finanzas' };
+  const VISTA_CONJUNTO = { equipo: 'Plan de equipamiento', costos: 'Costos', finanzas: 'Finanzas', clima: 'Telemetria y clima' };
   const ETIQUETA_CONJUNTO = { costos: { compras: '📦 Compras y gastos', resultados: '💵 Costos por lote y campaña' }, finanzas: { lpg: '🧾 Liquidaciones (LPG)' } };
   let conjunto = 'granos';
   // Permisos del rol activo (precision-roles.js): solo las pestañas que el rol puede ver.
@@ -802,11 +945,12 @@
     const permitidas = CONJUNTOS[conjunto].filter((k) => puedeTab(k)).map((k) => [k, ETIQUETA_CONJUNTO[conjunto]?.[k] || TABS.find(([x]) => x === k)[1]]);
     if (!permitidas.length) { root.innerHTML = `<div class="card"><div class="nota">Tu rol (${esc(rolActivo()?.nombre || '')}) no tiene acceso a granos, costos ni fiscal.</div></div>`; return; }
     if (!puedeTab(tab)) tab = permitidas[0][0];
-    const vistas = { stock: vistaStock, lpg: vistaLpg, cpe: vistaCpe, renspa: vistaRenspa, compras: vistaCompras, labores: vistaLabores, senasa: vistaSenasa, residuos: vistaResiduos, resultados: vistaResultados, equipos: vistaEquipos, mantenimiento: vistaMantenimiento, equipoCostos: vistaEquipoCostos, planificacion: vistaPlanificacion, fondos: vistaFondos, cobrarPagar: vistaCobrarPagar, creditos: vistaCreditos, fiscal: vistaFiscal };
+    const vistas = { stock: vistaStock, lpg: vistaLpg, cpe: vistaCpe, renspa: vistaRenspa, compras: vistaCompras, labores: vistaLabores, senasa: vistaSenasa, residuos: vistaResiduos, resultados: vistaResultados, equipos: vistaEquipos, mantenimiento: vistaMantenimiento, equipoCostos: vistaEquipoCostos, planificacion: vistaPlanificacion, fondos: vistaFondos, cobrarPagar: vistaCobrarPagar, creditos: vistaCreditos, climaLotes: vistaClimaLotes, satelite: vistaSatelite, telemetria: vistaTelemetria, fiscal: vistaFiscal };
     root.innerHTML = `<div class="tabs">${permitidas.map(([k, t]) => `<button class="tab${k === tab ? ' active' : ''}" type="button" data-tab="${k}">${t}</button>`).join('')}</div>${vistas[tab]()}`;
     if (tab === 'lpg') actualizarDesglose();
     // La planificación de equipamiento (catálogo por escala) es la pantalla anterior, montada adentro.
     if (tab === 'planificacion') window.PampaPrecisionLegacy?.montarPlanEquipamiento(root.querySelector('#planEquipamientoLegacy'));
+    if (tab === 'telemetria') window.PampaPrecisionLegacy?.montarTelemetria(root.querySelector('#telemetriaLegacy'));
   }
   async function refrescar() { await cargar(); render(); }
   const descargar = (nombre, texto) => {
@@ -909,6 +1053,25 @@
           if (cpe.tipo === 'TRASLADO' && cpe.estado === 'CONFIRMADA') await moverTrasladoCpe(cpe);
           break;
         }
+        case 'ubicacionLote': {
+          const l = E.lotes.find((x) => x.id === f.loteId);
+          await DB.guardar('lotes', { ...l, latitud: Number(f.latitud), longitud: Number(f.longitud) });
+          await cargar();
+          actualizarDatosExternos({ forzar: true });
+          break;
+        }
+        case 'poligonoLote': {
+          const l = E.lotes.find((x) => x.id === f.loteId);
+          let geoJson = f.importado ? geoJsonImportados().find((x) => x.id === f.importado)?.feature : null;
+          if (!geoJson && f.geojson.trim()) { try { const g = JSON.parse(f.geojson); geoJson = g.type === 'FeatureCollection' ? g.features?.[0] : g.type === 'Feature' ? g : { type: 'Feature', properties: {}, geometry: g }; } catch { throw new Error('El GeoJSON no es válido.'); } }
+          if (!geoJson) throw new Error('Elegí un polígono importado o pegá el GeoJSON del lote.');
+          const r = await pedirDatoExterno(null, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre: `${l.codigo} · ${l.campo || ''}`.trim(), geoJson }) });
+          await DB.guardar('lotes', { ...l, agroPolyId: r.poligono.id, agroHa: r.poligono.hectareas, ...(r.poligono.centro ? { latitud: r.poligono.centro.lat, longitud: r.poligono.centro.lon } : {}) });
+          await cargar();
+          toast(`Polígono de ${l.codigo} registrado (${r.poligono.hectareas} ha).`);
+          actualizarDatosExternos({ forzar: true });
+          break;
+        }
         case 'mantenimiento': {
           const m = await DB.guardar('mantenimientos', { equipoId: f.equipoId, tipo: f.tipo, estado: f.estado, fecha: f.fecha, horometro: f.horometro === '' ? '' : Number(f.horometro), detalle: f.detalle.trim(), proveedor: f.proveedor.trim(), comprobante: f.comprobante.trim(), costo: Number(f.costo) || 0, litros: Number(f.litros) || 0 });
           await efectosMantenimiento(m, { aceite: Number(f.aceiteLitros) || 0, filtros: Number(f.filtros) || 0 });
@@ -978,6 +1141,21 @@
         return refrescar();
       }
       if (d.irTab) { tab = d.irTab; return render(); }
+      if (d.actualizarExternos !== undefined) { toast('Consultando dólar, clima y satélite…'); await actualizarDatosExternos({ forzar: true }); return refrescar(); }
+      if (d.usarPizarra) {
+        const form = root.querySelector('form[data-form="lpg"]');
+        if (form) { if (form.elements.grano) form.elements.grano.value = d.usarPizarra; form.elements.precioTn.value = d.precio; actualizarDesglose(); toast(`Precio de pizarra de ${A.CULTIVOS[d.usarPizarra]?.nombre}: ${pesos(d.precio)}/t`); }
+        return;
+      }
+      if (d.completarTc !== undefined) {
+        const prom = A.promediosMensuales(serieMep());
+        const cargados = new Set(E.tiposCambio.map((x) => x.mes));
+        const meses = [...new Set([...E.compras, ...E.labores, ...E.lpg.map((l) => l.calculo || {})].map((x) => String(x.fecha || '').slice(0, 7)).filter(Boolean))].filter((m) => prom[m] && !cargados.has(m));
+        for (const m of meses) await DB.db.tiposCambio.put({ mes: m, ars: prom[m], fuente: 'MEP promedio mensual (argentinadatos)', updatedAt: new Date().toISOString() });
+        toast(meses.length ? `Tipo de cambio cargado en ${meses.length} mes(es) con el MEP promedio.` : 'Todos los meses con movimientos ya tienen tipo de cambio.');
+        return refrescar();
+      }
+      if (d.usarMep) { await DB.db.tiposCambio.put({ mes: hoy().slice(0, 7), ars: Number(d.usarMep), fuente: 'DolarAPI · MEP (venta)', updatedAt: new Date().toISOString() }); toast(`Tipo de cambio de ${hoy().slice(0, 7)}: MEP ${pesos(d.usarMep)}.`); return refrescar(); }
       if (d.realizarMantenimiento) {
         const m = E.mantenimientos.find((x) => x.id === d.realizarMantenimiento);
         const horo = prompt('Horómetro al hacer el trabajo (h):', m.horometro || '');
@@ -1152,13 +1330,14 @@
       <div class="kpi-grid">
         ${kpi('blue', `Superficie fina ${r.campania.fina}`, `${r.haFina.toLocaleString('es-AR')} ha`, 'Trigo')}
         ${kpi('green', `Superficie gruesa ${r.campania.gruesa}`, `${r.haGruesa.toLocaleString('es-AR')} ha`, 'Soja · Maíz · Girasol')}
-        ${kpi('orange', 'Stock de granos', tn(r.totalKg), Object.entries(r.porGrano).filter(([, v]) => v).map(([k, v]) => `${A.CULTIVOS[k].nombre} ${tn(v)}`).join(' · ') || 'Sin stock')}
+        ${kpi('orange', 'Stock de granos', tn(r.totalKg), (() => { const pp = preciosPizarra(); const valor = Object.entries(r.porGrano).reduce((sum, [g, kg]) => sum + (pp[g] ? kg / 1000 * pp[g] : 0), 0); return valor ? `a pizarra Rosario ≈ ${pesos(valor)} · ` : ''; })() + Object.entries(r.porGrano).filter(([, v]) => v).map(([k, v]) => `${A.CULTIVOS[k].nombre} ${tn(v)}`).join(' · ') || 'Sin stock')}
         ${kpi('cyan', 'Ocupación de almacenaje', pct(r.ocupacion), `${E.ubicaciones.length} silobolsa(s) y celda(s) · ${tn(r.capacidadKg)}`)}
         ${puedeTab('lpg') ? kpi('purple', 'LPG últimos 30 días', tn(r.kgMes), `${r.lpgMes.length} liquidación(es) · neto ${pesos(r.netoMes)}`) : ''}
         ${!puedeTab('lpg') ? '' : kpi('red', 'Retenciones últimos 30 días', pesos(r.retIvaMes + r.retGanMes), `IVA ${pesos(r.retIvaMes)} · Ganancias ${pesos(r.retGanMes)}${r.reintegroPendTotal ? ` · reintegro pendiente ${pesos(r.reintegroPendTotal)}` : ''}`)}
         ${kpi(r.lotesSinRenspa.length || r.renspaPorVencer.length ? 'red' : 'green', 'RENSPA', `${E.lotes.length - r.lotesSinRenspa.length}/${E.lotes.length}`, `lotes con RENSPA · ${r.renspaPorVencer.length} por vencer`)}
       </div>
       <div class="grid-2">
+        <div class="card" style="grid-column:1/-1"><div class="card-header"><div class="card-title">📈 Mercado</div>${enlacesMercadoHtml()}</div>${pizarraHtml()}${cotizacionHtml({ nota: false }).replace(/<button[\s\S]*$/, '')}</div>
         <div class="card"><div class="card-header"><div class="card-title">🌾 Stock por grano</div><button class="btn small" type="button" data-abrir-granos>Ver granos y almacenaje</button></div><div class="chart-container"><canvas id="agroStockChart"></canvas></div></div>
         <div class="card"><div class="card-header"><div class="card-title">⚠️ Alertas agrícolas y fiscales</div><span class="tag orange">${r.alertas.length} pendiente(s)</span></div>${alertasHtml(r.alertas)}</div>
       </div>`;
@@ -1307,5 +1486,5 @@
     main.querySelector('[data-agro-aviso] button').addEventListener('click', () => irA(pestaña));
   }
 
-  window.PampaAgroUI = { montar, montarDashboard, hayDatos, instantaneaIA, aplicarPermisos, cargarDatosEjemplo, irA, avisoEnVistaAnterior, panelSincronizacion, refrescar: () => (root ? refrescar() : null), abrirLpg: () => { tab = 'lpg'; lpgEditando = null; } };
+  window.PampaAgroUI = { montar, montarDashboard, hayDatos, instantaneaIA, aplicarPermisos, actualizarDatosExternos, cargarDatosEjemplo, irA, avisoEnVistaAnterior, panelSincronizacion, refrescar: () => (root ? refrescar() : null), abrirLpg: () => { tab = 'lpg'; lpgEditando = null; } };
 })();

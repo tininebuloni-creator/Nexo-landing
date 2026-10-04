@@ -541,9 +541,11 @@
       const kgVendidos = lpgs.reduce((s, l) => s + num(l.calculo.kgNetos) * (l.calculo.signo || 1), 0);
       const kgCosechados = vinculos.filter((v) => v.cultivo === g).reduce((s, v) => s + kgCosechaLote(v.loteId, g), 0);
       const ultima = (d.lpg || []).filter((l) => l.calculo?.grano === g && (l.calculo.signo || 1) > 0).sort((a, b) => b.calculo.fecha.localeCompare(a.calculo.fecha))[0];
-      const precioTn = ultima ? num(ultima.calculo.precioTn) : null;
+      const pizarra = d.preciosReferencia?.[g];
+      const precioTn = ultima ? num(ultima.calculo.precioTn) : pizarra ? num(pizarra) : null;
+      const fuentePrecio = ultima ? 'última LPG' : pizarra ? 'pizarra Rosario' : '';
       const kgSinVender = Math.max(0, kgCosechados - kgVendidos);
-      porCultivo[g] = { ventas, kgVendidos, kgCosechados, kgSinVender, precioTn, stockValuado: precioTn ? kgSinVender / 1000 * precioTn : 0, sinPrecio: kgSinVender > 0 && !precioTn };
+      porCultivo[g] = { ventas, kgVendidos, kgCosechados, kgSinVender, precioTn, fuentePrecio, stockValuado: precioTn ? kgSinVender / 1000 * precioTn : 0, sinPrecio: kgSinVender > 0 && !precioTn };
     });
     const res = vinculos.map((v) => {
       const lote = lotesPorId[v.loteId] || {};
@@ -947,6 +949,94 @@
     return out;
   }
 
+  // ================= Clima, satélite y dólar (datos externos de /api/pampa-datos) =================
+  // Ventanas para aplicar: cada paso del pronóstico (3 h) contra las mismas condiciones que controla la receta
+  // (viento 3–15 km/h, hasta 30 °C, humedad desde 50 %) y sin lluvia.
+  function evaluarCondicion(x, c = CONDICIONES_APLICACION) {
+    const motivos = [];
+    if (x.vientoKmh != null && x.vientoKmh > c.vientoMax) motivos.push(`viento ${x.vientoKmh} km/h`);
+    if (x.vientoKmh != null && x.vientoKmh < c.vientoMin) motivos.push(`viento ${x.vientoKmh} km/h (posible inversión térmica)`);
+    if (x.temperatura != null && x.temperatura > c.temperaturaMax) motivos.push(`${x.temperatura} °C`);
+    if (x.humedad != null && x.humedad < c.humedadMin) motivos.push(`humedad ${x.humedad} %`);
+    if (num(x.lluviaMm) > 0.2) motivos.push(`lluvia ${num(x.lluviaMm)} mm`);
+    return { apta: !motivos.length, motivos };
+  }
+  function ventanasAplicacion(pronostico = [], c = CONDICIONES_APLICACION) {
+    const pasos = pronostico.filter((x) => x && x.fecha).map((x) => ({ ...x, ...evaluarCondicion(x, c) }));
+    const ventanas = [];
+    pasos.forEach((p) => {
+      const ult = ventanas[ventanas.length - 1];
+      if (!p.apta) return;
+      if (ult && Date.parse(p.fecha) - Date.parse(ult.hasta) <= 3 * 3600 * 1000) ult.hasta = p.fecha;
+      else ventanas.push({ desde: p.fecha, hasta: p.fecha });
+    });
+    return { pasos, ventanas, lluviaPrevista: redondear(pasos.reduce((s, p) => s + num(p.lluviaMm), 0)) };
+  }
+  function alertasClima({ clima, lote = '' } = {}) {
+    const out = [];
+    const pr = clima?.pronostico || [];
+    const minima = pr.reduce((m, x) => (x.temperatura != null && (m === null || x.temperatura < m) ? x.temperatura : m), null);
+    if (minima !== null && minima <= 0) out.push({ nivel: 'danger', texto: `${lote}: pronóstico de helada (${minima} °C).` });
+    const lluvia24 = pr.slice(0, 8).reduce((s, x) => s + num(x.lluviaMm), 0);
+    if (lluvia24 >= 20) out.push({ nivel: 'warn', texto: `${lote}: se esperan ${redondear(lluvia24)} mm en las próximas 24 h (caminos y labores).` });
+    const rafaga = pr.reduce((m, x) => Math.max(m, num(x.rafagaKmh || x.vientoKmh)), 0);
+    if (rafaga >= 50) out.push({ nivel: 'warn', texto: `${lote}: ráfagas de hasta ${rafaga} km/h en el pronóstico.` });
+    return out;
+  }
+  // NDVI: caída fuerte entre las dos últimas imágenes o valor bajo; si hay mapa de rinde del lote, se cruza
+  // con su zona de bajo potencial.
+  function alertasNdvi({ serie = [], lote = '', bajoPotencialPct = null, umbralCaida = 0.15 } = {}) {
+    const s = serie.filter((x) => x.media != null).sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)));
+    if (!s.length) return [];
+    const out = [];
+    const cruce = bajoPotencialPct ? ` El mapa de rinde marca ${Math.round(bajoPotencialPct)} % del lote como bajo potencial: revisá esa zona a campo.` : '';
+    if (s[1] && s[1].media > 0 && (s[1].media - s[0].media) / s[1].media >= umbralCaida) out.push({ nivel: 'warn', texto: `${lote}: el NDVI bajó de ${s[1].media} a ${s[0].media} (${Math.round((s[1].media - s[0].media) / s[1].media * 100)} %) entre ${fechaIso(s[1].fecha)} y ${fechaIso(s[0].fecha)}.${cruce}` });
+    else if (s[0].media < 0.3) out.push({ nivel: 'warn', texto: `${lote}: NDVI bajo (${s[0].media}) en la imagen del ${fechaIso(s[0].fecha)}.${cruce}` });
+    return out;
+  }
+  // Cotización: días desde la última actualización (DolarAPI es un servicio no oficial).
+  const diasDesde = (fecha, hoy) => (fecha ? Math.floor((Date.parse(`${fechaIso(hoy) || fechaIso(new Date().toISOString())}T23:59:59Z`) - Date.parse(fecha)) / 864e5) : null);
+
+  // Dólar del día: la cotización de esa fecha o la del último día hábil anterior (serie diaria del MEP).
+  function dolarDelDia(serie = [], fecha) {
+    const f = fechaIso(fecha);
+    if (!f || !serie.length) return null;
+    let lo = 0, hi = serie.length - 1, res = -1;
+    while (lo <= hi) { const mid = (lo + hi) >> 1; if (serie[mid].fecha <= f) { res = mid; lo = mid + 1; } else hi = mid - 1; }
+    return res >= 0 ? serie[res] : null;
+  }
+  // Promedio mensual del MEP (para completar el tipo de cambio informativo de cada mes).
+  function promediosMensuales(serie = []) {
+    const meses = {};
+    serie.forEach((x) => { const m = x.fecha.slice(0, 7); (meses[m] ||= []).push(num(x.venta)); });
+    return Object.fromEntries(Object.entries(meses).map(([m, v]) => [m, redondear(v.reduce((s, x) => s + x, 0) / v.length)]));
+  }
+  // Resultado de la campaña en US$ con el dólar de cada día: cada costo con el MEP de su fecha, cada venta
+  // (LPG) con el de su fecha y el grano sin vender con el de hoy. Los importes prorrateados (estructura por
+  // hectárea, ingresos por lote) mantienen la misma proporción que en pesos.
+  function resultadoCampaniaUsd(r, { lpg = [], serie = [], hoy } = {}) {
+    if (!serie.length) return null;
+    let sinCotizacion = 0;
+    const usd = (importe, fecha) => { const d = dolarDelDia(serie, fecha); if (!d) { sinCotizacion++; return 0; } return num(importe) / num(d.venta); };
+    const sumar = (filas) => filas.reduce((s, f) => ({ ars: s.ars + num(f.importe), usd: s.usd + usd(f.importe, f.fecha) }), { ars: 0, usd: 0 });
+    const dir = sumar(r.filas.filter((f) => f.directo));
+    const est = sumar(r.filas.filter((f) => !f.directo));
+    const ventasLpg = lpg.filter((l) => l.calculo?.campania === r.campania).map((l) => ({ importe: num(l.calculo.subtotal) * (l.calculo.signo || 1), fecha: l.calculo.fecha }));
+    const ven = sumar(ventasLpg);
+    const factor = (x, totalArs) => (x.ars ? x.usd / x.ars : 0) * totalArs;
+    const t = r.totales;
+    const hoyDolar = dolarDelDia(serie, hoy || new Date().toISOString());
+    const ventas = factor(ven, t.ventas);
+    const stockValuado = hoyDolar ? t.stockValuado / num(hoyDolar.venta) : 0;
+    const directos = factor(dir, t.directos);
+    const estructura = factor(est, t.estructura);
+    const ingresos = ventas + stockValuado;
+    // Por lote, la misma conversión por componente.
+    const k = { ven: ven.ars ? ven.usd / ven.ars : 0, dir: dir.ars ? dir.usd / dir.ars : 0, est: est.ars ? est.usd / est.ars : 0, hoy: hoyDolar ? 1 / num(hoyDolar.venta) : 0 };
+    const lotes = r.lotes.map((x) => { const ing = x.ventas * k.ven + x.stockValuado * k.hoy; const res = ing - x.directos * k.dir - x.estructura * k.est; return { loteId: x.loteId, cultivo: x.cultivo, resultado: redondear(res), resultadoHa: x.ha ? redondear(res / x.ha) : null, costoTn: x.kgCosecha ? redondear((x.directos * k.dir + x.estructura * k.est) / (x.kgCosecha / 1000)) : null }; });
+    return { metodo: 'MEP del día de cada movimiento', ventas: redondear(ventas), stockValuado: redondear(stockValuado), ingresos: redondear(ingresos), directos: redondear(directos), estructura: redondear(estructura), margenBruto: redondear(ingresos - directos), resultado: redondear(ingresos - directos - estructura), lotes, sinCotizacion, dolarHoy: hoyDolar };
+  }
+
   // ================= PampaIA: cálculos de las 9 funciones por versión =================
   // Ningún número sale de un modelo de lenguaje: todo se calcula con los registros cargados, con las
   // mismas funciones de Costos, Granos y SENASA. Si falta historial, se dice.
@@ -1221,6 +1311,8 @@
 
   return {
     CLAVE_TABLA, DERIVADAS, fusionarDatos,
+    dolarDelDia, promediosMensuales, resultadoCampaniaUsd,
+    evaluarCondicion, ventanasAplicacion, alertasClima, alertasNdvi, diasDesde,
     CATEGORIAS_EQUIPO, TIPOS_MANTENIMIENTO, amortizacionEquipo, amortizaEnMes, vencimientosEquipo, alertasEquipos, costosOperativosEquipos,
     saldosCuentas, totalCompra, cuentasACobrar, cuentasAPagar, cuotasCredito, estadoCredito, alertasFinanzas,
     ESTADOS_RECETA, DISTANCIAS_PROVINCIA, CONDICIONES_APLICACION, VIGENCIA_RECETA_DIAS, distanciaMinima, controlesReceta, controlesAplicacion,

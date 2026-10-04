@@ -379,7 +379,7 @@
         <div class="nav-label">Agricultura de precision</div>
         <button data-view="Precision"><b class="nav-icon">P</b><span>Precision</span></button>
         <button data-view="Calibraciones"><b class="nav-icon">K</b><span>Calibraciones y calidad</span></button>
-        <button data-view="Telemetria y clima"><b class="nav-icon">T</b><span>Telemetría, GPS y clima</span></button>
+        <button data-view="Telemetria y clima"><b class="nav-icon">T</b><span>Clima, satélite y telemetría</span></button>
         <button data-view="Analitica"><b class="nav-icon">B</b><span>BI y analítica</span></button>
         <div class="nav-label">Recursos e inventario</div>
         <button data-view="Plan de equipamiento"><b class="nav-icon">E</b><span>Equipo</span></button>
@@ -496,11 +496,11 @@
   <script src="vendor/leaflet/leaflet.js"></script>
   <script src="./offline-db.js?v=1"></script>
   <script src="./precision-roles.js?v=3"></script>
-  <script src="./agro-core.js?v=12"></script>
-  <script src="./asistente-ia.js?v=2"></script>
-  <script src="./agro-db.js?v=9"></script>
+  <script src="./agro-core.js?v=15"></script>
+  <script src="./asistente-ia.js?v=5"></script>
+  <script src="./agro-db.js?v=10"></script>
   <script src="./agro-sync.js?v=1"></script>
-  <script src="./agro-ui.js?v=13"></script>
+  <script src="./agro-ui.js?v=15"></script>
   <script src="./sync-manager.js?v=2"></script>
   <script src="./api-client.js?v=8"></script>
     <script src="./sync-handlers.js?v=1"></script>
@@ -2525,6 +2525,9 @@
         <header class="topbar"><div><div class="eyebrow">Workspace / Seguridad</div><h1>Usuarios y roles</h1></div><div class="toolbar"><button class="button" data-action="Configurar reporte WhatsApp">Configurar WhatsApp</button><button class="button" data-action="Enviar reporte WhatsApp">Enviar reporte</button><button class="button" data-action="Nuevo usuario">+ Nuevo usuario</button><button class="button primary" data-action="Nuevo rol">+ Nuevo rol</button></div></header>
         <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Usuarios activos</span><strong>14</strong></article><article class="panel module-stat"><span>Roles definidos</span><strong>04</strong></article><article class="panel module-stat"><span>Sesiones abiertas</span><strong>08</strong></article></div><section class="panel"><div class="panel-head"><div><h2>Roles del sistema</h2><p class="panel-caption">Modulos habilitados por responsabilidad operativa</p></div><span class="pill">Multi-tenant</span></div><table class="data-table"><thead><tr><th>Rol</th><th>Alcance</th><th>Modulos habilitados</th><th>Usuarios</th></tr></thead><tbody><tr><td><strong>Propietario/Responsable</strong><small>Control total del establecimiento</small></td><td>Todos los establecimientos</td><td>Configurar, aprobar, exportar, auditar</td><td>02</td></tr><tr><td><strong>Administracion</strong><small>Gestion administrativa y financiera</small></td><td>Todos los establecimientos</td><td>Compras, inventario, costos, reportes</td><td>04</td></tr><tr><td><strong>Ingeniero</strong><small>Precision y decisiones agronomicas</small></td><td>Campos asignados</td><td>Campos, lotes, mapas, prescripciones, analitica</td><td>03</td></tr><tr><td><strong>Operador</strong><small>Ejecucion de tareas de campo</small></td><td>Lotes asignados</td><td>Ver ordenes, registrar ejecuciones y consumos</td><td>05</td></tr></tbody></table></section></section>`,
       'Telemetria y clima': `
+        <header class="topbar"><div><div class="eyebrow">Agricultura de precisión / Clima, NDVI, suelo y telemetría</div><h1>Clima y satélite</h1></div></header>
+        <section id="agroCoreRoot"></section>`,
+      'Telemetria y clima (anterior)': `
         <header class="topbar"><div><div class="eyebrow">Workspace / Datos de maquinaria</div><h1>Telemetria y clima</h1></div><div class="toolbar"><button class="button" data-action="Cargar observaciones clima">+ Observaciones clima</button><button class="button primary" data-action="Cargar eventos telemetria">+ Eventos de maquinaria</button></div></header>
         <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Dispositivos activos</span><strong>06</strong></article><article class="panel module-stat"><span>Eventos recibidos hoy</span><strong>12.480</strong></article><article class="panel module-stat"><span>Estaciones clima</span><strong>03</strong></article></div><div class="layout"><section class="panel"><div class="panel-head"><div><h2>Maquinaria conectada</h2><p class="panel-caption">Ultima posicion y disponibilidad</p></div><span class="pill">Ingesta activa</span></div><table class="data-table"><thead><tr><th>Dispositivo</th><th>Maquina</th><th>Ultimo evento</th><th>Combustible</th><th>Estado</th></tr></thead><tbody><tr><td><strong>GPS-001</strong></td><td>Tractor John Deere 6155</td><td>Hace 2 min</td><td>18,4 L/h</td><td><span class="pill">Online</span></td></tr><tr><td><strong>GPS-002</strong></td><td>Pulverizadora PLA 2500</td><td>Hace 8 min</td><td>12,1 L/h</td><td><span class="pill">Online</span></td></tr><tr><td><strong>GPS-003</strong></td><td>Cosechadora Case 8250</td><td>Hace 42 min</td><td>24,6 L/h</td><td><span class="pill yellow">Sin señal</span></td></tr></tbody></table></section><section class="panel"><div class="panel-head"><div><h2>Condiciones actuales</h2><p class="panel-caption">Estacion La Esperanza</p></div><span class="eyebrow">Actualizado</span></div><div class="module-grid" style="grid-template-columns:1fr 1fr"><article class="module-stat"><span>Temperatura</span><strong>24,8 C</strong></article><article class="module-stat"><span>Humedad</span><strong>61%</strong></article><article class="module-stat"><span>Viento</span><strong>11,2 km/h</strong></article><article class="module-stat"><span>Lluvia 24 h</span><strong>3,4 mm</strong></article></div></section></div></section>`,
       'ARCA': `
@@ -3204,10 +3207,10 @@
           window.PampaIA?.mount();
         } else if (button.dataset.view === 'Campos y lotes') {
           showFieldsAndLotsModule();
-        } else if (['Plan de equipamiento', 'Costos', 'Finanzas'].includes(button.dataset.view) && window.PampaAgroUI) {
+        } else if (['Plan de equipamiento', 'Costos', 'Finanzas', 'Telemetria y clima'].includes(button.dataset.view) && window.PampaAgroUI) {
           main.innerHTML = moduleViews[button.dataset.view];
           bindModuleActions();
-          const grupo = { 'Plan de equipamiento': ['equipos', 'equipo'], Costos: ['compras', 'costos'], Finanzas: ['fondos', 'finanzas'] }[button.dataset.view];
+          const grupo = { 'Plan de equipamiento': ['equipos', 'equipo'], Costos: ['compras', 'costos'], Finanzas: ['fondos', 'finanzas'], 'Telemetria y clima': ['climaLotes', 'clima'] }[button.dataset.view];
           window.PampaAgroUI.montar(main.querySelector('#agroCoreRoot'), grupo[0], { conjunto: grupo[1] });
         } else if (button.dataset.view === 'Rentabilidad' && window.PampaAgroUI) {
           // Costos y rentabilidad en pesos (USD informativo), con el núcleo agrícola.
@@ -3292,6 +3295,12 @@
         el.innerHTML = moduleViews['Plan de equipamiento (catálogo)'].replace(/<header class="topbar">[\s\S]*?<\/header>/, '');
         bindModuleActions();
         loadEquipmentPlanModule().catch(error => console.warn('Planificación de equipamiento', error));
+      },
+      // Telemetría de equipos (pantalla anterior), dentro de la pestaña Telemetría de Clima y satélite.
+      montarTelemetria(el) {
+        if (!el) return;
+        el.innerHTML = moduleViews['Telemetria y clima (anterior)'].replace(/<header class="topbar">[\s\S]*?<\/header>/, '');
+        bindModuleActions();
       },
     };
     function openModule(view) {
@@ -3459,13 +3468,46 @@
       if (!panel || !window.PampaAsistenteIA) return;
       try { window.PampaAsistenteIA.montarCapacidades(panel, asistenteIA(), r => mostrarResultadoIA(datosIA ? r : cargandoIA)); } catch (error) { console.error('PampaIA: no se pudieron mostrar las capacidades:', error); }
     }
+    // Servidor de IA propio de Pampa (Flowise + Ollama): redacta la respuesta a una pregunta libre con los datos
+    // que calculó la app (los que el rol y la versión pueden ver); el cliente no necesita ninguna clave.
+    // Web: /api/pampa-ia (función de Nexo-landing). Escritorio: /api/ia/consulta del servidor local.
+    // Si no responde, queda la respuesta calculada.
+    const endpointServidorIA = () => localStorage.getItem('pampa-ia-servidor-url') || (isPrecisionDesktop() ? '/api/ia/consulta' : '/api/pampa-ia');
+    let consultaServidorIA = 0;
+    async function consultarServidorIA(pregunta, local) {
+      const id = ++consultaServidorIA;
+      document.getElementById('pampaIAAnswer')?.insertAdjacentHTML('beforeend', '<div id="pampaIAServidor" style="margin-top:8px;opacity:.75"><small>✦ PampaIA está redactando la respuesta…</small></div>');
+      try {
+        const contexto = asistenteIA().contextoParaIA(pregunta);
+        const control = new AbortController();
+        const espera = setTimeout(() => control.abort(), 90000);
+        const r = await fetch(endpointServidorIA(), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ app: 'precision', pregunta, contexto, sesion: localStorage.getItem('pampa-agro-dispositivo') || '' }), signal: control.signal });
+        clearTimeout(espera);
+        const data = await r.json().catch(() => ({}));
+        if (id !== consultaServidorIA) return;
+        if (!r.ok || !data.ok) throw new Error(data.error || `HTTP ${r.status}`);
+        const texto = String(data.respuesta).replace(/\*\*/g, '*').replace(/^#+\s*/gm, '');
+        const datos = /No entendí/.test(local.titulo) ? '_Redactado por el servidor de IA con los resultados de las funciones de PampaIA habilitadas para tu usuario (calculados por el sistema)._' : `_Redactado por el servidor de IA con estos datos calculados por el sistema:_\n\n${local.texto}`;
+        mostrarResultadoIA({ texto: `*✦ PampaIA*\n\n${texto}`, nota: datos });
+      } catch (error) {
+        if (id !== consultaServidorIA) return;
+        document.getElementById('pampaIAServidor')?.remove();
+        console.info('PampaIA: el servidor de IA no está disponible; queda la respuesta calculada.', error.message);
+      }
+    }
     // Lo usa pampaia-source.js (panel del Centro operativo) para calcular con los datos de la app.
     window.PampaIAAdapter = {
       getState: () => datosIA?.E || {},
       getRole: () => rolActivo().nombre,
       getPlan: planIAPrecision,
       analizar: tipo => (datosIA ? asistenteIA().analizar(tipo) : cargandoIA),
-      responder: pregunta => (datosIA ? asistenteIA().responder(pregunta) : cargandoIA),
+      responder: pregunta => {
+        if (!datosIA) return cargandoIA;
+        const local = asistenteIA().responder(pregunta);
+        // Fuera de la versión o del rol no se consulta al servidor (la respuesta ya lo explica).
+        if (!local.bloqueado) setTimeout(() => consultarServidorIA(pregunta, local), 0);
+        return local;
+      },
       mostrar: mostrarResultadoIA,
       montarCapacidades: montarCapacidadesIA,
     };
@@ -3479,6 +3521,12 @@
       }, 300);
     }
     window.PampaAgroDB?.alCambiar(refrescarIA);
+    window.addEventListener('pampa-datos-externos', refrescarIA);
+    // Dólar, clima y satélite: al abrir, cada 30 minutos y al volver la conexión (la caché evita pedidos de más).
+    const actualizarExternos = () => window.PampaAgroUI?.actualizarDatosExternos().catch(error => console.info('Datos externos:', error.message));
+    setTimeout(actualizarExternos, 4000);
+    setInterval(actualizarExternos, 30 * 60 * 1000);
+    window.addEventListener('online', actualizarExternos);
     window.addEventListener('pampa-agro-sync', refrescarIA);
     document.addEventListener('change', event => { if (['roleSelector', 'dashboardRoleSelector'].includes(event.target?.id)) refrescarIA(); });
     refrescarIA();

@@ -42,7 +42,9 @@
   db.version(6).stores({ recetas: '&id, numero, fecha, loteId, estado', residuos: '&id, fecha, tipo, estado, ubicacionId' });
   // Versión 7: mantenimiento de equipos y finanzas (cuentas, movimientos de fondos, cheques y créditos).
   db.version(7).stores({ mantenimientos: '&id, equipoId, fecha, tipo, estado', cuentas: '&id, nombre, tipo', movimientosFondos: '&id, fecha, cuentaId, tipo, origen, origenId', cheques: '&id, numero, vencimiento, sentido, estado', creditos: '&id, entidad, fecha' });
-  const TABLAS = db.tables.map((t) => t.name).filter((n) => n !== 'meta');
+  // Versión 8: caché local de datos externos (dólar, clima, suelo y NDVI): no se sincroniza ni va al respaldo.
+  db.version(8).stores({ datosExternos: '&clave, fecha' });
+  const TABLAS = db.tables.map((t) => t.name).filter((n) => n !== 'meta' && n !== 'datosExternos');
 
   const nuevoId = () => (window.crypto?.randomUUID ? window.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`);
   const dispositivo = (() => {
@@ -87,7 +89,7 @@
     const filas = await Promise.all(TABLAS.map((t) => db[t].toArray()));
     return Object.fromEntries(TABLAS.map((t, i) => [t, filas[i]]));
   }
-  async function vaciar() { await Promise.all(TABLAS.map((t) => db[t].clear())); await db.meta.clear(); }
+  async function vaciar() { await Promise.all(TABLAS.map((t) => db[t].clear())); await db.datosExternos.clear(); await db.meta.clear(); }
   const meta = { get: async (clave) => (await db.meta.get(clave))?.valor, set: (clave, valor) => db.meta.put({ clave, valor }) };
 
   // Guarda la LPG calculada con sus retenciones, reintegro, comprobantes de IVA y egresos de stock en una
