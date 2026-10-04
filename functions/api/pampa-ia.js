@@ -88,7 +88,10 @@ async function consultarServidorIA({ pregunta, contexto, sesion } = {}, config =
   return { ok: false, error: errores.length ? `El servidor de IA no respondió (${errores.join(' · ')}).` : 'No hay un servidor de IA configurado.' };
 }
 
-function configDesdeEntorno(env = typeof process !== 'undefined' ? process.env : {}) {
+// Los valores se limpian: al copiar una clave en el panel de Cloudflare se cuelan espacios, saltos de línea o comillas.
+const limpiar = (v) => String(v ?? '').trim().replace(/^['"]|['"]$/g, '').trim();
+function configDesdeEntorno(entorno = typeof process !== 'undefined' ? process.env : {}) {
+  const env = Object.fromEntries(Object.entries(entorno || {}).map(([k, v]) => [k, typeof v === 'string' ? limpiar(v) : v]));
   return {
     flowiseUrl: env.PAMPA_IA_FLOWISE_URL || '',
     flowiseChatflowId: env.PAMPA_IA_FLOWISE_CHATFLOW || '',
