@@ -370,7 +370,7 @@
         <div><strong>PampaPrecision</strong><small id="precisionLicenseLabel">TRIAL • 10 días</small><em class="mobile-version-label">Versión móvil</em></div>
       </div>
       <span id="pampaSyncNavBadge" style="display:flex;justify-content:center;margin:4px 0 8px;"></span>
-      <div class="sidebar-company"><div class="company-heading"><label for="sidebarCompanySelector">Empresa activa</label><button class="new-company" id="newCompany" type="button" aria-label="Cargar nueva empresa" title="Cargar nueva empresa">+</button></div><select id="sidebarCompanySelector" aria-label="Empresa activa en la barra lateral"><option>Pampa Agropecuaria S.A.</option><option>PampaPrecision Demo</option><option>Establecimiento La Esperanza</option></select></div>
+      <div class="sidebar-company"><div class="company-heading"><label for="sidebarCompanySelector">Empresa activa</label><button class="new-company" id="newCompany" type="button" aria-label="Cargar nueva empresa" title="Cargar nueva empresa">+</button></div><select id="sidebarCompanySelector" aria-label="Empresa activa en la barra lateral"></select></div>
         <div class="sidebar-context"><label for="campaignSelector">Campaña activa</label><select id="campaignSelector" aria-label="Campaña activa"><option>2025 / 2026</option><option>2024 / 2025</option><option>2023 / 2024</option></select></div>
         <button class="sidebar-fiscal-entry" data-view="ARCA"><b class="nav-icon">F</b><span>Fiscal agrario / ARCA</span></button>
       <div class="nav-label">Inicio</div>
@@ -394,6 +394,7 @@
         <button data-view="Costos"><b class="nav-icon">¢</b><span>Costos</span></button>
         <button data-view="Rentabilidad"><b class="nav-icon">%</b><span>Rentabilidad</span></button>
         <button data-view="RRHH"><b class="nav-icon">H</b><span>RRHH</span></button>
+        <button data-view="Documentos"><b class="nav-icon">📄</b><span>Documentos</span></button>
         <div class="nav-label">Reportes</div>
         <button data-view="Reportes"><b class="nav-icon">R</b><span>Reportes</span></button>
         <div class="nav-label">Sistema</div>
@@ -404,7 +405,7 @@
       </nav>
       <div class="side-bottom">
         <div class="side-context-summary">Contexto productivo<br><strong>Multi-establecimiento</strong></div>
-        <div class="profile"><div class="avatar">MR</div><div><select id="userSelector" aria-label="Usuario activo"><option>Marina R.</option><option>Lucas B.</option><option>Sofia M.</option></select><br><select id="roleSelector" aria-label="Rol actual"><option>Propietario / Responsable</option><option>Administración</option><option>Ingeniero / Veterinario</option><option>Operario de campo</option></select></div></div>
+        <div class="profile"><div class="avatar">👤</div><div><select id="userSelector" aria-label="Usuario activo"></select><br><select id="roleSelector" aria-label="Rol actual"><option>Propietario / Responsable</option><option>Administración</option><option>Ingeniero / Veterinario</option><option>Operario de campo</option></select></div></div>
         <button class="deep-cleanup" id="deepCleanupButton" type="button" title="Borrar todos los datos locales de este dispositivo">Limpieza profunda</button>
       </div>
     </aside>
@@ -419,7 +420,7 @@
           <article class="empresa-portada">
             <div class="empresa-portada-content">
               <div class="empresa-portada-logo" aria-hidden="true"></div>
-              <div class="empresa-portada-nombre" id="dashboardCompanyName">Pampa Agropecuaria S.A.</div>
+              <div class="empresa-portada-nombre" id="dashboardCompanyName">Empresa sin configurar</div>
               <div class="empresa-portada-sub" id="dashboardCompanyCampaign">Campaña 2025 / 2026</div>
               <div class="empresa-portada-datos"><span>Empresa activa</span><strong id="dashboardCompanyTaxId">CUIT pendiente</strong><span>Operación agrícola de precisión</span></div>
             </div>
@@ -471,6 +472,7 @@
             <button class="button" type="button" id="dashboardBackupButton">Respaldo</button>
             <button class="button" type="button" id="dashboardPrintButton">Imprimir</button>
             <button class="button" type="button" data-action="Importar datos historicos">Importar Excel</button>
+            <button class="button" type="button" id="dashboardDemoButton" style="grid-column:1/-1" title="Carga un establecimiento ficticio para recorrer la app. Se borra con Limpieza profunda.">📥 Datos de ejemplo</button>
           </div>
         </aside>
       </section>
@@ -503,7 +505,7 @@
             <div class="footnote">Promedio del establecimiento: <strong id="dashboardYieldAverage">Sin datos</strong></div>
           </section>
           <section class="panel" id="dashboardAlertsPanel">
-            <div class="panel-head"><div><h2>Alertas que requieren accion</h2><p class="panel-caption">Actualizado hace 12 minutos</p></div><button class="text-button" id="alertsButton">Gestionar</button></div>
+            <div class="panel-head"><div><h2>Alertas que requieren accion</h2><p class="panel-caption">Reglas de agricultura de precisión</p></div><button class="text-button" id="alertsButton">Gestionar</button></div>
             <div class="alerts" id="dashboardAlertsList">
               <div class="alert info"><div class="alert-head"><span>Sin alertas</span><span>Informacion</span></div><p>No hay alertas operativas registradas.</p></div>
             </div>
@@ -516,14 +518,14 @@
   <div class="connection-status" id="connectionStatus" role="status"></div>
   <script src="vendor/leaflet/leaflet.js"></script>
   <script src="./offline-db.js?v=1"></script>
-  <script src="./precision-roles.js?v=3"></script>
+  <script src="./precision-roles.js?v=4"></script>
   <script src="./agro-core.js?v=15"></script>
   <script src="./asistente-ia.js?v=6"></script>
-  <script src="./agro-db.js?v=10"></script>
+  <script src="./agro-db.js?v=11"></script>
   <script src="./agro-sync.js?v=1"></script>
-  <script src="./agro-ui.js?v=20"></script>
+  <script src="./agro-ui.js?v=22"></script>
   <script src="./sync-manager.js?v=2"></script>
-  <script src="./api-client.js?v=8"></script>
+  <script src="./api-client.js?v=9"></script>
     <script src="./sync-handlers.js?v=1"></script>
   <script>
     const toast = document.querySelector('#toast');
@@ -565,15 +567,29 @@
     let lotMapInstance = null;
     let precisionLayerGroup = null;
     let precisionResizeTimer = null;
-    let lotLocations = loadList('pampa-lot-locations', { 'L-04 · La Esperanza': 'Buenos Aires', 'L-09 · El Ombu': 'Buenos Aires', 'L-12 · Santa Clara': 'Buenos Aires' });
-    let registeredCompanies = loadList('pampa-companies', [{ name: 'Pampa Agropecuaria S.A.', taxId: '', address: '' }, { name: 'PampaPrecision Demo', taxId: '', address: '' }, { name: 'Establecimiento La Esperanza', taxId: '', address: '' }]);
+    let lotLocations = loadList('pampa-lot-locations', {});
+    let registeredCompanies = loadList('pampa-companies', []);
     let registeredEquipment = loadList('pampa-equipment', []);
     let registeredPurchases = loadList('pampa-purchases', []);
     let registeredAgrarianContracts = loadList('pampa-agrarian-contracts', []);
     let registeredRevenues = loadList('pampa-revenues', []);
-      let registeredBuyers = loadList('pampa-buyers', [{ name: 'Acopio La Pampa S.A.', taxId: '', role: 'Acopio' }, { name: 'Cerealera del Centro S.A.', taxId: '', role: 'Cerealista' }]);
+      let registeredBuyers = loadList('pampa-buyers', []);
       let registeredBanks = loadList('pampa-banks', ['Banco Nación', 'Banco Provincia', 'Banco Galicia', 'Banco Santander', 'BBVA', 'Banco Macro', 'Banco Credicoop', 'ICBC', 'Brubank', 'Ualá']);
-    let registeredUsers = loadList('pampa-users', ['Marina R.', 'Lucas B.', 'Sofia M.']);
+    let registeredUsers = loadList('pampa-users', []);
+    // Antes la app arrancaba con empresas, usuarios, compradores y lotes inventados, y algunas pantallas los
+    // guardaban. Se sacan los que quedaron guardados así (solo los de ejemplo, sin datos propios).
+    (() => {
+      const empresasEjemplo = new Set(['Pampa Agropecuaria S.A.', 'PampaPrecision Demo', 'Establecimiento La Esperanza']);
+      const usuariosEjemplo = new Set(['Marina R.', 'Lucas B.', 'Sofia M.']);
+      const compradoresEjemplo = new Set(['Acopio La Pampa S.A.', 'Cerealera del Centro S.A.']);
+      const limpiar = (clave, lista, sacar) => { const n = lista.filter(x => !sacar(x)); if (n.length !== lista.length) { try { localStorage.setItem(clave, JSON.stringify(n)); } catch {} } return n; };
+      registeredCompanies = limpiar('pampa-companies', registeredCompanies, c => empresasEjemplo.has(c?.name) && !c.taxId && !c.address);
+      registeredUsers = limpiar('pampa-users', registeredUsers, u => usuariosEjemplo.has(u));
+      registeredBuyers = limpiar('pampa-buyers', registeredBuyers, b => compradoresEjemplo.has(b?.name) && !b.taxId);
+      if (empresasEjemplo.has(localStorage.getItem('pampa-company'))) localStorage.removeItem('pampa-company');
+      if (usuariosEjemplo.has(localStorage.getItem('pampa-user'))) localStorage.removeItem('pampa-user');
+      for (const k of ['L-04 · La Esperanza', 'L-09 · El Ombu', 'L-12 · Santa Clara']) delete lotLocations[k];
+    })();
     // ---- Roles y permisos (precision-roles.js) ----
     // Cada rol ve solo sus módulos y sus pestañas de Granos; los roles disponibles dependen de la versión
     // (Básica 4, Profesional 10, Premium 10 + roles propios). La prueba gratis ve los de Premium.
@@ -649,8 +665,8 @@
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=74').catch(() => showToast('Modo offline local activo'));
     const userSelector = document.querySelector('#userSelector');
     function refreshUserOptions() {
-      userSelector.innerHTML = registeredUsers.map(user => `<option>${user}</option>`).join('');
-      userSelector.value = localStorage.getItem('pampa-user') || registeredUsers[0];
+      userSelector.innerHTML = registeredUsers.length ? registeredUsers.map(user => `<option>${user}</option>`).join('') : '<option value="">Sin usuarios cargados</option>';
+      userSelector.value = localStorage.getItem('pampa-user') || registeredUsers[0] || '';
     }
     refreshUserOptions();
     userSelector.addEventListener('change', event => { localStorage.setItem('pampa-user', event.target.value); refreshDashboardContext(); showToast(`Usuario activo: ${event.target.value}`); });
@@ -665,8 +681,8 @@
     roleSelector.addEventListener('change', event => { if (!event.target.value) return; localStorage.setItem('pampa-role', event.target.value); refreshRoleOptions(); refreshDashboardContext(); aplicarPermisos(); showToast(`Rol activo: ${event.target.value}`); });
     const sidebarCompanySelector = document.querySelector('#sidebarCompanySelector');
     function refreshCompanyOptions() {
-      sidebarCompanySelector.innerHTML = registeredCompanies.map(company => `<option>${company.name}</option>`).join('');
-      sidebarCompanySelector.value = localStorage.getItem('pampa-company') || registeredCompanies[0].name;
+      sidebarCompanySelector.innerHTML = registeredCompanies.length ? registeredCompanies.map(company => `<option>${company.name}</option>`).join('') : '<option value="">Cargá tu empresa con +</option>';
+      sidebarCompanySelector.value = localStorage.getItem('pampa-company') || registeredCompanies[0]?.name || '';
     }
     refreshCompanyOptions();
     sidebarCompanySelector.addEventListener('change', event => { localStorage.setItem('pampa-company', event.target.value); refreshDashboardContext(); showToast(`Empresa activa: ${event.target.value}`); });
@@ -678,7 +694,7 @@
     function refreshDashboardContext() {
       const userSelectorDashboard = document.querySelector('#dashboardUserSelector');
       const roleSelectorDashboard = document.querySelector('#dashboardRoleSelector');
-      if (userSelectorDashboard) userSelectorDashboard.innerHTML = registeredUsers.map(user => `<option>${user}</option>`).join('');
+      if (userSelectorDashboard) userSelectorDashboard.innerHTML = registeredUsers.length ? registeredUsers.map(user => `<option>${user}</option>`).join('') : '<option value="">Sin usuarios cargados</option>';
       if (roleSelectorDashboard) roleSelectorDashboard.innerHTML = registeredRoles.map(role => `<option>${role}</option>`).join('');
       if (userSelectorDashboard) userSelectorDashboard.value = userSelector.value;
       if (roleSelectorDashboard) roleSelectorDashboard.value = roleSelector.value;
@@ -705,6 +721,10 @@
           source.dispatchEvent(new Event('change'));
         });
       });
+      // Datos de ejemplo (solo web, como en las otras apps): un establecimiento ficticio que se borra con Limpieza profunda.
+      const demo = document.querySelector('#dashboardDemoButton');
+      if (demo && (window.PAMPA_DESKTOP_MODE || window.location.protocol === 'file:')) demo.hidden = true;
+      else if (demo && demo.dataset.bound !== 'true') { demo.dataset.bound = 'true'; demo.addEventListener('click', () => window.PampaAgroUI?.cargarDatosEjemplo().catch(error => showToast(error.message || 'No se pudieron cargar los datos de ejemplo'))); }
       const backup = document.querySelector('#dashboardBackupButton');
       if (backup && backup.dataset.bound !== 'true') { backup.dataset.bound = 'true'; backup.addEventListener('click', downloadBackup); }
       document.querySelectorAll('[data-view-action]').forEach(button => {
@@ -715,6 +735,14 @@
     }
     refreshDashboardContext();
     bindDashboardContextControls();
+    window.addEventListener('pampa-demo-cargado', event => {
+      if (registeredCompanies.length) return;
+      registeredCompanies = [{ name: event.detail.empresa, taxId: '', address: '' }];
+      localStorage.setItem('pampa-companies', JSON.stringify(registeredCompanies));
+      localStorage.setItem('pampa-company', event.detail.empresa);
+      refreshCompanyOptions();
+      refreshDashboardContext();
+    });
     window.addEventListener('online', () => {
       const status = document.querySelector('#dashboardOperationalStatus');
       const network = document.querySelector('#dashboardOperationalNetwork');
@@ -1814,8 +1842,9 @@
       try {
         const [status, cpes, lpgs] = await Promise.all([
           api.getArcaStatus(activeTenantId),
-          api.getArcaCpes(activeTenantId),
-          api.getLpgs(activeTenantId)
+          // Sin servidor (web): las CPE y LPG del núcleo agrícola están en Granos, costos y fiscal.
+          api.getArcaCpes(activeTenantId).catch(() => []),
+          api.getLpgs(activeTenantId).catch(() => [])
         ]);
         const setText = (id, value) => { const element = document.querySelector(`#${id}`); if (element) element.textContent = value; };
         const money = value => `$ ${Number(value || 0).toLocaleString('es-AR', { maximumFractionDigits: 2 })}`;
@@ -1987,8 +2016,8 @@
         openNewForm('Configurar ARCA', [
           { id: 'arcaEnvironment', label: 'Ambiente', type: 'select', options: [{ value: 'testing', label: 'Homologacion' }, { value: 'production', label: 'Produccion' }], value: profile.environment || 'testing' },
           { id: 'arcaCuit', label: 'CUIT emisor', placeholder: 'Sin guiones', value: activeCompany?.taxId || profile.tax_id || '' },
-          { id: 'arcaCertificatePath', label: 'Ruta del certificado X.509', placeholder: profile.has_certificate ? 'Ya configurado: indicá la ruta para actualizar' : 'C:\\ARCA\\certs\\empresa.crt' },
-          { id: 'arcaPrivateKeyPath', label: 'Ruta de la clave privada', placeholder: profile.has_private_key ? 'Ya configurada: indicá la ruta para actualizar' : 'C:\\ARCA\\certs\\empresa.key' },
+          { id: 'arcaCertificatePath', label: 'Ruta del certificado X.509', placeholder: profile.has_certificate ? 'Ya configurado: indicá la ruta para actualizar' : 'C:\\ARCA\\certs\\empresa.crt', required: false },
+          { id: 'arcaPrivateKeyPath', label: 'Ruta de la clave privada', placeholder: profile.has_private_key ? 'Ya configurada: indicá la ruta para actualizar' : 'C:\\ARCA\\certs\\empresa.key', required: false },
           { id: 'arcaLpgUrl', label: 'URL servicio LPG', value: profile.lpg_url || '', required: false },
           { id: 'arcaSisaUrl', label: 'URL servicio SISA', value: profile.sisa_url || '', required: false },
           { id: 'arcaCpeUrl', label: 'URL Carta de Porte', value: profile.cpe_url || '', required: false },
@@ -1997,14 +2026,14 @@
           { id: 'arcaCpeOperation', label: 'Operacion CPE', value: profile.cpe_operation || 'solicitarCPE', required: false }
         ], async formData => {
           const taxId = formData.get('arcaCuit').trim();
-          await api.updateArcaConfig(activeTenantId, {
+          const guardado = await api.updateArcaConfig(activeTenantId, {
             taxId, environment: formData.get('arcaEnvironment'), certificatePath: formData.get('arcaCertificatePath'), privateKeyPath: formData.get('arcaPrivateKeyPath'),
             lpgUrl: formData.get('arcaLpgUrl'), sisaUrl: formData.get('arcaSisaUrl'), cpeUrl: formData.get('arcaCpeUrl'),
             lpgOperation: formData.get('arcaLpgOperation'), sisaOperation: formData.get('arcaSisaOperation'), cpeOperation: formData.get('arcaCpeOperation')
           });
           if (activeCompany) activeCompany.taxId = taxId;
           localStorage.setItem('pampa-companies', JSON.stringify(registeredCompanies));
-          showToast('Configuracion ARCA guardada para la empresa activa');
+          setTimeout(() => showToast(guardado?.local ? 'Configuración de ARCA guardada en este equipo. Para firmar con el certificado y autorizar LPG y Cartas de Porte usá la app de escritorio.' : 'Configuracion ARCA guardada para la empresa activa'), 60);
           loadArcaModule();
         });
       } else if (label === 'Nuevo cheque') {
@@ -2166,8 +2195,8 @@
         openNewForm('Configurar ARCA', [
           { id: 'arcaEnvironment', label: 'Ambiente', type: 'select', options: [{ value: 'testing', label: 'Homologacion' }, { value: 'production', label: 'Produccion' }], value: profile.environment || 'testing' },
           { id: 'arcaCuit', label: 'CUIT emisor', placeholder: 'Sin guiones', value: activeCompany?.taxId || profile.tax_id || '' },
-          { id: 'arcaCertificatePath', label: 'Ruta del certificado X.509', placeholder: profile.has_certificate ? 'Ya configurado: indicá la ruta para actualizar' : 'C:\\ARCA\\certs\\empresa.crt' },
-          { id: 'arcaPrivateKeyPath', label: 'Ruta de la clave privada', placeholder: profile.has_private_key ? 'Ya configurada: indicá la ruta para actualizar' : 'C:\\ARCA\\certs\\empresa.key' },
+          { id: 'arcaCertificatePath', label: 'Ruta del certificado X.509', placeholder: profile.has_certificate ? 'Ya configurado: indicá la ruta para actualizar' : 'C:\\ARCA\\certs\\empresa.crt', required: false },
+          { id: 'arcaPrivateKeyPath', label: 'Ruta de la clave privada', placeholder: profile.has_private_key ? 'Ya configurada: indicá la ruta para actualizar' : 'C:\\ARCA\\certs\\empresa.key', required: false },
           { id: 'arcaLpgUrl', label: 'URL servicio LPG', value: profile.lpg_url || '', required: false },
           { id: 'arcaSisaUrl', label: 'URL servicio SISA', value: profile.sisa_url || '', required: false },
           { id: 'arcaCpeUrl', label: 'URL Carta de Porte', value: profile.cpe_url || '', required: false },
@@ -2176,14 +2205,14 @@
           { id: 'arcaCpeOperation', label: 'Operacion CPE', value: profile.cpe_operation || 'solicitarCPE', required: false }
         ], async formData => {
           const taxId = formData.get('arcaCuit').trim();
-          await api.updateArcaConfig(activeTenantId, {
+          const guardado = await api.updateArcaConfig(activeTenantId, {
             taxId, environment: formData.get('arcaEnvironment'), certificatePath: formData.get('arcaCertificatePath'), privateKeyPath: formData.get('arcaPrivateKeyPath'),
             lpgUrl: formData.get('arcaLpgUrl'), sisaUrl: formData.get('arcaSisaUrl'), cpeUrl: formData.get('arcaCpeUrl'),
             lpgOperation: formData.get('arcaLpgOperation'), sisaOperation: formData.get('arcaSisaOperation'), cpeOperation: formData.get('arcaCpeOperation')
           });
           if (activeCompany) activeCompany.taxId = taxId;
           localStorage.setItem('pampa-companies', JSON.stringify(registeredCompanies));
-          showToast('Configuracion ARCA guardada para la empresa activa');
+          setTimeout(() => showToast(guardado?.local ? 'Configuración de ARCA guardada en este equipo. Para firmar con el certificado y autorizar LPG y Cartas de Porte usá la app de escritorio.' : 'Configuracion ARCA guardada para la empresa activa'), 60);
           loadArcaModule();
         });
       } else if (label === 'Nuevo cheque') {
@@ -2295,7 +2324,7 @@
       } else if (label === 'Cargar eventos telemetria') {
         openNewForm('Cargar eventos de maquinaria', [{ id: 'device', label: 'Dispositivo', type: 'select', options: ['GPS-001 · Tractor John Deere 6155', 'GPS-002 · Pulverizadora PLA 2500', 'GPS-003 · Cosechadora Case 8250'], full: true }, { id: 'eventCount', label: 'Cantidad de eventos', type: 'number', placeholder: '1000' }, { id: 'eventDate', label: 'Fecha de los eventos', type: 'date' }], formData => { recordAudit('Ingesta bulk de telemetria', formData.get('device')); });
       } else if (label === 'Cargar observaciones clima') {
-        openNewForm('Cargar observaciones de clima', [{ id: 'station', label: 'Estacion', type: 'select', options: ['La Esperanza', 'El Ombu', 'Santa Clara'], full: true }, { id: 'weatherFile', label: 'Archivo CSV', placeholder: 'observaciones-2025.csv' }, { id: 'weatherDate', label: 'Fecha', type: 'date' }], formData => { recordAudit('Ingesta bulk de clima', formData.get('station')); });
+        openNewForm('Cargar observaciones de clima', [{ id: 'station', label: 'Estacion (campo)', type: 'select', options: registeredFields.length ? registeredFields : ['Sin campos cargados'], full: true }, { id: 'weatherFile', label: 'Archivo CSV', placeholder: 'observaciones-2025.csv' }, { id: 'weatherDate', label: 'Fecha', type: 'date' }], formData => { recordAudit('Ingesta bulk de clima', formData.get('station')); });
       } else if (label === 'Reporte generado' || label === 'Inventario exportado') {
         const rows = label === 'Reporte generado' ? ['Lote,Rinde t/ha,Costo $/ha,Margen %', 'L-04,8.2,425,31', 'L-09,9.4,398,38', 'L-12,8.9,414,35'] : ['Insumo,Disponible,Minimo,Estado', 'Glifosato 48%,320 L,500 L,Reponer', 'Urea granulada,18400 kg,12000 kg,Disponible', 'Diesel agro,8240 L,6000 L,Disponible'];
         downloadFile(rows.join('\n'), label === 'Reporte generado' ? 'reporte-kpi-pampa.csv' : 'inventario-pampa.csv', 'text/csv;charset=utf-8');
@@ -2548,15 +2577,18 @@
       'Telemetria y clima': `
         <header class="topbar"><div><div class="eyebrow">Agricultura de precisión / Clima, NDVI, suelo y telemetría</div><h1>Clima y satélite</h1></div></header>
         <section id="agroCoreRoot"></section>`,
+      'Documentos': `
+        <header class="topbar"><div><div class="eyebrow">Administración / Archivo</div><h1>Documentos</h1></div></header>
+        <section id="agroCoreRoot"></section>`,
       'Telemetria y clima (anterior)': `
         <header class="topbar"><div><div class="eyebrow">Workspace / Datos de maquinaria</div><h1>Telemetria y clima</h1></div><div class="toolbar"><button class="button" data-action="Cargar observaciones clima">+ Observaciones clima</button><button class="button primary" data-action="Cargar eventos telemetria">+ Eventos de maquinaria</button></div></header>
-        <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Dispositivos activos</span><strong>06</strong></article><article class="panel module-stat"><span>Eventos recibidos hoy</span><strong>12.480</strong></article><article class="panel module-stat"><span>Estaciones clima</span><strong>03</strong></article></div><div class="layout"><section class="panel"><div class="panel-head"><div><h2>Maquinaria conectada</h2><p class="panel-caption">Ultima posicion y disponibilidad</p></div><span class="pill">Ingesta activa</span></div><table class="data-table"><thead><tr><th>Dispositivo</th><th>Maquina</th><th>Ultimo evento</th><th>Combustible</th><th>Estado</th></tr></thead><tbody><tr><td><strong>GPS-001</strong></td><td>Tractor John Deere 6155</td><td>Hace 2 min</td><td>18,4 L/h</td><td><span class="pill">Online</span></td></tr><tr><td><strong>GPS-002</strong></td><td>Pulverizadora PLA 2500</td><td>Hace 8 min</td><td>12,1 L/h</td><td><span class="pill">Online</span></td></tr><tr><td><strong>GPS-003</strong></td><td>Cosechadora Case 8250</td><td>Hace 42 min</td><td>24,6 L/h</td><td><span class="pill yellow">Sin señal</span></td></tr></tbody></table></section><section class="panel"><div class="panel-head"><div><h2>Condiciones actuales</h2><p class="panel-caption">Estacion La Esperanza</p></div><span class="eyebrow">Actualizado</span></div><div class="module-grid" style="grid-template-columns:1fr 1fr"><article class="module-stat"><span>Temperatura</span><strong>24,8 C</strong></article><article class="module-stat"><span>Humedad</span><strong>61%</strong></article><article class="module-stat"><span>Viento</span><strong>11,2 km/h</strong></article><article class="module-stat"><span>Lluvia 24 h</span><strong>3,4 mm</strong></article></div></section></div></section>`,
+        <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Dispositivos activos</span><strong>0</strong></article><article class="panel module-stat"><span>Eventos recibidos hoy</span><strong>0</strong></article><article class="panel module-stat"><span>Estaciones clima</span><strong>0</strong></article></div><div class="layout"><section class="panel"><div class="panel-head"><div><h2>Maquinaria conectada</h2><p class="panel-caption">Ultima posicion y disponibilidad</p></div></div><table class="data-table"><thead><tr><th>Dispositivo</th><th>Maquina</th><th>Ultimo evento</th><th>Combustible</th><th>Estado</th></tr></thead><tbody><tr><td colspan="5">Sin dispositivos conectados. Cargá eventos con + Eventos de maquinaria.</td></tr></tbody></table></section><section class="panel"><div class="panel-head"><div><h2>Condiciones actuales</h2><p class="panel-caption">Clima real por lote</p></div></div><p class="footnote">El clima, el pronóstico y la ventana de aplicación de cada lote están en la pestaña <strong>Clima y aplicación</strong>: se traen solos con la ubicación del lote.</p></section></div></section>`,
       'ARCA': `
         <header class="topbar"><div><div class="eyebrow">Workspace / Integracion fiscal</div><h1>ARCA</h1></div><div class="toolbar"><span class="pill" id="arcaEnvironmentState">Consultando...</span><button class="button primary" data-action="Configurar ARCA">Configurar ARCA</button></div></header>
-        <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>WSAA</span><strong id="arcaWsaaState">-</strong></article><article class="panel module-stat"><span>Certificado</span><strong id="arcaCertificateState">-</strong></article><article class="panel module-stat warning"><span>Clave privada</span><strong id="arcaPrivateKeyState">-</strong></article><article class="panel module-stat"><span>Servicios configurados</span><strong id="arcaServicesState">0 / 3</strong></article></div><section class="panel"><div class="panel-head"><div><h2>Servicios fiscales</h2><p class="panel-caption">Estado de conexión configurado en el servidor</p></div><span class="eyebrow">Homologacion / Produccion</span></div><table class="data-table"><thead><tr><th>Servicio</th><th>Estado</th><th>Uso</th><th>Configuracion</th></tr></thead><tbody><tr><td><strong>Liquidacion Primaria de Granos</strong><small>LPG</small></td><td><span class="pill" id="arcaLpgState">-</span></td><td>Autorizar comprobantes LPG y obtener COE</td><td><code>ARCA_LPG_URL</code></td></tr><tr><td><strong>SISA</strong><small>Estado del productor</small></td><td><span class="pill" id="arcaSisaState">-</span></td><td>Consultar situacion del productor por CUIT</td><td><code>ARCA_SISA_URL</code></td></tr><tr><td><strong>Carta de Porte Electronica</strong><small>WSCPE</small></td><td><span class="pill" id="arcaCpeState">-</span></td><td>Solicitar y asociar CPE a la LPG</td><td><code>ARCA_CPE_URL</code></td></tr></tbody></table></section><section class="panel" style="margin-top:19px"><div class="panel-head"><div><h2>Configuracion segura</h2><p class="panel-caption">Las credenciales no se muestran ni se guardan en el navegador</p></div><span class="pill yellow">Servidor</span></div><p class="footnote">Configura CUIT, certificado X.509, clave privada, ambiente, URLs y operaciones SOAP en el archivo <strong>.env</strong>. Luego reinicia el servidor. Desde Finanzas podes emitir LPG, consultar SISA y generar CPE.</p></section></section>`,
+        <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>WSAA</span><strong id="arcaWsaaState">-</strong></article><article class="panel module-stat"><span>Certificado</span><strong id="arcaCertificateState">-</strong></article><article class="panel module-stat warning"><span>Clave privada</span><strong id="arcaPrivateKeyState">-</strong></article><article class="panel module-stat"><span>Servicios configurados</span><strong id="arcaServicesState">0 / 3</strong></article></div><section class="panel"><div class="panel-head"><div><h2>Servicios fiscales</h2><p class="panel-caption">Estado de conexión configurado en el servidor</p></div><span class="eyebrow">Homologacion / Produccion</span></div><table class="data-table"><thead><tr><th>Servicio</th><th>Estado</th><th>Uso</th><th>Configuracion</th></tr></thead><tbody><tr><td><strong>Liquidacion Primaria de Granos</strong><small>LPG</small></td><td><span class="pill" id="arcaLpgState">-</span></td><td>Autorizar comprobantes LPG y obtener COE</td><td>URL servicio LPG en Configurar ARCA</td></tr><tr><td><strong>SISA</strong><small>Estado del productor</small></td><td><span class="pill" id="arcaSisaState">-</span></td><td>Consultar situacion del productor por CUIT</td><td>URL servicio SISA en Configurar ARCA</td></tr><tr><td><strong>Carta de Porte Electronica</strong><small>WSCPE</small></td><td><span class="pill" id="arcaCpeState">-</span></td><td>Solicitar y asociar CPE a la LPG</td><td>URL Carta de Porte en Configurar ARCA</td></tr></tbody></table></section></section>`,
       'Auditoria': `
         <header class="topbar"><div><div class="eyebrow">Workspace / Control interno</div><h1>Auditoria</h1></div><div class="toolbar"><select id="auditEventFilter" aria-label="Tipo de evento"><option value="all">Todos los eventos</option><option value="orders">Ordenes</option><option value="inventory">Inventario</option><option value="users">Usuarios</option></select><button class="button" data-action="Registro descargado">Descargar registro</button></div></header>
-        <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Eventos visibles</span><strong id="auditEventCount">0</strong></article><article class="panel module-stat"><span>Usuarios activos</span><strong>14</strong></article><article class="panel module-stat warning"><span>Revisiones pendientes</span><strong>02</strong></article></div><section class="panel"><div class="panel-head"><div><h2>Registro de actividad</h2><p class="panel-caption" id="auditFilterCaption">Trazabilidad de cambios críticos del sistema</p></div></div><table class="data-table"><thead><tr><th>Fecha y hora</th><th>Usuario</th><th>Accion</th><th>Recurso</th><th>Resultado</th></tr></thead><tbody id="auditEventRows"><tr><td colspan="5">Cargando eventos...</td></tr></tbody></table></section></section>`,
+        <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Eventos visibles</span><strong id="auditEventCount">0</strong></article><article class="panel module-stat"><span>Usuarios cargados</span><strong id="auditUserCount">0</strong></article></div><section class="panel"><div class="panel-head"><div><h2>Registro de actividad</h2><p class="panel-caption" id="auditFilterCaption">Trazabilidad de cambios críticos del sistema</p></div></div><table class="data-table"><thead><tr><th>Fecha y hora</th><th>Usuario</th><th>Accion</th><th>Recurso</th><th>Resultado</th></tr></thead><tbody id="auditEventRows"><tr><td colspan="5">Cargando eventos...</td></tr></tbody></table></section></section>`,
       'Licencias': `
         <header class="topbar"><div><div class="eyebrow">Workspace / Control</div><h1>Licencias</h1></div><div class="toolbar"><button class="button primary" data-action="Activar licencia">+ Activar Licencia</button></div></header>
         <section class="module-page"><div class="module-grid"><article class="panel module-stat"><span>Estado</span><strong id="licenseStatus">Sin activar</strong></article><article class="panel module-stat"><span>Tipo</span><strong id="licenseTipo">-</strong></article><article class="panel module-stat warning"><span>Módulos</span><strong id="licenseModuleCount">0</strong></article><article class="panel module-stat"><span>Activada desde</span><strong id="licenseActivatedAt">-</strong></article></div>
@@ -3033,12 +3065,9 @@
       return 'other';
     }
     function renderAuditEvents(filter = 'all') {
-      const fallbackEvents = [
-        { time: '16 ago · 10:42', user: 'Marina R.', action: 'Actualizo estado de orden', resource: 'OT-0248', result: 'Exitoso' },
-        { time: '16 ago · 10:18', user: 'Lucas B.', action: 'Movimiento de inventario', resource: 'Glifosato 48%', result: 'Exitoso' },
-        { time: '16 ago · 09:55', user: 'Sistema', action: 'Invitacion de usuario', resource: 'Operador de campo', result: 'Exitoso' }
-      ];
-      const source = auditEvents.length ? auditEvents : fallbackEvents;
+      const source = auditEvents;
+      const usuariosAudit = main.querySelector('#auditUserCount');
+      if (usuariosAudit) usuariosAudit.textContent = String(registeredUsers.length);
       const filtered = filter === 'all' ? source : source.filter(event => auditCategory(event) === filter);
       const body = main.querySelector('#auditEventRows');
       if (body) body.innerHTML = filtered.length ? filtered.slice(0, 50).map(event => `<tr><td>${event.time}</td><td><strong>${event.user}</strong></td><td>${event.action}</td><td>${event.resource}</td><td><span class="pill">${event.result}</span></td></tr>`).join('') : '<tr><td colspan="5">No hay eventos para este filtro.</td></tr>';
@@ -3228,10 +3257,10 @@
           window.PampaIA?.mount();
         } else if (button.dataset.view === 'Campos y lotes') {
           showFieldsAndLotsModule();
-        } else if (['Plan de equipamiento', 'Costos', 'Finanzas', 'Telemetria y clima'].includes(button.dataset.view) && window.PampaAgroUI) {
+        } else if (['Plan de equipamiento', 'Costos', 'Finanzas', 'Telemetria y clima', 'Documentos'].includes(button.dataset.view) && window.PampaAgroUI) {
           main.innerHTML = moduleViews[button.dataset.view];
           bindModuleActions();
-          const grupo = { 'Plan de equipamiento': ['equipos', 'equipo'], Costos: ['compras', 'costos'], Finanzas: ['fondos', 'finanzas'], 'Telemetria y clima': ['climaLotes', 'clima'] }[button.dataset.view];
+          const grupo = { 'Plan de equipamiento': ['equipos', 'equipo'], Costos: ['compras', 'costos'], Finanzas: ['fondos', 'finanzas'], 'Telemetria y clima': ['climaLotes', 'clima'], Documentos: ['documentos', 'documentos'] }[button.dataset.view];
           window.PampaAgroUI.montar(main.querySelector('#agroCoreRoot'), grupo[0], { conjunto: grupo[1] });
         } else if (button.dataset.view === 'Rentabilidad' && window.PampaAgroUI) {
           // Costos y rentabilidad en pesos (USD informativo), con el núcleo agrícola.

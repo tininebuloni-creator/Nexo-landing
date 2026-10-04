@@ -269,16 +269,51 @@ class PampaAPI {
     return this.request(`/tenants/${tenantId}/lpgs/${lpgId}/authorize`, { method: 'POST' });
   }
 
+  // Configuración de ARCA: con servidor (escritorio) se guarda allá; sin servidor (web o sin conexión)
+  // se guarda en este equipo, así el formulario abre y no se pierde lo cargado. Firmar con el
+  // certificado (WSAA) y autorizar LPG / CPE requiere la app de escritorio con su servidor.
+  arcaLocal(tenantId) {
+    try { return JSON.parse(localStorage.getItem(`pampa-arca-config-${tenantId}`) || 'null') || {}; } catch { return {}; }
+  }
+
   async getArcaStatus(tenantId) {
-    return this.request(`/tenants/${tenantId}/arca/status`);
+    try {
+      return await this.request(`/tenants/${tenantId}/arca/status`);
+    } catch (error) {
+      const c = this.arcaLocal(tenantId);
+      const lpg = Boolean(c.lpg_url), sisa = Boolean(c.sisa_url), cpe = Boolean(c.cpe_url);
+      return { local: true, environment: c.environment || 'testing', wsaa: 'pending', certificate: 'missing', privateKey: 'missing', services: { configured: [lpg, sisa, cpe].filter(Boolean).length, lpg, sisa, cpe } };
+    }
   }
 
   async getArcaConfig(tenantId) {
-    return this.request(`/tenants/${tenantId}/arca/config`);
+    try {
+      return await this.request(`/tenants/${tenantId}/arca/config`);
+    } catch (error) {
+      return { ...this.arcaLocal(tenantId), local: true };
+    }
   }
 
   async updateArcaConfig(tenantId, data) {
-    return this.request(`/tenants/${tenantId}/arca/config`, { method: 'PUT', body: JSON.stringify(data) });
+    const previo = this.arcaLocal(tenantId);
+    const local = {
+      tax_id: data.taxId || '', environment: data.environment || 'testing',
+      certificate_path: data.certificatePath || previo.certificate_path || '', private_key_path: data.privateKeyPath || previo.private_key_path || '',
+      lpg_url: data.lpgUrl || '', sisa_url: data.sisaUrl || '', cpe_url: data.cpeUrl || '',
+      lpg_operation: data.lpgOperation || '', sisa_operation: data.sisaOperation || '', cpe_operation: data.cpeOperation || '',
+      actualizado: new Date().toISOString(),
+    };
+    local.has_certificate = Boolean(local.certificate_path);
+    local.has_private_key = Boolean(local.private_key_path);
+    try { localStorage.setItem(`pampa-arca-config-${tenantId}`, JSON.stringify(local)); } catch { /* sin almacenamiento */ }
+    try {
+      return await this.request(`/tenants/${tenantId}/arca/config`, { method: 'PUT', body: JSON.stringify(data) });
+    } catch (error) {
+      // Sin servidor (falla la conexión, no existe la ruta o responde la página web): queda lo guardado acá.
+      // Si el servidor respondió con un error propio (por ejemplo, una ruta inválida), se muestra.
+      if (error instanceof TypeError || /HTTP 40[45]|JSON|Unexpected token|Not Found|Method Not Allowed/i.test(error.message || '')) return { ok: true, local: true };
+      throw error;
+    }
   }
 
   async checkArcaSisa(tenantId, data) {

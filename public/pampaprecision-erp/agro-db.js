@@ -44,7 +44,11 @@
   db.version(7).stores({ mantenimientos: '&id, equipoId, fecha, tipo, estado', cuentas: '&id, nombre, tipo', movimientosFondos: '&id, fecha, cuentaId, tipo, origen, origenId', cheques: '&id, numero, vencimiento, sentido, estado', creditos: '&id, entidad, fecha' });
   // Versión 8: caché local de datos externos (dólar, clima, suelo y NDVI): no se sincroniza ni va al respaldo.
   db.version(8).stores({ datosExternos: '&clave, fecha' });
-  const TABLAS = db.tables.map((t) => t.name).filter((n) => n !== 'meta' && n !== 'datosExternos');
+  // Versión 9: documentos (como Gestión de Documentos de Agro) y sus archivos adjuntos. El archivo queda solo en
+  // este equipo (puede pesar varios MB): no se sincroniza ni va al respaldo; el registro del documento sí.
+  db.version(9).stores({ documentos: '&id, fecha, tipo, categoria, loteId', archivosDocumento: '&id' });
+  const SOLO_LOCALES = ['meta', 'datosExternos', 'archivosDocumento'];
+  const TABLAS = db.tables.map((t) => t.name).filter((n) => !SOLO_LOCALES.includes(n));
 
   const nuevoId = () => (window.crypto?.randomUUID ? window.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`);
   const dispositivo = (() => {
@@ -89,7 +93,13 @@
     const filas = await Promise.all(TABLAS.map((t) => db[t].toArray()));
     return Object.fromEntries(TABLAS.map((t, i) => [t, filas[i]]));
   }
-  async function vaciar() { await Promise.all(TABLAS.map((t) => db[t].clear())); await db.datosExternos.clear(); await db.meta.clear(); }
+  async function vaciar() { await Promise.all(TABLAS.map((t) => db[t].clear())); await db.datosExternos.clear(); await db.archivosDocumento.clear(); await db.meta.clear(); }
+  // Archivo adjunto de un documento (PDF o imagen), guardado con el mismo id del documento.
+  const archivos = {
+    guardar: (id, archivo) => db.archivosDocumento.put({ id, blob: archivo, nombre: archivo.name, tipo: archivo.type, tamano: archivo.size }),
+    leer: (id) => db.archivosDocumento.get(id),
+    borrar: (id) => db.archivosDocumento.delete(id),
+  };
   const meta = { get: async (clave) => (await db.meta.get(clave))?.valor, set: (clave, valor) => db.meta.put({ clave, valor }) };
 
   // Guarda la LPG calculada con sus retenciones, reintegro, comprobantes de IVA y egresos de stock en una
@@ -191,5 +201,5 @@
     return n;
   }
 
-  window.PampaAgroDB = { db, TABLAS, dispositivo, alCambiar, guardar, guardarVarios, borrar, todo, todoElEstado, vaciar, meta, guardarLpg, borrarLpg, guardarCompra, borrarCompra, migrarDesdeLocalStorage, nuevoId };
+  window.PampaAgroDB = { db, TABLAS, dispositivo, alCambiar, guardar, guardarVarios, borrar, todo, todoElEstado, vaciar, meta, guardarLpg, borrarLpg, guardarCompra, borrarCompra, migrarDesdeLocalStorage, nuevoId, archivos };
 })();

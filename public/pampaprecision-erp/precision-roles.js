@@ -17,7 +17,7 @@
     ['Centro operativo', 'Centro operativo'], ['Campos y lotes', 'Campos y lotes'], ['Agricola', 'Campañas, siembra y cosecha'], ['Operaciones', 'Labores y aplicaciones'],
     ['Granos', 'Granos, costos y fiscal'], ['Rentabilidad', 'Rentabilidad'], ['Precision', 'Precisión (mapas y prescripciones)'], ['Inventario', 'Inventario'],
     ['Plan de equipamiento', 'Equipo (maquinaria, mantenimiento y costos)'], ['Calibraciones', 'Calibraciones'], ['Telemetria y clima', 'Telemetría y clima'], ['Analitica', 'Analítica'],
-    ['Finanzas', 'Finanzas'], ['Costos', 'Costos'], ['ARCA', 'ARCA'], ['RRHH', 'RRHH'], ['Usuarios y roles', 'Usuarios y roles'], ['Auditoria', 'Auditoría'],
+    ['Finanzas', 'Finanzas'], ['Costos', 'Costos'], ['Documentos', 'Documentos'], ['ARCA', 'ARCA'], ['RRHH', 'RRHH'], ['Usuarios y roles', 'Usuarios y roles'], ['Auditoria', 'Auditoría'],
     ['Conectividad y sincronizacion', 'Conectividad y respaldo'], ['Licencias', 'Licencias'], ['Reportes', 'Reportes'],
   ];
   const TABS = [
@@ -29,15 +29,15 @@
   const ROLES = [
     { nombre: 'Propietario / Responsable', plan: 'basica', descripcion: 'Gestión general y aprobación', vistas: TODO, tabs: TODO },
     { nombre: 'Administrador General', plan: 'profesional', descripcion: 'Administra el sistema, usuarios y respaldo', vistas: TODO, tabs: TODO },
-    { nombre: 'Administración', plan: 'basica', descripcion: 'Compras, ventas de granos, costos, fiscal y finanzas', vistas: ['Campos y lotes', 'Granos', 'Rentabilidad', 'Costos', 'Plan de equipamiento', 'Inventario', 'Finanzas', 'ARCA', 'RRHH', 'Reportes', 'Auditoria', 'Licencias', 'Conectividad y sincronizacion'], tabs: ['stock', 'lpg', 'cpe', 'renspa', 'compras', 'residuos', 'resultados', 'fiscal'] },
-    { nombre: 'Ingeniero Agrónomo', plan: 'basica', descripcion: 'Decisiones agronómicas, recetas, lotes y costos por lote', vistas: ['Campos y lotes', 'Agricola', 'Operaciones', 'Granos', 'Rentabilidad', 'Costos', 'Plan de equipamiento', 'Precision', 'Inventario', 'Calibraciones', 'Telemetria y clima', 'Analitica', 'Reportes'], tabs: ['stock', 'renspa', 'compras', 'labores', 'senasa', 'residuos', 'resultados'] },
+    { nombre: 'Administración', plan: 'basica', descripcion: 'Compras, ventas de granos, costos, fiscal y finanzas', vistas: ['Campos y lotes', 'Granos', 'Rentabilidad', 'Costos', 'Plan de equipamiento', 'Inventario', 'Finanzas', 'ARCA', 'RRHH', 'Reportes', 'Auditoria', 'Licencias', 'Conectividad y sincronizacion', 'Documentos'], tabs: ['stock', 'lpg', 'cpe', 'renspa', 'compras', 'residuos', 'resultados', 'fiscal'] },
+    { nombre: 'Ingeniero Agrónomo', plan: 'basica', descripcion: 'Decisiones agronómicas, recetas, lotes y costos por lote', vistas: ['Campos y lotes', 'Agricola', 'Operaciones', 'Granos', 'Rentabilidad', 'Costos', 'Plan de equipamiento', 'Precision', 'Inventario', 'Calibraciones', 'Telemetria y clima', 'Analitica', 'Reportes', 'Documentos'], tabs: ['stock', 'renspa', 'compras', 'labores', 'senasa', 'residuos', 'resultados'] },
     { nombre: 'Operador', plan: 'basica', soloPlan: 'basica', descripcion: 'Ejecución de tareas de campo', vistas: ['Agricola', 'Operaciones', 'Granos', 'Inventario', 'Telemetria y clima'], tabs: ['stock', 'labores', 'senasa', 'residuos'] },
     { nombre: 'Responsable de Agricultura de Precisión', plan: 'profesional', descripcion: 'Mapas, zonas, prescripciones y calibración', vistas: ['Campos y lotes', 'Agricola', 'Precision', 'Calibraciones', 'Telemetria y clima', 'Analitica', 'Granos', 'Reportes'], tabs: ['stock', 'labores', 'senasa', 'resultados'] },
-    { nombre: 'Encargado de Campo', plan: 'profesional', descripcion: 'Organiza las labores, la cosecha y el acopio', vistas: ['Campos y lotes', 'Agricola', 'Operaciones', 'Granos', 'Inventario', 'Telemetria y clima'], tabs: ['stock', 'cpe', 'renspa', 'labores', 'senasa', 'residuos'] },
+    { nombre: 'Encargado de Campo', plan: 'profesional', descripcion: 'Organiza las labores, la cosecha y el acopio', vistas: ['Campos y lotes', 'Agricola', 'Operaciones', 'Granos', 'Inventario', 'Telemetria y clima', 'Documentos'], tabs: ['stock', 'cpe', 'renspa', 'labores', 'senasa', 'residuos'] },
     { nombre: 'Operador de Maquinaria', plan: 'profesional', descripcion: 'Registra labores y horas de máquina', vistas: ['Operaciones', 'Granos', 'Calibraciones', 'Telemetria y clima'], tabs: ['labores', 'residuos'] },
-    { nombre: 'Responsable de Inventario', plan: 'profesional', descripcion: 'Insumos, granos almacenados y despachos', vistas: ['Inventario', 'Granos', 'Reportes'], tabs: ['stock', 'cpe', 'compras', 'residuos'] },
+    { nombre: 'Responsable de Inventario', plan: 'profesional', descripcion: 'Insumos, granos almacenados y despachos', vistas: ['Inventario', 'Granos', 'Reportes', 'Documentos'], tabs: ['stock', 'cpe', 'compras', 'residuos'] },
     { nombre: 'Técnico de Equipos', plan: 'profesional', descripcion: 'Mantenimiento, calibración y residuos del taller', vistas: ['Plan de equipamiento', 'Calibraciones', 'Telemetria y clima', 'Inventario', 'Granos'], tabs: ['labores', 'residuos'] },
-    { nombre: 'Consultor / Auditor', plan: 'profesional', descripcion: 'Revisa información productiva, económica y fiscal', vistas: ['Campos y lotes', 'Agricola', 'Granos', 'Rentabilidad', 'Costos', 'Analitica', 'Reportes', 'Auditoria', 'ARCA'], tabs: TODO },
+    { nombre: 'Consultor / Auditor', plan: 'profesional', descripcion: 'Revisa información productiva, económica y fiscal', vistas: ['Campos y lotes', 'Agricola', 'Granos', 'Rentabilidad', 'Costos', 'Analitica', 'Reportes', 'Auditoria', 'ARCA', 'Documentos'], tabs: TODO },
   ];
   // Nombres de versiones anteriores de la app.
   const ALIAS = { 'ingeniero / veterinario': 'Ingeniero Agrónomo', 'ingeniero': 'Ingeniero Agrónomo', 'operario de campo': 'Operador', 'operario': 'Operador', 'propietario/responsable': 'Propietario / Responsable', 'administracion': 'Administración' };
@@ -85,7 +85,7 @@
   // Agrícola (campañas, labores y aplicaciones) e Inventario; Profesional suma Precisión y Calibraciones;
   // Premium tiene todo. Usuarios y roles, Conectividad y Licencias son servicios del sistema (todas).
   const SISTEMA = ['Centro operativo', 'Usuarios y roles', 'Conectividad y sincronizacion', 'Licencias'];
-  const MODULOS_BASICA = [...SISTEMA, 'Campos y lotes', 'Agricola', 'Operaciones', 'Granos', 'Inventario'];
+  const MODULOS_BASICA = [...SISTEMA, 'Campos y lotes', 'Agricola', 'Operaciones', 'Granos', 'Inventario', 'Documentos'];
   const MODULOS_PLAN = { basica: MODULOS_BASICA, profesional: [...MODULOS_BASICA, 'Precision', 'Calibraciones'] };
   // De "Granos, costos y fiscal", Básica y Profesional ven lo agrícola y de inventario; LPG, Cartas de
   // Porte, fiscal y costos (ARCA, Finanzas y Analítica) son de Premium.

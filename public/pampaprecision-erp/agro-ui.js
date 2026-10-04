@@ -913,16 +913,112 @@
   }
   function vistaTelemetria() { return '<div id="telemetriaLegacy"><div class="nota">Cargando…</div></div>'; }
 
+  // ---------- Documentos (como Gestión de Documentos de Agro) ----------
+  // El registro (nombre, tipo, categoría, fecha, origen, lote) se sincroniza entre equipos; el archivo
+  // adjunto (PDF o imagen) queda guardado solo en el equipo donde se cargó.
+  const TIPOS_DOCUMENTO = ['Contrato', 'Factura', 'Comprobante', 'Licencia', 'Permiso', 'Certificado', 'Presupuesto', 'Análisis de suelo', 'Receta agronómica', 'Otro'];
+  const CATEGORIAS_DOCUMENTO = ['Agrícola', 'Maquinarias', 'Finanzas', 'Fiscal / ARCA', 'RRHH', 'Legal', 'General'];
+  const MAX_ARCHIVO_MB = 15;
+  let docFiltro = { categoria: '', texto: '' };
+  const tamanoArchivo = (b) => (b >= 1048576 ? `${(b / 1048576).toLocaleString('es-AR', { maximumFractionDigits: 1 })} MB` : `${Math.max(1, Math.round(b / 1024))} KB`);
+  function vistaDocumentos() {
+    const docs = [...(E.documentos || [])].sort((a, b) => String(b.fecha || '').localeCompare(String(a.fecha || '')) || String(a.nombre).localeCompare(String(b.nombre)));
+    const t = docFiltro.texto.trim().toLowerCase();
+    const visibles = docs.filter((d) => (!docFiltro.categoria || d.categoria === docFiltro.categoria) && (!t || [d.nombre, d.tipo, d.proveedor, d.descripcion].some((x) => String(x || '').toLowerCase().includes(t))));
+    const porCategoria = Object.fromEntries(CATEGORIAS_DOCUMENTO.map((c) => [c, docs.filter((d) => d.categoria === c).length]));
+    const vencen = docs.filter((d) => d.vence && diasHasta(d.vence) >= 0 && diasHasta(d.vence) <= 30);
+    const vencidos = docs.filter((d) => d.vence && d.vence < hoy());
+    const conArchivo = docs.filter((d) => d.archivo).length;
+    const filas = visibles.map((d) => `<tr><td><strong>${esc(d.nombre)}</strong>${d.descripcion ? `<small>${esc(d.descripcion)}</small>` : ''}</td><td>${esc(d.tipo || '')}</td><td>${esc(d.categoria || '')}</td><td>${esc(d.fecha || '')}${d.vence ? `<small class="${d.vence < hoy() ? 'rojo' : ''}">vence ${esc(d.vence)}</small>` : ''}</td><td>${esc(d.proveedor || '')}${d.loteId ? `<small>Lote ${esc(lote(d.loteId)?.codigo || '')}</small>` : ''}</td><td><span class="tag blue">${porCategoria[d.categoria] || 0}</span></td><td>${d.archivo ? `<button class="btn small" type="button" data-ver-documento="${esc(d.id)}" title="${esc(d.archivo.nombre)}">📎 Ver</button><small>${esc(tamanoArchivo(d.archivo.tamano || 0))}</small>` : '<span class="nota">—</span>'}</td><td><button class="btn small" type="button" data-editar-documento="${esc(d.id)}">Editar</button> <button class="btn small" type="button" data-borrar-documento="${esc(d.id)}">Borrar</button></td></tr>`).join('')
+      || `<tr><td colspan="8" class="nota">${docs.length ? 'Ningún documento coincide con el filtro.' : 'Cargá contratos de arrendamiento, facturas, certificados, análisis de suelo, recetas y permisos: quedan ordenados por categoría y con el archivo adjunto.'}</td></tr>`;
+    return `
+      <div class="kpi-grid">
+        ${kpi('blue', 'Documentos', String(docs.length), `${conArchivo} con archivo adjunto`)}
+        ${kpi(vencidos.length ? 'red' : vencen.length ? 'orange' : 'green', 'Vencimientos', String(vencidos.length + vencen.length), `${vencidos.length} vencido(s) · ${vencen.length} vence(n) en 30 días`)}
+        ${kpi('purple', 'Categorías', String(Object.values(porCategoria).filter(Boolean).length), Object.entries(porCategoria).filter(([, v]) => v).map(([c, v]) => `${c} ${v}`).join(' · ') || 'sin documentos')}
+      </div>
+      <div class="card"><div class="card-header"><div><div class="card-title">📄 Gestión de Documentos</div><div class="card-sub">El registro viaja a los otros equipos al sincronizar; el archivo adjunto queda en este equipo (hasta ${MAX_ARCHIVO_MB} MB por archivo).</div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn small" type="button" data-importar-documentos>📁 Importar</button><button class="btn small" type="button" data-exportar-documentos>⬇️ Exportar CSV</button><input type="file" data-archivo-importar-documentos accept=".csv,.xlsx,.xls" hidden></div></div>
+        <div class="form-grid" style="margin-bottom:10px"><label>Categoría<select data-doc-categoria><option value="">Todas</option>${opciones(CATEGORIAS_DOCUMENTO.map((c) => [c, c]), docFiltro.categoria)}</select></label><label>Buscar<input data-doc-texto value="${esc(docFiltro.texto)}" placeholder="Nombre, tipo, proveedor…"></label></div>
+        <div style="overflow-x:auto"><table class="tabla"><thead><tr><th>Nombre</th><th>Tipo</th><th>Categoría</th><th>Fecha</th><th>Proveedor / Origen</th><th>Documentos</th><th>Archivo</th><th></th></tr></thead><tbody>${filas}</tbody></table></div>
+        <form data-form="documento" class="form-grid" style="margin-top:12px"><input type="hidden" name="id">
+          <label>Nombre del documento<input name="nombre" required placeholder="Contrato de arrendamiento La Candelaria"></label>
+          <label>Tipo<select name="tipo" required>${opciones(TIPOS_DOCUMENTO.map((x) => [x, x]))}</select></label>
+          <label>Categoría<select name="categoria" required>${opciones(CATEGORIAS_DOCUMENTO.map((x) => [x, x]), 'Agrícola')}</select></label>
+          <label>Fecha<input name="fecha" type="date" required value="${hoy()}"></label>
+          <label>Vence (opcional)<input name="vence" type="date"></label>
+          <label>Proveedor / Origen<input name="proveedor" placeholder="Proveedor, organismo o contraparte"></label>
+          <label>Lote (opcional)<select name="loteId"><option value="">—</option>${opciones(E.lotes.map((l) => [l.id, `${l.codigo}${l.campo ? ` · ${l.campo}` : ''}`]))}</select></label>
+          <label style="grid-column:1/-1">Descripción<textarea name="descripcion" rows="2"></textarea></label>
+          <label>Archivo (PDF o imagen)<input name="archivo" type="file" accept=".pdf,image/*"></label>
+          <label>&nbsp;<button class="btn primary" type="submit">Guardar documento</button></label>
+        </form></div>`;
+  }
+  async function guardarDocumento(f) {
+    const archivo = f.archivo instanceof File && f.archivo.size ? f.archivo : null;
+    if (archivo && archivo.size > MAX_ARCHIVO_MB * 1048576) throw new Error(`El archivo pesa ${tamanoArchivo(archivo.size)}: el máximo es ${MAX_ARCHIVO_MB} MB.`);
+    const previo = f.id ? E.documentos.find((d) => d.id === f.id) : null;
+    const datos = { nombre: String(f.nombre || '').trim(), tipo: f.tipo, categoria: f.categoria, fecha: f.fecha, vence: f.vence || '', proveedor: String(f.proveedor || '').trim(), loteId: f.loteId || '', descripcion: String(f.descripcion || '').trim() };
+    if (!datos.nombre) throw new Error('Poné un nombre al documento.');
+    const doc = await DB.guardar('documentos', { ...(previo ? { id: previo.id } : {}), ...datos, archivo: archivo ? { nombre: archivo.name, tipo: archivo.type, tamano: archivo.size } : previo?.archivo || null });
+    if (archivo) await DB.archivos.guardar(doc.id, archivo);
+    toast(`Documento "${datos.nombre}" guardado${archivo ? ' con su archivo' : ''}.`);
+  }
+  async function verDocumento(id) {
+    const a = await DB.archivos.leer(id);
+    if (!a?.blob) { alert('El archivo de este documento no está en este equipo: se cargó en otro (el archivo no viaja al sincronizar, solo el registro).'); return; }
+    const url = URL.createObjectURL(a.blob);
+    const w = window.open(url, '_blank', 'noopener');
+    if (!w) { const link = document.createElement('a'); link.href = url; link.download = a.nombre || 'documento'; document.body.appendChild(link); link.click(); link.remove(); }
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }
+  // Importar una planilla (CSV o Excel) con columnas nombre, tipo, categoria, fecha, proveedor, descripcion y vence.
+  async function importarDocumentos(archivo) {
+    let filas;
+    if (/\.xlsx?$/i.test(archivo.name)) {
+      // La librería de Excel (vendor/xlsx.full.min.js) se carga solo cuando hace falta.
+      if (!window.XLSX) await new Promise((ok, mal) => { const sc = document.createElement('script'); sc.src = 'vendor/xlsx.full.min.js'; sc.onload = ok; sc.onerror = () => mal(new Error('No se pudo leer el Excel en este equipo: guardalo como CSV e importalo.')); document.head.appendChild(sc); });
+      const libro = window.XLSX.read(await archivo.arrayBuffer(), { type: 'array', cellDates: true });
+      filas = window.XLSX.utils.sheet_to_json(libro.Sheets[libro.SheetNames[0]], { defval: '', raw: false, dateNF: 'yyyy-mm-dd' });
+    } else {
+      const texto = (await archivo.text()).replace(/^﻿/, '');
+      const lineas = texto.split(/\r?\n/).filter((l) => l.trim());
+      const sep = (lineas[0].match(/;/g) || []).length > (lineas[0].match(/,/g) || []).length ? ';' : ',';
+      const partir = (l) => { const out = []; let actual = '', comillas = false; for (const c of l) { if (c === '"') comillas = !comillas; else if (c === sep && !comillas) { out.push(actual); actual = ''; } else actual += c; } out.push(actual); return out.map((x) => x.trim()); };
+      const cab = partir(lineas[0]);
+      filas = lineas.slice(1).map((l) => Object.fromEntries(partir(l).map((v, i) => [cab[i], v])));
+    }
+    const clave = (o, ...nombres) => { const k = Object.keys(o).find((x) => nombres.includes(x.normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase())); return k ? String(o[k] ?? '').trim() : ''; };
+    const fechaIso = (v) => (/^\d{4}-\d{2}-\d{2}/.test(v) ? v.slice(0, 10) : /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(v) ? A.fechaIso(v) : '');
+    let n = 0;
+    for (const o of filas) {
+      const nombre = clave(o, 'nombre', 'nombre del documento', 'documento');
+      if (!nombre) continue;
+      const tipo = clave(o, 'tipo');
+      const categoria = clave(o, 'categoria');
+      await DB.guardar('documentos', { nombre, tipo: TIPOS_DOCUMENTO.find((x) => x.toLowerCase() === tipo.toLowerCase()) || (tipo || 'Otro'), categoria: CATEGORIAS_DOCUMENTO.find((x) => x.toLowerCase() === categoria.toLowerCase()) || (categoria || 'General'), fecha: fechaIso(clave(o, 'fecha')) || hoy(), vence: fechaIso(clave(o, 'vence', 'vencimiento')), proveedor: clave(o, 'proveedor', 'proveedor / origen', 'origen'), descripcion: clave(o, 'descripcion'), loteId: '', archivo: null });
+      n++;
+    }
+    if (!n) throw new Error('La planilla no tiene filas con la columna "nombre".');
+    toast(`${n} documento(s) importado(s).`);
+  }
+  function exportarDocumentos() {
+    const c = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const filas = (E.documentos || []).map((d) => [d.nombre, d.tipo, d.categoria, d.fecha, d.vence, d.proveedor, lote(d.loteId)?.codigo || '', d.descripcion, d.archivo?.nombre || ''].map(c).join(';'));
+    descargar(`documentos-${hoy()}.csv`, ['nombre;tipo;categoria;fecha;vence;proveedor;lote;descripcion;archivo', ...filas].join('\n'));
+  }
+
   // ---------- Render y eventos ----------
-  const TABS = [['stock', '🌾 Stock'], ['lpg', '🧾 Liquidaciones (LPG)'], ['cpe', '🚚 Cartas de Porte'], ['renspa', '🪪 RENSPA y campañas'], ['compras', '📦 Compras e insumos'], ['labores', '🚜 Labores'], ['senasa', '🌱 SENASA y recetas'], ['residuos', '♻️ Residuos'], ['resultados', '💵 Costos y resultados'], ['fiscal', '🏛️ Fiscal'], ['equipos', '🚜 Equipos'], ['mantenimiento', '🔧 Mantenimiento'], ['equipoCostos', '💲 Costos operativos'], ['planificacion', '📐 Planificación'], ['fondos', '🏦 Caja y bancos'], ['cobrarPagar', '🧾 A cobrar, a pagar y cheques'], ['creditos', '💳 Créditos'], ['climaLotes', '🌦️ Clima y aplicación'], ['satelite', '🛰️ NDVI y suelo'], ['telemetria', '📡 Telemetría']];
+  const TABS = [['stock', '🌾 Stock'], ['lpg', '🧾 Liquidaciones (LPG)'], ['cpe', '🚚 Cartas de Porte'], ['renspa', '🪪 RENSPA y campañas'], ['compras', '📦 Compras e insumos'], ['labores', '🚜 Labores'], ['senasa', '🌱 SENASA y recetas'], ['residuos', '♻️ Residuos'], ['resultados', '💵 Costos y resultados'], ['fiscal', '🏛️ Fiscal'], ['equipos', '🚜 Equipos'], ['mantenimiento', '🔧 Mantenimiento'], ['equipoCostos', '💲 Costos operativos'], ['planificacion', '📐 Planificación'], ['fondos', '🏦 Caja y bancos'], ['cobrarPagar', '🧾 A cobrar, a pagar y cheques'], ['creditos', '💳 Créditos'], ['climaLotes', '🌦️ Clima y aplicación'], ['satelite', '🛰️ NDVI y suelo'], ['telemetria', '📡 Telemetría'], ['documentos', '📄 Documentos']];
   const CONJUNTOS = {
     granos: ['stock', 'lpg', 'cpe', 'renspa', 'compras', 'labores', 'senasa', 'residuos', 'resultados', 'fiscal'],
     equipo: ['equipos', 'mantenimiento', 'equipoCostos', 'planificacion'],
     costos: ['compras', 'resultados', 'equipoCostos'],
     finanzas: ['fondos', 'cobrarPagar', 'creditos', 'lpg'],
     clima: ['climaLotes', 'satelite', 'telemetria'],
+    documentos: ['documentos'],
   };
-  const VISTA_CONJUNTO = { equipo: 'Plan de equipamiento', costos: 'Costos', finanzas: 'Finanzas', clima: 'Telemetria y clima' };
+  const VISTA_CONJUNTO = { equipo: 'Plan de equipamiento', costos: 'Costos', finanzas: 'Finanzas', clima: 'Telemetria y clima', documentos: 'Documentos' };
   const ETIQUETA_CONJUNTO = { costos: { compras: '📦 Compras y gastos', resultados: '💵 Costos por lote y campaña' }, finanzas: { lpg: '🧾 Liquidaciones (LPG)' } };
   let conjunto = 'granos';
   // Permisos del rol activo (precision-roles.js): solo las pestañas que el rol puede ver.
@@ -941,7 +1037,7 @@
     const permitidas = CONJUNTOS[conjunto].filter((k) => puedeTab(k)).map((k) => [k, ETIQUETA_CONJUNTO[conjunto]?.[k] || TABS.find(([x]) => x === k)[1]]);
     if (!permitidas.length) { root.innerHTML = `<div class="card"><div class="nota">Tu rol (${esc(rolActivo()?.nombre || '')}) no tiene acceso a granos, costos ni fiscal.</div></div>`; return; }
     if (!puedeTab(tab)) tab = permitidas[0][0];
-    const vistas = { stock: vistaStock, lpg: vistaLpg, cpe: vistaCpe, renspa: vistaRenspa, compras: vistaCompras, labores: vistaLabores, senasa: vistaSenasa, residuos: vistaResiduos, resultados: vistaResultados, equipos: vistaEquipos, mantenimiento: vistaMantenimiento, equipoCostos: vistaEquipoCostos, planificacion: vistaPlanificacion, fondos: vistaFondos, cobrarPagar: vistaCobrarPagar, creditos: vistaCreditos, climaLotes: vistaClimaLotes, satelite: vistaSatelite, telemetria: vistaTelemetria, fiscal: vistaFiscal };
+    const vistas = { stock: vistaStock, lpg: vistaLpg, cpe: vistaCpe, renspa: vistaRenspa, compras: vistaCompras, labores: vistaLabores, senasa: vistaSenasa, residuos: vistaResiduos, resultados: vistaResultados, equipos: vistaEquipos, mantenimiento: vistaMantenimiento, equipoCostos: vistaEquipoCostos, planificacion: vistaPlanificacion, fondos: vistaFondos, cobrarPagar: vistaCobrarPagar, creditos: vistaCreditos, climaLotes: vistaClimaLotes, satelite: vistaSatelite, telemetria: vistaTelemetria, documentos: vistaDocumentos, fiscal: vistaFiscal };
     root.innerHTML = `<div class="tabs">${permitidas.map(([k, t]) => `<button class="tab${k === tab ? ' active' : ''}" type="button" data-tab="${k}">${t}</button>`).join('')}</div>${vistas[tab]()}`;
     if (tab === 'lpg') actualizarDesglose();
     // La planificación de equipamiento (catálogo por escala) es la pantalla anterior, montada adentro.
@@ -961,6 +1057,7 @@
     const f = Object.fromEntries(new FormData(form).entries());
     try {
       switch (form.dataset.form) {
+        case 'documento': await guardarDocumento(f); break;
         case 'ubicacion': await DB.guardar('ubicaciones', { tipo: f.tipo, nombre: f.nombre, grano: f.grano, campo: f.campo, capacidadTn: Number(f.capacidadTn) || 0, metros: Number(f.metros) || '', fechaEmbolsado: f.fechaEmbolsado }); break;
         case 'movimiento': {
           const u = ubicacion(f.ubicacionId);
@@ -1116,6 +1213,18 @@
     try {
       if (d.tab) { tab = d.tab; lpgEditando = null; render(); return; }
       if (d.borrar) { if (!confirm('¿Borrar este registro?')) return; await DB.borrar(d.borrar, d.id); return refrescar(); }
+      if (d.verDocumento) return verDocumento(d.verDocumento);
+      if (d.borrarDocumento) { if (!confirm('¿Borrar el documento y su archivo adjunto?')) return; await DB.borrar('documentos', d.borrarDocumento); await DB.archivos.borrar(d.borrarDocumento); return refrescar(); }
+      if (d.editarDocumento) {
+        const doc = E.documentos.find((x) => x.id === d.editarDocumento);
+        const form = root.querySelector('form[data-form="documento"]');
+        if (!doc || !form) return;
+        ['id', 'nombre', 'tipo', 'categoria', 'fecha', 'vence', 'proveedor', 'loteId', 'descripcion'].forEach((k) => { if (form.elements[k]) form.elements[k].value = doc[k] || ''; });
+        form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+      if (b.matches('[data-importar-documentos]')) { root.querySelector('[data-archivo-importar-documentos]')?.click(); return; }
+      if (b.matches('[data-exportar-documentos]')) return exportarDocumentos();
       if (d.editarLpg) { lpgEditando = d.editarLpg; render(); root.scrollIntoView({ behavior: 'smooth' }); return; }
       if (d.cancelarLpg !== undefined) { lpgEditando = null; render(); return; }
       if (d.borrarLpg) { if (!confirm('¿Borrar la LPG? Se borran también sus retenciones, su IVA y el egreso de stock.')) return; await DB.borrarLpg(d.borrarLpg); return refrescar(); }
@@ -1282,6 +1391,9 @@
       if (ev.target.matches('[data-campania]')) { root.dataset.campania = ev.target.value; render(); }
       if (ev.target.matches('[data-mes-fiscal]')) { mesFiscal = ev.target.value || mesFiscal; render(); }
       if (ev.target.matches('[data-anual]')) { anual = ev.target.checked; render(); }
+      if (ev.target.matches('[data-doc-categoria]')) { docFiltro.categoria = ev.target.value; render(); }
+      if (ev.target.matches('[data-doc-texto]')) { docFiltro.texto = ev.target.value; render(); }
+      if (ev.target.matches('[data-archivo-importar-documentos]') && ev.target.files[0]) { const archivo = ev.target.files[0]; ev.target.value = ''; importarDocumentos(archivo).then(refrescar, (e) => alert(e.message || e)); }
       if (ev.target.matches('[data-campania-resultados]')) { campaniaResultados = ev.target.value; render(); }
       if (ev.target.matches('[data-cuenta-operacion]')) cuentaOperacion = ev.target.value;
       if (ev.target.matches('[data-condicion-iva]')) {
@@ -1418,6 +1530,8 @@
     }
     for (const c of e.cpes || []) await DB.guardar('cpes', c);
     await DB.meta.set('demo', { version: seed._meta.version, cargadoEn: new Date().toISOString() });
+    // Empresa de ejemplo en la portada (si no hay ninguna cargada); se borra con Limpieza profunda.
+    window.dispatchEvent(new CustomEvent('pampa-demo-cargado', { detail: { empresa: 'Agropecuaria de Ejemplo (DEMO)' } }));
     await cargar();
     if (root) render();
     await montarDashboard(document.querySelector('#agroDashboard'));
