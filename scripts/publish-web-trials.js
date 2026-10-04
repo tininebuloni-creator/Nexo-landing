@@ -20,8 +20,12 @@ const sources = {
 // Por defecto solo se publican estas 4 (las que ya estan completas y en uso). Para publicar
 // tambien Porcinos y Precision, correr: node scripts/publish-web-trials.js all
 // Para elegir puntualmente cuales, pasar sus nombres de carpeta: node scripts/publish-web-trials.js pampaagro-erp pampatambo-erp
+// Ofuscación del código publicado (nunca del código fuente de apps/): ver PAMPA N-ecosystem/scripts/ofuscar-codigo.js.
+// --sin-ofuscar publica legible (solo para depurar; no subir así).
+const { ofuscarCarpeta } = require(path.join(projectsRoot, 'PAMPA N-ecosystem', 'scripts', 'ofuscar-codigo.js'));
+const sinOfuscar = process.argv.includes('--sin-ofuscar');
 const DEFAULT_APPS = ['pampaagro-erp', 'pampaganaderia-erp', 'pampatambo-erp', 'PampaTopografia'];
-const argApps = process.argv.slice(2);
+const argApps = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 let selectedKeys;
 if (argApps.length === 0) {
   selectedKeys = DEFAULT_APPS;
@@ -133,6 +137,14 @@ for (const [folderName, source] of Object.entries(sources)) {
     html = injectBeforeFinalBody(html, popupTag);
   }
   fs.writeFileSync(entryPoint, html, 'utf8');
+  if (!sinOfuscar) {
+    const r = ofuscarCarpeta(destination);
+    if (r.fallas.length) {
+      r.fallas.forEach((x) => console.error(`  SIN OFUSCAR ${x.archivo}: ${x.error}`));
+      throw new Error(`${folderName}: ${r.fallas.length} archivo(s) no se pudieron ofuscar; no se publica legible.`);
+    }
+    console.log(`  ofuscados ${r.archivos} archivo(s) (${r.scripts} script(s) inline)`);
+  }
   console.log(`Aplicación publicada: ${folderName}`);
 }
 

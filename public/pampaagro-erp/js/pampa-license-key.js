@@ -1,9 +1,1 @@
-// Clave publica Ed25519 del ecosistema PAMPA. Generada por scripts/generate-keys.js.
-(function (root) {
-  const key = `-----BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEAq7tUZMWSHD1Q36bRapLV6adFdCUzm9mwrV94npOEW3c=
------END PUBLIC KEY-----
-`;
-  if (typeof module !== 'undefined' && module.exports) module.exports = key;
-  if (root) root.PAMPA_LICENSE_PUBLIC_KEY = key;
-}(typeof globalThis !== 'undefined' ? globalThis : this));
+/*pampa-ofuscado*/function _0x4675(_0x4e3c1f,_0x323eca){_0x4e3c1f=_0x4e3c1f-0x177;const _0x46b9c2=_0x46b9();let _0x4675f7=_0x46b9c2[_0x4e3c1f];return _0x4675f7;}(function(_0x5234ce,_0x56119b){const _0x2e9644=_0x4675,_0x1938a2=_0x5234ce();while(!![]){try{const _0x3ff70e=-parseInt(_0x2e9644(0x184))/0x1+-parseInt(_0x2e9644(0x17a))/0x2*(-parseInt(_0x2e9644(0x17c))/0x3)+parseInt(_0x2e9644(0x177))/0x4*(-parseInt(_0x2e9644(0x17f))/0x5)+parseInt(_0x2e9644(0x180))/0x6*(parseInt(_0x2e9644(0x17e))/0x7)+-parseInt(_0x2e9644(0x181))/0x8*(parseInt(_0x2e9644(0x17d))/0x9)+-parseInt(_0x2e9644(0x183))/0xa+parseInt(_0x2e9644(0x182))/0xb*(parseInt(_0x2e9644(0x179))/0xc);if(_0x3ff70e===_0x56119b)break;else _0x1938a2['push'](_0x1938a2['shift']());}catch(_0x6b9127){_0x1938a2['push'](_0x1938a2['shift']());}}}(_0x46b9,0xb7b11),function(_0x186664){const _0x503ba8=_0x4675,_0x517aa3='-----BEGIN\x20PUBLIC\x20KEY-----\x0aMCowBQYDK2VwAyEAq7tUZMWSHD1Q36bRapLV6adFdCUzm9mwrV94npOEW3c=\x0a-----END\x20PUBLIC\x20KEY-----\x0a';if(typeof module!==_0x503ba8(0x178)&&module['exports'])module[_0x503ba8(0x17b)]=_0x517aa3;if(_0x186664)_0x186664['PAMPA_LICENSE_PUBLIC_KEY']=_0x517aa3;}(typeof globalThis!=='undefined'?globalThis:this));function _0x46b9(){const _0x544e19=['1045YdyTUs','6448400JBpxbr','1311875vnpZEo','4XSQLCt','undefined','587292NfeZaR','52534TpenUe','exports','3rpdWVs','117XnANMK','959zSOtYU','6457420Othfbj','16326KSUvVW','644824zbnMXI'];_0x46b9=function(){return _0x544e19;};return _0x46b9();}

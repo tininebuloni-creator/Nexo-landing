@@ -1,16 +1,1 @@
-// Carpeta donde el servidor guarda los datos fiscales (una colección = un .json).
-// En escritorio (Electron) apunta a la carpeta del usuario (PAMPA_DATA_DIR, la define
-// electron/main.js): la carpeta de instalación queda dentro del asar (solo lectura) y se
-// reemplaza al actualizar. Sin esa variable (servidor propio, desarrollo) usa ./data.
-const path = require('path');
-
-function dataDir() {
-  return process.env.PAMPA_DATA_DIR || path.join(__dirname, 'data');
-}
-
-// Raíz para la configuración ARCA (.arca-config.json, caché WSAA y rutas relativas de certificados).
-function stateRoot() {
-  return process.env.PAMPA_DATA_DIR ? path.dirname(process.env.PAMPA_DATA_DIR) : __dirname;
-}
-
-module.exports = { dataDir, stateRoot };
+/*pampa-ofuscado*/const _0x3662cf=_0xed26;function _0xed26(_0x5dc0a9,_0x3b2fdb){_0x5dc0a9=_0x5dc0a9-0xb4;const _0x2747c0=_0x2747();let _0xed268=_0x2747c0[_0x5dc0a9];return _0xed268;}(function(_0x320b76,_0x3dd790){const _0x2e1384=_0xed26,_0x36bae4=_0x320b76();while(!![]){try{const _0x3400f8=parseInt(_0x2e1384(0xbe))/0x1*(parseInt(_0x2e1384(0xb9))/0x2)+-parseInt(_0x2e1384(0xc0))/0x3*(-parseInt(_0x2e1384(0xb8))/0x4)+-parseInt(_0x2e1384(0xbf))/0x5+parseInt(_0x2e1384(0xbd))/0x6*(-parseInt(_0x2e1384(0xc3))/0x7)+parseInt(_0x2e1384(0xbc))/0x8*(-parseInt(_0x2e1384(0xb5))/0x9)+parseInt(_0x2e1384(0xc4))/0xa*(-parseInt(_0x2e1384(0xc2))/0xb)+parseInt(_0x2e1384(0xb7))/0xc;if(_0x3400f8===_0x3dd790)break;else _0x36bae4['push'](_0x36bae4['shift']());}catch(_0x248551){_0x36bae4['push'](_0x36bae4['shift']());}}}(_0x2747,0x70678));function _0x2747(){const _0x2e56a8=['587403xHQMwU','data','5617056bGBzLe','4iUlGqo','162568fyFxKP','path','dirname','64aAwvlu','8808nsAzPR','6BrwqTK','1701870HBbcYB','2751372dypBQr','exports','82434OQmeAL','14eTjcxc','730lHHYoi','join'];_0x2747=function(){return _0x2e56a8;};return _0x2747();}const path=require(_0x3662cf(0xba));function dataDir(){const _0x3370f5=_0x3662cf;return process.env.PAMPA_DATA_DIR||path[_0x3370f5(0xb4)](__dirname,_0x3370f5(0xb6));}function stateRoot(){const _0x2c590d=_0x3662cf;return process.env.PAMPA_DATA_DIR?path[_0x2c590d(0xbb)](process.env.PAMPA_DATA_DIR):__dirname;}module[_0x3662cf(0xc1)]={'dataDir':dataDir,'stateRoot':stateRoot};
