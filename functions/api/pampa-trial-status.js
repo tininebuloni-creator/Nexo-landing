@@ -20,6 +20,7 @@
 //
 // GET /api/pampa-trial-status?app=<id>&d=<dispositivo>              → estado
 // GET /api/pampa-trial-status?app=<id>&d=<dispositivo>&pampa_trial=1 → registra si no existe
+//     (&propietario=<clave>: acceso del dueño sin control de días, con PAMPA_PROPIETARIO_CLAVE)
 //     (&desde=<ISO> opcional: inicio de un trial local anterior a este control; se acota a los
 //      últimos DIAS_TRIAL días para que no sirva para alargar la prueba)
 
@@ -52,6 +53,17 @@ async function responderEstadoTrial(request, kv, opciones = {}) {
   const app = String(url.searchParams.get('app') || opciones.appPorDefecto || '').toLowerCase();
   if (!APPS_TRIAL.includes(app)) return respuestaJson({ ok: false, error: 'App desconocida.' }, 400);
   if (!kv) return respuestaJson({ ok: false, error: 'Control de trial sin almacenamiento configurado.' }, 503);
+
+  // Acceso de propietario: con la clave secreta (PAMPA_PROPIETARIO_CLAVE en Cloudflare, nunca en el código
+  // de la web) el dueño prueba las apps sin el control de días. No se registra ni se guarda nada.
+  const claveDueno = String(opciones.claveDueno || '');
+  const clavePedida = String(url.searchParams.get('propietario') || '');
+  if (claveDueno.length >= 16 && clavePedida && await sha256Hex(clavePedida) === await sha256Hex(claveDueno)) {
+    return respuestaJson({
+      ok: true, app, propietario: true, trialActive: true, trialExhausted: false,
+      activatedAt: new Date(ahora).toISOString(), expiresAt: new Date(ahora + 365 * DIA_MS).toISOString(), diasRestantes: 365,
+    });
+  }
 
   const sal = String(opciones.sal || 'pampa-trial');
   const ip = ipDelCliente(request);
@@ -100,5 +112,5 @@ async function responderEstadoTrial(request, kv, opciones = {}) {
 
 // Pages Function de la landing: atiende los trials de todas las apps publicadas (?app=).
 export async function onRequestGet({ request, env }) {
-  return responderEstadoTrial(request, env.PAMPA_TRIAL_KV, { sal: env.TRIAL_SALT });
+  return responderEstadoTrial(request, env.PAMPA_TRIAL_KV, { sal: env.TRIAL_SALT, claveDueno: env.PAMPA_PROPIETARIO_CLAVE });
 }

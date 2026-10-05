@@ -35,22 +35,35 @@
   }
 
   // El servidor (pampa-trial-guard.js) recuerda el primer inicio aunque se borren los datos.
+  // Su vencimiento manda; con el acceso de propietario no se muestra el panel ni se bloquea nada.
   function sincronizarConServidor() {
     const guard = window.PampaTrialGuard;
     if (!guard || typeof guard.estado !== 'function') return;
     guard.estado().then((estado) => {
       if (!estado || !estado.disponible) return;
+      if (estado.propietario) { quitarPanel(); return; }
       if (estado.activatedAt) setTrialStart(estado.activatedAt);
-      renderPanel(estado.agotado ? 0 : getDaysLeft(getTrialStart()));
+      renderPanel(estado.agotado ? 0 : estado.expiresAt ? diasHasta(estado.expiresAt) : getDaysLeft(getTrialStart()));
     }).catch(() => {});
   }
 
+  // Mismo criterio que el aviso de cada app: vence a los 10 días exactos de la hora de inicio, y quedan
+  // los días que faltan redondeados hacia arriba (antes contaba días de calendario y bloqueaba un día antes).
+  function diasHasta(fin) {
+    const resto = new Date(fin).getTime() - Date.now();
+    return Number.isFinite(resto) && resto > 0 ? Math.ceil(resto / 86400000) : 0;
+  }
   function getDaysLeft(startValue) {
     const start = new Date(startValue || getTrialStart());
     if (Number.isNaN(start.getTime())) return 0;
-    const elapsed = Math.floor((startOfDay(new Date()) - startOfDay(start)) / 86400000);
-    return Math.max(0, TRIAL_DAYS - elapsed);
+    return diasHasta(start.getTime() + TRIAL_DAYS * 86400000);
   }
+  function quitarPanel() {
+    setTrialBlocked(false);
+    const panel = document.getElementById(PANEL_ID);
+    if (panel) panel.remove();
+  }
+  const esPropietario = () => { try { return Boolean(localStorage.getItem('pampaPropietario')); } catch (e) { return false; } };
 
   function downloadJson(fileName, payload) {
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -243,7 +256,8 @@
 
   window.addEventListener('DOMContentLoaded', () => {
     injectStyles();
-    renderPanel(getDaysLeft(getTrialStart()));
+    // Con la clave de propietario guardada se espera la confirmación del servidor antes de bloquear.
+    if (!esPropietario()) renderPanel(getDaysLeft(getTrialStart()));
     sincronizarConServidor();
   });
 }());
