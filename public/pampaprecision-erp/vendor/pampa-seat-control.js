@@ -2,11 +2,18 @@
   'use strict';
 
   const GRACE_MS = 72 * 60 * 60 * 1000;
-  const API_URL = 'https://solucioneseningenieria.com.ar';
+  // Licencias locales: la firma y el vencimiento de la licencia se verifican en el equipo, sin consultar
+// ningún servidor por internet (no pasan por Cloudflare).
+  // Para volver a usar un servidor de cupos propio, poner su URL acá.
+  const API_URL = '';
   const product = document.currentScript?.dataset?.product || '';
   const storageKey = `pampaSeatControl:${product}`;
   const licenseKeys = ['nexoAgroLicense', 'PampaPorcinosLicense', 'tambo_license', 'pampa-license-cache'];
 
+  // Solo bloquea un rechazo explícito del servidor de cupos (JSON con ok:false y 403/409/429). Sin conexión,
+  // sin servidor o con una respuesta que no es suya (404, desafío de Cloudflare, error 5xx) la licencia
+  // firmada sigue funcionando: antes cualquier falla mostraba "No quedan cupos disponibles".
+  function rechazoExplicito(response, body) { return Boolean(body && body.ok === false && [403, 409, 429].includes(response.status)); }
   function readLicense() {
     for (const key of licenseKeys) {
       try {
@@ -51,8 +58,9 @@
 
   async function activate(license, deviceId) {
     const response = await fetch(`${API_URL}/v1/client/activate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: license.key, product, deviceId }) });
-    const body = await response.json().catch(() => ({}));
-    if (!response.ok || body.ok === false) throw new Error(body.message || 'No quedan cupos disponibles.');
+    const body = await response.json().catch(() => null);
+    if (rechazoExplicito(response, body)) throw Object.assign(new Error(body.message || body.error || 'No quedan cupos disponibles.'), { rechazo: true });
+    if (!response.ok || !body || body.ok === false) return { ok: true, offline: true };
     return body;
   }
 
@@ -61,12 +69,13 @@
     url.searchParams.set('licenseId', license.licenseId || '');
     url.searchParams.set('deviceId', deviceId);
     const response = await fetch(url, { cache: 'no-store' });
-    const body = await response.json().catch(() => ({}));
-    if (!response.ok || body.ok === false) throw new Error(body.message || 'Dispositivo no autorizado.');
+    const body = await response.json().catch(() => null);
+    if (rechazoExplicito(response, body)) throw Object.assign(new Error(body.message || body.error || 'Dispositivo no autorizado.'), { rechazo: true });
+    if (!response.ok || !body || body.ok === false) return { ok: true, offline: true };
     return body;
   }
 
-  async function release() {
+  async function release() { if (!API_URL) return;
     const license = readLicense();
     const state = readState();
     if (!license || !state.deviceId) return;
@@ -74,7 +83,7 @@
     localStorage.removeItem(storageKey);
   }
 
-  async function enforce() {
+  async function enforce() { if (!API_URL) return { ok: true, local: true };
     const license = readLicense();
     if (!license || !license.licenseId || !product) return { ok: true, skipped: true };
     const state = readState();
@@ -84,6 +93,7 @@
       saveState({ deviceId, activated: true, activeUsers: body.activeUsers, maxUsers: body.maxUsers, lastOnlineAt: new Date().toISOString() });
       return { ok: true, ...body };
     } catch (error) {
+      if (!error.rechazo) return { ok: true, offline: true };
       const lastOnlineAt = new Date(state.lastOnlineAt || 0).getTime();
       if (Number.isFinite(lastOnlineAt) && Date.now() - lastOnlineAt <= GRACE_MS) return { ok: true, offlineGrace: true };
       showBlocked(error.message || 'No se pudo verificar la licencia.');
