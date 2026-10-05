@@ -1,0 +1,5 @@
+# Cabeceras de Cloudflare Pages.
+# La biblioteca técnica cambia seguido (PDF renombrados, catálogo nuevo): que el navegador y Cloudflare
+# pregunten siempre si hay una versión nueva en vez de mostrar una copia vieja.
+/documentos/*
+  Cache-Control: no-cache
