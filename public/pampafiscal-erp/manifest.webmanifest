@@ -1,0 +1,12 @@
+{
+  "name": "PampaFiscal · Módulos fiscales agropecuarios",
+  "short_name": "PampaFiscal",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0f1419",
+  "theme_color": "#f59e0b",
+  "icons": [
+    { "src": "logo2.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

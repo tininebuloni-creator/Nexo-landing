@@ -108,7 +108,7 @@ const CENTRAL_POR_DEFECTO = 'https://nexo-landing-elt.pages.dev/api/pampa-ia';
 
 
 // ─── Pages Function: /api/pampa-ia ────────────────────────────────────────────────────────────────
-const APPS_IA = ['precision', 'agro', 'ganaderia', 'tambo', 'porcinos', 'topografia'];
+const APPS_IA = ['precision', 'agro', 'ganaderia', 'tambo', 'porcinos', 'topografia', 'fiscal'];
 const respuestaJson = (cuerpo, status = 200) => new Response(JSON.stringify(cuerpo), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } });
 
 // Estado (la app lo consulta para saber si hay servidor de IA).
