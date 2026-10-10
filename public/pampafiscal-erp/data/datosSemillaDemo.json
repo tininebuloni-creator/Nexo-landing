@@ -1,0 +1,906 @@
+{
+  "_meta": {
+    "tipo": "pampa-seed-demo",
+    "app": "pampafiscal",
+    "version": 1,
+    "fechaReferencia": "2026-10-10",
+    "descripcion": "Establecimiento ficticio La Ejemplar SA (Marcos Juárez, Córdoba): granos con cartas de porte, hacienda, tambo, porcinos, IVA compras y ventas, documentos, RENSPA y marcas. Las liquidaciones se calculan al cargarlas con las reglas vigentes de la app."
+  },
+  "empresa": {
+    "nombre": "La Ejemplar SA (ejemplo)",
+    "cuit": "30712345671",
+    "condicionIva": "RI",
+    "estadoSisa": "1",
+    "inscriptoGanancias": true,
+    "provincia": "CORDOBA",
+    "situacionRfocb": "INSCRIPTO_CON_CBU",
+    "registroPorcino": "INSCRIPTO_REGISTRO",
+    "domicilio": "Ruta 9 km 450, Marcos Juárez, Córdoba"
+  },
+  "estado": {
+    "usuarios": [
+      {
+        "id": "demo-u-admin",
+        "nombre": "Laura Gómez",
+        "rol": "administrador",
+        "whatsapp": ""
+      },
+      {
+        "id": "demo-u-contador",
+        "nombre": "Estudio Contable Ríos",
+        "rol": "contador",
+        "whatsapp": ""
+      },
+      {
+        "id": "demo-u-oficina",
+        "nombre": "Martín (oficina)",
+        "rol": "oficina",
+        "whatsapp": ""
+      }
+    ],
+    "registros": [
+      {
+        "tipo": "RENSPA",
+        "numero": "14.021.0.00999/00",
+        "establecimiento": "La Ejemplar",
+        "provincia": "CORDOBA",
+        "partido": "Marcos Juárez",
+        "hectareas": "1200",
+        "actualizacion": "2027-04-28",
+        "actividades": [
+          "granos",
+          "hacienda",
+          "leche",
+          "porcinos"
+        ],
+        "tenencia": "Propio",
+        "plantaSisa": "12345"
+      },
+      {
+        "tipo": "RENSPA",
+        "numero": "14.021.0.01177/00",
+        "establecimiento": "Campo El Molino",
+        "provincia": "CORDOBA",
+        "partido": "Marcos Juárez",
+        "hectareas": "380",
+        "actualizacion": "2027-03-09",
+        "actividades": [
+          "granos"
+        ],
+        "tenencia": "Mediería",
+        "plantaSisa": "12401",
+        "cuitDueno": "20123456786",
+        "modalidad": "Porcentaje",
+        "porcentajeDueno": "50",
+        "contratoDesde": "2025-09-05",
+        "contratoHasta": "2027-06-12",
+        "contratoEstado": "Aprobado"
+      },
+      {
+        "tipo": "MARCA",
+        "numero": "CBA-77812",
+        "tipoMarca": "MARCA",
+        "provincia": "CORDOBA",
+        "municipio": "Marcos Juárez",
+        "cuitTitular": "30712345671",
+        "vencimiento": "2029-03-28"
+      }
+    ],
+    "cpe": [
+      {
+        "id": "demo-cpe-1",
+        "tipoCPE": "74",
+        "estado": "DESCARGADA",
+        "ctg": "10199887701",
+        "numero": "0001-00045601",
+        "fecha": "2026-07-07",
+        "grano": "TRIGO",
+        "cosecha": "2025/2026",
+        "renspa": "14.021.0.00999/00",
+        "origen": "La Ejemplar",
+        "destinatario": "Cooperativa Agrícola del Sur",
+        "cuitDestinatario": "30700000113",
+        "destino": "Marcos Juárez",
+        "transportista": "Transportes Ruta 9",
+        "cuitTransportista": "30700000105",
+        "patente": "AE123BC",
+        "km": "28",
+        "tarifaTn": "8500",
+        "kgBrutos": "44800",
+        "tara": "15000",
+        "kgDescarga": "29650",
+        "fechaArribo": "2026-07-07"
+      },
+      {
+        "id": "demo-cpe-2",
+        "tipoCPE": "74",
+        "estado": "DESCARGADA",
+        "ctg": "10199887702",
+        "numero": "0001-00045602",
+        "fecha": "2026-08-11",
+        "grano": "SOJA",
+        "cosecha": "2025/2026",
+        "renspa": "14.021.0.00999/00",
+        "origen": "Silo bolsa lote 4",
+        "destinatario": "Acopio del Sur SA",
+        "cuitDestinatario": "30700000016",
+        "destino": "Marcos Juárez",
+        "transportista": "Transportes Ruta 9",
+        "cuitTransportista": "30700000105",
+        "patente": "AE123BC",
+        "km": "35",
+        "tarifaTn": "9000",
+        "kgBrutos": "75200",
+        "tara": "15000",
+        "kgDescarga": "60000",
+        "fechaArribo": "2026-08-11"
+      },
+      {
+        "id": "demo-cpe-3",
+        "tipoCPE": "74",
+        "estado": "DESCARGADA",
+        "ctg": "10199887703",
+        "numero": "0001-00045603",
+        "fecha": "2026-09-08",
+        "grano": "MAIZ",
+        "cosecha": "2025/2026",
+        "renspa": "14.021.0.01177/00",
+        "origen": "Campo El Molino (mediería)",
+        "destinatario": "Acopio del Sur SA",
+        "cuitDestinatario": "30700000016",
+        "destino": "Marcos Juárez",
+        "transportista": "Transportes Ruta 9",
+        "cuitTransportista": "30700000105",
+        "patente": "AF456DE",
+        "acoplado": "AF457DE",
+        "km": "42",
+        "tarifaTn": "9500",
+        "kgBrutos": "45300",
+        "tara": "15000",
+        "kgDescarga": "29980",
+        "fechaArribo": "2026-09-09"
+      },
+      {
+        "id": "demo-cpe-4",
+        "tipoCPE": "74",
+        "estado": "DESCARGADA",
+        "ctg": "10199887704",
+        "numero": "0001-00045604",
+        "fecha": "2026-10-02",
+        "grano": "SOJA",
+        "cosecha": "2025/2026",
+        "renspa": "14.021.0.00999/00",
+        "origen": "Silo bolsa lote 4",
+        "destinatario": "Acopio del Sur SA",
+        "cuitDestinatario": "30700000016",
+        "destino": "Marcos Juárez",
+        "transportista": "Transportes Ruta 9",
+        "cuitTransportista": "30700000105",
+        "patente": "AE123BC",
+        "km": "35",
+        "tarifaTn": "9000",
+        "kgBrutos": "45400",
+        "tara": "15000",
+        "kgDescarga": "30120",
+        "fechaArribo": "2026-10-02"
+      },
+      {
+        "id": "demo-cpe-5",
+        "tipoCPE": "74",
+        "estado": "ACTIVA",
+        "ctg": "10199887705",
+        "numero": "0001-00045605",
+        "fecha": "2026-10-09",
+        "grano": "SOJA",
+        "cosecha": "2025/2026",
+        "renspa": "14.021.0.00999/00",
+        "origen": "Silo bolsa lote 4",
+        "destinatario": "Acopio del Sur SA",
+        "cuitDestinatario": "30700000016",
+        "destino": "Marcos Juárez",
+        "transportista": "Transportes Ruta 9",
+        "cuitTransportista": "30700000105",
+        "patente": "AF456DE",
+        "km": "35",
+        "tarifaTn": "9000",
+        "kgBrutos": "45100",
+        "tara": "15000"
+      },
+      {
+        "id": "demo-cpe-6",
+        "tipoCPE": "74",
+        "estado": "ANULADA",
+        "ctg": "10199887699",
+        "numero": "0001-00045599",
+        "fecha": "2026-08-10",
+        "grano": "SOJA",
+        "cosecha": "2025/2026",
+        "renspa": "14.021.0.00999/00",
+        "origen": "Silo bolsa lote 4",
+        "destinatario": "Acopio del Sur SA",
+        "cuitDestinatario": "30700000016",
+        "destino": "Marcos Juárez",
+        "patente": "AE123BC",
+        "kgBrutos": "45000",
+        "tara": "15000",
+        "observaciones": "Anulada: el camión no llegó a cargar"
+      }
+    ],
+    "granos": [
+      {
+        "fecha": "2026-07-08",
+        "grano": "TRIGO",
+        "estadoSisa": "1",
+        "condicionIva": "RI",
+        "inscriptoGanancias": true,
+        "provincia": "CORDOBA",
+        "iibbRetPct": "0",
+        "sellos": true,
+        "kgBrutos": "29650",
+        "humedad": "",
+        "impurezasPct": "0",
+        "precioTn": "235000",
+        "comprador": "Cooperativa Agrícola del Sur",
+        "cuitComprador": "30700000113",
+        "numero": "330012340001",
+        "renspa": "14.021.0.00999/00",
+        "cpe": "demo-cpe-1",
+        "deducciones": [
+          {
+            "tipo": "COMISION",
+            "importe": "69678"
+          }
+        ]
+      },
+      {
+        "fecha": "2026-08-12",
+        "grano": "SOJA",
+        "estadoSisa": "1",
+        "condicionIva": "RI",
+        "inscriptoGanancias": true,
+        "provincia": "CORDOBA",
+        "iibbRetPct": "0",
+        "sellos": true,
+        "kgBrutos": "60000",
+        "humedad": "",
+        "impurezasPct": "0",
+        "precioTn": "420000",
+        "comprador": "Acopio del Sur SA",
+        "cuitComprador": "30700000016",
+        "numero": "330012340002",
+        "renspa": "14.021.0.00999/00",
+        "cpe": "demo-cpe-2",
+        "deducciones": [
+          {
+            "tipo": "COMISION",
+            "importe": "252000"
+          },
+          {
+            "tipo": "SECADO",
+            "importe": "0"
+          }
+        ]
+      },
+      {
+        "fecha": "2026-09-10",
+        "grano": "MAIZ",
+        "estadoSisa": "1",
+        "condicionIva": "RI",
+        "inscriptoGanancias": true,
+        "provincia": "CORDOBA",
+        "iibbRetPct": "0",
+        "sellos": true,
+        "kgBrutos": "29980",
+        "humedad": "",
+        "impurezasPct": "0",
+        "precioTn": "255000",
+        "comprador": "Acopio del Sur SA",
+        "cuitComprador": "30700000016",
+        "numero": "330012340003",
+        "renspa": "14.021.0.01177/00",
+        "cpe": "demo-cpe-3",
+        "deducciones": [
+          {
+            "tipo": "COMISION",
+            "importe": "76450"
+          },
+          {
+            "tipo": "SECADO",
+            "importe": "185000"
+          }
+        ]
+      },
+      {
+        "fecha": "2026-10-03",
+        "grano": "SOJA",
+        "estadoSisa": "1",
+        "condicionIva": "RI",
+        "inscriptoGanancias": true,
+        "provincia": "CORDOBA",
+        "iibbRetPct": "0",
+        "sellos": true,
+        "kgBrutos": "30120",
+        "humedad": "",
+        "impurezasPct": "0",
+        "precioTn": "432000",
+        "comprador": "Acopio del Sur SA",
+        "cuitComprador": "30700000016",
+        "numero": "330012340004",
+        "renspa": "14.021.0.00999/00",
+        "cpe": "demo-cpe-4",
+        "deducciones": [
+          {
+            "tipo": "COMISION",
+            "importe": "130118"
+          }
+        ]
+      }
+    ],
+    "hacienda": [
+      {
+        "fecha": "2026-07-14",
+        "operacion": "6",
+        "categoria": "510302",
+        "tipoLiquidacion": "2",
+        "cabezas": "38",
+        "kgVivo": "14100",
+        "desbastePct": "8",
+        "precio": "2550",
+        "condicionIva": "RI",
+        "monotributoExcedido": false,
+        "situacionRfocb": "INSCRIPTO_CON_CBU",
+        "inscriptoGanancias": true,
+        "provincia": "CORDOBA",
+        "iibbRetPct": "0",
+        "renspa": "14.021.0.00999/00",
+        "boletoMarca": "CBA-77812",
+        "comprador": "Frigorífico Regional SA",
+        "cuitComprador": "30700000024",
+        "dte": "9001201",
+        "numero": "0001-00000038",
+        "comisionPct": "",
+        "gastos": [
+          {
+            "tipo": "FLETE",
+            "importe": "420000"
+          },
+          {
+            "tipo": "DUT",
+            "importe": "38000"
+          },
+          {
+            "tipo": "OTROS",
+            "importe": "0"
+          }
+        ]
+      },
+      {
+        "fecha": "2026-08-19",
+        "operacion": "1",
+        "categoria": "510101",
+        "tipoLiquidacion": "2",
+        "cabezas": "12",
+        "kgVivo": "5520",
+        "desbastePct": "8",
+        "precio": "2100",
+        "condicionIva": "RI",
+        "monotributoExcedido": false,
+        "situacionRfocb": "INSCRIPTO_CON_CBU",
+        "inscriptoGanancias": true,
+        "provincia": "CORDOBA",
+        "iibbRetPct": "0",
+        "renspa": "14.021.0.00999/00",
+        "boletoMarca": "CBA-77812",
+        "comprador": "Remates del Centro SRL",
+        "cuitComprador": "30700000121",
+        "dte": "9001255",
+        "numero": "0002-00001102",
+        "comisionPct": "4",
+        "gastos": [
+          {
+            "tipo": "FLETE",
+            "importe": "180000"
+          },
+          {
+            "tipo": "DUT",
+            "importe": "12000"
+          },
+          {
+            "tipo": "OTROS",
+            "importe": "0"
+          }
+        ]
+      },
+      {
+        "fecha": "2026-09-19",
+        "operacion": "6",
+        "categoria": "510302",
+        "tipoLiquidacion": "2",
+        "cabezas": "40",
+        "kgVivo": "15200",
+        "desbastePct": "8",
+        "precio": "2700",
+        "condicionIva": "RI",
+        "monotributoExcedido": false,
+        "situacionRfocb": "INSCRIPTO_CON_CBU",
+        "inscriptoGanancias": true,
+        "provincia": "CORDOBA",
+        "iibbRetPct": "0",
+        "renspa": "14.021.0.00999/00",
+        "boletoMarca": "CBA-77812",
+        "comprador": "Frigorífico Regional SA",
+        "cuitComprador": "30700000024",
+        "dte": "9001310",
+        "numero": "0001-00000045",
+        "comisionPct": "",
+        "gastos": [
+          {
+            "tipo": "FLETE",
+            "importe": "450000"
+          },
+          {
+            "tipo": "DUT",
+            "importe": "40000"
+          },
+          {
+            "tipo": "OTROS",
+            "importe": "0"
+          }
+        ]
+      },
+      {
+        "fecha": "2026-10-06",
+        "operacion": "6",
+        "categoria": "5105",
+        "tipoLiquidacion": "2",
+        "cabezas": "25",
+        "kgVivo": "4750",
+        "desbastePct": "8",
+        "precio": "3300",
+        "condicionIva": "RI",
+        "monotributoExcedido": false,
+        "situacionRfocb": "INSCRIPTO_CON_CBU",
+        "inscriptoGanancias": true,
+        "provincia": "CORDOBA",
+        "iibbRetPct": "0",
+        "renspa": "14.021.0.00999/00",
+        "boletoMarca": "CBA-77812",
+        "comprador": "Frigorífico Regional SA",
+        "cuitComprador": "30700000024",
+        "dte": "9001388",
+        "numero": "0001-00000051",
+        "comisionPct": "",
+        "gastos": [
+          {
+            "tipo": "FLETE",
+            "importe": "160000"
+          },
+          {
+            "tipo": "DUT",
+            "importe": "25000"
+          },
+          {
+            "tipo": "OTROS",
+            "importe": "0"
+          }
+        ]
+      }
+    ],
+    "leche": [
+      {
+        "fecha": "2026-08-01",
+        "periodo": "2026-07",
+        "usina": "Usina Láctea Ejemplo",
+        "cuitUsina": "30700000032",
+        "numero": "LUME-2207",
+        "litros": "176500",
+        "precioLitro": "455",
+        "bonificaciones": "820000",
+        "descuentos": "140000",
+        "grasaPct": "3.6",
+        "proteinaPct": "3.3",
+        "condicionIva": "RESPONSABLE_INSCRIPTO",
+        "condicionGanancias": "INSCRIPTO",
+        "provincia": "CORDOBA",
+        "iibbRetPct": "0",
+        "porcentajeTambero": "18",
+        "tipoInscripcionTambero": "AUTONOMO",
+        "sussPct": "",
+        "renspa": "14.021.0.00999/00"
+      },
+      {
+        "fecha": "2026-08-31",
+        "periodo": "2026-08",
+        "usina": "Usina Láctea Ejemplo",
+        "cuitUsina": "30700000032",
+        "numero": "LUME-2208",
+        "litros": "181200",
+        "precioLitro": "468",
+        "bonificaciones": "880000",
+        "descuentos": "150000",
+        "grasaPct": "3.6",
+        "proteinaPct": "3.3",
+        "condicionIva": "RESPONSABLE_INSCRIPTO",
+        "condicionGanancias": "INSCRIPTO",
+        "provincia": "CORDOBA",
+        "iibbRetPct": "0",
+        "porcentajeTambero": "18",
+        "tipoInscripcionTambero": "AUTONOMO",
+        "sussPct": "",
+        "renspa": "14.021.0.00999/00"
+      },
+      {
+        "fecha": "2026-10-01",
+        "periodo": "2026-09",
+        "usina": "Usina Láctea Ejemplo",
+        "cuitUsina": "30700000032",
+        "numero": "LUME-2209",
+        "litros": "184900",
+        "precioLitro": "480",
+        "bonificaciones": "905000",
+        "descuentos": "152000",
+        "grasaPct": "3.6",
+        "proteinaPct": "3.3",
+        "condicionIva": "RESPONSABLE_INSCRIPTO",
+        "condicionGanancias": "INSCRIPTO",
+        "provincia": "CORDOBA",
+        "iibbRetPct": "0",
+        "porcentajeTambero": "18",
+        "tipoInscripcionTambero": "AUTONOMO",
+        "sussPct": "",
+        "renspa": "14.021.0.00999/00"
+      }
+    ],
+    "porcinos": [
+      {
+        "fecha": "2026-07-25",
+        "categoria": "Capón",
+        "tipoLiquidacion": "KILO",
+        "cabezas": "110",
+        "kgVivo": "12100",
+        "desbastePct": "0",
+        "precio": "1850",
+        "registro": "INSCRIPTO_REGISTRO",
+        "condicionIva": "RI",
+        "monotributoExcedido": false,
+        "inscriptoGanancias": true,
+        "provincia": "CORDOBA",
+        "iibbRetPct": "0",
+        "renspa": "14.021.0.00999/00",
+        "boletoMarca": "CBA-77812",
+        "comprador": "Frigorífico Porcino SA",
+        "cuitComprador": "30700000040",
+        "dte": "9005501",
+        "numero": "0001-00000101",
+        "comisionPct": "",
+        "gastos": [
+          {
+            "tipo": "FLETE",
+            "importe": "120000"
+          },
+          {
+            "tipo": "DUT",
+            "importe": "0"
+          },
+          {
+            "tipo": "OTROS",
+            "importe": "0"
+          }
+        ]
+      },
+      {
+        "fecha": "2026-08-26",
+        "categoria": "Capón",
+        "tipoLiquidacion": "KILO",
+        "cabezas": "118",
+        "kgVivo": "13000",
+        "desbastePct": "0",
+        "precio": "1900",
+        "registro": "INSCRIPTO_REGISTRO",
+        "condicionIva": "RI",
+        "monotributoExcedido": false,
+        "inscriptoGanancias": true,
+        "provincia": "CORDOBA",
+        "iibbRetPct": "0",
+        "renspa": "14.021.0.00999/00",
+        "boletoMarca": "CBA-77812",
+        "comprador": "Frigorífico Porcino SA",
+        "cuitComprador": "30700000040",
+        "dte": "9005560",
+        "numero": "0001-00000107",
+        "comisionPct": "",
+        "gastos": [
+          {
+            "tipo": "FLETE",
+            "importe": "120000"
+          },
+          {
+            "tipo": "DUT",
+            "importe": "0"
+          },
+          {
+            "tipo": "OTROS",
+            "importe": "0"
+          }
+        ]
+      },
+      {
+        "fecha": "2026-09-26",
+        "categoria": "Capón",
+        "tipoLiquidacion": "KILO",
+        "cabezas": "120",
+        "kgVivo": "13200",
+        "desbastePct": "0",
+        "precio": "1950",
+        "registro": "INSCRIPTO_REGISTRO",
+        "condicionIva": "RI",
+        "monotributoExcedido": false,
+        "inscriptoGanancias": true,
+        "provincia": "CORDOBA",
+        "iibbRetPct": "0",
+        "renspa": "14.021.0.00999/00",
+        "boletoMarca": "CBA-77812",
+        "comprador": "Frigorífico Porcino SA",
+        "cuitComprador": "30700000040",
+        "dte": "9005612",
+        "numero": "0001-00000112",
+        "comisionPct": "",
+        "gastos": [
+          {
+            "tipo": "FLETE",
+            "importe": "120000"
+          },
+          {
+            "tipo": "DUT",
+            "importe": "0"
+          },
+          {
+            "tipo": "OTROS",
+            "importe": "0"
+          }
+        ]
+      },
+      {
+        "fecha": "2026-09-26",
+        "categoria": "Cerda",
+        "tipoLiquidacion": "KILO",
+        "cabezas": "8",
+        "kgVivo": "1680",
+        "desbastePct": "0",
+        "precio": "1400",
+        "registro": "INSCRIPTO_REGISTRO",
+        "condicionIva": "RI",
+        "monotributoExcedido": false,
+        "inscriptoGanancias": true,
+        "provincia": "CORDOBA",
+        "iibbRetPct": "0",
+        "renspa": "14.021.0.00999/00",
+        "boletoMarca": "CBA-77812",
+        "comprador": "Frigorífico Porcino SA",
+        "cuitComprador": "30700000040",
+        "dte": "9005613",
+        "numero": "0001-00000113",
+        "comisionPct": "",
+        "gastos": [
+          {
+            "tipo": "FLETE",
+            "importe": "120000"
+          },
+          {
+            "tipo": "DUT",
+            "importe": "0"
+          },
+          {
+            "tipo": "OTROS",
+            "importe": "0"
+          }
+        ]
+      }
+    ],
+    "ventas": [
+      {
+        "fecha": "2026-07-22",
+        "tipo": "FA",
+        "numero": "0002-00000301",
+        "contraparte": "Contratista Rural SRL",
+        "cuit": "30700000059",
+        "concepto": "Servicio de siembra",
+        "neto": 2800000,
+        "alicuota": 21,
+        "iva": 588000,
+        "retIva": 0
+      },
+      {
+        "fecha": "2026-08-24",
+        "tipo": "FA",
+        "numero": "0002-00000309",
+        "contraparte": "Contratista Rural SRL",
+        "cuit": "30700000059",
+        "concepto": "Servicio de cosecha",
+        "neto": 3500000,
+        "alicuota": 21,
+        "iva": 735000,
+        "retIva": 0
+      },
+      {
+        "fecha": "2026-09-28",
+        "tipo": "FA",
+        "numero": "0002-00000318",
+        "contraparte": "Contratista Rural SRL",
+        "cuit": "30700000059",
+        "concepto": "Alquiler de tolva",
+        "neto": 950000,
+        "alicuota": 21,
+        "iva": 199500,
+        "retIva": 0
+      }
+    ],
+    "compras": [
+      {
+        "fecha": "2026-07-12",
+        "tipo": "FA",
+        "numero": "0005-00011870",
+        "contraparte": "Agroinsumos SA",
+        "cuit": "30700000067",
+        "concepto": "Semilla de trigo y fertilizante",
+        "neto": 7400000,
+        "alicuota": 10.5,
+        "iva": 777000,
+        "retIva": 0
+      },
+      {
+        "fecha": "2026-07-18",
+        "tipo": "FA",
+        "numero": "0003-00004101",
+        "contraparte": "Combustibles del Centro",
+        "cuit": "30700000075",
+        "concepto": "Gasoil",
+        "neto": 1900000,
+        "alicuota": 21,
+        "iva": 399000,
+        "retIva": 0
+      },
+      {
+        "fecha": "2026-08-05",
+        "tipo": "FA",
+        "numero": "0007-00002205",
+        "contraparte": "Veterinaria La Pampa",
+        "cuit": "30700000083",
+        "concepto": "Vacunas y antiparasitarios",
+        "neto": 1250000,
+        "alicuota": 21,
+        "iva": 262500,
+        "retIva": 0
+      },
+      {
+        "fecha": "2026-08-16",
+        "tipo": "FA",
+        "numero": "0003-00004188",
+        "contraparte": "Combustibles del Centro",
+        "cuit": "30700000075",
+        "concepto": "Gasoil",
+        "neto": 2050000,
+        "alicuota": 21,
+        "iva": 430500,
+        "retIva": 0
+      },
+      {
+        "fecha": "2026-09-02",
+        "tipo": "FA",
+        "numero": "0005-00012001",
+        "contraparte": "Agroinsumos SA",
+        "cuit": "30700000067",
+        "concepto": "Semilla de maíz y glifosato",
+        "neto": 6200000,
+        "alicuota": 10.5,
+        "iva": 651000,
+        "retIva": 0
+      },
+      {
+        "fecha": "2026-09-14",
+        "tipo": "FA",
+        "numero": "0009-00000877",
+        "contraparte": "Fletes Unidos SRL",
+        "cuit": "30700000091",
+        "concepto": "Flete de hacienda",
+        "neto": 640000,
+        "alicuota": 21,
+        "iva": 134400,
+        "retIva": 0
+      },
+      {
+        "fecha": "2026-09-24",
+        "tipo": "FA",
+        "numero": "0003-00004260",
+        "contraparte": "Combustibles del Centro",
+        "cuit": "30700000075",
+        "concepto": "Gasoil",
+        "neto": 2100000,
+        "alicuota": 21,
+        "iva": 441000,
+        "retIva": 63000
+      },
+      {
+        "fecha": "2026-10-04",
+        "tipo": "FA",
+        "numero": "0007-00002290",
+        "contraparte": "Veterinaria La Pampa",
+        "cuit": "30700000083",
+        "concepto": "Tratamientos de mastitis",
+        "neto": 780000,
+        "alicuota": 21,
+        "iva": 163800,
+        "retIva": 0
+      },
+      {
+        "fecha": "2026-10-07",
+        "tipo": "NCA",
+        "numero": "0005-00000145",
+        "contraparte": "Agroinsumos SA",
+        "cuit": "30700000067",
+        "concepto": "Bonificación por volumen",
+        "neto": 350000,
+        "alicuota": 10.5,
+        "iva": 36750,
+        "retIva": 0
+      }
+    ],
+    "documentos": [
+      {
+        "nombre": "Constancia de inscripción ARCA",
+        "tipo": "Constancia de inscripción (ARCA)",
+        "categoria": "Fiscal / ARCA",
+        "numero": "30712345671",
+        "fecha": "2026-07-02",
+        "vence": "",
+        "origen": "ARCA",
+        "descripcion": "IVA responsable inscripto · Ganancias",
+        "archivo": null
+      },
+      {
+        "nombre": "Constancia de exención IIBB Córdoba",
+        "tipo": "Constancia de exención de IIBB",
+        "categoria": "Rentas provinciales",
+        "numero": "EX-2026-0451",
+        "fecha": "2026-06-12",
+        "vence": "2026-10-28",
+        "origen": "Rentas Córdoba",
+        "descripcion": "Producción primaria · se presenta al acopio para que no retenga",
+        "archivo": null
+      },
+      {
+        "nombre": "Certificado de no retención de Ganancias",
+        "tipo": "Certificado de no retención / exclusión",
+        "categoria": "Fiscal / ARCA",
+        "numero": "CNR-0001234",
+        "fecha": "2026-08-11",
+        "vence": "2027-02-07",
+        "origen": "ARCA",
+        "descripcion": "Exclusión parcial del régimen de retención",
+        "archivo": null
+      },
+      {
+        "nombre": "Contrato de mediería Campo El Molino",
+        "tipo": "Contrato de arrendamiento / aparcería",
+        "categoria": "Contratos",
+        "numero": "CM-2025-07",
+        "fecha": "2025-09-05",
+        "vence": "2027-06-12",
+        "origen": "Juan Pérez (dueño)",
+        "descripcion": "Mediería 50 %, campañas 2025/26 y 2026/27",
+        "archivo": null
+      },
+      {
+        "nombre": "Boleto de marca CBA-77812",
+        "tipo": "Boleto de marca o señal",
+        "categoria": "Hacienda",
+        "numero": "CBA-77812",
+        "fecha": "2024-11-09",
+        "vence": "2029-03-28",
+        "origen": "Municipalidad de Marcos Juárez",
+        "descripcion": "",
+        "archivo": null
+      }
+    ]
+  }
+}
