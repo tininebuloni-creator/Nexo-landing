@@ -12,4 +12,6 @@ window.DOCUMENTOS_BIBLIOTECA = [
   {"number": "07", "title": "PampaPorcinos", "category": "Porcinos", "pages": "2 páginas", "filename": "07.PampaPorcinos.pdf", "file": "documentos/07.PampaPorcinos.pdf"},
   {"number": "08", "title": "PampaPrecisión", "category": "Precisión", "pages": "2 páginas", "filename": "08.PampaPrecision.pdf", "file": "documentos/08.PampaPrecision.pdf"},
   {"number": "09", "title": "Pampa Tambo", "category": "Tambo", "pages": "3 páginas", "filename": "09.Pampa Tambo.pdf", "file": "documentos/09.Pampa Tambo.pdf"},
+  {"number": "10", "title": "PampaFiscal", "category": "Fiscal", "pages": "3 páginas", "filename": "10.PampaFiscal.pdf", "file": "documentos/10.PampaFiscal.pdf"},
+  {"number": "11", "title": "PampaFiscal · Configuración de ARCA", "category": "Fiscal", "pages": "4 páginas", "filename": "11.PampaFiscal_Configuracion ARCA.pdf", "file": "documentos/11.PampaFiscal_Configuracion ARCA.pdf"},
 ];
