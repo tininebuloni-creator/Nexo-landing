@@ -1,0 +1,970 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <script src="pampa-trial-guard.js"></script>
+  <script src="web-backend.js"></script>
+  <script src="trial.js"></script>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="ERP para gestión de planta de alimentos balanceados porcinos">
+  <title>Pampa PBP | Planta Balanceados Porcinos · Prueba gratuita</title>
+  <meta name="theme-color" content="#f59e0b">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="vendor/brand/logo2.png">
+  <script src="offline-store.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <style>
+    /* === Tema visual PampaAgro (monorepo PAMPA N) === */
+    :root {
+      --bg-primary:#0f1419; --bg-secondary:#1a1f2e; --bg-tertiary:#252b3b; --bg-card:#1e2433;
+      --border:#2d3548; --border-light:#3d4558;
+      --accent:#f59e0b; --accent-dim:#d97706; --accent-glow:rgba(245,158,11,.15);
+      --ok:#10b981; --blue:#3b82f6; --purple:#8b5cf6; --orange:#f97316; --red:#ef4444; --yellow:#eab308; --cyan:#06b6d4;
+      --text-primary:#f1f5f9; --text-secondary:#94a3b8; --text-dim:#64748b;
+      --font-main:"Inter",system-ui,"Segoe UI",sans-serif; --font-mono:"JetBrains Mono",Consolas,monospace;
+      --sidebar-w:280px; --header-h:60px; --radius:8px; --radius-lg:12px;
+      /* Alias de los nombres que usa el HTML/JS de la app */
+      --green:var(--ok); --amber:var(--orange); --lime:var(--accent);
+      --navy:var(--bg-secondary); --paper:var(--bg-primary); --surface:var(--bg-card);
+      --line:var(--border); --ink:var(--text-primary); --muted:var(--text-secondary);
+      --serif:var(--font-main); --sans:var(--font-main);
+      --shadow:0 10px 24px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box} html{scroll-behavior:smooth;font-size:14px}
+    body{margin:0;background:var(--bg-primary);color:var(--text-primary);font-family:var(--font-main);font-size:14px}
+    button,input,select{font:inherit} button{cursor:pointer} .app{min-height:100vh;display:grid;grid-template-columns:var(--sidebar-w) 1fr}
+    ::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}::-webkit-scrollbar-thumb:hover{background:var(--text-dim)}
+
+    /* Sidebar */
+    .sidebar{position:fixed;inset:0 auto 0 0;width:var(--sidebar-w);background:var(--bg-secondary);border-right:1px solid var(--border);color:var(--text-primary);padding:0 0 16px;display:flex;flex-direction:column;z-index:30;overflow-y:auto}
+    .sidebar-header{padding:20px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;align-items:center;gap:12px}
+    .logo-icon{width:140px;height:140px;padding:10px;border-radius:16px;background:rgba(255,255,255,.08) url("vendor/brand/logo2.png") center/contain no-repeat;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+    .logo-text{font-weight:700;font-size:16px;text-align:center}.logo-sub{font-size:11px;color:var(--text-dim);font-family:var(--font-mono);text-align:center}
+    .plant-state{margin:16px 12px 4px;padding:12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg-tertiary)}
+    .plant-state span{display:flex;align-items:center;gap:8px;font-weight:600;font-size:12px}.plant-state i{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 4px rgba(16,185,129,.15)}
+    .plant-state small{display:block;color:var(--text-dim);margin:6px 0 0 16px;font-size:11px;font-family:var(--font-mono)}
+    .nav-title{margin:16px 12px 10px;padding:12px 12px 8px;border-bottom:2px solid var(--border);text-transform:uppercase;letter-spacing:2px;font-size:12px;font-weight:700;font-family:var(--font-mono);color:var(--text-primary)}
+    .sidebar nav{padding:0 12px}
+    .nav-btn{width:100%;border:0;background:transparent;color:var(--text-secondary);display:flex;align-items:center;gap:12px;text-align:left;padding:10px 12px;border-radius:6px;margin:2px 0;font-size:13px;transition:all .15s;user-select:none}
+    .nav-btn:hover{background:var(--bg-tertiary);color:var(--text-primary)}.nav-btn.active{background:var(--accent-glow);color:var(--accent);font-weight:500}
+    .nav-code{width:20px;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--text-dim)}.nav-btn.active .nav-code{color:var(--accent)}.nav-btn b{font-size:13px;font-weight:inherit}
+    .sidebar-foot{margin-top:auto;padding:16px 20px 0;border-top:1px solid var(--border);font-size:11px;color:var(--text-dim);line-height:1.6}.sidebar-foot b{color:var(--text-secondary);font-family:var(--font-mono);font-weight:500}
+
+    /* Topbar y contenido */
+    .main{grid-column:2;min-width:0}.topbar{height:var(--header-h);display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 24px;border-bottom:1px solid var(--border);background:var(--bg-secondary);position:sticky;top:0;z-index:20}
+    .topbar h1{font-size:16px;font-weight:600;margin:0}.topbar-left{display:flex;align-items:center;gap:12px}.date-label{color:var(--text-dim);font-size:11px;font-family:var(--font-mono)}
+    .top-actions{display:flex;gap:12px;align-items:center}
+    .ghost-btn,.primary-btn,.danger-btn{border-radius:6px;padding:8px 16px;border:1px solid var(--border);font-size:12px;font-weight:500;transition:all .15s}
+    .ghost-btn{background:var(--bg-tertiary);color:var(--text-primary)}.ghost-btn:hover{border-color:var(--accent);color:var(--accent)}
+    .primary-btn{background:var(--accent);border-color:var(--accent);color:#fff}.primary-btn:hover{background:var(--accent-dim);border-color:var(--accent-dim)}
+    .danger-btn{background:transparent;color:var(--red);border-color:var(--red)}.danger-btn:hover{background:rgba(239,68,68,.1)}
+    button:disabled{opacity:.6;cursor:wait}
+    .menu-btn{display:none;width:36px;height:36px;border:1px solid var(--border);background:var(--bg-tertiary);color:var(--text-primary);border-radius:8px}
+    .workspace{padding:24px;max-width:1500px;margin:auto}.page{display:none;animation:pageIn .3s ease}.page.active{display:block}@keyframes pageIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    .page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:24px}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--accent);font-family:var(--font-mono);font-weight:600}.page-head h2{font-size:26px;font-weight:700;line-height:1.15;margin:6px 0;letter-spacing:-.01em}.page-head p{margin:0;color:var(--text-secondary);font-size:13px;max-width:650px;line-height:1.55}
+
+    /* KPI y tarjetas */
+    .grid{display:grid;gap:16px}.metrics{grid-template-columns:repeat(4,1fr);margin-bottom:16px}
+    .metric{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;position:relative;overflow:hidden}.metric:before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--metric-color,var(--accent))}
+    .metric-label{color:var(--text-dim);font-size:11px;text-transform:uppercase;letter-spacing:1px}.metric-value{font-family:var(--font-mono);font-size:26px;font-weight:700;margin:8px 0 6px}.metric-foot{font-size:12px;color:var(--text-secondary)}
+    .positive{color:var(--ok);font-weight:600}.warning{color:var(--orange);font-weight:600}.negative{color:var(--red);font-weight:600}
+    .card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;min-width:0}.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:12px}.card-head h3{font-size:14px;font-weight:600;margin:0}.card-head small{display:block;color:var(--text-dim);font-size:12px;margin-top:3px}.card-head>b{font-family:var(--font-mono);color:var(--accent)}
+    .dashboard-grid{grid-template-columns:minmax(0,1.5fr) minmax(280px,.8fr)}.chart-wrap{height:260px;position:relative}.chart-wrap canvas{width:100%;height:100%}
+    .alert-list{display:flex;flex-direction:column;gap:8px}.alert{border-left:3px solid var(--alert,var(--orange));background:var(--bg-tertiary);border-radius:6px;padding:12px;display:grid;grid-template-columns:1fr auto;gap:4px 10px}.alert b{font-size:13px;font-weight:600}.alert p{grid-column:1/3;margin:0;color:var(--text-secondary);font-size:12px;line-height:1.45}.alert time{font-size:11px;color:var(--text-dim);font-family:var(--font-mono)}
+    .process-card{margin-top:16px}.process-line{display:grid;grid-template-columns:repeat(6,1fr);position:relative}.process-line:before{content:"";position:absolute;left:7%;right:7%;top:20px;border-top:1px dashed var(--border-light)}.stage{text-align:center;position:relative}.stage-dot{width:40px;height:40px;margin:0 auto 9px;border:6px solid var(--bg-card);border-radius:50%;background:var(--accent-glow);box-shadow:0 0 0 1px var(--accent);color:var(--accent);display:grid;place-items:center;font-family:var(--font-mono);font-size:10px;font-weight:700;position:relative}.stage span{font-size:12px;font-weight:600;display:block}.stage small{font-size:11px;color:var(--text-dim);font-family:var(--font-mono)}
+
+    /* Tablas y etiquetas */
+    .table-wrap{overflow:auto;border:1px solid var(--border);border-radius:var(--radius)}table{width:100%;border-collapse:collapse;white-space:nowrap;font-size:13px}th{text-align:left;background:var(--bg-tertiary);color:var(--text-dim);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;padding:12px;border-bottom:1px solid var(--border)}td{padding:12px;border-bottom:1px solid var(--border);color:var(--text-secondary)}td b{color:var(--text-primary);font-weight:600}tbody tr:last-child td{border-bottom:0}tbody tr:hover td{background:rgba(245,158,11,.04)}.lot-row{cursor:pointer}
+    td select{background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);border-radius:6px;padding:5px 8px;font-size:12px;outline:none}td select:focus{border-color:var(--accent)}
+    .badge{display:inline-flex;align-items:center;gap:4px;border-radius:4px;padding:4px 10px;font-size:11px;font-weight:500}.badge.green{background:rgba(16,185,129,.15);color:var(--ok)}.badge.amber{background:rgba(245,158,11,.15);color:var(--orange)}.badge.blue{background:rgba(59,130,246,.15);color:var(--blue)}.badge.red{background:rgba(239,68,68,.15);color:var(--red)}
+
+    /* Formularios */
+    .two-col{grid-template-columns:repeat(2,minmax(0,1fr))}.three-col{grid-template-columns:repeat(3,minmax(0,1fr))}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px}
+    .field label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);margin:0 0 6px}
+    .field input,.field select,.form-select{width:100%;border:1px solid var(--border);background:var(--bg-primary);border-radius:6px;padding:10px 12px;color:var(--text-primary);font-size:13px;outline:none}.field input:focus,.field select:focus,.form-select:focus{border-color:var(--accent)}.field input[readonly]{color:var(--text-dim)}
+    input[type=date]{color-scheme:dark}.field.full{grid-column:1/-1}.form-actions{display:flex;justify-content:flex-end;gap:12px;margin-top:20px}.text-muted{color:var(--text-dim);font-size:13px}
+
+    /* Calidad */
+    .quality-grid{grid-template-columns:repeat(5,minmax(0,1fr))}.quality-tile{border:1px solid var(--border);background:var(--bg-card);border-radius:var(--radius-lg);padding:18px}.quality-tile .ring{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;margin-bottom:16px;background:conic-gradient(var(--accent) var(--value),var(--bg-tertiary) 0);position:relative}.quality-tile .ring:after{content:"";width:44px;height:44px;background:var(--bg-card);border-radius:50%;position:absolute}.quality-tile .ring b{position:relative;z-index:1;font-family:var(--font-mono);font-size:12px}.quality-tile h3{font-size:13px;font-weight:600;margin:0 0 5px}.quality-tile p{font-size:12px;color:var(--text-secondary);line-height:1.45;margin:0}
+    .checklist{display:grid;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}.check{background:var(--bg-card);padding:12px;display:flex;align-items:flex-start;gap:10px}.check input{accent-color:var(--accent);margin-top:2px}.check label{font-size:13px;line-height:1.45}.check label small{display:block;color:var(--text-dim);font-size:12px;margin-top:2px}
+
+    /* Finanzas y simuladores */
+    .sim-layout{grid-template-columns:minmax(310px,.8fr) minmax(0,1.35fr)}.result-hero{background:linear-gradient(135deg,#0f5132 0%,#14532d 40%,#1a7f3e 100%);border:1px solid rgba(245,158,11,.16);box-shadow:0 8px 24px rgba(0,0,0,.25);color:#fff;border-radius:var(--radius-lg);padding:24px;margin-bottom:16px;display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:16px}.result-hero span{display:block;color:rgba(255,255,255,.75);font-size:11px;text-transform:uppercase;letter-spacing:1px}.result-hero strong{display:block;font-family:var(--font-mono);font-size:24px;margin-top:6px}.result-hero .main-result strong{color:var(--accent);font-size:30px}
+    .financial-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.financial-box{border:1px solid var(--border);background:var(--bg-tertiary);padding:14px;border-radius:var(--radius)}.financial-box span{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px}.financial-box b{display:block;font-family:var(--font-mono);font-size:18px;margin-top:6px}
+    .status-strip{margin-top:14px;padding:12px;border-radius:6px;border-left:3px solid var(--status-color,var(--ok));background:var(--bg-tertiary);font-size:13px;line-height:1.5;color:var(--text-secondary)}.status-strip b{color:var(--text-primary)}
+    .bars{display:flex;align-items:flex-end;height:220px;gap:7px;padding-top:12px}.bar-col{height:100%;flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;min-width:24px}.bar{width:100%;max-width:35px;background:var(--accent);border-radius:4px 4px 0 0;min-height:4px;transition:.3s;position:relative}.bar:hover{background:var(--accent-dim)}.bar-col span{font-size:10px;color:var(--text-dim);margin-top:7px;font-family:var(--font-mono)}.bar-tip{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-size:10px;white-space:nowrap;margin-bottom:4px;color:var(--text-primary);font-family:var(--font-mono);opacity:0}.bar:hover .bar-tip{opacity:1}
+    .cost-stack{height:24px;display:flex;border-radius:6px;overflow:hidden;margin:16px 0}.cost-stack span{height:100%}.legend{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.legend div{font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:7px}.legend i{width:10px;height:10px;border-radius:2px;display:block}
+    .calc-output{background:var(--bg-tertiary);border:1px solid var(--border);border-left:3px solid var(--accent);color:var(--text-primary);border-radius:var(--radius);padding:18px}.calc-output span{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px}.calc-output strong{font-family:var(--font-mono);font-size:26px;display:block;color:var(--accent);margin:6px 0}.calc-output small{color:var(--text-secondary);font-size:12px}
+    .doc-grid{grid-template-columns:repeat(3,1fr)}.doc-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px}.doc-card .doc-code{font-family:var(--font-mono);font-size:11px;color:var(--accent);letter-spacing:1px}.doc-card h3{font-size:14px;font-weight:600;margin:10px 0 5px}.doc-card p{font-size:12px;color:var(--text-secondary);line-height:1.5;min-height:45px}.doc-card button{width:100%;margin-top:8px}
+    .progress-row{display:grid;grid-template-columns:210px 1fr 45px;align-items:center;gap:12px;margin:13px 0;font-size:12px;color:var(--text-secondary)}.track{height:7px;background:var(--bg-tertiary);border-radius:99px;overflow:hidden}.track span{display:block;height:100%;background:var(--accent);border-radius:99px}.progress-row b{text-align:right;font-family:var(--font-mono);color:var(--text-primary);font-weight:500}
+
+    /* Telemetría, mapa y recetas */
+    .network-state{font-size:11px;font-weight:500;font-family:var(--font-mono);padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:var(--bg-tertiary);color:var(--text-secondary)}.network-state.online{color:var(--ok);border-color:rgba(16,185,129,.4)}.network-state.offline{color:var(--red);border-color:rgba(239,68,68,.4)}
+    .sensor-layout{display:grid;grid-template-columns:130px 1fr;gap:20px;align-items:center}.sensor-reading{font-family:var(--font-mono);font-size:38px;font-weight:700}.sensor-reading small{font:500 12px var(--font-main);color:var(--text-dim)}.gauge{height:18px;background:var(--bg-tertiary);border-radius:99px;overflow:hidden;margin:11px 0}.gauge span{display:block;height:100%;width:0;background:var(--ok);border-radius:inherit;transition:.3s}
+    .trace-result{margin-top:16px}.inline-form{display:flex;gap:12px;align-items:flex-end}.inline-form .field{flex:1}.status-text{font-size:11px;font-weight:600;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.05em}
+    #lotsMap{height:480px;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;background:var(--bg-tertiary)}.lots-layout{grid-template-columns:minmax(0,1.45fr) minmax(310px,.75fr)}.lot-summary{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.lot-summary div{border:1px solid var(--border);background:var(--bg-tertiary);border-radius:var(--radius);padding:13px}.lot-summary span{display:block;font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px}.lot-summary b{font-family:var(--font-mono);font-size:20px;display:block;margin-top:5px}
+    .leaflet-container{font-family:var(--font-main)}.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--bg-secondary);color:var(--text-primary);border:1px solid var(--border)}.leaflet-popup-content{font-size:12px;line-height:1.5}.leaflet-container a.leaflet-popup-close-button{color:var(--text-secondary)}
+    .geo-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.geo-status{font-size:12px;color:var(--text-dim);font-family:var(--font-mono)}
+    .head-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.head-actions .form-select{width:auto}.filter-row{display:flex;gap:8px}.filter-row .form-select{width:auto;padding:7px 10px;font-size:12px}input[type=month]{color-scheme:dark}
+    .legend-inline{display:flex;gap:12px}.flow-bars{display:flex;align-items:flex-end;height:220px;gap:10px;padding-top:12px}.flow-col{height:100%;flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;min-width:34px}.flow-pair{display:flex;align-items:flex-end;gap:3px;height:100%;width:100%;justify-content:center}.flow-pair span{width:45%;max-width:22px;border-radius:4px 4px 0 0;min-height:2px;position:relative}.flow-pair .in{background:var(--ok)}.flow-pair .out{background:var(--red)}.flow-col>small{font-size:10px;color:var(--text-dim);margin-top:7px;font-family:var(--font-mono)}
+    .coverage-row{display:grid;grid-template-columns:minmax(150px,1.3fr) 1fr 54px;align-items:center;gap:12px;margin:11px 0;font-size:12px;color:var(--text-secondary)}.coverage-row b{text-align:right;font-family:var(--font-mono);font-weight:500;color:var(--text-primary)}.coverage-row .track span.full{background:var(--ok)}.coverage-row .track span.short{background:var(--orange)}
+    .pending-tag{font-size:10px;color:var(--orange);font-family:var(--font-mono);margin-left:6px}.network-state.pending{color:var(--orange);border-color:rgba(249,115,22,.4)}
+    .market-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:16px}.market-link{display:flex;align-items:center;gap:14px;padding:14px 18px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);color:var(--text-primary);text-decoration:none;transition:border-color .15s,background .15s}.market-link:hover{border-color:var(--accent);background:var(--bg-tertiary)}.market-link b{display:block;font-size:14px}.market-link small{display:block;color:var(--text-secondary);font-size:12px;margin-top:2px}.market-link>span:nth-child(2){flex:1;min-width:0}.market-icon{font-size:22px}.market-link i{font-style:normal;color:var(--accent);font-size:16px}
+    .lot-tenure-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.tenure-box{border:1px solid var(--border);border-top:3px solid var(--tenure-color,var(--accent));background:var(--bg-tertiary);border-radius:var(--radius);padding:13px}.tenure-box span{display:block;font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px}.tenure-box b{display:block;font-family:var(--font-mono);font-size:19px;margin:5px 0 3px}.tenure-box small{display:block;font-size:11px;color:var(--text-secondary);line-height:1.5}.tenure-box em{display:block;font-style:normal;font-size:11px;margin-top:2px}
+    .grain-prices{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:16px}.field-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim)}.grain-price-inputs{display:flex;flex-wrap:wrap;gap:8px}.grain-price-inputs label{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary)}.mep-chip{font-size:12px;font-family:var(--font-mono);color:var(--text-secondary);background:var(--bg-tertiary);border:1px solid var(--border);border-radius:999px;padding:6px 12px}.mep-chip.stale{color:var(--orange);border-color:rgba(249,115,22,.4)}.mep-chip.missing{color:var(--red);border-color:rgba(239,68,68,.4)}.grain-price-inputs small{font-family:var(--font-mono);color:var(--text-dim);font-size:11px}.grain-price-inputs input{width:104px;background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);border-radius:6px;padding:6px 8px;font-size:12px;outline:none}.grain-price-inputs input:focus{border-color:var(--accent)}a.ghost-btn{text-decoration:none;display:inline-block}
+    .tender-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 16px}.tender-toolbar .form-select{width:auto}
+    .tender-card{display:flex;flex-direction:column;gap:8px}.tender-card-head{display:flex;justify-content:space-between;align-items:center;gap:8px}.tender-card h3{margin:2px 0 0}.tender-card p{min-height:0;margin:0}.tender-meta{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:12px;margin-top:4px}.tender-meta span{color:var(--text-dim)}.tender-meta b{font-weight:500;color:var(--text-primary);text-align:right}.tender-meta b small{display:block;color:var(--text-dim);font-weight:400}.tender-card .track{margin-top:6px}.tender-card .compliance-note{font-size:11px;color:var(--text-secondary)}.tender-card .row-actions{margin-top:auto;padding-top:8px}.tender-card .row-actions button{width:auto;margin-top:0}.tender-card .row-actions .ghost-btn{flex:1}.tender-card .row-actions .danger-btn{flex:0 0 auto}.tender-card.rejected{opacity:.55}
+    dialog.wide-dialog{width:min(980px,calc(100vw - 30px))}.form-grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}.check-field .check{background:none;padding:0;border:0}.field small.text-muted{display:block;margin-top:4px;font-size:11px}.field textarea{width:100%;border:1px solid var(--border);background:var(--bg-primary);border-radius:6px;padding:10px 12px;color:var(--text-primary);font:inherit;font-size:13px;outline:none;resize:vertical}.field textarea:focus{border-color:var(--accent)}
+    .items-head{display:flex;align-items:center;gap:12px;margin:20px 0 10px}.items-head h3{margin:0;font-size:14px;font-weight:600}.items-head small{flex:1}.items-table td{padding:6px 8px;vertical-align:middle}.items-table input,.items-table select{width:100%;background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);border-radius:6px;padding:7px 8px;font-size:12px;outline:none}.items-table input:focus,.items-table select:focus{border-color:var(--accent)}.items-table td:first-child{min-width:260px}.items-table td:nth-child(4){min-width:180px}.items-table select.cmp-cumple{color:var(--ok)}.items-table select.cmp-parcial{color:var(--orange)}.items-table select.cmp-no{color:var(--red)}
+    .subtabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin:-8px 0 20px}.subtab{background:none;border:0;border-bottom:2px solid transparent;color:var(--text-secondary);padding:10px 16px;font-size:13px;font-weight:600;margin-bottom:-1px}.subtab:hover{color:var(--text-primary)}.subtab.active{color:var(--accent);border-bottom-color:var(--accent)}.subpage{display:none}.subpage.active{display:block}
+    .pill-nav{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 16px}.pill{background:var(--bg-tertiary);border:1px solid var(--border);color:var(--text-secondary);border-radius:999px;padding:7px 14px;font-size:12px;font-weight:500}.pill:hover{color:var(--text-primary);border-color:var(--border-light)}.pill.active{background:var(--accent-glow);color:var(--accent);border-color:rgba(245,158,11,.45)}.op-section{display:none}.op-section.active{display:block}
+    .op-origin{font-size:10px;font-family:var(--font-mono);color:var(--text-dim)}tr.op-selected td{background:rgba(245,158,11,.06)}td select.inline-status{max-width:150px}
+    .dashboard-hero{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr);gap:16px;align-items:stretch;margin-bottom:16px}.dashboard-empresa-col{display:flex;flex-direction:column;gap:12px}
+    .empresa-portada{position:relative;background:linear-gradient(135deg,#0f5132 0%,#14532d 40%,#1a7f3e 100%);border-radius:var(--radius-lg);padding:18px 20px 22px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.25);border:1px solid rgba(245,158,11,.16);min-height:300px;display:flex;flex-direction:column;justify-content:center}
+    .empresa-portada::before{content:"";position:absolute;top:-60px;right:-60px;width:260px;height:260px;background:radial-gradient(circle,rgba(255,255,255,.08) 0%,transparent 70%);border-radius:50%;pointer-events:none}
+    .empresa-portada::after{content:"🐖";position:absolute;right:24px;bottom:-24px;font-size:150px;opacity:.07;pointer-events:none}
+    .empresa-portada-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+    .empresa-portada-logo{width:min(380px,80%);height:190px;background:url("vendor/brand/logo2.png") center/contain no-repeat}
+    .empresa-portada-nombre{font-size:28px;font-weight:800;color:#fff;letter-spacing:.5px;text-shadow:0 2px 8px rgba(0,0,0,.3)}.empresa-portada-sub{font-size:12px;color:rgba(255,255,255,.85);font-family:var(--font-mono);margin:2px 0 10px}
+    .empresa-portada-datos{display:flex;flex-wrap:wrap;gap:16px;font-size:11px;color:rgba(255,255,255,.9);justify-content:center}.empresa-portada-datos span{display:inline-flex;align-items:center;gap:6px}.empresa-portada-datos strong{color:#fff;font-weight:600}
+    .portada-edit{position:absolute;top:12px;right:12px;z-index:3;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:6px;padding:5px 10px;font-size:11px}.portada-edit:hover{background:rgba(0,0,0,.4)}
+    .portada-market-tools{position:relative;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center}
+    .empresa-portada-tool-btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border-light);background:var(--bg-card);color:var(--text-primary);border-radius:8px;padding:8px 12px;min-height:40px;font-size:12px;font-weight:600;text-decoration:none;transition:all .2s}.empresa-portada-tool-btn:hover{background:var(--bg-tertiary);border-color:var(--accent);transform:translateY(-1px)}
+    .agroenso-tip{display:inline-flex}.agroenso-tip-texto{position:absolute;left:0;bottom:calc(100% + 10px);width:min(340px,calc(100vw - 32px));padding:12px 14px;border:1px solid rgba(34,197,94,.5);border-radius:10px;background:#0f1f17;color:#e7f3ec;box-shadow:0 12px 28px rgba(0,0,0,.45);font-size:12px;line-height:1.5;opacity:0;visibility:hidden;transform:translateY(4px);transition:opacity .15s,transform .15s,visibility .15s;pointer-events:none;z-index:60}.agroenso-tip-texto strong{display:block;margin-bottom:6px;color:#86efac}.agroenso-tip:hover .agroenso-tip-texto,.agroenso-tip:focus-within .agroenso-tip-texto{opacity:1;visibility:visible;transform:none}
+    .dashboard-top-actions{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;display:flex;flex-direction:column;gap:12px}.dashboard-top-actions-title{font-size:12px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;font-family:var(--font-mono)}
+    .dashboard-date-chip{display:inline-flex;align-items:center;gap:8px;align-self:flex-start;font-size:11px;color:var(--text-secondary);background:var(--bg-tertiary);border:1px solid var(--border);border-radius:999px;padding:6px 10px}.dashboard-date-chip strong{color:var(--text-primary);font-weight:600}
+    .dashboard-top-actions-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.dashboard-action-btn,.dashboard-role-select{border:1px solid var(--border);background:var(--bg-tertiary);color:var(--text-primary);border-radius:8px;padding:10px 12px;font-size:12px;font-weight:600;text-align:left;transition:all .2s;width:100%}.dashboard-action-btn:hover{border-color:var(--accent);color:var(--accent)}.dashboard-role-select:focus{outline:none;border-color:var(--accent)}.dashboard-role-select{grid-column:1/-1}
+    .dashboard-sync-inline{display:inline-flex;align-items:center;gap:6px}.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--text-dim);display:inline-block}.sync-dot.ok{background:var(--ok)}.sync-dot.pending{background:var(--orange)}.sync-dot.off{background:var(--red)}
+    .alert-count{display:inline-flex;min-width:18px;height:18px;border-radius:999px;background:var(--red);color:#fff;font-size:10px;align-items:center;justify-content:center;padding:0 5px;margin-left:4px}
+    .wa-mini-icon{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;margin-right:10px;border-radius:50%;background:#25d366;color:#fff;font-size:11px;font-weight:700;flex-shrink:0}.dashboard-action-btn.whatsapp-action{grid-column:1/-1;justify-self:center;width:min(100%,220px);min-height:46px;display:flex;align-items:center}
+    .metric.linkable{cursor:pointer}.metric.linkable:hover{border-color:var(--border-light)}
+    .quick-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.quick-grid button{text-align:left;padding:14px;border:1px solid var(--border);background:var(--bg-tertiary);color:var(--text-primary);border-radius:var(--radius);font-size:13px;font-weight:600}.quick-grid button:hover{border-color:var(--accent);color:var(--accent)}.quick-grid small{display:block;color:var(--text-dim);font-weight:400;margin-top:4px;font-size:11px}
+    .perm-table td,.perm-table th{text-align:center}.perm-table td:first-child,.perm-table th:first-child{text-align:left}.perm-table input{accent-color:var(--accent)}.kv{display:grid;grid-template-columns:minmax(150px,auto) 1fr;gap:6px 16px;font-size:13px}.kv span{color:var(--text-dim)}.kv b{font-weight:500;word-break:break-all}.dialog-section{margin-top:18px}.dialog-section h3{font-size:14px;margin:0 0 10px}
+    .ws-section{display:none}.ws-section.active{display:block}ol.steps{margin:0;padding-left:20px;color:var(--text-secondary);font-size:13px;line-height:1.7}.class-badge{font-size:10px}
+    .qc-section{display:none}.qc-section.active{display:block}.quality-tile{cursor:pointer}.quality-tile:hover{border-color:var(--border-light)}.qc-flag{font-size:10px;margin-left:4px}.audit-check{display:grid;grid-template-columns:auto 1fr minmax(180px,.8fr);gap:8px 12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}.audit-check:last-child{border-bottom:0}.audit-check small{display:block;color:var(--text-dim);font-size:11px}.audit-check input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent)}.audit-check input[type=text]{background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);border-radius:6px;padding:7px 8px;font-size:12px;outline:none}.list-editor-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:8px}.list-editor-row.zones{grid-template-columns:1fr 130px 1.4fr 1.4fr auto}.list-editor-row input,.list-editor-row select{background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);border-radius:6px;padding:8px;font-size:12px;outline:none;width:100%}
+    .stage-link{cursor:pointer}.stage-link:hover span{color:var(--accent)}.stage-sub{display:block;font-style:normal;font-size:10px;color:var(--text-dim);font-family:var(--font-mono);margin-top:2px}.stage.stage-ok .stage-dot{background:rgba(16,185,129,.15);color:var(--ok);box-shadow:0 0 0 1px var(--ok)}.stage.stage-bad .stage-dot{background:rgba(239,68,68,.15);color:var(--red);box-shadow:0 0 0 1px var(--red)}.stage.stage-bad small{color:var(--red)}.stage.stage-none .stage-dot{background:var(--bg-tertiary);color:var(--text-dim);box-shadow:0 0 0 1px var(--border-light)}
+    #insCards{grid-template-columns:repeat(3,minmax(0,1fr))}.ins-card .row-actions{flex-wrap:wrap;margin-top:auto;padding-top:8px}.ins-card .row-actions button{width:auto;margin-top:0;flex:1 1 auto}.ins-card .row-actions .danger-btn{flex:0 0 auto}.ins-card .ins-fill{height:10px;border-radius:99px;background:var(--bg-tertiary);overflow:hidden;margin:8px 0 4px}.ins-card .ins-fill span{display:block;height:100%;border-radius:99px}.ins-card .ins-stock{font-family:var(--font-mono);font-size:20px;font-weight:700}.ins-card .ins-items{font-size:12px;color:var(--text-secondary);line-height:1.6}
+    .trn-section{display:none}.trn-section.active{display:block}.trn-attendees{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px 14px;max-height:300px;overflow:auto;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-primary)}.trn-attendees label{display:flex;gap:8px;align-items:flex-start;font-size:13px;cursor:pointer}.trn-attendees input{width:16px;height:16px;margin-top:2px;accent-color:var(--accent)}.trn-attendees small{display:block;color:var(--text-dim);font-size:11px}.trn-attendees small.negative{color:var(--red)}.trn-attendees small.warning{color:var(--orange)}
+    .trn-topic-row{border-bottom:1px solid var(--border);padding:8px 0}.list-editor-row.trn-topic{grid-template-columns:1fr 90px auto auto;align-items:center;margin-bottom:4px}.tt-quality{display:flex;gap:6px;align-items:center;font-size:12px;white-space:nowrap}.trn-positions summary{cursor:pointer;font-size:12px;color:var(--text-secondary)}.trn-positions div{display:flex;flex-wrap:wrap;gap:6px 14px;padding:8px 0 4px;font-size:12px}.trn-positions input{accent-color:var(--accent)}
+    .report-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}.report-card{display:flex;flex-direction:column;gap:4px;text-align:left;background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;padding:16px;color:var(--text-primary);cursor:pointer;font:inherit;width:auto}.report-card:hover{border-color:var(--border-light)}.report-card.active{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}.report-card .rc-icon{font-size:22px}.report-card b{font-size:14px}.report-card small{color:var(--text-dim);font-size:12px;line-height:1.4}
+    .rp-kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:8px}.rp-kpi{background:var(--bg-tertiary);border:1px solid var(--border);border-radius:10px;padding:10px 12px}.rp-kpi span{display:block;font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}.rp-kpi b{font-family:var(--font-mono);font-size:15px}.rp-section{margin-top:18px}.rp-section h4{margin:0 0 8px;font-size:14px}.rp-section th.num,.rp-section td.num{text-align:right}.rp-section td.num{font-family:var(--font-mono)}.rp-note{margin-top:14px;font-size:12px;color:var(--text-dim)}#rpViewer .head-actions{flex-wrap:wrap;align-items:center}#rpViewer .form-select{width:auto}
+    .ai-layout{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);align-items:start}.ai-summary{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}.ai-insight time .ghost-btn{padding:3px 10px;font-size:11px;width:auto}.ai-prompts{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}.ai-chat{height:440px;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--bg-primary)}.ai-msg{max-width:88%;padding:10px 12px;border-radius:10px;font-size:13px;line-height:1.55;overflow-wrap:anywhere}.ai-user{align-self:flex-end;background:rgba(245,158,11,.12);border:1px solid var(--accent)}.ai-assistant{align-self:flex-start;background:var(--bg-tertiary);border:1px solid var(--border)}.ai-msg small{display:block;margin-top:6px;font-size:10px;color:var(--text-dim);font-family:var(--font-mono)}.ai-li{display:block;padding-left:4px}.ai-compose{display:flex;gap:10px;margin-top:10px}.ai-compose textarea{flex:1;resize:vertical;min-height:52px;background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);border-radius:8px;padding:10px;font:inherit;font-size:13px}.ai-compose .primary-btn{width:auto}
+    @media(max-width:1024px){.ai-layout{grid-template-columns:1fr}}
+    .nav-btn .tier-badge{margin-left:auto;font-size:9px;padding:2px 6px;border-radius:99px;font-family:var(--font-mono);letter-spacing:.3px;white-space:nowrap}.tier-P{background:rgba(59,130,246,.18);color:#93c5fd}.tier-M{background:rgba(245,158,11,.2);color:#fbbf24}
+    .row-actions{display:flex;gap:6px}.row-actions button{padding:5px 10px;font-size:11px}
+    .recipe-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.recipe-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px}.recipe-card h3{font-size:18px;font-weight:700;margin:6px 0}.recipe-meta{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}.ingredient-bar{display:flex;height:14px;border-radius:99px;overflow:hidden;background:var(--bg-tertiary)}.ingredient-bar span:nth-child(5n+1){background:#10b981}.ingredient-bar span:nth-child(5n+2){background:#06b6d4}.ingredient-bar span:nth-child(5n+3){background:#f59e0b}.ingredient-bar span:nth-child(5n+4){background:#3b82f6}.ingredient-bar span:nth-child(5n){background:#ef4444}.ingredient-list{font-size:12px;color:var(--text-secondary);margin-top:10px;line-height:1.6}
+
+    /* Diálogos y toast */
+    dialog{border:1px solid var(--border);border-radius:var(--radius-lg);padding:0;width:min(600px,calc(100vw - 30px));max-height:90vh;background:var(--bg-secondary);color:var(--text-primary);box-shadow:0 30px 100px rgba(0,0,0,.5)}dialog::backdrop{background:rgba(0,0,0,.7)}
+    .dialog-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}.dialog-head h2{margin:0;font-size:16px;font-weight:600}.dialog-close{width:32px;height:32px;padding:0;border:0;border-radius:6px;background:none;color:var(--text-secondary);font-size:24px}.dialog-close:hover{background:var(--bg-tertiary);color:var(--text-primary)}.dialog-body{padding:20px}
+    .toast{position:fixed;right:24px;bottom:24px;background:rgba(30,36,51,.96);color:#fff;border:1px solid var(--border);border-left:3px solid var(--accent);padding:14px 20px;border-radius:8px;box-shadow:var(--shadow);z-index:2000;transform:translateY(100px);opacity:0;transition:all .3s;font-size:13px;font-weight:600}.toast.show{transform:none;opacity:1}
+
+    @media(max-width:1100px){.quality-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.dashboard-hero{grid-template-columns:1fr}.quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.lot-tenure-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.metrics,.quality-grid{grid-template-columns:repeat(2,1fr)}.dashboard-grid,.sim-layout,.lots-layout{grid-template-columns:1fr}.doc-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:768px){.audit-check{grid-template-columns:auto 1fr}.audit-check input[type=text]{grid-column:1/-1}.list-editor-row,.list-editor-row.zones{grid-template-columns:1fr}.quick-grid{grid-template-columns:1fr}.empresa-portada-nombre{font-size:22px}.empresa-portada-logo{height:130px}.form-grid-3{grid-template-columns:1fr}.market-links{grid-template-columns:1fr}.lot-tenure-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.coverage-row{grid-template-columns:120px 1fr 48px}.head-actions{width:100%}.app{display:block}.sidebar{transform:translateX(-100%);transition:transform .25s ease;width:min(86vw,320px);z-index:2200}.sidebar.open{transform:none;box-shadow:0 0 0 100vmax rgba(0,0,0,.45)}.main{grid-column:auto}.topbar{padding:0 16px}.menu-btn{display:block}.date-label{display:none}.workspace{padding:20px 16px}.page-head{align-items:flex-start;flex-direction:column}.page-head h2{font-size:22px}.metrics,.quality-grid,.two-col,.three-col,.doc-grid,.recipe-cards{grid-template-columns:1fr}.metric{padding:16px}.process-line{grid-template-columns:repeat(3,1fr);gap:20px 0}.process-line:before{display:none}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.result-hero{grid-template-columns:1fr 1fr}.main-result{grid-column:1/-1}.financial-grid{grid-template-columns:1fr}.progress-row{grid-template-columns:130px 1fr 38px}.top-actions .ghost-btn{display:none}.inline-form{flex-direction:column;align-items:stretch}.sensor-layout{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header"><div class="logo-icon" role="img" aria-label="Pampa N"></div><div><div class="logo-text">Pampa PBP</div><div class="logo-sub">Planta Balanceados Porcinos</div></div></div>
+      <div class="plant-state"><span><i></i> Planta operativa</span><small>Turno A · Línea principal</small></div>
+      <div class="nav-title">Control</div>
+      <nav>
+        <button class="nav-btn active" data-page="home"><span class="nav-code">01</span><b>Dashboard</b></button>
+        <button class="nav-btn" data-page="dashboard"><span class="nav-code">02</span><b>Control de planta</b></button>
+        <button class="nav-btn" data-page="production"><span class="nav-code">03</span><b>Producción</b></button>
+        <button class="nav-btn" data-page="inventory"><span class="nav-code">04</span><b>Inventario</b></button>
+        <button class="nav-btn" data-page="installations"><span class="nav-code">05</span><b>Instalaciones</b></button>
+        <button class="nav-btn" data-page="lots"><span class="nav-code">06</span><b>Lotes</b></button>
+        <button class="nav-btn" data-page="recipes"><span class="nav-code">07</span><b>Recetas</b></button>
+        <button class="nav-btn" data-page="equipment"><span class="nav-code">08</span><b>Equipamiento</b></button>
+        <button class="nav-btn" data-page="quality"><span class="nav-code">09</span><b>Calidad y bioseguridad</b></button>
+        <button class="nav-btn" data-page="waste"><span class="nav-code">10</span><b>Residuos</b></button>
+        <button class="nav-btn" data-page="supply"><span class="nav-code">11</span><b>Abastecimiento</b></button>
+      </nav>
+      <div class="nav-title">Gestión</div>
+      <nav>
+        <button class="nav-btn" data-page="treasury"><span class="nav-code">12</span><b>Finanzas</b></button>
+        <button class="nav-btn" data-page="costs"><span class="nav-code">13</span><b>Costos</b></button>
+        <button class="nav-btn" data-page="hr"><span class="nav-code">14</span><b>RRHH</b></button>
+      </nav>
+      <div class="nav-title">Análisis</div>
+      <nav>
+        <button class="nav-btn" data-page="reports"><span class="nav-code">15</span><b>Reportes</b></button>
+        <button class="nav-btn" data-page="ai"><span class="nav-code">16</span><b>PampaIA</b></button>
+      </nav>
+      <div class="nav-title">Proyecto</div>
+      <nav>
+        <button class="nav-btn" data-page="finance"><span class="nav-code">17</span><b>Viabilidad financiera</b></button>
+        <button class="nav-btn" data-page="tender"><span class="nav-code">18</span><b>Pliego y compras</b></button>
+      </nav>
+      <div class="sidebar-foot">Planta de alimento balanceado porcino<br><b>Capacidad nominal: 10–15 TM/h</b></div>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <div class="topbar-left"><button class="menu-btn" id="menuBtn" aria-label="Abrir navegación">≡</button><div><h1 id="pageTitle">Dashboard</h1><span class="date-label" id="today"></span></div></div>
+        <div class="top-actions"><span class="badge amber" id="planChip" style="cursor:pointer" title="Licencia">Modo prueba</span><span class="network-state" id="networkState">Conectando</span><button class="ghost-btn" id="exportBtn">Exportar datos</button></div>
+      </header>
+      <div class="workspace">
+        <section class="page active" id="page-home">
+          <div class="dashboard-hero">
+            <div class="dashboard-empresa-col">
+              <div class="empresa-portada" id="empresaPortada">
+                <button class="portada-edit" id="editCompany" type="button" title="Editar datos de la empresa">✏️ Editar</button>
+                <div class="empresa-portada-content">
+                  <div class="empresa-portada-logo" role="img" aria-label="Logo de la empresa"></div>
+                  <div class="empresa-portada-info">
+                    <div class="empresa-portada-nombre" id="portadaNombre">Pampa PBP</div>
+                    <div class="empresa-portada-sub" id="portadaSub">Planta de alimento balanceado porcino</div>
+                    <div class="empresa-portada-datos" id="portadaDatos"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="portada-market-tools">
+                <a class="empresa-portada-tool-btn" href="https://dolarhoy.com/" target="_blank" rel="noopener noreferrer">💵 Dólar Hoy</a>
+                <a class="empresa-portada-tool-btn" href="https://news.agrofy.com.ar/granos/precios-pizarra" target="_blank" rel="noopener noreferrer">🌾 Cereales Rosario</a>
+                <a class="empresa-portada-tool-btn" href="https://www.acamarket.com.ar/" target="_blank" rel="noopener noreferrer">🧪 Precio Insumos</a>
+                <span class="agroenso-tip"><a class="empresa-portada-tool-btn" href="https://agroenso.netlify.app/" target="_blank" rel="noopener noreferrer" aria-describedby="agroensoInfo">🌱 AgroENSO</a><span class="agroenso-tip-texto" id="agroensoInfo" role="tooltip"><strong>🌱 AgroENSO · El Niño en tu zona</strong>Cómo puede pegar El Niño en los cultivos de la zona según las últimas 35 campañas: clave para anticipar la oferta y el precio del maíz y la soja que compra la planta.</span></span>
+                <span class="agroenso-tip"><a class="empresa-portada-tool-btn" href="https://granos.ar/" target="_blank" rel="noopener noreferrer" aria-describedby="granosarInfo">📈 GRANOS.AR</a><span class="agroenso-tip-texto" id="granosarInfo" role="tooltip"><strong>📈 GRANOS.AR · Monitor agropecuario</strong>Pizarras de Rosario, futuros, dólar (oficial, MEP, CCL), fletes y clima al momento. El dólar MEP del día y la pizarra de Rosario también se cargan solos en la app.</span></span>
+              </div>
+            </div>
+            <div class="dashboard-top-actions">
+              <div class="dashboard-top-actions-title">Accesos rápidos</div>
+              <div class="dashboard-date-chip"><span>HOY</span><strong id="portadaFecha"></strong></div>
+              <div class="dashboard-top-actions-grid">
+                <select class="dashboard-role-select" id="roleSelector" aria-label="Rol del usuario en este equipo"></select>
+                <button class="dashboard-action-btn" data-home-action="roles">⚙️ Roles y usuarios</button>
+                <button class="dashboard-action-btn" data-home-action="license">🔑 Licencia</button>
+                <button class="dashboard-action-btn" data-home-action="connectivity"><span class="dashboard-sync-inline"><i class="sync-dot" id="syncDot"></i>⚡ Conectividad</span></button>
+                <button class="dashboard-action-btn" data-home-action="import">⬆️ Importar</button>
+                <button class="dashboard-action-btn" data-home-action="export">⬇️ Exportar</button>
+                <button class="dashboard-action-btn" data-home-action="backup">🧹 Limpieza + Respaldo</button>
+                <button class="dashboard-action-btn" data-home-action="quick">➕ Nueva operación</button>
+                <button class="dashboard-action-btn" data-home-action="alerts">🔔 Alertas <span class="alert-count" id="alertCount" hidden></span></button>
+                <button class="dashboard-action-btn" data-go="reports">📋 Reportes</button>
+                <button class="dashboard-action-btn" data-go="ai">🤖 PampaIA</button>
+                <button class="dashboard-action-btn whatsapp-action" data-home-action="whatsapp"><span class="wa-mini-icon">WA</span>WhatsApp Roles</button>
+              </div>
+              <input type="file" id="importFile" accept="application/json,.json" hidden>
+            </div>
+          </div>
+          <div class="grid metrics" id="homeSummary"></div>
+          <article class="card"><div class="card-head"><div><h3>Alertas del día</h3><small>Mantenimiento, vencimientos, capacitación y operación</small></div><button class="ghost-btn" data-home-action="alerts">Ver todas</button></div><div class="alert-list" id="homeAlerts"></div></article>
+        </section>
+        <section class="page" id="page-dashboard">
+          <div class="page-head"><div><span class="eyebrow">Vista general</span><h2>Control de planta</h2><p>Seguimiento operacional para una línea automatizada de alimento balanceado porcino.</p></div><button class="ghost-btn" data-go="finance">Abrir simulador financiero</button></div>
+          <div class="grid metrics">
+            <article class="metric" style="--metric-color:var(--accent)"><span class="metric-label">Producción mensual</span><div class="metric-value" id="monthlyProduction">—</div><span class="metric-foot" id="monthlyProductionFoot">Según Costos</span></article>
+            <article class="metric" style="--metric-color:var(--blue)"><span class="metric-label">Costo de proceso</span><div class="metric-value" id="cpProcessCost">—</div><span class="metric-foot" id="cpProcessCostFoot">Conversión por TM, sin materias primas</span></article>
+            <article class="metric" style="--metric-color:var(--orange)"><span class="metric-label">Disponibilidad de equipos</span><div class="metric-value" id="cpAvailability">—</div><span class="metric-foot" id="cpAvailabilityFoot">Equipos operativos</span></article>
+            <article class="metric" style="--metric-color:var(--ok)"><span class="metric-label">Ahorro neto</span><div class="metric-value" id="dashMargin">$ 0/TM</div><span class="metric-foot" id="dashMarginFoot">Modelo de viabilidad</span></article>
+          </div>
+          <div class="grid dashboard-grid">
+            <article class="card"><div class="card-head"><div><h3>Producción mensual</h3><small>Toneladas terminadas · últimos 12 meses (Inventario o carga manual)</small></div><span class="badge blue" id="cpChartBadge">—</span></div><div class="chart-wrap"><canvas id="productionChart" aria-label="Gráfico de producción mensual"></canvas></div></article>
+            <article class="card"><div class="card-head"><div><h3>Alertas operativas</h3><small>Planta, stock, calidad y residuos</small></div><b id="cpAlertCount">0</b></div><div class="alert-list" id="cpAlerts"></div></article>
+          </div>
+          <article class="card process-card"><div class="card-head"><div><h3>Flujo de proceso</h3><small>Línea unidireccional con separación sanitaria</small></div><span class="badge blue" id="cpPlcBadge" title="Según la última lectura de telemetría">PLC: sin datos</span></div><div class="process-line">
+            <div class="stage stage-link" data-stage="reception" data-go-page="inventory" title="Ver movimientos de inventario"><div class="stage-dot">01</div><span>Recepción</span><small>—</small><em class="stage-sub"></em></div><div class="stage stage-link" data-stage="silos" data-go-page="installations" title="Ver instalaciones"><div class="stage-dot">02</div><span>Silos</span><small>—</small><em class="stage-sub"></em></div><div class="stage stage-link" data-stage="microns" data-qc-target="controls" title="Ver controles por lote"><div class="stage-dot">03</div><span>Molienda</span><small id="procMicrons">—</small><em class="stage-sub" id="procMicronsSub"></em></div><div class="stage stage-link" data-stage="cv" data-qc-target="homogeneity" title="Ver ensayos de homogeneidad"><div class="stage-dot">04</div><span>Mezclado</span><small id="procCv">—</small><em class="stage-sub" id="procCvSub"></em></div><div class="stage stage-link" data-stage="pcc" data-qc-target="controls" title="Ver controles por lote"><div class="stage-dot">05</div><span>Pelletizado</span><small id="procTemp">—</small><em class="stage-sub" id="procTempSub"></em></div><div class="stage stage-link" data-stage="dispatch" data-go-page="inventory" title="Ver movimientos de inventario"><div class="stage-dot">06</div><span>Despacho</span><small>—</small><em class="stage-sub"></em></div>
+          </div></article>
+          <div class="grid two-col" style="margin-top:18px">
+            <article class="card"><div class="card-head"><div><h3>Telemetría de planta</h3><small>Molino (amperaje) y acondicionador (PCC térmico) desde PLC / simulador</small></div><span class="badge green" id="telemetryStatus">OK</span></div><div class="sensor-layout"><div class="sensor-reading"><span id="telemetryValue">0,0</span> <small>A</small></div><div><div class="gauge"><span id="telemetryGauge"></span></div><div class="inline-form"><div class="field"><label for="telemetryParam">Señal</label><select id="telemetryParam"><option value="MOLINO_MARTILLOS|AMPERAJE">Molino · amperaje (A)</option><option value="ACONDICIONADOR|TEMPERATURA">Acondicionador · temperatura (°C)</option><option value="ACONDICIONADOR|RETENCION">Acondicionador · retención (s)</option></select></div><div class="field"><label for="telemetryInput">Lectura de prueba</label><input id="telemetryInput" type="number" value="31.5" min="0" max="500" step="0.1"></div><button class="primary-btn" id="telemetrySend">Enviar lectura</button></div></div></div></article>
+            <article class="card"><div class="card-head"><div><h3>Registro reciente</h3><small>Últimas lecturas del molino</small></div></div><div class="table-wrap"><table><thead><tr><th>Hora</th><th>Valor</th><th>Estado</th></tr></thead><tbody id="telemetryRows"><tr><td colspan="3">Sin lecturas registradas</td></tr></tbody></table></div></article>
+          </div>
+        </section>
+
+        <section class="page" id="page-production">
+          <div class="page-head"><div><span class="eyebrow">Operaciones</span><h2>Producción y trazabilidad</h2><p>Control de lotes desde la materia prima hasta el silo de producto terminado.</p></div><button class="primary-btn open-batch">Crear lote de producción</button></div>
+          <div class="grid metrics">
+            <article class="metric"><span class="metric-label">En proceso</span><div class="metric-value" id="prInProcess">—</div><span class="metric-foot" id="prInProcessFoot">Lotes en proceso y en control</span></article>
+            <article class="metric"><span class="metric-label">Lotes activos</span><div class="metric-value" id="activeLots">0</div><span class="metric-foot" id="activeLotsFoot">Programados, en proceso y en control</span></article>
+            <article class="metric"><span class="metric-label">Pellet conforme</span><div class="metric-value" id="prPellet">—</div><span class="metric-foot" id="prPelletFoot">Durabilidad según Calidad</span></article>
+            <article class="metric"><span class="metric-label">Energía y vapor</span><div class="metric-value" id="prEnergy">—</div><span class="metric-foot" id="prEnergyFoot">Costo por tonelada (Costos)</span></article>
+          </div>
+          <article class="card"><div class="card-head"><div><h3>Órdenes de producción</h3><small>Datos persistidos en el backend</small></div><button class="ghost-btn open-batch">Agregar lote</button></div><div class="table-wrap"><table><thead><tr><th>Lote</th><th>Fórmula / Fase</th><th>Volumen</th><th>Micras</th><th>Temperatura</th><th>Estado</th><th>Inicio</th><th>Acción</th></tr></thead><tbody id="batchRows"></tbody></table></div></article>
+          <div class="grid two-col" style="margin-top:18px">
+            <article class="card"><div class="card-head"><div><h3>Parámetros por fase</h3><small>Recetas activas</small></div><button class="ghost-btn" data-go="recipes">Ver recetas</button></div><div class="table-wrap"><table><thead><tr><th>Fase</th><th>Formato</th><th>Partícula</th><th>Proteína</th></tr></thead><tbody id="prPhaseRows"></tbody></table></div></article>
+            <article class="card"><div class="card-head"><div><h3>Capacidad de almacenamiento</h3><small>Ocupación actual según Inventario</small></div><button class="ghost-btn" data-go="installations">Ver instalaciones</button></div><div id="prStorage"></div></article>
+          </div>
+          <article class="card" style="margin-top:18px"><div class="card-head"><div><h3>Consulta de trazabilidad</h3><small>Origen de ingredientes y desvíos por orden</small></div></div><div class="inline-form"><div class="field"><label for="traceOrderId">Identificador del lote</label><input id="traceOrderId" placeholder="LT-2026-184"></div><button class="primary-btn" id="traceSearch">Buscar historial</button></div><div class="table-wrap trace-result" id="traceTableWrap" hidden><table><thead><tr><th>Ingrediente</th><th>Lote proveedor</th><th>Kg teóricos</th><th>Kg reales</th><th>Desvío</th><th>Estado</th></tr></thead><tbody id="traceRows"></tbody></table></div></article>
+        </section>
+        <section class="page" id="page-inventory">
+          <div class="page-head"><div><span class="eyebrow">Stock</span><h2>Inventario</h2><p>Materias primas, núcleos, aditivos, producto terminado y repuestos: stock por instalación, valorización y movimientos de recepción, consumo, producción y despacho.</p></div><div class="head-actions"><button class="ghost-btn" data-inv-new="item">Nuevo producto</button><button class="primary-btn" data-inv-new="movement">Registrar movimiento</button></div></div>
+          <div class="grid metrics">
+            <article class="metric" style="--metric-color:var(--accent)"><span class="metric-label">Productos</span><div class="metric-value" id="invKpiItems">0</div><span class="metric-foot" id="invKpiItemsFoot">Activos</span></article>
+            <article class="metric" style="--metric-color:var(--ok)"><span class="metric-label">Valor del stock</span><div class="metric-value" id="invKpiValue">$ 0</div><span class="metric-foot" id="invKpiValueFoot">A costo unitario</span></article>
+            <article class="metric" style="--metric-color:var(--orange)"><span class="metric-label">Stock crítico</span><div class="metric-value" id="invKpiLow">0</div><span class="metric-foot" id="invKpiLowFoot">Debajo del mínimo</span></article>
+            <article class="metric" style="--metric-color:var(--red)"><span class="metric-label">Sin stock</span><div class="metric-value" id="invKpiOut">0</div><span class="metric-foot" id="invKpiOutFoot">Productos agotados</span></article>
+          </div>
+          <article class="card"><div class="card-head"><div><h3>Inventario general</h3><small>Stock calculado con los movimientos; "Días" estima la cobertura con el consumo de los últimos 30 días</small></div><div class="filter-row"><select id="invFilterCategory" class="form-select" aria-label="Categoría"><option value="">Todas las categorías</option></select><select id="invFilterStatus" class="form-select" aria-label="Estado de stock"><option value="">Todos</option><option value="low">Stock crítico</option><option value="out">Sin stock</option></select></div></div><div class="table-wrap"><table><thead><tr><th>Código</th><th>Producto</th><th>Categoría</th><th>Stock</th><th>Mínimo</th><th>Días</th><th>Costo unit.</th><th>Valor</th><th>Ubicación</th><th>Estado</th><th></th></tr></thead><tbody id="invItemRows"></tbody></table></div></article>
+          <article class="card" style="margin-top:16px"><div class="card-head"><div><h3>Movimientos de stock</h3><small>Recepciones y despachos con patente y comprobante; consumos y producción asociados al lote</small></div><div class="filter-row"><select id="invFilterType" class="form-select" aria-label="Tipo"><option value="">Todos los movimientos</option></select><input type="month" id="invFilterMonth" class="form-select" aria-label="Mes"></div></div><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Producto</th><th>Cantidad</th><th>Instalación</th><th>Comprobante</th><th>Proveedor / cliente</th><th>Patente</th><th>Lote</th><th></th></tr></thead><tbody id="invMovRows"></tbody></table></div></article>
+        </section>
+
+        <section class="page" id="page-installations">
+          <div class="page-head"><div><span class="eyebrow">Planta</span><h2>Instalaciones</h2><p>Silos, celdas, tolvas, micro-bins, tanques y depósitos: capacidad, producto asignado, ocupación en tiempo real y zona sanitaria.</p></div><button class="primary-btn" data-inv-new="installation">Nueva instalación</button></div>
+          <div class="grid metrics">
+            <article class="metric" style="--metric-color:var(--accent)"><span class="metric-label">Silos de materia prima</span><div class="metric-value" id="insKpiRaw">0%</div><span class="metric-foot" id="insKpiRawFoot">Ocupación</span></article>
+            <article class="metric" style="--metric-color:var(--ok)"><span class="metric-label">Silos de producto terminado</span><div class="metric-value" id="insKpiFinished">0%</div><span class="metric-foot" id="insKpiFinishedFoot">Ocupación</span></article>
+            <article class="metric" style="--metric-color:var(--blue)"><span class="metric-label">Instalaciones operativas</span><div class="metric-value" id="insKpiOperative">0</div><span class="metric-foot" id="insKpiOperativeFoot">Del total</span></article>
+            <article class="metric" style="--metric-color:var(--orange)"><span class="metric-label">Limpieza</span><div class="metric-value" id="insKpiCleaning">0</div><span class="metric-foot" id="insKpiCleaningFoot">Más de 60 días sin limpiar</span></article>
+          </div>
+          <div class="tender-toolbar"><select id="insFilterType" class="form-select" aria-label="Tipo"><option value="">Todos los tipos</option></select><span class="text-muted" id="insCount"></span></div>
+          <div class="grid doc-grid" id="insCards"></div>
+        </section>
+
+        <section class="page" id="page-lots">
+          <div class="page-head"><div><span class="eyebrow">Origen geográfico</span><h2>Lotes agropecuarios</h2><p>Parcelas proveedoras asociadas a materias primas, contratos y trazabilidad.</p></div><button class="primary-btn open-lot">Registrar lote</button></div>
+          <div class="grid lots-layout"><article class="card"><div class="card-head"><div><h3>Mapa de lotes</h3><small>Leaflet local · coordenadas WGS84</small></div><div class="head-actions"><button class="ghost-btn" id="fitLotsMap">Ver todos</button><button class="ghost-btn" id="downloadOfflineMaps">Descargar mapas para uso offline</button></div></div><div id="lotsMap" aria-label="Mapa geográfico de lotes"></div></article><article class="card"><div class="card-head"><div><h3>Resumen territorial</h3><small>Superficie y cultivos</small></div></div><div class="lot-summary"><div><span>Lotes activos</span><b id="lotActiveCount">0</b></div><div><span>Superficie</span><b id="lotHectares">0 ha</b></div><div><span>Maíz</span><b id="lotCornCount">0</b></div><div><span>Soja</span><b id="lotSoyCount">0</b></div></div><div class="status-strip" style="--status-color:var(--green)"><b>Asociación logística.</b> Cada parcela conserva el código del lote proveedor utilizado en la trazabilidad de producción.</div></article></div>
+          <article class="card" style="margin-top:18px"><div class="card-head"><div><h3>Registro de parcelas</h3><small>Seleccione una fila para centrarla en el mapa</small></div></div><div class="table-wrap"><table><thead><tr><th>Código</th><th>Nombre</th><th>Productor</th><th>Localidad</th><th>Superficie</th><th>Tenencia</th><th>Cultivo</th><th>Lote proveedor</th><th>Estado</th></tr></thead><tbody id="lotRows"></tbody></table></div></article>
+          <article class="card" style="margin-top:18px"><div class="card-head"><div><h3>Materia prima de los lotes</h3><small>Toneladas que llegan a la planta, costo por tenencia y valor a precio de mercado (campaña)</small></div></div>
+            <div class="lot-tenure-grid" id="lotEconSummary"></div>
+            <div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Lote</th><th>Tenencia</th><th>Cultivo</th><th>Cosecha</th><th>Para la planta</th><th>Producción</th><th>Alquiler</th><th>Costo/TM</th><th>Mercado/TM</th><th>Ahorro vs comprar</th></tr></thead><tbody id="lotEconRows"></tbody></table></div>
+            <div class="grain-prices"><span class="field-label">Precio de mercado ($/TM, en pesos)</span><div id="lotEconPrices" class="grain-price-inputs"></div></div>
+            <div class="grain-prices"><button class="ghost-btn" id="loadPizarra">Cargar pizarra de Rosario</button><button class="ghost-btn" id="saveGrainPrices">Guardar precios</button><a class="ghost-btn" href="https://granos.ar/" target="_blank" rel="noopener noreferrer">Ver en Granos.ar ↗</a></div>
+            <div class="status-strip" style="--status-color:var(--blue)"><b>Cómo se calcula.</b> Propio: costo de producción. Arrendamiento: producción + alquiler por hectárea. Aparcería: la planta recibe la cosecha menos el porcentaje del propietario y paga los costos de producción menos la parte que pone el propietario. Todos los importes están en pesos; el valor de mercado es lo que costaría comprar esa misma materia prima a precio de pizarra.</div>
+          </article>
+        </section>
+        <section class="page" id="page-recipes">
+          <div class="page-head"><div><span class="eyebrow">Formulación nutricional</span><h2>Recetas de alimento</h2><p>Composición, objetivos nutricionales, granulometría y costo estándar por fase productiva.</p></div><button class="primary-btn open-recipe">Nueva receta</button></div>
+          <div class="grid metrics"><article class="metric"><span class="metric-label">Recetas activas</span><div class="metric-value" id="recipeCount">0</div><span class="metric-foot">Fórmulas disponibles</span></article><article class="metric"><span class="metric-label">Costo promedio</span><div class="metric-value" id="recipeAvgCost">$ 0</div><span class="metric-foot">por tonelada formulada</span></article><article class="metric"><span class="metric-label">Proteína promedio</span><div class="metric-value" id="recipeAvgProtein">0%</div><span class="metric-foot">sobre recetas activas</span></article><article class="metric"><span class="metric-label">Fórmula más económica</span><div class="metric-value" id="recipeCheapest">—</div><span class="metric-foot" id="recipeCheapestCost">Sin datos</span></article></div>
+          <div class="grid recipe-cards" id="recipeCards"></div>
+          <article class="card" style="margin-top:18px"><div class="card-head"><div><h3>Matriz nutricional</h3><small>Valores objetivo por tonelada terminada</small></div></div><div class="table-wrap"><table><thead><tr><th>Código</th><th>Fase</th><th>Formato</th><th>Partícula</th><th>Energía</th><th>Proteína</th><th>Lisina</th><th>Costo/TM</th></tr></thead><tbody id="recipeRows"></tbody></table></div></article>
+        </section>
+        <section class="page" id="page-equipment">
+          <div class="page-head"><div><span class="eyebrow">Activos de planta</span><h2>Equipamiento y mantenimiento</h2><p>Inventario técnico, estado operativo, horas de uso y planificación de intervenciones.</p></div><button class="primary-btn open-equipment">Registrar equipo</button></div>
+          <div class="grid metrics">
+            <article class="metric"><span class="metric-label">Equipos registrados</span><div class="metric-value" id="equipmentTotal">0</div><span class="metric-foot">Activos electromecánicos y de control</span></article>
+            <article class="metric"><span class="metric-label">En operación</span><div class="metric-value" id="equipmentOperating">0</div><span class="metric-foot positive" id="equipmentAvailability">0% disponibles</span></article>
+            <article class="metric"><span class="metric-label">Inversión inventariada</span><div class="metric-value" id="equipmentValue">$ 0</div><span class="metric-foot" id="equipmentValueFoot">Valor de adquisición en pesos</span></article>
+            <article class="metric"><span class="metric-label">Mantenimiento anual</span><div class="metric-value" id="equipmentMaintenanceBudget">$ 0</div><span class="metric-foot warning" id="equipmentAlerts">0 equipos requieren atención</span></article>
+          </div>
+          <article class="card"><div class="card-head"><div><h3>Inventario técnico</h3><small>El cambio de estado se guarda automáticamente · <span id="equipMepInfo">Dólar MEP: consultando…</span></small></div><div style="display:flex;gap:8px"><select id="equipmentAreaFilter" class="form-select" style="width:auto"><option value="">Todas las áreas</option></select><button class="ghost-btn open-equipment">Nuevo equipo</button></div></div><div class="table-wrap"><table><thead><tr><th>Código</th><th>Equipo</th><th>Área</th><th>Horas</th><th>Inversión</th><th>Amortización</th><th>Valor contable</th><th>Mant. anual</th><th>Próximo mantenimiento</th><th>Criticidad</th><th>Estado</th><th></th></tr></thead><tbody id="equipmentRows"></tbody></table></div></article>
+          <div class="grid two-col" style="margin-top:18px">
+            <article class="card"><div class="card-head"><h3>Plan preventivo</h3><small>Frecuencias operativas</small></div><div class="checklist"><div class="check"><input type="checkbox" checked disabled><label>Peletizadora: matrices y rodillos<small>Inspección cada 500 h; recambio entre 3.000 y 5.000 TM.</small></label></div><div class="check"><input type="checkbox" checked disabled><label>Molino: martillos y cribas<small>Inversión de martillos cada 1.500 TM.</small></label></div><div class="check"><input type="checkbox" checked disabled><label>Mezclador: prueba de homogeneidad<small>Validación mensual con objetivo CV menor al 5%.</small></label></div><div class="check"><input type="checkbox" checked disabled><label>Balanzas y celdas de carga<small>Calibración con masas patrón y trazabilidad INTI.</small></label></div></div></article>
+            <article class="card"><div class="card-head"><h3>Repuestos críticos</h3><small>Disponibilidad mínima recomendada</small></div><div class="progress-row"><span>Matrices peletizadora</span><div class="track"><span style="width:50%"></span></div><b>2 u.</b></div><div class="progress-row"><span>Juegos de martillos</span><div class="track"><span style="width:75%"></span></div><b>3 u.</b></div><div class="progress-row"><span>Cribas de molino</span><div class="track"><span style="width:50%"></span></div><b>2 u.</b></div><div class="progress-row"><span>Rodamientos críticos</span><div class="track"><span style="width:80%"></span></div><b>8 u.</b></div></article>
+          </div>
+        </section>
+        <section class="page" id="page-quality">
+          <div class="page-head"><div><span class="eyebrow">Inocuidad</span><h2>Calidad y bioseguridad</h2><p>Puntos críticos por lote, homogeneidad del mezclado, análisis de materias primas, auditorías de contaminación cruzada y zonificación sanitaria.</p></div><button class="ghost-btn" id="qcTargetsBtn">Objetivos y límites</button></div>
+          <div class="grid quality-grid" id="qcTiles"></div>
+          <div class="status-strip" id="qcPccStatus" style="--status-color:var(--ok);margin:16px 0"></div>
+          <div class="pill-nav" id="qcNav">
+            <button class="pill active" data-qc="controls">🌡️ Controles por lote</button><button class="pill" data-qc="homogeneity">🧪 Homogeneidad</button><button class="pill" data-qc="lab">🔬 Materias primas</button><button class="pill" data-qc="audits">📋 Auditorías</button><button class="pill" data-qc="zones">🚧 Zonificación</button>
+          </div>
+          <div class="qc-section active" data-qc-section="controls">
+            <article class="card"><div class="card-head"><div><h3>Controles de proceso por lote</h3><small>Temperatura y retención en el acondicionador (PCC), granulometría según la receta, durabilidad y humedad del pellet</small></div><button class="primary-btn" data-qc-new="control">Registrar control</button></div><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Lote</th><th>Acondicionado</th><th>Retención</th><th>Granulometría</th><th>Durabilidad (PDI)</th><th>Humedad</th><th>Resultado</th><th>Responsable</th><th></th></tr></thead><tbody id="qcControlRows"></tbody></table></div></article>
+          </div>
+          <div class="qc-section" data-qc-section="homogeneity">
+            <article class="card"><div class="card-head"><div><h3>Ensayos de homogeneidad del mezclado</h3><small>El coeficiente de variación (CV) se calcula con los resultados de las muestras</small></div><button class="primary-btn" data-qc-new="homogeneity">Registrar ensayo</button></div><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Mezclador</th><th>Método</th><th>Lote</th><th>Muestras</th><th>Media</th><th>CV</th><th>Resultado</th><th>Responsable</th><th></th></tr></thead><tbody id="qcHomRows"></tbody></table></div></article>
+          </div>
+          <div class="qc-section" data-qc-section="lab">
+            <article class="card"><div class="card-head"><div><h3>Análisis de materias primas</h3><small>Humedad, proteína, micotoxinas y calidad física por lote de proveedor; un rechazo se puede enviar a Residuos</small></div><button class="primary-btn" data-qc-new="lab">Registrar análisis</button></div><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Materia prima</th><th>Proveedor / lote</th><th>Humedad</th><th>Proteína</th><th>Aflatoxinas</th><th>DON</th><th>Zearalenona</th><th>Fumonisinas</th><th>Dañados / extraños</th><th>Dictamen</th><th></th></tr></thead><tbody id="qcLabRows"></tbody></table></div></article>
+          </div>
+          <div class="qc-section" data-qc-section="audits">
+            <article class="card"><div class="card-head"><div><h3>Auditorías de contaminación cruzada</h3><small>Historial con fecha, auditor y observaciones; el cumplimiento sale de la última</small></div><div class="head-actions"><button class="ghost-btn" id="qcTemplateBtn">Editar plantilla</button><button class="primary-btn" data-qc-new="audit">Nueva auditoría</button></div></div><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Auditor</th><th>Cumplimiento</th><th>Pendientes</th><th>Observaciones</th><th></th></tr></thead><tbody id="qcAuditRows"></tbody></table></div></article>
+          </div>
+          <div class="qc-section" data-qc-section="zones">
+            <article class="card"><div class="card-head"><div><h3>Zonificación sanitaria</h3><small>Flujo sin retrocesos de zona sucia a zona limpia</small></div><button class="primary-btn" id="qcZonesBtn">Editar zonas</button></div><div class="alert-list" id="qcZones"></div></article>
+          </div>
+        </section>
+
+        <section class="page" id="page-finance">
+          <div class="page-head"><div><span class="eyebrow">Modelo dinámico</span><h2>Viabilidad financiera</h2><p>Simulación de demanda, margen de integración, VAN, TIR estimada y período de recupero.</p></div><button class="ghost-btn" id="resetFinance">Restablecer base</button></div>
+          <div class="grid sim-layout">
+            <article class="card"><div class="card-head"><div><h3>Variables del modelo</h3><small>Modifique los valores para recalcular</small></div></div><form id="financeForm" class="form-grid">
+              <div class="field"><label for="capex">Inversión inicial ($)</label><input id="capex" type="number" value="2233000000" min="0" step="1000000"></div>
+              <div class="field"><label for="wacc">Tasa de corte WACC (%)</label><input id="wacc" type="number" value="12" min="0" step="0.1"></div>
+              <div class="field"><label for="sows">Madres productivas</label><input id="sows" type="number" value="4000" min="0" step="100"></div>
+              <div class="field"><label for="consumption">Consumo anual / madre (TM)</label><input id="consumption" type="number" value="5" min="0" step="0.1"></div>
+              <div class="field"><label for="commercialPrice">Alimento comercial ($/TM)</label><input id="commercialPrice" type="number" value="585200" min="0" step="100"></div>
+              <div class="field"><label for="rawCost">Materias primas ($/TM)</label><input id="rawCost" type="number" value="526700" min="0" step="100"></div>
+              <div class="field full"><label for="opex">Procesamiento interno ($/TM)</label><input id="opex" type="number" value="12320" min="0" step="10"></div>
+            </form></article>
+            <article class="card"><div class="result-hero"><div class="main-result"><span>Ahorro neto anual</span><strong id="annualSaving">$ 0</strong></div><div><span>Demanda anual</span><strong id="annualDemand">20.000 TM</strong></div><div><span>Margen unitario</span><strong id="unitMargin">$ 0</strong></div></div><div class="financial-grid"><div class="financial-box"><span>VAN a 5 años</span><b id="npv">$ 0</b></div><div class="financial-box"><span>TIR estimada</span><b id="irr">31,6%</b></div><div class="financial-box"><span>Payback simple</span><b id="payback">2,4 años</b></div></div><div class="status-strip" id="financeStatus" style="--status-color:var(--green)"></div></article>
+          </div>
+          <div class="grid two-col" style="margin-top:18px">
+            <article class="card"><div class="card-head"><div><h3>Cronograma CAPEX</h3><small id="capexLabel">Desembolsos mensuales</small></div></div><div class="bars" id="capexBars"></div></article>
+            <article class="card"><div class="card-head"><div><h3>Estructura OPEX</h3><small id="opexLabel">Por tonelada</small></div></div><div class="cost-stack" id="opexStack"></div><div class="legend" id="opexLegend"></div></article>
+          </div>
+        </section>
+        <section class="page" id="page-waste">
+          <div class="page-head"><div><span class="eyebrow">Ambiente y bioseguridad</span><h2>Residuos</h2><p>Envases de premezclas, medicamentos, raticidas y desinfectantes (triple lavado y entrega a CAT u operador habilitado) y demás residuos de la planta, con su trazabilidad.</p></div><span class="badge green">Ley 27.279 · Ley 24.051</span></div>
+          <div class="pill-nav" id="wasteNav">
+            <button class="pill active" data-ws="panel">📊 Panel</button><button class="pill" data-ws="containers">🧴 Envases</button><button class="pill" data-ws="washes">🧼 Triple lavado</button><button class="pill" data-ws="deliveries">📦 Entregas (CAT / operador)</button><button class="pill" data-ws="other">🗑️ Otros residuos</button><button class="pill" data-ws="trace">🔗 Trazabilidad</button><button class="pill" data-ws="help">📖 Marco legal</button>
+          </div>
+          <div class="ws-section active" data-ws-section="panel">
+            <div class="grid metrics">
+              <article class="metric" style="--metric-color:var(--accent)"><span class="metric-label">Envases generados</span><div class="metric-value" id="wsKpiGenerated">0</div><span class="metric-foot" id="wsKpiGeneratedFoot">Total histórico</span></article>
+              <article class="metric" style="--metric-color:var(--orange)"><span class="metric-label">Pendientes de triple lavado</span><div class="metric-value" id="wsKpiPending">0</div><span class="metric-foot">Requieren lavado antes de entregar</span></article>
+              <article class="metric" style="--metric-color:var(--blue)"><span class="metric-label">Listos para entregar</span><div class="metric-value" id="wsKpiReady">0</div><span class="metric-foot">Lavados o sin lavado requerido</span></article>
+              <article class="metric" style="--metric-color:var(--ok)"><span class="metric-label">Entregados</span><div class="metric-value" id="wsKpiDelivered">0</div><span class="metric-foot" id="wsKpiDeliveredFoot">Trazabilidad cerrada</span></article>
+            </div>
+            <div class="grid two-col">
+              <article class="card"><div class="card-head"><div><h3>Estado general</h3><small>Envases y residuos del mes en curso</small></div></div><div class="status-strip" id="wsStatus" style="--status-color:var(--ok)"></div><div class="lot-tenure-grid" id="wsClasses" style="margin-top:14px;grid-template-columns:repeat(3,minmax(0,1fr))"></div></article>
+              <article class="card"><div class="card-head"><div><h3>Residuos por destino</h3><small>Últimos 12 meses (en kg equivalentes)</small></div></div><div class="cost-stack" id="wsDispStack"></div><div class="legend" id="wsDispLegend"></div></article>
+            </div>
+          </div>
+          <div class="ws-section" data-ws-section="containers">
+            <article class="card"><div class="card-head"><div><h3>Envases generados</h3><small>El estado se guarda al cambiarlo; los rígidos de líquidos requieren triple lavado</small></div><button class="primary-btn" data-ws-new="container">Registrar envases</button></div><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Categoría</th><th>Producto</th><th>Cantidad</th><th>Envase</th><th>Lote de producción</th><th>Estado</th><th></th></tr></thead><tbody id="wsContainerRows"></tbody></table></div></article>
+          </div>
+          <div class="ws-section" data-ws-section="washes">
+            <article class="card"><div class="card-head"><div><h3>Registro de triple lavado</h3><small>Obligatorio antes de entregar envases rígidos: convierte el envase en residuo asimilable a urbano</small></div><button class="primary-btn" data-ws-new="wash">Registrar lavado</button></div><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Envases</th><th>Cantidad</th><th>Método</th><th>Agua de lavado</th><th>Responsable</th><th></th></tr></thead><tbody id="wsWashRows"></tbody></table></div></article>
+          </div>
+          <div class="ws-section" data-ws-section="deliveries">
+            <article class="card"><div class="card-head"><div><h3>Entregas a CAT, operadores y recicladores</h3><small>Guardar el comprobante o manifiesto y el certificado de disposición final</small></div><button class="primary-btn" data-ws-new="delivery">Registrar entrega</button></div><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Receptor</th><th>Envases</th><th>Cantidad</th><th>Comprobante</th><th>Certificado</th><th>Responsable</th><th></th></tr></thead><tbody id="wsDeliveryRows"></tbody></table></div></article>
+          </div>
+          <div class="ws-section" data-ws-section="other">
+            <article class="card"><div class="card-head"><div><h3>Otros residuos de la planta</h3><small>Polvo de aspiración, finos, producto fuera de especificación, arrastre, aceites, cenizas y más</small></div><button class="primary-btn" data-ws-new="other">Registrar residuo</button></div><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Clase</th><th>Cantidad</th><th>Disposición</th><th>Lote</th><th>Manifiesto</th><th>Responsable</th><th></th></tr></thead><tbody id="wsOtherRows"></tbody></table></div></article>
+          </div>
+          <div class="ws-section" data-ws-section="trace">
+            <article class="card"><div class="card-head"><div><h3>Trazabilidad completa</h3><small>Generación, lavado, entrega y disposición, en orden cronológico</small></div><select id="wsTraceFilter" class="form-select" style="width:auto" aria-label="Filtrar por evento"><option value="">Todos los eventos</option><option>Generación de envases</option><option>Triple lavado</option><option>Entrega</option><option>Residuo</option></select></div><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Evento</th><th>Detalle</th><th>Cantidad</th><th>Responsable / lote</th></tr></thead><tbody id="wsTraceRows"></tbody></table></div></article>
+          </div>
+          <div class="ws-section" data-ws-section="help">
+            <article class="card"><div class="card-head"><div><h3>Marco legal y buenas prácticas</h3><small>Referencia general: verificar siempre la normativa provincial y municipal vigente</small></div></div>
+              <div class="kv">
+                <span>Ley 27.279</span><b>Presupuestos mínimos para la gestión de envases vacíos de fitosanitarios. Alcanza a los raticidas e insecticidas del control de plagas: triple lavado y entrega en un Centro de Acopio Transitorio (CAT) del sistema CampoLimpio.</b>
+                <span>Ley 24.051</span><b>Residuos peligrosos: aceites usados (Y8), filtros y trapos con hidrocarburos y envases contaminados con medicamentos veterinarios se entregan solo a transportistas y operadores habilitados, con manifiesto y certificado de disposición final.</b>
+                <span>Ley 25.612</span><b>Gestión integral de residuos industriales: registro de lo generado, almacenamiento transitorio seguro y destino documentado.</b>
+                <span>Dietas medicadas</span><b>Los envases de premix medicados no se reutilizan ni se mezclan con los demás; el lote de arrastre (flushing) posterior se identifica y se registra.</b>
+              </div>
+              <div class="dialog-section"><h3>Pasos básicos</h3><ol class="steps"><li>Registrar los envases el día que se vacían, indicando el lote de producción.</li><li>Hacer el triple lavado (o lavado a presión) de los envases rígidos de líquidos e inutilizarlos (perforar) sin dañar la etiqueta.</li><li>Guardarlos en un depósito transitorio techado, separado de materias primas y producto terminado.</li><li>Entregarlos en un CAT o a un operador habilitado y guardar el comprobante o manifiesto.</li><li>Archivar el certificado de disposición final y marcar la entrega como certificada.</li></ol></div>
+            </article>
+          </div>
+        </section>
+        <section class="page" id="page-supply">
+          <div class="page-head"><div><span class="eyebrow">Granos y servicios</span><h2>Abastecimiento y maquila</h2><p>Control de contratos, conversión técnica, mermas y cobro del servicio mediante canje.</p></div><button class="primary-btn" id="saveExchange">Registrar operación</button></div>
+          <div class="grid two-col">
+            <article class="card"><div class="card-head"><div><h3>Calculadora de conversión</h3><small>Contrato de maquila · Ley 25.113</small></div></div><div class="form-grid">
+              <div class="field"><label for="grainTons">Grano recibido (TM)</label><input type="number" id="grainTons" value="120" min="0" step="1"></div>
+              <div class="field"><label for="yieldRate">Rendimiento técnico (%)</label><input type="number" id="yieldRate" value="97.5" min="0" max="100" step="0.1"></div>
+              <div class="field"><label for="serviceRate">Tarifa servicio ($/TM)</label><input type="number" id="serviceRate" value="43120" min="0" step="100"></div>
+              <div class="field"><label for="grainPrice">Valor del grano ($/TM)</label><input type="number" id="grainPrice" value="293500" min="0" step="100"></div>
+            </div><div class="grid two-col" style="margin-top:18px"><div class="calc-output"><span>Producto terminado</span><strong id="finishedTons">117,0 TM</strong><small id="lossTons">Merma técnica: 3,0 TM</small></div><div class="calc-output"><span>Grano aplicado al pago</span><strong id="paymentGrain">17,2 TM</strong><small id="serviceTotal">Servicio: $ 0</small></div></div></article>
+            <article class="card"><div class="card-head"><div><h3>Documentación de la operación</h3><small>Control fiscal y de trazabilidad</small></div><span class="badge amber">4 / 6</span></div><div class="checklist">
+              <div class="check"><input type="checkbox" checked><label>Carta de Porte Electrónica<small>Traslado del grano a planta.</small></label></div><div class="check"><input type="checkbox" checked><label>Comprobante C1116A<small>Recepción y depósito del grano.</small></label></div><div class="check"><input type="checkbox" checked><label>Anexo de maquila firmado<small>Propiedad, conversión y mermas pactadas.</small></label></div><div class="check"><input type="checkbox" checked><label>Certificado de calidad<small>Humedad, materias extrañas y granos dañados.</small></label></div><div class="check"><input type="checkbox"><label>Liquidación del servicio<small>Factura y valorización del canje.</small></label></div><div class="check"><input type="checkbox"><label>Constancia de retiro<small>Entrega del producto elaborado.</small></label></div>
+            </div></article>
+          </div>
+          <article class="card" style="margin-top:18px"><div class="card-head"><div><h3>Merma por humedad</h3><small>Descuento del 1,2% por cada punto sobre 14,5%</small></div></div><div class="form-grid"><div class="field"><label for="moistureTons">Toneladas recibidas</label><input id="moistureTons" type="number" value="30" min="0" step="0.1"></div><div class="field"><label for="moisturePct">Humedad medida (%)</label><input id="moisturePct" type="number" value="16.2" min="0" max="100" step="0.1"></div></div><div class="calc-output" style="margin-top:16px"><span>Peso neto corregido</span><strong id="moistureResult">29.388 kg</strong><small id="moistureLoss">Merma calculada: 612 kg</small></div></article>
+          <article class="card" style="margin-top:18px"><div class="card-head"><div><h3>Contratos vigentes</h3><small>Seguimiento de cupos y entregas</small></div></div><div class="table-wrap"><table><thead><tr><th>Contrato</th><th>Productor</th><th>Modalidad</th><th>Grano comprometido</th><th>Entregado</th><th>Vigencia</th><th>Estado</th></tr></thead><tbody><tr><td>MQ-2026-014</td><td>Los Aromos S.A.</td><td>Maquila</td><td>1.200 TM</td><td>63%</td><td>Dic. 2026</td><td><span class="badge green">Activo</span></td></tr><tr><td>CJ-2026-008</td><td>Agropecuaria Norte</td><td>Canje</td><td>850 TM</td><td>88%</td><td>Nov. 2026</td><td><span class="badge green">Activo</span></td></tr><tr><td>MQ-2026-019</td><td>El Trébol Coop.</td><td>Maquila</td><td>2.100 TM</td><td>21%</td><td>Mar. 2027</td><td><span class="badge blue">Inicial</span></td></tr></tbody></table></div></article>
+        </section>
+
+        <section class="page" id="page-treasury">
+          <div class="page-head"><div><span class="eyebrow">Gestión financiera</span><h2>Finanzas</h2><p>Tesorería (cobros, pagos y resultado) y operativo (caja, bancos, cheques, créditos y canje). Lo cargado sin señal se sincroniza al volver la conexión.</p></div><button class="primary-btn open-tx" data-subtab-only="tesoreria">Nuevo movimiento</button></div>
+          <div class="subtabs" role="tablist"><button class="subtab active" data-subtab="tesoreria">1 · Tesorería</button><button class="subtab" data-subtab="operativo">2 · Operativo</button></div>
+          <div class="subpage active" data-subpage="tesoreria">
+          <div class="grid metrics">
+            <article class="metric" style="--metric-color:var(--accent)"><span class="metric-label">Saldo disponible</span><div class="metric-value" id="trBalance">$ 0</div><span class="metric-foot" id="trBalanceSplit">Caja · Banco</span></article>
+            <article class="metric" style="--metric-color:var(--ok)"><span class="metric-label">Ingresos del mes</span><div class="metric-value" id="trIncome">$ 0</div><span class="metric-foot" id="trIncomeFoot">Cobrados y a cobrar</span></article>
+            <article class="metric" style="--metric-color:var(--red)"><span class="metric-label">Egresos del mes</span><div class="metric-value" id="trExpense">$ 0</div><span class="metric-foot" id="trExpenseFoot">Pagados y a pagar</span></article>
+            <article class="metric" style="--metric-color:var(--blue)"><span class="metric-label">Resultado del mes</span><div class="metric-value" id="trResult">$ 0</div><span class="metric-foot" id="trResultFoot">Ingresos − egresos</span></article>
+          </div>
+          <div class="grid two-col">
+            <article class="card"><div class="card-head"><div><h3>Cuentas por cobrar</h3><small id="trReceivableFoot">Ventas y servicios pendientes</small></div><b id="trReceivable">$ 0</b></div><div class="table-wrap"><table><thead><tr><th>Vence</th><th>Cliente</th><th>Importe</th><th>Acción</th></tr></thead><tbody id="trReceivableRows"></tbody></table></div></article>
+            <article class="card"><div class="card-head"><div><h3>Cuentas por pagar</h3><small id="trPayableFoot">Compras y servicios pendientes</small></div><b id="trPayable">$ 0</b></div><div class="table-wrap"><table><thead><tr><th>Vence</th><th>Proveedor</th><th>Importe</th><th>Acción</th></tr></thead><tbody id="trPayableRows"></tbody></table></div></article>
+          </div>
+          <div class="grid two-col" style="margin-top:16px">
+            <article class="card"><div class="card-head"><div><h3>Flujo de fondos</h3><small>Ingresos y egresos por mes</small></div><div class="legend legend-inline"><div><i style="background:var(--ok)"></i>Ingresos</div><div><i style="background:var(--red)"></i>Egresos</div></div></div><div class="flow-bars" id="trFlow"></div></article>
+            <article class="card"><div class="card-head"><div><h3>Egresos por categoría</h3><small id="trCategoriesFoot">Mes en curso</small></div></div><div class="cost-stack" id="trCategoryStack"></div><div class="legend" id="trCategoryLegend"></div></article>
+          </div>
+          <article class="card" style="margin-top:16px"><div class="card-head"><div><h3>Movimientos</h3><small>Registro de ingresos y egresos</small></div><div class="filter-row"><select id="trFilterType" class="form-select"><option value="">Todos</option><option>Ingreso</option><option>Egreso</option></select><input type="month" id="trFilterMonth" class="form-select"></div></div><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Categoría</th><th>Contraparte</th><th>Detalle</th><th>Cuenta</th><th>Importe</th><th>Estado</th><th>Acción</th></tr></thead><tbody id="trRows"></tbody></table></div></article>
+          </div>
+          <div class="subpage" data-subpage="operativo">
+            <div class="grid metrics">
+              <article class="metric" style="--metric-color:var(--accent)"><span class="metric-label">Saldo en caja</span><div class="metric-value" id="opCash">$ 0</div><span class="metric-foot" id="opCashFoot">Efectivo en planta</span></article>
+              <article class="metric" style="--metric-color:var(--blue)"><span class="metric-label">Saldo en bancos</span><div class="metric-value" id="opBanks">$ 0</div><span class="metric-foot" id="opBanksFoot">Cuentas activas</span></article>
+              <article class="metric" style="--metric-color:var(--ok)"><span class="metric-label">Cheques en cartera</span><div class="metric-value" id="opChecks">$ 0</div><span class="metric-foot" id="opChecksFoot">Por cobrar</span></article>
+              <article class="metric" style="--metric-color:var(--red)"><span class="metric-label">Deuda financiera</span><div class="metric-value" id="opDebt">$ 0</div><span class="metric-foot" id="opDebtFoot">Créditos vigentes</span></article>
+            </div>
+            <div class="pill-nav" role="tablist" id="opNav">
+              <button class="pill active" data-op="ledger">Caja y bancos</button><button class="pill" data-op="accounts">Cuentas bancarias</button><button class="pill" data-op="cheques">Cheques</button><button class="pill" data-op="credits">Créditos</button><button class="pill" data-op="swap">Canje de granos</button><button class="pill" data-op="cashflow">Flujo proyectado</button><button class="pill" data-op="homebanking">Homebanking</button>
+            </div>
+            <div class="op-section active" data-op-section="ledger">
+              <article class="card"><div class="card-head"><div><h3>Movimientos de caja y bancos</h3><small>Incluye los cobros y pagos realizados en Tesorería; la conciliación se guarda al cambiarla</small></div><div class="head-actions"><select id="opLedgerAccount" class="form-select" aria-label="Cuenta"></select><select id="opLedgerMonth" class="form-select" aria-label="Mes"></select><button class="primary-btn" data-op-new="movement">Nuevo movimiento</button></div></div><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Cuenta</th><th>Concepto</th><th>Categoría</th><th>Medio</th><th>Ingreso</th><th>Egreso</th><th>Saldo</th><th>Conciliación</th><th>Origen</th><th></th></tr></thead><tbody id="opLedgerRows"></tbody></table></div></article>
+            </div>
+            <div class="op-section" data-op-section="accounts">
+              <article class="card"><div class="card-head"><div><h3>Cuentas bancarias</h3><small>La cuenta principal recibe los cobros y pagos bancarios de Tesorería sin cuenta asignada</small></div><button class="primary-btn" data-op-new="account">Nueva cuenta</button></div><div class="table-wrap"><table><thead><tr><th>Banco</th><th>Tipo</th><th>Número</th><th>CBU / CVU</th><th>Alias</th><th>Moneda</th><th>Saldo</th><th>Estado</th><th></th></tr></thead><tbody id="opAccountRows"></tbody></table></div></article>
+            </div>
+            <div class="op-section" data-op-section="cheques">
+              <div class="grid two-col">
+                <article class="card"><div class="card-head"><div><h3>Cheques por cobrar</h3><small id="opChqInFoot">Recibidos de clientes</small></div><button class="primary-btn" data-op-new="chequeIn">Nuevo cheque</button></div><div class="table-wrap"><table><thead><tr><th>Número</th><th>Origen</th><th>Importe</th><th>Pago</th><th>Estado</th><th></th></tr></thead><tbody id="opChqInRows"></tbody></table></div></article>
+                <article class="card"><div class="card-head"><div><h3>Cheques por cubrir</h3><small id="opChqOutFoot">Emitidos a proveedores</small></div><button class="primary-btn" data-op-new="chequeOut">Nuevo cheque</button></div><div class="table-wrap"><table><thead><tr><th>Número</th><th>Destino</th><th>Importe</th><th>Pago</th><th>Estado</th><th></th></tr></thead><tbody id="opChqOutRows"></tbody></table></div></article>
+              </div>
+            </div>
+            <div class="op-section" data-op-section="credits">
+              <article class="card"><div class="card-head"><div><h3>Créditos y préstamos</h3><small>Cuotas por sistema francés o alemán; pagar una cuota la descuenta de su cuenta</small></div><button class="primary-btn" data-op-new="credit">Nuevo crédito</button></div><div class="table-wrap"><table><thead><tr><th>Crédito</th><th>Entidad</th><th>Destino</th><th>Monto original</th><th>Saldo</th><th>Cuotas</th><th>Sistema · TEA</th><th>Próxima cuota</th><th>Estado</th><th></th></tr></thead><tbody id="opCreditRows"></tbody></table></div></article>
+              <article class="card" style="margin-top:16px" id="opScheduleCard" hidden><div class="card-head"><div><h3 id="opScheduleTitle">Cronograma de cuotas</h3><small id="opScheduleFoot"></small></div></div><div class="table-wrap"><table><thead><tr><th>Cuota</th><th>Vencimiento</th><th>Cuota total</th><th>Capital</th><th>Interés</th><th>Saldo</th><th>Estado</th></tr></thead><tbody id="opScheduleRows"></tbody></table></div></article>
+            </div>
+            <div class="op-section" data-op-section="swap">
+              <article class="card"><div class="card-head"><div><h3>Contratos de canje de granos</h3><small>Insumos recibidos a cambio de grano a entregar</small></div><button class="primary-btn" data-op-new="swapContract">Nuevo contrato</button></div><div class="table-wrap"><table><thead><tr><th>Contrato</th><th>Proveedor</th><th>Grano</th><th>Pactado</th><th>Precio ref.</th><th>Insumos recibidos</th><th>Grano entregado</th><th>Saldo</th><th>Estado</th><th></th></tr></thead><tbody id="opSwapRows"></tbody></table></div></article>
+              <article class="card" style="margin-top:16px" id="opSwapCard" hidden><div class="card-head"><div><h3 id="opSwapTitle">Cuenta corriente de canje</h3><small id="opSwapFoot">Pesos y kilos</small></div><button class="primary-btn" data-op-new="swapMovement">Nuevo movimiento</button></div><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Movimiento</th><th>Comprobante</th><th>Detalle</th><th>Debe ($)</th><th>Haber ($)</th><th>Kilos</th><th>Saldo ($)</th><th></th></tr></thead><tbody id="opSwapMovRows"></tbody></table></div></article>
+            </div>
+            <div class="op-section" data-op-section="cashflow">
+              <article class="card"><div class="card-head"><div><h3>Flujo de fondos proyectado</h3><small>Próximos 6 meses: cobros y pagos pendientes, cheques, cuotas de créditos y sueldos de RRHH</small></div></div><div class="flow-bars" id="opFlowBars"></div><div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Mes</th><th>Cobros pendientes</th><th>Cheques a cobrar</th><th>Pagos pendientes</th><th>Cheques a cubrir</th><th>Cuotas de créditos</th><th>Sueldos</th><th>Neto</th><th>Saldo proyectado</th></tr></thead><tbody id="opFlowRows"></tbody></table></div></article>
+            </div>
+            <div class="op-section" data-op-section="homebanking">
+              <div class="market-links" id="opHomebanking"></div>
+              <p class="text-muted">Los enlaces se cargan en cada cuenta bancaria (Cuentas bancarias → Editar). Verifique siempre la dirección antes de ingresar sus claves.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="page" id="page-costs">
+          <div class="page-head"><div><span class="eyebrow">Costeo industrial</span><h2>Costos de producción</h2><p>Costo por tonelada, estructura fija y variable, costo de conversión y punto de equilibrio por período. La mano de obra se toma de RRHH.</p></div><div class="head-actions"><input type="month" id="costPeriod" class="form-select" aria-label="Período"><button class="primary-btn open-cost">Registrar costo</button></div></div>
+          <div class="grid metrics">
+            <article class="metric" style="--metric-color:var(--accent)"><span class="metric-label">Costo total del período</span><div class="metric-value" id="cTotal">$ 0</div><span class="metric-foot" id="cTotalFoot">Incluye mano de obra</span></article>
+            <article class="metric" style="--metric-color:var(--blue)"><span class="metric-label">Costo por tonelada</span><div class="metric-value" id="cPerTon">$ 0</div><span class="metric-foot" id="cPerTonFoot">Sobre toneladas producidas</span></article>
+            <article class="metric" style="--metric-color:var(--ok)"><span class="metric-label">Margen por tonelada</span><div class="metric-value" id="cMargin">$ 0</div><span class="metric-foot" id="cMarginFoot">Contra precio de venta</span></article>
+            <article class="metric" style="--metric-color:var(--orange)"><span class="metric-label">Punto de equilibrio</span><div class="metric-value" id="cBreakeven">0 TM</div><span class="metric-foot" id="cBreakevenFoot">Toneladas por mes</span></article>
+          </div>
+          <div class="grid two-col">
+            <article class="card"><div class="card-head"><div><h3>Producción del período</h3><small>Base para el costo unitario</small></div></div><div class="inline-form"><div class="field"><label for="costTons">Toneladas producidas</label><input id="costTons" type="number" min="0" step="1"></div><button class="primary-btn" id="saveCostTons">Guardar</button></div><div class="grid two-col" style="margin-top:16px"><div class="calc-output"><span>Costo de conversión</span><strong id="cConversion">$ 0</strong><small id="cConversionFoot">Por TM, sin materias primas</small></div><div class="calc-output"><span>Materias primas</span><strong id="cRawPerTon">$ 0</strong><small id="cRawFoot">Por TM producida</small></div></div></article>
+            <article class="card"><div class="card-head"><div><h3>Estructura de costos</h3><small id="cStructureFoot">Fijos y variables</small></div></div><div class="cost-stack" id="cStack"></div><div class="legend" id="cLegend"></div><div class="status-strip" id="cStatus" style="--status-color:var(--ok)"></div></article>
+          </div>
+          <div class="grid two-col" style="margin-top:16px">
+            <article class="card"><div class="card-head"><div><h3>Costo por centro</h3><small>Importe, incidencia por tonelada y participación</small></div></div><div class="table-wrap"><table><thead><tr><th>Centro</th><th>Tipo</th><th>Importe</th><th>$/TM</th><th>%</th></tr></thead><tbody id="costCenterRows"></tbody></table></div></article>
+            <article class="card"><div class="card-head"><div><h3>Evolución del costo por TM</h3><small>Últimos períodos con datos</small></div></div><div class="bars" id="cTrend"></div></article>
+          </div>
+          <article class="card" style="margin-top:16px"><div class="card-head"><div><h3>Origen de la materia prima</h3><small>Grano de lotes propios, arrendados y en aparcería contra la compra a mercado</small></div><button class="ghost-btn" data-go="lots">Ver lotes</button></div><div class="lot-tenure-grid" id="cOrigin"></div><div class="status-strip" id="cOriginStatus" style="--status-color:var(--ok)"></div></article>
+          <article class="card" style="margin-top:16px"><div class="card-head"><div><h3>Registros del período</h3><small>Costos cargados manualmente</small></div><button class="ghost-btn open-cost">Agregar</button></div><div class="table-wrap"><table><thead><tr><th>Centro</th><th>Tipo</th><th>Importe</th><th>Nota</th><th>Acción</th></tr></thead><tbody id="costRows"></tbody></table></div></article>
+        </section>
+
+        <section class="page" id="page-hr">
+          <div class="page-head"><div><span class="eyebrow">Recursos humanos</span><h2>Personal de planta</h2><p>Dotación, turnos, costo laboral, vencimientos de capacitación y roles de acceso al sistema.</p></div><button class="primary-btn open-employee">Nuevo legajo</button></div>
+          <div class="grid metrics">
+            <article class="metric" style="--metric-color:var(--accent)"><span class="metric-label">Dotación activa</span><div class="metric-value" id="hrActive">0</div><span class="metric-foot" id="hrActiveFoot">Personas en planta</span></article>
+            <article class="metric" style="--metric-color:var(--blue)"><span class="metric-label">Costo laboral mensual</span><div class="metric-value" id="hrCost">$ 0</div><span class="metric-foot" id="hrCostFoot">Activos y en licencia</span></article>
+            <article class="metric" style="--metric-color:var(--ok)"><span class="metric-label">Costo laboral por TM</span><div class="metric-value" id="hrCostTon">$ 0</div><span class="metric-foot" id="hrCostTonFoot">Último período con producción</span></article>
+            <article class="metric" style="--metric-color:var(--orange)"><span class="metric-label">Capacitación y EPP</span><div class="metric-value" id="hrTraining">0</div><span class="metric-foot warning" id="hrTrainingFoot">Vencidas</span></article>
+          </div>
+          <div class="grid two-col">
+            <article class="card"><div class="card-head"><div><h3>Cobertura de la estructura</h3><small>Puestos requeridos contra dotación activa</small></div><select id="hrScale" class="form-select" style="width:auto"><option value="comercial">Comercial · 5–10 TM/h</option><option value="autoconsumo">Autoconsumo · 1–2 TM/h</option></select></div><div id="hrCoverage"></div><div class="status-strip" id="hrCoverageStatus" style="--status-color:var(--ok)"></div></article>
+            <article class="card"><div class="card-head"><div><h3>Turnos y alertas</h3><small>Distribución y vencimientos</small></div></div><div class="lot-summary" id="hrShifts"></div><div class="alert-list" id="hrAlerts" style="margin-top:14px"></div></article>
+          </div>
+          <article class="card" style="margin-top:16px"><div class="card-head"><div><h3>Legajos</h3><small>Turno y estado se guardan al cambiarlos</small></div><button class="ghost-btn open-employee">Agregar</button></div><div class="table-wrap"><table><thead><tr><th>Legajo</th><th>Nombre</th><th>Puesto</th><th>Turno</th><th>Rol del sistema</th><th>Ingreso</th><th>Costo mensual</th><th>Capacitación</th><th>Estado</th><th></th></tr></thead><tbody id="hrRows"></tbody></table></div></article>
+          <article class="card" style="margin-top:16px" id="trnCard"><div class="card-head"><div><h3>Capacitaciones</h3><small>Registro de capacitaciones dictadas; el vencimiento de cada legajo se calcula solo</small></div><div class="head-actions"><button class="ghost-btn" id="trnTopicsBtn">Temas y vigencias</button><button class="primary-btn" id="trnNewBtn">Registrar capacitación</button></div></div>
+            <div class="pill-nav" id="trnNav"><button class="pill active" data-trn="people">Por persona</button><button class="pill" data-trn="topics">Por tema</button><button class="pill" data-trn="records">Registro</button></div>
+            <div class="trn-section active" data-trn-section="people"><div class="table-wrap"><table><thead><tr><th>Persona</th><th>Puesto</th><th>Al día</th><th>Próximo vencimiento</th><th>Pendientes o por vencer</th><th></th></tr></thead><tbody id="trnPeopleRows"></tbody></table></div></div>
+            <div class="trn-section" data-trn-section="topics"><div class="table-wrap"><table><thead><tr><th>Tema</th><th>Vigencia</th><th>Obligatoria para</th><th>Cobertura</th><th>Faltan o vencidas</th><th></th></tr></thead><tbody id="trnTopicRows"></tbody></table></div></div>
+            <div class="trn-section" data-trn-section="records"><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Tema</th><th>Instructor</th><th>Duración</th><th>Asistentes</th><th>Vence</th><th>Certificado</th><th></th></tr></thead><tbody id="trnRecordRows"></tbody></table></div></div>
+          </article>
+          <article class="card" style="margin-top:16px"><div class="card-head"><div><h3>Roles del sistema</h3><small>Perfiles de acceso (RBAC) y personas asignadas</small></div></div><div class="table-wrap"><table><thead><tr><th>Código</th><th>Perfil</th><th>Planta</th><th>Acciones clave</th><th>Asignados</th></tr></thead><tbody id="hrRoleRows"></tbody></table></div></article>
+        </section>
+
+        <section class="page" id="page-reports">
+          <div class="page-head"><div><span class="eyebrow">Análisis</span><h2>Reportes</h2><p>Armados con los datos de cada módulo. Se exportan a PDF o Excel, se comparten por WhatsApp y se pueden analizar con PampaIA. Funcionan sin conexión.</p></div></div>
+          <div class="report-grid" id="rpGrid"></div>
+          <article class="card" id="rpViewer" hidden style="margin-top:16px"><div class="card-head"><div><h3 id="rpTitle"></h3><small id="rpSubtitle"></small></div><div class="head-actions"><span id="rpParamWrap"></span><button class="ghost-btn" id="rpPdf">PDF</button><button class="ghost-btn" id="rpXlsx">Excel</button><button class="ghost-btn" id="rpWa"><span class="wa-mini-icon">WA</span>WhatsApp</button><button class="primary-btn" id="rpAi">Analizar con IA</button></div></div><div id="rpBody"></div></article>
+        </section>
+
+        <section class="page" id="page-ai">
+          <div class="page-head"><div><span class="eyebrow">Análisis</span><h2>PampaIA</h2><p>Diagnóstico automático con los datos de todos los módulos y consultas en lenguaje natural sobre la planta. La IA no modifica registros.</p></div><div class="head-actions"><span class="badge blue" id="aiStatus">Verificando…</span><button class="ghost-btn" id="aiConfigBtn">Configurar IA</button></div></div>
+          <div class="grid two-col ai-layout">
+            <article class="card"><div class="card-head"><div><h3>Diagnóstico automático</h3><small>Costos, stock, calidad, PLC, finanzas, equipos, personal y mercado · funciona sin conexión</small></div></div><div class="ai-summary" id="aiSummary"></div><div class="alert-list" id="aiInsights"></div></article>
+            <article class="card"><div class="card-head"><div><h3>Consultá a PampaIA</h3><small id="aiDisclosure"></small></div><button class="ghost-btn" id="aiClear">Nueva conversación</button></div>
+              <div class="ai-prompts" id="aiPrompts">
+                <button class="pill" data-prompt="Resumime cómo viene la planta hoy: producción, stock, calidad y lo que es urgente.">Resumen del día</button>
+                <button class="pill" data-prompt="¿Por qué cambió el costo por tonelada este mes y qué podemos hacer para bajarlo?">Costo por tonelada</button>
+                <button class="pill" data-prompt="¿Qué insumos se terminan primero y cuánto conviene comprar de cada uno?">Plan de compras</button>
+                <button class="pill" data-prompt="¿Hay riesgos de inocuidad o de calidad que deba atender esta semana?">Riesgos de calidad</button>
+                <button class="pill" data-prompt="¿Cómo viene la caja para los próximos 30 días?">Flujo de caja</button>
+                <button class="pill" data-prompt="¿Qué mantenimientos y capacitaciones tengo que programar?">Mantenimiento y personal</button>
+              </div>
+              <div class="ai-chat" id="aiChat" aria-live="polite"></div>
+              <form class="ai-compose" id="aiForm"><textarea id="aiInput" rows="2" maxlength="2000" placeholder="Preguntá sobre producción, costos, stock, calidad, finanzas o personal…" aria-label="Consulta"></textarea><button class="primary-btn" id="aiSend" type="submit">Enviar</button></form>
+            </article>
+          </div>
+        </section>
+
+        <section class="page" id="page-tender">
+          <div class="page-head"><div><span class="eyebrow">Adquisiciones</span><h2>Pliego técnico y compras</h2><p>Bloques del pliego con sus ítems, cotizaciones y evaluación de cumplimiento; hitos y condiciones de contratación, montaje y aceptación.</p></div><div class="head-actions"><button class="ghost-btn" id="editTenderTerms">Condiciones generales</button><button class="ghost-btn open-milestone">Nuevo hito</button><button class="primary-btn" id="newTenderBlock">Nuevo bloque</button></div></div>
+          <div class="grid metrics">
+            <article class="metric" style="--metric-color:var(--accent)"><span class="metric-label">CAPEX cotizado</span><div class="metric-value" id="tdCapex">USD 0</div><span class="metric-foot" id="tdCapexFoot">Sin cotizaciones</span></article>
+            <article class="metric" style="--metric-color:var(--ok)"><span class="metric-label">Cumplimiento técnico</span><div class="metric-value" id="tdCompliance">—</div><span class="metric-foot" id="tdComplianceFoot">Sin ítems evaluados</span></article>
+            <article class="metric" style="--metric-color:var(--blue)"><span class="metric-label">Garantía requerida</span><div class="metric-value" id="tdWarranty">—</div><span class="metric-foot" id="tdWarrantyFoot"></span></article>
+            <article class="metric" style="--metric-color:var(--orange)"><span class="metric-label">Retención de pago</span><div class="metric-value" id="tdRetention">—</div><span class="metric-foot" id="tdRetentionFoot"></span></article>
+          </div>
+          <div class="tender-toolbar"><select id="tdFilterCategory" class="form-select" aria-label="Filtrar por categoría"><option value="">Todas las categorías</option></select><select id="tdFilterStatus" class="form-select" aria-label="Filtrar por estado"><option value="">Todos los estados</option></select><span class="text-muted" id="tdCount"></span></div>
+          <div class="grid doc-grid" id="tdBlocks"></div>
+          <article class="card" style="margin-top:18px"><div class="card-head"><div><h3>Hitos contractuales</h3><small>Responsable y estado se guardan al cambiarlos</small></div><button class="ghost-btn open-milestone">Agregar</button></div><div class="table-wrap"><table><thead><tr><th>Hito</th><th>Criterio</th><th>Garantía / penalidad</th><th>Fecha</th><th>Responsable</th><th>Estado</th><th>Acción</th></tr></thead><tbody id="tdMilestones"></tbody></table></div></article>
+        </section>
+      </div>
+    </main>
+  </div>
+  <dialog id="batchDialog">
+    <div class="dialog-head"><h2>Nuevo lote de producción</h2><button class="dialog-close" id="closeDialog" aria-label="Cerrar">×</button></div>
+    <form class="dialog-body" id="batchForm">
+      <div class="form-grid">
+        <div class="field"><label for="batchId">Identificador</label><input id="batchId" required value="LT-2026-"></div>
+        <div class="field"><label for="batchPhase">Fase</label><select id="batchPhase"><option>Preiniciador</option><option>Inicio / desarrollo</option><option selected>Engorde</option><option>Reproductoras</option></select></div>
+        <div class="field"><label for="batchVolume">Volumen (TM)</label><input id="batchVolume" type="number" required value="24" min="1" step="1"></div>
+        <div class="field"><label for="batchMicrons">Granulometría (µm)</label><input id="batchMicrons" type="number" required value="620" min="300" step="10"></div>
+        <div class="field"><label for="batchTemp">Temperatura (°C)</label><input id="batchTemp" type="number" required value="84" min="0" step="1"></div>
+        <div class="field"><label for="batchStatus">Estado inicial</label><select id="batchStatus"><option>Programado</option><option selected>En proceso</option><option>Control</option></select></div>
+      </div>
+      <div class="form-actions"><button type="button" class="ghost-btn" id="cancelDialog">Cancelar</button><button class="primary-btn" type="submit">Crear lote</button></div>
+    </form>
+  </dialog>
+  <dialog id="equipmentDialog">
+    <div class="dialog-head"><h2 id="equipmentDialogTitle">Registrar equipamiento</h2><button class="dialog-close" id="closeEquipmentDialog" aria-label="Cerrar">×</button></div>
+    <form class="dialog-body" id="equipmentForm">
+      <div class="form-grid">
+        <div class="field"><label for="equipmentId">Código interno</label><input id="equipmentId" required placeholder="EQ-AREA-01"></div>
+        <div class="field"><label for="equipmentName">Nombre del equipo</label><input id="equipmentName" required></div>
+        <div class="field"><label for="equipmentArea">Área</label><input id="equipmentArea" required placeholder="Molienda"></div>
+        <div class="field"><label for="equipmentCriticality">Criticidad</label><select id="equipmentCriticality"><option>Media</option><option selected>Alta</option><option>Crítica</option></select></div>
+        <div class="field full"><label for="equipmentSpecification">Especificación técnica</label><input id="equipmentSpecification" required placeholder="Potencia, capacidad y características principales"></div>
+        <div class="field"><label for="equipmentHours">Horas iniciales</label><input id="equipmentHours" type="number" required value="0" min="0" step="1"></div>
+        <div class="field"><label for="equipmentStatus">Estado</label><select id="equipmentStatus"><option selected>Operativo</option><option>Alerta</option><option>Mantenimiento</option><option>Fuera de servicio</option></select></div>
+        <div class="field"><label for="equipmentCurrency">Moneda de los costos</label><select id="equipmentCurrency"><option value="USD" selected>Dólares (importado)</option><option value="ARS">Pesos</option></select></div>
+        <div class="field"><label for="equipmentInvestment">Costo de adquisición</label><input id="equipmentInvestment" type="number" required value="0" min="0" step="100"></div>
+        <div class="field"><label for="equipmentMaintenanceCost">Mantenimiento anual</label><input id="equipmentMaintenanceCost" type="number" required value="0" min="0" step="100"></div>
+        <div class="field"><label for="equipmentNextMaintenance">Próximo mantenimiento</label><input id="equipmentNextMaintenance" type="date" required value="2026-11-01"></div>
+        <div class="field full dialog-subtitle"><b>Amortización</b> <small class="text-muted">lineal y mensual desde el mes de alta; se imputa sola en Costos</small></div>
+        <div class="field"><label for="equipmentStartDate">Fecha de alta / puesta en marcha</label><input id="equipmentStartDate" type="date" required></div>
+        <div class="field"><label for="equipmentLife">Vida útil (años)</label><input id="equipmentLife" type="number" required value="10" min="1" max="100" step="1"></div>
+        <div class="field"><label for="equipmentResidual">Valor residual (%)</label><input id="equipmentResidual" type="number" required value="0" min="0" max="100" step="1"></div>
+        <div class="field" id="equipmentFxField"><label for="equipmentFx">Tipo de cambio de la compra ($/US$)</label><input id="equipmentFx" type="number" min="0" step="0.01" placeholder="MEP del día"></div>
+        <div class="field full"><div class="status-strip" id="equipmentAmortPreview" style="--status-color:var(--blue)"></div></div>
+      </div>
+      <div class="form-actions"><button type="button" class="ghost-btn" id="cancelEquipmentDialog">Cancelar</button><button class="primary-btn" type="submit">Guardar equipo</button></div>
+    </form>
+  </dialog>
+  <dialog id="recipeDialog">
+    <div class="dialog-head"><h2>Nueva receta</h2><button class="dialog-close" id="closeRecipeDialog" aria-label="Cerrar">×</button></div>
+    <form class="dialog-body" id="recipeForm"><div class="form-grid">
+      <div class="field"><label for="recipeId">Código</label><input id="recipeId" required placeholder="REC-ESP-01"></div><div class="field"><label for="recipeName">Nombre</label><input id="recipeName" required></div>
+      <div class="field"><label for="recipePhase">Fase</label><select id="recipePhase"><option>Preiniciador</option><option>Inicio / desarrollo</option><option>Engorde</option><option>Reproductoras</option></select></div><div class="field"><label for="recipeFormat">Formato</label><input id="recipeFormat" required placeholder="Pellet 3–4 mm"></div>
+      <div class="field"><label for="recipeParticleMin">Partícula mínima (µm)</label><input id="recipeParticleMin" type="number" required value="550"></div><div class="field"><label for="recipeParticleMax">Partícula máxima (µm)</label><input id="recipeParticleMax" type="number" required value="650"></div>
+      <div class="field"><label for="recipeEnergy">Energía (kcal/kg)</label><input id="recipeEnergy" type="number" required value="3250"></div><div class="field"><label for="recipeProtein">Proteína (%)</label><input id="recipeProtein" type="number" step="0.01" required value="19"></div>
+      <div class="field"><label for="recipeLysine">Lisina digestible (%)</label><input id="recipeLysine" type="number" step="0.01" required value="1.15"></div><div class="field"><label for="recipeCost">Costo ($/TM)</label><input id="recipeCost" type="number" step="1" required value="585200"></div>
+      <div class="field full"><label for="recipeIngredients">Ingredientes: porcentaje, separados por coma</label><input id="recipeIngredients" required value="Maíz: 62, Expeller de soja: 27, Aceite vegetal: 2, Núcleo y minerales: 4, Otros: 5"></div>
+    </div><div class="form-actions"><button type="button" class="ghost-btn" id="cancelRecipeDialog">Cancelar</button><button type="submit" class="primary-btn">Guardar receta</button></div></form>
+  </dialog>
+  <dialog id="lotDialog">
+    <div class="dialog-head"><h2>Registrar lote agropecuario</h2><button class="dialog-close" id="closeLotDialog" aria-label="Cerrar">×</button></div>
+    <form class="dialog-body" id="lotForm"><div class="form-grid">
+      <div class="field"><label for="lotId">Código</label><input id="lotId" required placeholder="LOT-PER-004"></div><div class="field"><label for="lotName">Nombre</label><input id="lotName" required></div>
+      <div class="field"><label for="lotProducer">Productor</label><input id="lotProducer" required></div><div class="field"><label for="lotLocality">Localidad</label><input id="lotLocality" required></div>
+      <div class="field"><label for="lotHectaresInput">Superficie (ha)</label><input id="lotHectaresInput" type="number" min="0.01" step="0.01" required></div><div class="field"><label for="lotCrop">Cultivo</label><select id="lotCrop"><option>Maíz</option><option>Soja</option><option>Sorgo</option><option>Trigo</option><option>Otro</option></select></div>
+      <div class="field"><label for="lotLatitude">Latitud</label><input id="lotLatitude" type="number" min="-90" max="90" step="0.000001" required value="-33.890000"></div><div class="field"><label for="lotLongitude">Longitud</label><input id="lotLongitude" type="number" min="-180" max="180" step="0.000001" required value="-60.570000"></div>
+      <div class="field full geo-row"><button type="button" class="ghost-btn" id="useMyLocation">Usar mi ubicación actual</button><small id="geoStatus" class="geo-status"></small></div>
+      <div class="field"><label for="lotTenure">Tenencia</label><select id="lotTenure"><option>Propio</option><option>Arrendamiento</option><option>Aparcería</option></select></div><div class="field"><label for="lotYield">Rinde esperado (TM/ha)</label><input id="lotYield" type="number" min="0" max="30" step="0.1" required value="8"></div>
+      <div class="field"><label for="lotProductionCost">Costo de producción ($/ha)</label><input id="lotProductionCost" type="number" min="0" step="100" required value="1155000"></div><div class="field" id="lotRentField" hidden><label for="lotRent">Alquiler ($/ha por campaña)</label><input id="lotRent" type="number" min="0" step="100" value="0"></div><div class="field" id="lotShareField" hidden><label for="lotOwnerShare">% de la cosecha para el propietario</label><input id="lotOwnerShare" type="number" min="0" max="100" step="0.5" value="30"></div><div class="field" id="lotOwnerCostField" hidden><label for="lotOwnerCost">% de los costos a cargo del propietario</label><input id="lotOwnerCost" type="number" min="0" max="100" step="0.5" value="0"></div>
+      <div class="field"><label for="lotSupplierCode">Lote proveedor</label><input id="lotSupplierCode" required placeholder="MP-MAIZ-26060"></div><div class="field"><label for="lotStatus">Estado</label><select id="lotStatus"><option>Activo</option><option>Monitoreo</option><option>Inactivo</option></select></div>
+    </div><div class="form-actions"><button type="button" class="ghost-btn" id="cancelLotDialog">Cancelar</button><button type="submit" class="primary-btn">Guardar lote</button></div></form>
+  </dialog>
+  <dialog id="closeBatchDialog">
+    <div class="dialog-head"><h2>Cerrar lote</h2><button class="dialog-close" id="closeBatchDialogX" aria-label="Cerrar">×</button></div>
+    <form class="dialog-body" id="closeBatchForm">
+      <input type="hidden" id="closeBatchId">
+      <p class="text-muted" id="closeBatchSummary"></p>
+      <div class="form-grid"><div class="field"><label for="closeTheoreticalWeight">Peso teórico (kg)</label><input id="closeTheoreticalWeight" readonly></div><div class="field"><label for="closeRealWeight">Peso real total (kg)</label><input id="closeRealWeight" type="number" min="0.01" step="0.01" required></div></div>
+      <div class="form-actions"><button type="button" class="ghost-btn" id="cancelCloseBatch">Cancelar</button><button type="submit" class="primary-btn">Confirmar cierre</button></div>
+    </form>
+  </dialog>
+  <dialog id="txDialog">
+    <div class="dialog-head"><h2>Nuevo movimiento</h2><button class="dialog-close" data-close-dialog="txDialog" aria-label="Cerrar">×</button></div>
+    <form class="dialog-body" id="txForm"><div class="form-grid">
+      <div class="field"><label for="txType">Tipo</label><select id="txType"><option>Ingreso</option><option selected>Egreso</option></select></div><div class="field"><label for="txDate">Fecha</label><input id="txDate" type="date" required></div>
+      <div class="field"><label for="txCategory">Categoría</label><select id="txCategory"></select></div><div class="field"><label for="txCounterparty">Cliente / proveedor</label><input id="txCounterparty" required maxlength="160"></div>
+      <div class="field full"><label for="txDescription">Detalle</label><input id="txDescription" maxlength="255" placeholder="Producto, toneladas, comprobante"></div>
+      <div class="field"><label for="txAmount">Importe ($)</label><input id="txAmount" type="number" min="0.01" step="0.01" required></div><div class="field"><label for="txAccount">Cuenta</label><select id="txAccount"><option>Banco</option><option>Caja</option></select></div><div class="field" id="txBankField"><label for="txBankAccount">Cuenta bancaria</label><select id="txBankAccount"></select></div>
+      <div class="field"><label for="txStatus">Estado</label><select id="txStatus"></select></div><div class="field"><label for="txDueDate">Vencimiento</label><input id="txDueDate" type="date"></div>
+    </div><div class="form-actions"><button type="button" class="ghost-btn" data-close-dialog="txDialog">Cancelar</button><button type="submit" class="primary-btn">Guardar movimiento</button></div></form>
+  </dialog>
+  <dialog id="costDialog">
+    <div class="dialog-head"><h2>Registrar costo</h2><button class="dialog-close" data-close-dialog="costDialog" aria-label="Cerrar">×</button></div>
+    <form class="dialog-body" id="costForm"><div class="form-grid">
+      <div class="field"><label for="costEntryPeriod">Período</label><input id="costEntryPeriod" type="month" required></div><div class="field"><label for="costCenter">Centro de costo</label><select id="costCenter"></select></div>
+      <div class="field"><label for="costType">Tipo</label><select id="costType"><option>Variable</option><option>Fijo</option></select></div><div class="field"><label for="costAmount">Importe del período ($)</label><input id="costAmount" type="number" min="0" step="0.01" required></div>
+      <div class="field full"><label for="costNote">Nota</label><input id="costNote" maxlength="255" placeholder="Factura, criterio de cálculo"></div>
+    </div><div class="form-actions"><button type="button" class="ghost-btn" data-close-dialog="costDialog">Cancelar</button><button type="submit" class="primary-btn">Guardar costo</button></div></form>
+  </dialog>
+  <dialog id="employeeDialog">
+    <div class="dialog-head"><h2 id="employeeDialogTitle">Nuevo legajo</h2><button class="dialog-close" data-close-dialog="employeeDialog" aria-label="Cerrar">×</button></div>
+    <form class="dialog-body" id="employeeForm"><div class="form-grid">
+      <div class="field"><label for="empId">Legajo</label><input id="empId" required maxlength="80"></div><div class="field"><label for="empName">Nombre y apellido</label><input id="empName" required maxlength="160"></div>
+      <div class="field"><label for="empPosition">Puesto</label><select id="empPosition"></select></div><div class="field"><label for="empArea">Área</label><select id="empArea"></select></div>
+      <div class="field"><label for="empRole">Rol del sistema</label><select id="empRole"></select></div><div class="field"><label for="empShift">Turno</label><select id="empShift"><option>Mañana</option><option>Tarde</option><option>Noche</option><option>Rotativo</option></select></div>
+      <div class="field"><label for="empStart">Fecha de ingreso</label><input id="empStart" type="date" required></div><div class="field"><label for="empCost">Costo laboral mensual ($)</label><input id="empCost" type="number" min="0" step="1" required></div>
+      <div class="field"><label for="empStatus">Estado</label><select id="empStatus"><option>Activo</option><option>Licencia</option><option>Baja</option></select></div><div class="field"><label for="empTraining" title="Se recalcula al registrar capacitaciones">Vencimiento capacitación / EPP</label><input id="empTraining" type="date" required></div>
+    </div><div class="form-actions"><button type="button" class="ghost-btn" data-close-dialog="employeeDialog">Cancelar</button><button type="submit" class="primary-btn" id="empSubmit">Guardar legajo</button></div></form>
+  </dialog>
+  <dialog id="tenderBlockDialog" class="wide-dialog">
+    <div class="dialog-head"><h2 id="tenderBlockTitle">Nuevo bloque</h2><button class="dialog-close" data-close-dialog="tenderBlockDialog" aria-label="Cerrar">×</button></div>
+    <form class="dialog-body" id="tenderBlockForm"><div class="form-grid form-grid-3">
+      <div class="field"><label for="tbCode">Código</label><input id="tbCode" required maxlength="20" placeholder="BLOQUE H"></div><div class="field"><label for="tbTitle">Título</label><input id="tbTitle" required maxlength="160"></div><div class="field"><label for="tbCategory">Categoría</label><select id="tbCategory"></select></div>
+      <div class="field full"><label for="tbSpec">Especificación técnica</label><textarea id="tbSpec" rows="2" maxlength="2000" placeholder="Qué se le exige al proveedor"></textarea></div>
+      <div class="field"><label for="tbSupplier">Proveedor cotizado</label><input id="tbSupplier" list="tbSuppliers" maxlength="160" placeholder="Elegir o escribir"><datalist id="tbSuppliers"></datalist></div><div class="field"><label for="tbStatus">Estado</label><select id="tbStatus"></select></div><div class="field"><label for="tbCurrency">Moneda de la cotización</label><select id="tbCurrency"><option value="USD">Dólares (importado)</option><option value="ARS">Pesos</option></select></div>
+      <div class="field"><label for="tbAmount">Monto cotizado</label><input id="tbAmount" type="number" min="0" step="100" value="0"></div><div class="field"><label for="tbDelivery">Plazo de entrega (semanas)</label><input id="tbDelivery" type="number" min="0" max="520" step="1" value="0"></div><div class="field"><label for="tbWarranty">Garantía ofrecida (meses)</label><input id="tbWarranty" type="number" min="0" max="240" step="1" value="0"></div>
+    </div>
+    <div class="items-head"><h3>Ítems del bloque</h3><small class="text-muted" id="tbItemsSummary"></small><button type="button" class="ghost-btn" id="tbAddItem">Agregar ítem</button></div>
+    <div class="table-wrap"><table class="items-table"><thead><tr><th>Requisito</th><th>Prioridad</th><th>Cumplimiento</th><th>Observación</th><th></th></tr></thead><tbody id="tbItems"></tbody></table></div>
+    <div class="form-actions"><button type="button" class="ghost-btn" data-close-dialog="tenderBlockDialog">Cancelar</button><button type="submit" class="primary-btn">Guardar bloque</button></div></form>
+  </dialog>
+  <dialog id="milestoneDialog">
+    <div class="dialog-head"><h2 id="milestoneTitle">Nuevo hito</h2><button class="dialog-close" data-close-dialog="milestoneDialog" aria-label="Cerrar">×</button></div>
+    <form class="dialog-body" id="milestoneForm"><div class="form-grid">
+      <div class="field"><label for="msName">Hito</label><input id="msName" required maxlength="120" list="msNames"><datalist id="msNames"><option>Entrega</option><option>Montaje</option><option>Puesta en marcha</option><option>Capacidad</option><option>Homogeneidad</option><option>Bioseguridad</option><option>Capacitación</option><option>Aceptación provisoria</option><option>Aceptación definitiva</option></datalist></div><div class="field"><label for="msDate">Fecha prevista</label><input id="msDate" type="date"></div>
+      <div class="field full"><label for="msCriterion">Criterio de aceptación</label><input id="msCriterion" maxlength="255"></div>
+      <div class="field full"><label for="msGuarantee">Garantía o penalidad</label><input id="msGuarantee" maxlength="255"></div>
+      <div class="field"><label for="msResponsible">Responsable</label><select id="msResponsible"></select></div><div class="field"><label for="msStatus">Estado</label><select id="msStatus"></select></div>
+    </div><div class="form-actions"><button type="button" class="ghost-btn" data-close-dialog="milestoneDialog">Cancelar</button><button type="submit" class="primary-btn">Guardar hito</button></div></form>
+  </dialog>
+  <dialog id="tenderTermsDialog">
+    <div class="dialog-head"><h2>Condiciones generales</h2><button class="dialog-close" data-close-dialog="tenderTermsDialog" aria-label="Cerrar">×</button></div>
+    <form class="dialog-body" id="tenderTermsForm"><div class="form-grid">
+      <div class="field"><label for="ttWarranty">Garantía requerida (meses)</label><input id="ttWarranty" type="number" min="0" max="240" step="1" required></div><div class="field"><label for="ttScope">Alcance de la garantía</label><input id="ttScope" maxlength="160" list="ttScopes"><datalist id="ttScopes"><option>Incluye repuestos y viáticos</option><option>Solo repuestos</option><option>Repuestos, mano de obra y viáticos</option></datalist></div>
+      <div class="field"><label for="ttRetention">Retención de pago (%)</label><input id="ttRetention" type="number" min="0" max="100" step="0.5" required></div><div class="field"><label for="ttRelease">Liberación de la retención</label><select id="ttRelease"><option>Hasta aceptación provisoria</option><option>Hasta aceptación definitiva</option><option>Hasta fin de garantía</option></select></div>
+      <div class="field"><label for="ttPenalty">Multa por atraso (% semanal)</label><input id="ttPenalty" type="number" min="0" max="100" step="0.1" required></div><div class="field"><label for="ttPenaltyCap">Tope de multas (%)</label><input id="ttPenaltyCap" type="number" min="0" max="100" step="0.5" required></div>
+    </div><div class="form-actions"><button type="button" class="ghost-btn" data-close-dialog="tenderTermsDialog">Cancelar</button><button type="submit" class="primary-btn">Guardar condiciones</button></div></form>
+  </dialog>
+  <dialog id="opDialog">
+    <div class="dialog-head"><h2 id="opDialogTitle">Nuevo registro</h2><button class="dialog-close" data-close-dialog="opDialog" aria-label="Cerrar">×</button></div>
+    <form class="dialog-body" id="opForm"><div class="form-grid" id="opFields"></div><div class="form-actions"><button type="button" class="ghost-btn" data-close-dialog="opDialog">Cancelar</button><button type="submit" class="primary-btn" id="opSubmit">Guardar</button></div></form>
+  </dialog>
+  <dialog id="homeDialog" class="wide-dialog">
+    <div class="dialog-head"><h2 id="homeDialogTitle"></h2><button class="dialog-close" data-close-dialog="homeDialog" aria-label="Cerrar">×</button></div>
+    <div class="dialog-body" id="homeDialogBody"></div>
+  </dialog>
+  <dialog id="pinDialog">
+    <div class="dialog-head"><h2 id="pinTitle">PIN del propietario</h2><button class="dialog-close" type="button" id="pinCancelX" aria-label="Cerrar">×</button></div>
+    <form class="dialog-body" id="pinForm"><p class="text-muted" id="pinHelp"></p><div class="form-grid"><div class="field"><label for="pinInput">PIN (4 dígitos)</label><input id="pinInput" type="password" inputmode="numeric" pattern="\d{4}" maxlength="4" required autocomplete="off"></div><div class="field" id="pinConfirmField"><label for="pinConfirm">Repetir PIN</label><input id="pinConfirm" type="password" inputmode="numeric" pattern="\d{4}" maxlength="4" autocomplete="off"></div></div><div class="form-actions"><button type="button" class="ghost-btn" id="pinCancel">Cancelar</button><button type="submit" class="primary-btn">Confirmar</button></div></form>
+  </dialog>
+  <dialog id="wasteDialog">
+    <div class="dialog-head"><h2 id="wasteDialogTitle">Registrar</h2><button class="dialog-close" data-close-dialog="wasteDialog" aria-label="Cerrar">×</button></div>
+    <form class="dialog-body" id="wasteForm"><div class="form-grid" id="wasteFields"></div><div class="form-actions"><button type="button" class="ghost-btn" data-close-dialog="wasteDialog">Cancelar</button><button type="submit" class="primary-btn" id="wasteSubmit">Guardar</button></div></form>
+  </dialog>
+  <dialog id="aiConfigDialog">
+    <div class="dialog-head"><h2>Configurar PampaIA</h2><button class="dialog-close" data-close-dialog="aiConfigDialog" aria-label="Cerrar">×</button></div>
+    <form class="dialog-body" id="aiConfigForm"><div class="form-grid">
+      <div class="field full"><label for="aiCfgProvider">Proveedor</label><select id="aiCfgProvider"><option value="pampa">Servidor PampaIA (Flowise + Ollama) · sin clave</option><option value="anthropic">Claude (Anthropic) · clave propia</option><option value="openai">OpenAI o compatible · clave propia</option><option value="ollama">Ollama directo en esta PC</option></select></div>
+      <div class="field" data-ai-for="pampa"><label for="aiCfgFlowiseUrl">Flowise propio (opcional)</label><input id="aiCfgFlowiseUrl" maxlength="200" placeholder="http://localhost:3001"></div>
+      <div class="field" data-ai-for="pampa"><label for="aiCfgChatflow">Id del chatflow «PampaIA»</label><input id="aiCfgChatflow" maxlength="80"></div>
+      <div class="field" data-ai-for="pampa"><label for="aiCfgOllamaUrl">Ollama propio (opcional)</label><input id="aiCfgOllamaUrl" maxlength="200" placeholder="http://localhost:11434"></div>
+      <div class="field"><label for="aiCfgModel">Modelo</label><input id="aiCfgModel" maxlength="100" required></div>
+      <div class="field" data-ai-for="anthropic openai ollama"><label for="aiCfgBase">Dirección base (opcional)</label><input id="aiCfgBase" maxlength="200"></div>
+      <div class="field full" data-ai-for="pampa"><label class="check-row" style="display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-size:13px"><input type="checkbox" id="aiCfgCentral" style="width:16px;height:16px;accent-color:var(--accent)"> Si no hay Flowise ni Ollama propio, usar el servidor central de Pampa</label></div>
+      <div class="field full" id="aiCfgKeyField"><label for="aiCfgKey" id="aiCfgKeyLabel">Clave de API</label><input id="aiCfgKey" type="password" autocomplete="off" maxlength="300" placeholder="Pegar la clave"><small class="text-muted" id="aiCfgKeyHint"></small></div>
+    </div>
+    <p class="text-muted" id="aiCfgHelp" style="font-size:12px;margin:12px 0 4px"></p>
+    <p class="text-muted" style="font-size:12px;margin:0 0 12px">La clave queda guardada en la base de esta PC: no se muestra, no se exporta y no se envía a otros equipos.</p>
+    <div class="status-strip" id="aiCfgResult" hidden style="--status-color:var(--blue)"></div>
+    <div class="form-actions"><button type="button" class="ghost-btn" id="aiCfgClearKey">Borrar clave</button><button type="button" class="ghost-btn" id="aiCfgTest">Probar conexión</button><button type="submit" class="primary-btn">Guardar</button></div></form>
+  </dialog>
+  <dialog id="trnDialog" class="wide-dialog">
+    <div class="dialog-head"><h2 id="trnDialogTitle"></h2><button class="dialog-close" data-close-dialog="trnDialog" aria-label="Cerrar">×</button></div>
+    <form class="dialog-body" id="trnForm"><div id="trnFormBody"></div><div class="form-actions"><button type="button" class="ghost-btn" id="trnCancel" data-close-dialog="trnDialog">Cancelar</button><button type="submit" class="primary-btn" id="trnSubmit">Guardar</button></div></form>
+  </dialog>
+  <dialog id="qcDialog" class="wide-dialog">
+    <div class="dialog-head"><h2 id="qcDialogTitle"></h2><button class="dialog-close" data-close-dialog="qcDialog" aria-label="Cerrar">×</button></div>
+    <form class="dialog-body" id="qcForm"><div id="qcFormBody"></div><div class="form-actions"><button type="button" class="ghost-btn" data-close-dialog="qcDialog">Cancelar</button><button type="submit" class="primary-btn" id="qcSubmit">Guardar</button></div></form>
+  </dialog>
+  <dialog id="invDialog">
+    <div class="dialog-head"><h2 id="invDialogTitle"></h2><button class="dialog-close" data-close-dialog="invDialog" aria-label="Cerrar">×</button></div>
+    <form class="dialog-body" id="invForm"><div class="form-grid" id="invFields"></div><div class="status-strip" id="invPreview" hidden style="--status-color:var(--blue)"></div><div class="form-actions"><button type="button" class="ghost-btn" data-close-dialog="invDialog">Cancelar</button><button type="submit" class="primary-btn" id="invSubmit">Guardar</button></div></form>
+  </dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="vendor/leaflet/leaflet.js"></script>
+  <script src="plant-runtime.js" defer></script>
+  <script src="gestion-modules.js" defer></script>
+  <script src="tender-module.js" defer></script>
+  <script src="finanzas-operativo.js" defer></script>
+  <script src="inventario-module.js" defer></script>
+  <script src="capacitaciones-module.js" defer></script>
+  <script src="reportes-module.js" defer></script>
+  <script src="pampaia-module.js" defer></script>
+  <script src="calidad-module.js" defer></script>
+  <script src="residuos-module.js" defer></script>
+  <script src="versiones.js" defer></script>
+  <script src="dashboard-home.js" defer></script>
+  <script src="control-planta.js" defer></script>
+  <script>
+    const $ = (q, root=document) => root.querySelector(q);
+    const $$ = (q, root=document) => [...root.querySelectorAll(q)];
+    const money = n => new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0}).format(Number.isFinite(n)?n:0);
+    const usdMoney = n => 'USD '+new Intl.NumberFormat('es-AR',{maximumFractionDigits:0}).format(Number.isFinite(n)?n:0);
+    // Dólar MEP (venta) del día, lo actualiza gestion-modules.js desde DolarAPI; sin conexión, el último guardado
+    const fxRate = () => Number(window.pbpFx?.venta || window.pbpData?.settings?.mepRate?.venta) || 0;
+    const toArs = (amount, currency) => currency === 'ARS' ? amount : amount * fxRate();
+    const num = (n,d=0) => new Intl.NumberFormat('es-AR',{maximumFractionDigits:d,minimumFractionDigits:d}).format(Number.isFinite(n)?n:0);
+    const escapeHTML = value => String(value).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+    const toast = message => {const el=$('#toast');el.textContent=message;el.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.remove('show'),2400)};
+    async function api(path, options={}) {
+      if(window.PampaOffline)return window.PampaOffline.request(path,options);
+      const response=await fetch(path,{...options,headers:{'Content-Type':'application/json',...(options.headers||{})}});
+      const payload=await response.json().catch(()=>({error:'Respuesta inválida del servidor'}));
+      if(!response.ok)throw new Error(payload.error||'No se pudo completar la operación');
+      return payload;
+    }
+
+    const titles={home:'Dashboard',reports:'Reportes',ai:'PampaIA',inventory:'Inventario',installations:'Instalaciones',waste:'Residuos',treasury:'Finanzas',costs:'Costos de producción',hr:'Recursos humanos',dashboard:'Control de planta',production:'Producción y trazabilidad',lots:'Lotes agropecuarios',recipes:'Recetas de alimento',equipment:'Equipamiento y mantenimiento',quality:'Calidad y bioseguridad',finance:'Viabilidad financiera',supply:'Abastecimiento y maquila',tender:'Pliego técnico y compras'};
+    function go(page){
+      $$('.page').forEach(el=>el.classList.toggle('active',el.id===`page-${page}`));
+      $$('.nav-btn').forEach(el=>el.classList.toggle('active',el.dataset.page===page));
+      $('#pageTitle').textContent=titles[page]; $('#sidebar').classList.remove('open');
+      history.replaceState(null,'',`#${page}`); window.scrollTo({top:0,behavior:'smooth'});
+      if(page==='dashboard') setTimeout(drawProductionChart,60);
+      if(page==='lots') setTimeout(()=>window.refreshLotsMap?.(),80);
+    }
+    $$('.nav-btn').forEach(btn=>btn.addEventListener('click',()=>go(btn.dataset.page)));
+    $$('[data-go]').forEach(btn=>btn.addEventListener('click',()=>go(btn.dataset.go)));
+    $('#menuBtn').onclick=()=>$('#sidebar').classList.toggle('open');
+    $('#today').textContent=new Intl.DateTimeFormat('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date());
+
+    // Producción de los últimos 12 meses: toneladas por período cargadas en Costos
+    function productionSeries(){const tons=(window.pbpData&&window.pbpData.settings&&window.pbpData.settings.costTons)||{},now=new Date(),months=[];for(let i=11;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1),key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;months.push({key,label:new Intl.DateTimeFormat('es-AR',{month:'short'}).format(d).replace('.',''),value:window.pbpProductionTons?window.pbpProductionTons(key).tons:(Number(tons[key])||0)})}return months}
+    function drawProductionChart(){const series=productionSeries(),production=series.map(x=>x.value),monthNames=series.map(x=>x.label);
+      const canvas=$('#productionChart'); if(!canvas||!canvas.offsetWidth)return;
+      const dpr=window.devicePixelRatio||1,w=canvas.offsetWidth,h=canvas.offsetHeight;
+      canvas.width=w*dpr;canvas.height=h*dpr;const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);ctx.clearRect(0,0,w,h);
+      const known=production.filter(v=>v>0),step=known.length?Math.max(50,Math.ceil((Math.max(...known)-Math.min(...known))/4/50)*50):100,min=known.length?Math.max(0,Math.floor(Math.min(...known)/step)*step-step):0,max=known.length?Math.ceil(Math.max(...known)/step)*step+step:500;const pad={l:46,r:15,t:15,b:30},cw=w-pad.l-pad.r,ch=h-pad.t-pad.b;const ticks=[];for(let v=min;v<=max;v+=step)ticks.push(v);
+      ctx.font='10px JetBrains Mono, monospace';ctx.fillStyle='#64748b';ctx.textAlign='right';ctx.strokeStyle='#2d3548';ctx.lineWidth=1;
+      ticks.forEach(v=>{const y=pad.t+ch-(v-min)/(max-min)*ch;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();ctx.fillText(v,pad.l-8,y+3)});
+      ctx.textAlign='center';monthNames.forEach((m,i)=>ctx.fillText(m,pad.l+i*cw/(monthNames.length-1),h-8));
+      const pts=production.map((v,i)=>({x:pad.l+i*cw/(production.length-1),y:pad.t+ch-(Math.max(v,min)-min)/(max-min)*ch}));
+      const grad=ctx.createLinearGradient(0,pad.t,0,pad.t+ch);grad.addColorStop(0,'rgba(245,158,11,.28)');grad.addColorStop(1,'rgba(245,158,11,0)');
+      ctx.beginPath();ctx.moveTo(pts[0].x,pad.t+ch);pts.forEach(p=>ctx.lineTo(p.x,p.y));ctx.lineTo(pts.at(-1).x,pad.t+ch);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+      ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.strokeStyle='#f59e0b';ctx.lineWidth=2.5;ctx.stroke();
+      pts.forEach((p,i)=>{ctx.beginPath();ctx.arc(p.x,p.y,i===pts.length-1?4:2.5,0,Math.PI*2);ctx.fillStyle=i===pts.length-1?'#1e2433':'#f59e0b';ctx.fill();if(i===pts.length-1){ctx.strokeStyle='#f59e0b';ctx.lineWidth=2;ctx.stroke()}});
+    }
+    window.addEventListener('resize',drawProductionChart);setTimeout(drawProductionChart,40);
+
+    const defaultBatches=[
+      {id:'LT-2026-184',phase:'Engorde',volume:48,microns:620,temp:84,status:'En proceso',start:'04/10 07:15'},
+      {id:'LT-2026-183',phase:'Inicio / desarrollo',volume:32,microns:580,temp:83,status:'Control',start:'04/10 03:40'},
+      {id:'LT-2026-182',phase:'Reproductoras',volume:40,microns:690,temp:84,status:'Terminado',start:'03/10 21:10'},
+      {id:'LT-2026-181',phase:'Preiniciador',volume:18,microns:460,temp:85,status:'Terminado',start:'03/10 17:25'}
+    ];
+    let batches=[...defaultBatches];
+    const badgeClass=s=>s==='Terminado'?'green':s==='En proceso'?'blue':s==='Control'?'amber':'red';
+    function renderBatches(){
+      $('#batchRows').innerHTML=batches.map(b=>`<tr><td><b>${escapeHTML(b.id)}</b></td><td>${escapeHTML(b.phase)}</td><td>${num(+b.volume)} TM</td><td>${num(+b.microns)} µm</td><td>${num(+b.temp)} °C</td><td><span class="badge ${badgeClass(b.status)}">${escapeHTML(b.status)}</span></td><td>${escapeHTML(b.start)}</td><td><div class="row-actions">${b.status!=='Terminado'?`<button class="ghost-btn" data-batch-action="close" data-batch-id="${escapeHTML(b.id)}">Cerrar</button>`:''}<button class="ghost-btn" data-batch-action="trace" data-batch-id="${escapeHTML(b.id)}">Trazabilidad</button><button class="danger-btn" data-batch-action="delete" data-batch-id="${escapeHTML(b.id)}" aria-label="Eliminar lote ${escapeHTML(b.id)}">×</button></div></td></tr>`).join('');
+      $('#activeLots').textContent=batches.filter(b=>b.status!=='Terminado').length;
+    }
+    renderBatches();
+    const batchDialog=$('#batchDialog');
+    function openBatch(){batchDialog.showModal();setTimeout(()=>$('#batchId').focus(),50)}
+    $$('.open-batch').forEach(x=>x.onclick=openBatch);
+    $('#closeDialog').onclick=()=>batchDialog.close();$('#cancelDialog').onclick=()=>batchDialog.close();
+    $('#batchForm').addEventListener('submit',async e=>{e.preventDefault();const submit=e.submitter;submit.disabled=true;try{const now=new Date(),draft={id:$('#batchId').value.trim(),phase:$('#batchPhase').value,volume:+$('#batchVolume').value,microns:+$('#batchMicrons').value,temp:+$('#batchTemp').value,status:$('#batchStatus').value,start:new Intl.DateTimeFormat('es-AR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(now).replace(',','')};const created=await api('/api/batches',{method:'POST',body:JSON.stringify(draft)});batches.unshift(created);renderBatches();batchDialog.close();go('production');toast('Lote guardado en la base de datos')}catch(error){toast(error.message)}finally{submit.disabled=false}});
+
+    let recipes=[];
+    function renderRecipes(){
+      $('#recipeCards').innerHTML=recipes.map(recipe=>`<article class="recipe-card"><span class="eyebrow">${escapeHTML(recipe.id)} · ${escapeHTML(recipe.phase)}</span><h3>${escapeHTML(recipe.name)}</h3><div class="recipe-meta"><span class="badge green">${num(+recipe.energy)} kcal/kg</span><span class="badge blue">PC ${num(+recipe.protein,1)}%</span><span class="badge amber">Lisina ${num(+recipe.lysine,2)}%</span></div><div class="ingredient-bar">${recipe.ingredients.map(item=>`<span style="width:${+item.percentage}%" title="${escapeHTML(item.name)} ${num(+item.percentage,1)}%"></span>`).join('')}</div><div class="ingredient-list">${recipe.ingredients.map(item=>`${escapeHTML(item.name)} ${num(+item.percentage,1)}%`).join(' · ')}</div><div class="financial-box" style="margin-top:14px"><span>Costo formulado</span><b>${money(+recipe.costPerTon)} / TM</b></div></article>`).join('');
+      $('#recipeRows').innerHTML=recipes.map(recipe=>`<tr><td><b>${escapeHTML(recipe.id)}</b></td><td>${escapeHTML(recipe.phase)}</td><td>${escapeHTML(recipe.format)}</td><td>${num(+recipe.particleMin)}–${num(+recipe.particleMax)} µm</td><td>${num(+recipe.energy)} kcal/kg</td><td>${num(+recipe.protein,1)}%</td><td>${num(+recipe.lysine,2)}%</td><td>${money(+recipe.costPerTon)}</td></tr>`).join('');
+      const active=recipes.filter(x=>x.status==='Activa'),cheapest=[...active].sort((a,b)=>a.costPerTon-b.costPerTon)[0];$('#recipeCount').textContent=active.length;$('#recipeAvgCost').textContent=money(active.length?active.reduce((s,x)=>s+(+x.costPerTon||0),0)/active.length:0);$('#recipeAvgProtein').textContent=`${num(active.length?active.reduce((s,x)=>s+(+x.protein||0),0)/active.length:0,1)}%`;$('#recipeCheapest').textContent=cheapest?cheapest.id:'—';$('#recipeCheapestCost').textContent=cheapest?`${money(+cheapest.costPerTon)} por TM`:'Sin datos';
+    }
+    function parseIngredients(text){return text.split(',').map(part=>{const pieces=part.trim().split(':');return{name:(pieces[0]||'').trim(),percentage:+(pieces[1]||0)}}).filter(x=>x.name)}
+    const recipeDialog=$('#recipeDialog');$$('.open-recipe').forEach(button=>button.onclick=()=>recipeDialog.showModal());$('#closeRecipeDialog').onclick=()=>recipeDialog.close();$('#cancelRecipeDialog').onclick=()=>recipeDialog.close();
+    $('#recipeForm').addEventListener('submit',async event=>{event.preventDefault();const submit=event.submitter;submit.disabled=true;try{const draft={id:$('#recipeId').value.trim(),name:$('#recipeName').value.trim(),phase:$('#recipePhase').value,format:$('#recipeFormat').value.trim(),particleMin:+$('#recipeParticleMin').value,particleMax:+$('#recipeParticleMax').value,energy:+$('#recipeEnergy').value,protein:+$('#recipeProtein').value,lysine:+$('#recipeLysine').value,costPerTon:+$('#recipeCost').value,ingredients:parseIngredients($('#recipeIngredients').value)};const created=await api('/api/recipes',{method:'POST',body:JSON.stringify(draft)});recipes.unshift(created);renderRecipes();recipeDialog.close();event.target.reset();go('recipes');toast('Receta validada y guardada')}catch(error){toast(error.message)}finally{submit.disabled=false}});
+
+    let sourceLots=[];
+    function renderSourceLots(){
+      $('#lotRows').innerHTML=sourceLots.map(lot=>`<tr class="lot-row" data-lot-id="${escapeHTML(lot.id)}"><td><b>${escapeHTML(lot.id)}</b></td><td>${escapeHTML(lot.name)}</td><td>${escapeHTML(lot.producer)}</td><td>${escapeHTML(lot.locality)}</td><td>${num(+lot.hectares,1)} ha</td><td><span class="badge ${lot.tenure==='Arrendamiento'?'amber':lot.tenure==='Aparcería'?'blue':'green'}">${escapeHTML(lot.tenure||'Propio')}</span></td><td>${escapeHTML(lot.crop)}</td><td>${escapeHTML(lot.supplierLot)}</td><td><span class="badge ${lot.status==='Activo'?'green':lot.status==='Monitoreo'?'amber':'red'}">${escapeHTML(lot.status)}</span></td></tr>`).join('');
+      $('#lotActiveCount').textContent=sourceLots.filter(x=>x.status==='Activo').length;$('#lotHectares').textContent=`${num(sourceLots.reduce((sum,x)=>sum+(+x.hectares||0),0),1)} ha`;$('#lotCornCount').textContent=sourceLots.filter(x=>x.crop==='Maíz').length;$('#lotSoyCount').textContent=sourceLots.filter(x=>x.crop==='Soja').length;
+      document.dispatchEvent(new CustomEvent('plantabase:lots',{detail:sourceLots}));
+    }
+    const lotDialog=$('#lotDialog');$$('.open-lot').forEach(button=>button.onclick=()=>lotDialog.showModal());$('#closeLotDialog').onclick=()=>lotDialog.close();$('#cancelLotDialog').onclick=()=>lotDialog.close();
+    $('#lotForm').addEventListener('submit',async event=>{event.preventDefault();const submit=event.submitter;submit.disabled=true;try{const draft={id:$('#lotId').value.trim(),name:$('#lotName').value.trim(),producer:$('#lotProducer').value.trim(),locality:$('#lotLocality').value.trim(),hectares:+$('#lotHectaresInput').value,crop:$('#lotCrop').value,latitude:+$('#lotLatitude').value,longitude:+$('#lotLongitude').value,supplierLot:$('#lotSupplierCode').value.trim(),status:$('#lotStatus').value,tenure:$('#lotTenure').value,expectedYield:+$('#lotYield').value,productionCost:+$('#lotProductionCost').value,rentPerHa:+$('#lotRent').value||0,ownerSharePct:+$('#lotOwnerShare').value||0,ownerCostPct:+$('#lotOwnerCost').value||0};const created=await api('/api/lots',{method:'POST',body:JSON.stringify(draft)});sourceLots.unshift(created);renderSourceLots();lotDialog.close();event.target.reset();go('lots');toast('Lote geográfico guardado')}catch(error){toast(error.message)}finally{submit.disabled=false}});
+
+    let equipment=[];
+    const equipmentStatuses=['Operativo','Alerta','Mantenimiento','Fuera de servicio'];
+    function renderEquipmentFilters(){const select=$('#equipmentAreaFilter'),current=select.value,areas=[...new Set(equipment.map(x=>x.area))].sort((a,b)=>a.localeCompare(b,'es'));select.innerHTML='<option value="">Todas las áreas</option>'+areas.map(area=>`<option value="${escapeHTML(area)}">${escapeHTML(area)}</option>`).join('');select.value=areas.includes(current)?current:''}
+    // Importes de equipos: en su moneda; los importados muestran además el equivalente en pesos al MEP
+    // Amortización lineal mensual desde el mes de alta; equipos en dólares al tipo de cambio de la compra
+    // (si no se cargó, al MEP del día). La usan Equipamiento y Costos.
+    const monthIndex=iso=>{const [y,m]=String(iso).slice(0,7).split('-').map(Number);return y*12+m-1};
+    function equipmentAmortization(item,period){
+      const rate=item.currency==='ARS'?1:(Number(item.fxRate)||fxRate()),base=(Number(item.investment)||0)*rate,life=(Number(item.usefulLifeYears)||10)*12;
+      const monthly=item.startDate&&rate?base*(1-(Number(item.residualPct)||0)/100)/life:0;
+      const ref=period||new Date().toLocaleDateString('sv-SE').slice(0,7),elapsed=item.startDate?monthIndex(ref)-monthIndex(item.startDate)+1:0;
+      const done=Math.max(0,Math.min(life,elapsed)),accumulated=monthly*done;
+      return {base,monthly,inPeriod:elapsed>=1&&elapsed<=life?monthly:0,accumulated,bookValue:base-accumulated,monthsLeft:Math.max(0,life-done),endsOn:item.startDate?new Date(Math.floor((monthIndex(item.startDate)+life)/12),(monthIndex(item.startDate)+life)%12,1).toLocaleDateString('es-AR',{month:'short',year:'numeric'}):'',hasRate:!!rate};
+    }
+    window.pbpEquipmentAmortization=equipmentAmortization;
+    function equipmentAmount(item,amount){if(item.currency==='ARS')return money(amount);const rate=fxRate();return `${usdMoney(amount)}${rate?`<br><small class="text-muted">≈ ${money(amount*rate)} al MEP de hoy</small>`:''}`}
+    function renderEquipment(){
+      const area=$('#equipmentAreaFilter').value,visible=area?equipment.filter(x=>x.area===area):equipment;
+      $('#equipmentRows').innerHTML=visible.map(item=>`<tr><td><b>${escapeHTML(item.id)}</b></td><td>${escapeHTML(item.name)}<br><small class="text-muted">${escapeHTML(item.specification)}</small></td><td>${escapeHTML(item.area)}</td><td>${num(+item.hours)} h</td><td>${equipmentAmount(item,+item.investment)}${item.currency!=='ARS'&&item.fxRate?`<br><small class="text-muted">TC compra ${num(+item.fxRate,2)}</small>`:''}</td><td>${(()=>{const a=equipmentAmortization(item);return !item.startDate?'<span class="text-muted">Sin fecha de alta</span>':!a.hasRate?'<span class="text-muted">Sin tipo de cambio</span>':`${money(a.monthly)}/mes<br><small class="text-muted">${num(+item.usefulLifeYears||10)} años · hasta ${a.endsOn}</small>`})()}</td><td>${(()=>{const a=equipmentAmortization(item);return item.startDate&&a.hasRate?`${money(a.bookValue)}<br><small class="text-muted">${a.monthsLeft?`faltan ${a.monthsLeft} meses`:'amortizado'}</small>`:'—'})()}</td><td>${equipmentAmount(item,+item.maintenanceCost)}</td><td>${new Date(item.nextMaintenance+'T00:00:00').toLocaleDateString('es-AR')}</td><td><span class="badge ${item.criticality==='Crítica'?'red':item.criticality==='Alta'?'amber':'blue'}">${escapeHTML(item.criticality)}</span></td><td><select class="equipment-state" data-equipment-id="${escapeHTML(item.id)}">${equipmentStatuses.map(status=>`<option ${status===item.status?'selected':''}>${status}</option>`).join('')}</select></td><td class="row-actions"><button class="ghost-btn" data-equipment-edit="${escapeHTML(item.id)}">Editar</button></td></tr>`).join('');
+      const total=equipment.length,operating=equipment.filter(x=>x.status==='Operativo').length,alerts=total-operating;
+      $('#equipmentTotal').textContent=total;$('#equipmentOperating').textContent=operating;$('#equipmentAvailability').textContent=`${total?num(operating/total*100,0):0}% disponibles`;$('#equipmentAlerts').textContent=`${alerts} equipo${alerts===1?' requiere':'s requieren'} atención`;const needsFx=equipment.some(x=>x.currency!=='ARS')&&!fxRate();$('#equipmentValue').textContent=needsFx?'Sin MEP':money(equipment.reduce((sum,x)=>sum+toArs(+x.investment||0,x.currency),0));{const am=equipment.map(x=>equipmentAmortization(x));$('#equipmentValueFoot').textContent=`Valor contable ${money(am.reduce((s,a)=>s+a.bookValue,0))} · amortización ${money(am.reduce((s,a)=>s+a.inPeriod,0))}/mes`;}$('#equipmentMaintenanceBudget').textContent=needsFx?'Sin MEP':money(equipment.reduce((sum,x)=>sum+toArs(+x.maintenanceCost||0,x.currency),0));
+      $$('.equipment-state').forEach(select=>select.addEventListener('change',async()=>{const id=select.dataset.equipmentId;select.disabled=true;try{const updated=await api(`/api/equipment/${encodeURIComponent(id)}`,{method:'PUT',body:JSON.stringify({status:select.value})});const index=equipment.findIndex(x=>x.id===id);if(index>=0)equipment[index]=updated;renderEquipment();toast('Estado del equipo actualizado')}catch(error){toast(error.message);renderEquipment()}finally{select.disabled=false}}));
+    }
+    $('#equipmentAreaFilter').addEventListener('change',renderEquipment);
+    const equipmentDialog=$('#equipmentDialog');
+    let editingEquipment=null;
+    const EQUIPMENT_LIFE={'Obra civil':30,'Automatización':5,'Despacho':20,'Almacenamiento':20,'Servicios':15};
+    function equipmentDraft(){return {id:$('#equipmentId').value.trim(),name:$('#equipmentName').value.trim(),area:$('#equipmentArea').value.trim(),specification:$('#equipmentSpecification').value.trim(),status:$('#equipmentStatus').value,hours:+$('#equipmentHours').value,nextMaintenance:$('#equipmentNextMaintenance').value,criticality:$('#equipmentCriticality').value,investment:+$('#equipmentInvestment').value,maintenanceCost:+$('#equipmentMaintenanceCost').value,currency:$('#equipmentCurrency').value,startDate:$('#equipmentStartDate').value,usefulLifeYears:+$('#equipmentLife').value,residualPct:+$('#equipmentResidual').value,fxRate:$('#equipmentCurrency').value==='ARS'||$('#equipmentFx').value===''?null:+$('#equipmentFx').value}}
+    function paintEquipmentAmort(){
+      const d=equipmentDraft(),usd=d.currency!=='ARS';$('#equipmentFxField').hidden=!usd;
+      const a=equipmentAmortization(d),p=$('#equipmentAmortPreview');
+      p.innerHTML=!d.startDate?'Cargue la fecha de alta para calcular la amortización.':!a.hasRate?'Falta el tipo de cambio: cárguelo o espere la cotización del MEP.':`Base ${money(a.base)}${usd?` (US$ ${num(d.investment)} × ${num(d.fxRate||fxRate(),2)})`:''} · <b>${money(a.monthly)} por mes</b> durante ${num(d.usefulLifeYears)} años (hasta ${a.endsOn}) · valor contable hoy ${money(a.bookValue)}.`;
+    }
+    ['input','change'].forEach(t=>$('#equipmentForm').addEventListener(t,paintEquipmentAmort));
+    $('#equipmentArea').addEventListener('change',()=>{if(!editingEquipment&&EQUIPMENT_LIFE[$('#equipmentArea').value.trim()])$('#equipmentLife').value=EQUIPMENT_LIFE[$('#equipmentArea').value.trim()];paintEquipmentAmort()});
+    function openEquipment(item){
+      editingEquipment=item&&item.id?item:null;$('#equipmentForm').reset();
+      $('#equipmentDialogTitle').textContent=editingEquipment?`Editar ${editingEquipment.name}`:'Registrar equipamiento';$('#equipmentId').readOnly=!!editingEquipment;
+      if(editingEquipment){const e=editingEquipment;$('#equipmentId').value=e.id;$('#equipmentName').value=e.name;$('#equipmentArea').value=e.area;$('#equipmentCriticality').value=e.criticality;$('#equipmentSpecification').value=e.specification;$('#equipmentHours').value=e.hours;$('#equipmentStatus').value=e.status;$('#equipmentCurrency').value=e.currency||'USD';$('#equipmentInvestment').value=e.investment;$('#equipmentMaintenanceCost').value=e.maintenanceCost;$('#equipmentNextMaintenance').value=e.nextMaintenance;$('#equipmentStartDate').value=e.startDate||'';$('#equipmentLife').value=e.usefulLifeYears||10;$('#equipmentResidual').value=e.residualPct||0;$('#equipmentFx').value=e.fxRate||''}
+      else{$('#equipmentStartDate').value=new Date().toLocaleDateString('sv-SE');const r=fxRate();if(r)$('#equipmentFx').value=Math.round(r*100)/100}
+      paintEquipmentAmort();equipmentDialog.showModal();setTimeout(()=>$(editingEquipment?'#equipmentName':'#equipmentId').focus(),50)}
+    $('#equipmentRows').addEventListener('click',e=>{const b=e.target.closest('[data-equipment-edit]');if(b)openEquipment(equipment.find(x=>x.id===b.dataset.equipmentEdit))});
+    $$('.open-equipment').forEach(button=>button.addEventListener('click',()=>openEquipment(null)));
+    $('#closeEquipmentDialog').onclick=()=>equipmentDialog.close();$('#cancelEquipmentDialog').onclick=()=>equipmentDialog.close();
+    $('#equipmentForm').addEventListener('submit',async event=>{event.preventDefault();const submit=event.submitter;submit.disabled=true;try{const draft=equipmentDraft();
+      if(editingEquipment){const {id,...changes}=draft;const updated=await api(`/api/equipment/${encodeURIComponent(id)}`,{method:'PUT',body:JSON.stringify(changes)});const index=equipment.findIndex(x=>x.id===id);if(index>=0)equipment[index]={...equipment[index],...draft,...(updated.offline?{}:updated)};renderEquipmentFilters();renderEquipment();equipmentDialog.close();document.dispatchEvent(new CustomEvent('pbp:bootstrap',{detail:window.pbpData}));toast(updated.offline?'Guardado sin conexión: se sincroniza al volver la señal':'Equipo actualizado');return}
+      const created=await api('/api/equipment',{method:'POST',body:JSON.stringify(draft)});equipment.unshift(created);renderEquipmentFilters();renderEquipment();equipmentDialog.close();event.target.reset();go('equipment');document.dispatchEvent(new CustomEvent('pbp:bootstrap',{detail:window.pbpData}));toast('Equipo y costos guardados')}catch(error){toast(error.message)}finally{submit.disabled=false}});
+
+
+    const financeIds=['capex','wacc','sows','consumption','commercialPrice','rawCost','opex'];
+    const financeDefaults={capex:2233000000,wacc:12,sows:4000,consumption:5,commercialPrice:585200,rawCost:526700,opex:12320};
+    function irr(cashflows){let lo=-.9999,hi=10;const calc=r=>cashflows.reduce((s,c,i)=>s+c/Math.pow(1+r,i),0);if(calc(lo)*calc(hi)>0)return NaN;for(let i=0;i<180;i++){const mid=(lo+hi)/2;if(calc(mid)>0)lo=mid;else hi=mid}return(lo+hi)/2}
+    function calculateFinance(){
+      const v=Object.fromEntries(financeIds.map(id=>[id,+$(`#${id}`).value||0]));
+      const demand=v.sows*v.consumption,margin=v.commercialPrice-v.rawCost-v.opex,saving=demand*margin,rate=v.wacc/100;
+      const npv=-v.capex+[1,2,3,4,5].reduce((s,t)=>s+saving/Math.pow(1+rate,t),0);
+      const projectIrr=irr([-v.capex,saving,saving,saving,saving,saving]);const payback=saving>0?v.capex/saving:Infinity;
+      $('#annualDemand').textContent=`${num(demand)} TM`;$('#unitMargin').textContent=money(margin);$('#annualSaving').textContent=money(saving);$('#npv').textContent=money(npv);$('#irr').textContent=Number.isFinite(projectIrr)?`${num(projectIrr*100,1)}%`:'No calculable';$('#payback').textContent=Number.isFinite(payback)?`${num(payback,1)} años`:'No recuperable';$('#dashMargin').textContent=`${money(margin)}/TM`;renderCapexOpex(v);
+      const status=$('#financeStatus');let color,title,text;const marginPct=v.commercialPrice?margin/v.commercialPrice*100:0;if(marginPct>6.5){color='var(--green)';title='Operación óptima';text='El margen sostiene una TIR proyectada competitiva. Mantener producción y planificar compras.'}else if(marginPct>=4){color='var(--amber)';title='Umbral de monitoreo';text='Revisar consumo energético, cobertura de granos y formulación de mínimo costo.'}else{color='var(--red)';title='Pérdida de viabilidad';text='El margen no cubre adecuadamente amortización y mantenimiento. Evaluar turnos y compra externa.'}status.style.setProperty('--status-color',color);status.innerHTML=`<b>${title}.</b> ${text}`;
+      return v;
+    }
+    let financeSaveTimer;
+    function scheduleFinanceSave(){clearTimeout(financeSaveTimer);const values=calculateFinance();financeSaveTimer=setTimeout(async()=>{try{await api('/api/settings/finance',{method:'PUT',body:JSON.stringify({value:values})})}catch(error){toast(error.message)}},550)}
+    financeIds.forEach(id=>$(`#${id}`).addEventListener('input',scheduleFinanceSave));calculateFinance();
+    $('#resetFinance').onclick=async()=>{financeIds.forEach(id=>$(`#${id}`).value=financeDefaults[id]);const values=calculateFinance();try{await api('/api/settings/finance',{method:'PUT',body:JSON.stringify({value:values})});toast('Valores base restablecidos y guardados')}catch(error){toast(error.message)}};
+    // Cronograma y estructura de costos como proporciones de la inversión y del OPEX cargados
+    function renderCapexOpex(v){
+      const capexShare=[180,150,100,100,100,120,120,200,180,120,50,30],capexShareTotal=capexShare.reduce((s,x)=>s+x,0),maxCapex=Math.max(...capexShare);
+      const opexParts=[['Energía',3.5,'#10b981'],['Caldera',1.25,'#06b6d4'],['Mantenimiento',1.5,'#f59e0b'],['Mano de obra',1,'#3b82f6'],['Director técnico',.25,'#8b5cf6'],['Seguros',.5,'#ef4444']],opexPartsTotal=opexParts.reduce((s,x)=>s+x[1],0);
+      $('#capexLabel').textContent=`${money(v.capex)} · desembolsos mensuales`;
+      $('#capexBars').innerHTML=capexShare.map((x,i)=>`<div class="bar-col"><div class="bar" style="height:${x/maxCapex*90}%"><span class="bar-tip">${money(v.capex*x/capexShareTotal)}</span></div><span>M${i+1}</span></div>`).join('');
+      $('#opexLabel').textContent=`${money(v.opex)} por tonelada`;
+      $('#opexStack').innerHTML=opexParts.map(([,w,c])=>`<span style="width:${w/opexPartsTotal*100}%;background:${c}"></span>`).join('');
+      $('#opexLegend').innerHTML=opexParts.map(([n,w,c])=>`<div><i style="background:${c}"></i>${n} · ${money(v.opex*w/opexPartsTotal)}</div>`).join('');
+    }
+
+    const exchangeIds=['grainTons','yieldRate','serviceRate','grainPrice'];
+    function calculateExchange(){const grain=+$('#grainTons').value||0,yieldRate=(+$('#yieldRate').value||0)/100,rate=+$('#serviceRate').value||0,price=+$('#grainPrice').value||0,finished=grain*yieldRate,loss=grain-finished,total=finished*rate,payment=price?total/price:0;$('#finishedTons').textContent=`${num(finished,1)} TM`;$('#lossTons').textContent=`Merma técnica: ${num(loss,1)} TM`;$('#paymentGrain').textContent=`${num(payment,1)} TM`;$('#serviceTotal').textContent=`Servicio: ${money(total)}`}
+    exchangeIds.forEach(id=>$(`#${id}`).addEventListener('input',calculateExchange));calculateExchange();
+    $('#saveExchange').onclick=async()=>{try{const operation=Object.fromEntries(exchangeIds.map(id=>[id,+$(`#${id}`).value||0]));await api('/api/exchanges',{method:'POST',body:JSON.stringify(operation)});toast('Operación de maquila guardada')}catch(error){toast(error.message)}};
+
+    $('#exportBtn').onclick=async()=>{try{const data=await api('/api/export'),blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='pampa-pbp-datos.json';a.click();URL.revokeObjectURL(url);toast('Datos del servidor exportados')}catch(error){toast(error.message)}};
+    async function loadBackend(){
+      try{
+        const data=await api('/api/bootstrap');
+        window.pbpData=data;document.dispatchEvent(new CustomEvent('pbp:bootstrap',{detail:data}));
+        if(data._offline)toast('Sin conexión: se muestran los datos guardados en este equipo');
+        if(Array.isArray(data.batches)){batches=data.batches;renderBatches()}
+        if(Array.isArray(data.lots)){sourceLots=data.lots;renderSourceLots()}
+        if(Array.isArray(data.recipes)){recipes=data.recipes;renderRecipes()}
+        if(Array.isArray(data.equipment)){equipment=data.equipment;renderEquipmentFilters();renderEquipment()}
+        if(data.settings?.finance){financeIds.forEach(id=>{if(data.settings.finance[id]!==undefined)$(`#${id}`).value=data.settings.finance[id]});calculateFinance()}
+      }catch(error){toast(`Backend no disponible: ${error.message}`)}
+    }
+    loadBackend();
+    const initial=location.hash.slice(1);if(titles[initial])go(initial);
+  </script>
+</body>
+</html>
