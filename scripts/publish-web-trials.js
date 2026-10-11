@@ -16,7 +16,9 @@ const sources = {
   // El repo hermano Proyectos/pampatopo-app queda como copia historica y ya no se publica.
   PampaTopografia: path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'PampaTopografia'),
   // PampaFiscal: app fiscal independiente (módulos fiscales agropecuarios).
-  'pampafiscal-erp': path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'pampafiscal', 'public')
+  'pampafiscal-erp': path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'pampafiscal', 'public'),
+  // Pampa PBP: su servidor corre en el navegador; la carpeta la arma PAMPA N-ecosystem/scripts/build-web-trial-pbp.js
+  'pampapbp-erp': path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'PampaBalanceadosPorcinos', 'web-dist')
 };
 
 // Por defecto solo se publican estas 4 (las que ya estan completas y en uso). Para publicar
