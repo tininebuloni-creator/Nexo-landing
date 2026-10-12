@@ -14,4 +14,9 @@ window.DOCUMENTOS_BIBLIOTECA = [
   {"number": "09", "title": "Pampa Tambo", "category": "Tambo", "pages": "3 páginas", "filename": "09.Pampa Tambo.pdf", "file": "documentos/09.Pampa Tambo.pdf"},
   {"number": "10", "title": "PampaFiscal", "category": "Fiscal", "pages": "3 páginas", "filename": "10.PampaFiscal.pdf", "file": "documentos/10.PampaFiscal.pdf"},
   {"number": "11", "title": "PampaFiscal · Configuración de ARCA", "category": "Fiscal", "pages": "4 páginas", "filename": "11.PampaFiscal_Configuracion ARCA.pdf", "file": "documentos/11.PampaFiscal_Configuracion ARCA.pdf"},
+  {"number": "12", "title": "PampaFiscal · Guía de uso", "category": "Fiscal", "pages": "4 páginas", "filename": "12.PampaFiscal_Guia de uso.pdf", "file": "documentos/12.PampaFiscal_Guia de uso.pdf"},
+  {"number": "13", "title": "PampaFiscal · Instalación y activación", "category": "Fiscal", "pages": "4 páginas", "filename": "13.PampaFiscal_Instalacion y Activacion.pdf", "file": "documentos/13.PampaFiscal_Instalacion y Activacion.pdf"},
+  {"number": "14", "title": "PampaFiscal · Conectividad y sincronización", "category": "Fiscal", "pages": "3 páginas", "filename": "14.PampaFiscal_Conectividad y Sincronizacion.pdf", "file": "documentos/14.PampaFiscal_Conectividad y Sincronizacion.pdf"},
+  {"number": "15", "title": "Pampa PBP · Versiones, usuarios y roles", "category": "PBP", "pages": "3 páginas", "filename": "15.PampaPBP.pdf", "file": "documentos/15.PampaPBP.pdf"},
+  {"number": "16", "title": "Pampa PBP · Guía de uso", "category": "PBP", "pages": "3 páginas", "filename": "16.PampaPBP_Guia de uso.pdf", "file": "documentos/16.PampaPBP_Guia de uso.pdf"},
 ];
