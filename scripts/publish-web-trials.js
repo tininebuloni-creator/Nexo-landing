@@ -18,8 +18,13 @@ const sources = {
   // PampaFiscal: app fiscal independiente (módulos fiscales agropecuarios).
   'pampafiscal-erp': path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'pampafiscal', 'public'),
   // Pampa PBP: su servidor corre en el navegador; la carpeta la arma PAMPA N-ecosystem/scripts/build-web-trial-pbp.js
-  'pampapbp-erp': path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'PampaBalanceadosPorcinos', 'web-dist')
+  'pampapbp-erp': path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'PampaBalanceadosPorcinos', 'web-dist'),
+  // PampaCoop: la carpeta la arma PAMPA N-ecosystem/apps/pampacooperativas/armar-trial-web.js
+  'pampacooperativas-erp': path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'pampacooperativas', 'public')
 };
+// Apps que traen su propio control de prueba (barra, respaldo y bloqueo): no llevan trial-progress.js de la landing,
+// que guarda el progreso en otro lugar y pondría una segunda barra.
+const conPruebaPropia = new Set(['pampacooperativas-erp']);
 
 // Por defecto solo se publican estas 4 (las que ya estan completas y en uso). Para publicar
 // tambien Porcinos y Precision, correr: node scripts/publish-web-trials.js all
@@ -104,7 +109,7 @@ for (const [folderName, source] of Object.entries(sources)) {
     fs.copyFileSync(datosDemo, path.join(destination, 'data', 'datosSemillaDemo.json'));
   }
   fs.copyFileSync(privacyPopup, path.join(destination, 'pampa-privacy-popup.js'));
-  if (fs.existsSync(trialProgress)) fs.copyFileSync(trialProgress, path.join(destination, 'trial-progress.js'));
+  if (fs.existsSync(trialProgress) && !conPruebaPropia.has(folderName)) fs.copyFileSync(trialProgress, path.join(destination, 'trial-progress.js'));
   const entryPoint = path.join(destination, 'index.html');
   if (indexOverrides[folderName] && fs.existsSync(indexOverrides[folderName])) {
     fs.copyFileSync(indexOverrides[folderName], entryPoint);
@@ -134,7 +139,7 @@ for (const [folderName, source] of Object.entries(sources)) {
   if (!html.includes('id="pampa-web-trial-guard"')) {
     html = html.replace(/<head>/i, `<head>\n${guardTag}`);
   }
-  if (!html.includes(trialProgressTag)) {
+  if (!html.includes(trialProgressTag) && !conPruebaPropia.has(folderName)) {
     html = injectBeforeFinalBody(html, trialProgressTag);
   }
   if (!html.includes('pampa-privacy-popup.js')) { // la fuente puede traerlo con ?v=

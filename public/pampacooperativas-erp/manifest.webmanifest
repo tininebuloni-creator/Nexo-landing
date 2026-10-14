@@ -1,0 +1,14 @@
+{
+  "name": "PampaCoop — Gestión de la cooperativa",
+  "short_name": "PampaCoop",
+  "description": "Panel agrícola offline-first con respaldo local y sincronización propia.",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0f1419",
+  "theme_color": "#173f2d",
+  "icons": [
+    { "src": "./logo2.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

@@ -1,0 +1,283 @@
+{
+  "version": "2026-10-13T16:46:09.200Z",
+  "generado_por": "Cooperativa Raíz (actualización automática de normativa)",
+  "fuentes": [
+    {
+      "fuente": "rg4325-sisa-granos",
+      "tipo": "reglas",
+      "ok": true,
+      "cantidad": 13
+    },
+    {
+      "fuente": "senasa-avisos",
+      "tipo": "avisos",
+      "ok": true,
+      "cantidad": 7,
+      "cambios_detectados": 0,
+      "errores": 0
+    }
+  ],
+  "reglas": [
+    {
+      "app": "agro",
+      "regimen": "IVA_GRANOS_ALICUOTA",
+      "condicion": "GENERAL",
+      "jurisdiccion": "NACIONAL",
+      "alicuota_pct": 10.5,
+      "minimo_no_imponible": 0,
+      "vigencia_desde": "2026-01-01",
+      "vigencia_hasta": "",
+      "fuente_normativa": "Ley de IVA: alícuota reducida para granos (cereales y oleaginosas).",
+      "fuente_url": "https://www.afip.gob.ar/actividadesagropecuarias/sector-agro/sisa/regimen-retencion-iva/retencion.asp",
+      "tipo_fuente": "estatica"
+    },
+    {
+      "app": "agro",
+      "regimen": "GANANCIAS_GRANOS_RETENCION",
+      "condicion": "SISA_1",
+      "jurisdiccion": "NACIONAL",
+      "alicuota_pct": 0,
+      "minimo_no_imponible": 0,
+      "vigencia_desde": "2026-01-01",
+      "vigencia_hasta": "",
+      "fuente_normativa": "RG (AFIP) 4325/2018 y RG Conjunta 4310/2018 (SISA): retención de Ganancias en la venta de granos, Estado 1.",
+      "fuente_url": "https://servicioscf.afip.gob.ar/publico/abc/ABCpaso2.aspx?cat=3325",
+      "tipo_fuente": "estatica"
+    },
+    {
+      "app": "agro",
+      "regimen": "GANANCIAS_GRANOS_RETENCION",
+      "condicion": "SISA_2",
+      "jurisdiccion": "NACIONAL",
+      "alicuota_pct": 2,
+      "minimo_no_imponible": 0,
+      "vigencia_desde": "2026-01-01",
+      "vigencia_hasta": "",
+      "fuente_normativa": "RG (AFIP) 4325/2018 y RG Conjunta 4310/2018 (SISA): retención de Ganancias en la venta de granos, Estado 2.",
+      "fuente_url": "https://servicioscf.afip.gob.ar/publico/abc/ABCpaso2.aspx?cat=3325",
+      "tipo_fuente": "estatica"
+    },
+    {
+      "app": "agro",
+      "regimen": "GANANCIAS_GRANOS_RETENCION",
+      "condicion": "SISA_3",
+      "jurisdiccion": "NACIONAL",
+      "alicuota_pct": 15,
+      "minimo_no_imponible": 0,
+      "vigencia_desde": "2026-01-01",
+      "vigencia_hasta": "",
+      "fuente_normativa": "RG (AFIP) 4325/2018 y RG Conjunta 4310/2018 (SISA): retención de Ganancias en la venta de granos, Estado 3.",
+      "fuente_url": "https://servicioscf.afip.gob.ar/publico/abc/ABCpaso2.aspx?cat=3325",
+      "tipo_fuente": "estatica"
+    },
+    {
+      "app": "agro",
+      "regimen": "GANANCIAS_GRANOS_RETENCION",
+      "condicion": "INACTIVO_INSCRIPTO",
+      "jurisdiccion": "NACIONAL",
+      "alicuota_pct": 28,
+      "minimo_no_imponible": 0,
+      "vigencia_desde": "2026-01-01",
+      "vigencia_hasta": "",
+      "fuente_normativa": "RG (AFIP) 4325/2018 y RG Conjunta 4310/2018 (SISA): retención de Ganancias en la venta de granos, fuera del SISA e inscripto en Ganancias.",
+      "fuente_url": "https://servicioscf.afip.gob.ar/publico/abc/ABCpaso2.aspx?cat=3325",
+      "tipo_fuente": "estatica"
+    },
+    {
+      "app": "agro",
+      "regimen": "GANANCIAS_GRANOS_RETENCION",
+      "condicion": "INACTIVO_NO_INSCRIPTO",
+      "jurisdiccion": "NACIONAL",
+      "alicuota_pct": 30,
+      "minimo_no_imponible": 0,
+      "vigencia_desde": "2026-01-01",
+      "vigencia_hasta": "",
+      "fuente_normativa": "RG (AFIP) 4325/2018 y RG Conjunta 4310/2018 (SISA): retención de Ganancias en la venta de granos, fuera del SISA y no inscripto en Ganancias.",
+      "fuente_url": "https://servicioscf.afip.gob.ar/publico/abc/ABCpaso2.aspx?cat=3325",
+      "tipo_fuente": "estatica"
+    },
+    {
+      "app": "agro",
+      "regimen": "IVA_GRANOS_RETENCION",
+      "condicion": "SISA_1",
+      "jurisdiccion": "NACIONAL",
+      "alicuota_pct": 5,
+      "minimo_no_imponible": 0,
+      "vigencia_desde": "2026-01-01",
+      "vigencia_hasta": "",
+      "fuente_normativa": "RG Conjunta 4310/2018 (SISA): retención de IVA en la venta de granos, Estado 1.",
+      "fuente_url": "https://www.afip.gob.ar/actividadesagropecuarias/sector-agro/sisa/regimen-retencion-iva/retencion.asp",
+      "tipo_fuente": "estatica"
+    },
+    {
+      "app": "agro",
+      "regimen": "IVA_GRANOS_RETENCION",
+      "condicion": "SISA_2",
+      "jurisdiccion": "NACIONAL",
+      "alicuota_pct": 7,
+      "minimo_no_imponible": 0,
+      "vigencia_desde": "2026-01-01",
+      "vigencia_hasta": "",
+      "fuente_normativa": "RG Conjunta 4310/2018 (SISA): retención de IVA en la venta de granos, Estado 2.",
+      "fuente_url": "https://www.afip.gob.ar/actividadesagropecuarias/sector-agro/sisa/regimen-retencion-iva/retencion.asp",
+      "tipo_fuente": "estatica"
+    },
+    {
+      "app": "agro",
+      "regimen": "IVA_GRANOS_RETENCION",
+      "condicion": "SISA_3",
+      "jurisdiccion": "NACIONAL",
+      "alicuota_pct": 8,
+      "minimo_no_imponible": 0,
+      "vigencia_desde": "2026-01-01",
+      "vigencia_hasta": "",
+      "fuente_normativa": "RG Conjunta 4310/2018 (SISA): retención de IVA en la venta de granos, Estado 3.",
+      "fuente_url": "https://www.afip.gob.ar/actividadesagropecuarias/sector-agro/sisa/regimen-retencion-iva/retencion.asp",
+      "tipo_fuente": "estatica"
+    },
+    {
+      "app": "agro",
+      "regimen": "IVA_GRANOS_RETENCION",
+      "condicion": "SISA_INACTIVO",
+      "jurisdiccion": "NACIONAL",
+      "alicuota_pct": 10.5,
+      "minimo_no_imponible": 0,
+      "vigencia_desde": "2026-01-01",
+      "vigencia_hasta": "",
+      "fuente_normativa": "RG Conjunta 4310/2018 (SISA): retención de IVA en la venta de granos, inactivo o no incluido: 100 % del IVA de la operación.",
+      "fuente_url": "https://www.afip.gob.ar/actividadesagropecuarias/sector-agro/sisa/regimen-retencion-iva/retencion.asp",
+      "tipo_fuente": "estatica"
+    },
+    {
+      "app": "agro",
+      "regimen": "IVA_GRANOS_REINTEGRO",
+      "condicion": "SISA_1",
+      "jurisdiccion": "NACIONAL",
+      "alicuota_pct": 5,
+      "minimo_no_imponible": 0,
+      "vigencia_desde": "2026-01-01",
+      "vigencia_hasta": "",
+      "fuente_normativa": "RG Conjunta 4310/2018 (SISA): reintegro sistemático de IVA, Estado 1.",
+      "fuente_url": "https://www.afip.gob.ar/actividadesagropecuarias/sector-agro/sisa/regimen-retencion-iva/retencion.asp",
+      "tipo_fuente": "estatica"
+    },
+    {
+      "app": "agro",
+      "regimen": "IVA_GRANOS_REINTEGRO",
+      "condicion": "SISA_2",
+      "jurisdiccion": "NACIONAL",
+      "alicuota_pct": 6,
+      "minimo_no_imponible": 0,
+      "vigencia_desde": "2026-01-01",
+      "vigencia_hasta": "",
+      "fuente_normativa": "RG Conjunta 4310/2018 (SISA): reintegro sistemático de IVA, Estado 2.",
+      "fuente_url": "https://www.afip.gob.ar/actividadesagropecuarias/sector-agro/sisa/regimen-retencion-iva/retencion.asp",
+      "tipo_fuente": "estatica"
+    },
+    {
+      "app": "agro",
+      "regimen": "IVA_GRANOS_REINTEGRO",
+      "condicion": "SISA_3",
+      "jurisdiccion": "NACIONAL",
+      "alicuota_pct": 0,
+      "minimo_no_imponible": 0,
+      "vigencia_desde": "2026-01-01",
+      "vigencia_hasta": "",
+      "fuente_normativa": "RG Conjunta 4310/2018 (SISA): reintegro sistemático de IVA, Estado 3 (sin reintegro).",
+      "fuente_url": "https://www.afip.gob.ar/actividadesagropecuarias/sector-agro/sisa/regimen-retencion-iva/retencion.asp",
+      "tipo_fuente": "estatica"
+    }
+  ],
+  "avisos": [
+    {
+      "id": "senasa-institucional",
+      "nombre": "SENASA · Portal institucional",
+      "url": "https://www.argentina.gob.ar/senasa",
+      "apps": [
+        "tambo",
+        "agro",
+        "ganaderia",
+        "porcinos"
+      ],
+      "nota": "Novedades sanitarias, trazabilidad y campañas obligatorias.",
+      "hash": "e1239ed26fa2c5230091220200d6324a9dddd773cb36b0979389c47121e1b73d",
+      "cambio_detectado": false,
+      "verificado_el": "2026-10-06T03:40:26.047Z"
+    },
+    {
+      "id": "senasa-renspa",
+      "nombre": "SENASA · Inscripción RENSPA",
+      "url": "https://www.argentina.gob.ar/inscribir-reinscribir-en-el-registro-nacional-sanitario-de-productores-agropecuarios-renspa",
+      "apps": [
+        "tambo",
+        "agro",
+        "ganaderia",
+        "porcinos"
+      ],
+      "nota": "Registro obligatorio de productores agropecuarios.",
+      "hash": "1f263af2564810337bfc2b77f594e9c24b1bfd331ef3676ee12d410b0d1840b1",
+      "cambio_detectado": false,
+      "verificado_el": "2026-10-06T03:40:26.090Z"
+    },
+    {
+      "id": "arca-rg-4325",
+      "nombre": "ARCA · RG 4325 · Retenciones de granos",
+      "url": "https://biblioteca.arca.gob.ar/search/query/norma.aspx?p=t%3ARAG%7Cn%3A4325%7Co%3A3%7Ca%3A2018%7Cf%3A26%2F10%2F2018",
+      "apps": [
+        "agro"
+      ],
+      "nota": "LPG, retención de Ganancias, SISA y mínimos.",
+      "hash": "8812c7f4a124f95e8bd03116168fc293dd008cea2288ff5eaf45b8e36a7c82bb",
+      "cambio_detectado": false,
+      "verificado_el": "2026-10-06T03:40:27.926Z"
+    },
+    {
+      "id": "arca-rg-2300",
+      "nombre": "ARCA · RG 2300 · Retención de IVA en granos",
+      "url": "https://biblioteca.arca.gob.ar/search/query/norma.aspx?p=t%3ARAG%7Cn%3A2300%7Co%3A3%7Ca%3A2007%7Cf%3A03%2F09%2F2007",
+      "apps": [
+        "agro"
+      ],
+      "nota": "IVA en granos y reintegros según estado SISA.",
+      "hash": "3d114aec619ab383a1b2857fc11b12b6af7a722e563eadfe4be05c40cca4c82b",
+      "cambio_detectado": false,
+      "verificado_el": "2026-10-06T03:40:32.055Z"
+    },
+    {
+      "id": "arca-sisa-normativa",
+      "nombre": "ARCA · SISA · Normativa del sector agro",
+      "url": "https://www.arca.gob.ar/actividadesAgropecuarias/sector-agro/sisa/ayuda/normativa.asp",
+      "apps": [
+        "agro"
+      ],
+      "nota": "Sistema de Información Simplificado Agrícola y estado fiscal.",
+      "hash": "3ae42821e3d811c586cb50e7f3e26f21ca31b36b260595e677a143b2459baff3",
+      "cambio_detectado": false,
+      "verificado_el": "2026-10-06T03:40:32.281Z"
+    },
+    {
+      "id": "arca-sisa-retencion-iva",
+      "nombre": "ARCA · SISA · Régimen de retención de IVA en granos",
+      "url": "https://www.afip.gob.ar/actividadesagropecuarias/sector-agro/sisa/regimen-retencion-iva/retencion.asp",
+      "apps": [
+        "agro"
+      ],
+      "nota": "Retención y reintegro de IVA según el Estado SISA (RG Conjunta 4310).",
+      "hash": "221178aba3abdb87df02c74ec75597d59d00586dc7fa0898afe2eb83fbb28790",
+      "cambio_detectado": false,
+      "verificado_el": "2026-10-06T03:40:32.598Z"
+    },
+    {
+      "id": "arca-abc-rg-4325",
+      "nombre": "ARCA · ABC · Retenciones de Ganancias e IVA en granos (RG 4325)",
+      "url": "https://servicioscf.afip.gob.ar/publico/abc/ABCpaso2.aspx?cat=3325",
+      "apps": [
+        "agro"
+      ],
+      "nota": "Preguntas frecuentes oficiales: alícuotas por Estado SISA.",
+      "hash": "de6caf6f6c1e51c5cdcf9ba6dcdf07866f1ed48afb884e8dcc64851ee673d2a8",
+      "cambio_detectado": false,
+      "verificado_el": "2026-10-06T03:40:32.970Z"
+    }
+  ]
+}
