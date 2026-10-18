@@ -1,0 +1,965 @@
+{
+  "_meta": {
+    "tipo": "pampa-seed-demo",
+    "version": 1,
+    "app": "PampaBiogas",
+    "fechaReferencia": "2026-10-01",
+    "descripcion": "Planta de biogás ficticia (Pergamino, Buenos Aires): 2 digestores, CHP de 450 kW, 7 días de caudal, biomasa, inventario, logística, finanzas y créditos de carbono. CUIT, patentes, cuentas y nombres son de prueba (DEMO) y no corresponden a personas o empresas reales.",
+    "fechas": "Las fechas son relativas a fechaReferencia: al cargar el ejemplo se corren al día de hoy.",
+    "claves": "{plant} se reemplaza por el id de planta activo (o \"default\"). Cada registro se guarda con demoData: true para poder borrarlo sin tocar los datos reales.",
+    "comoBorrar": "Resumen → Borrar datos de prueba (solo elimina los registros marcados demoData)."
+  },
+  "colecciones": {
+    "measurements:{plant}": [
+      {
+        "id": "demo-biogas-flow-6-1",
+        "measurement_point": "DEMO-GAS-01",
+        "equipment_tag": "DEMO-GAS-01-FLOW",
+        "sensor_tag": "DEMO-GAS-01-FLOW",
+        "metric_type": "flow",
+        "value": 358,
+        "unit": "m³/h",
+        "measured_at": "2026-10-01T16:00:00.000Z",
+        "timestamp": "2026-10-01T16:00:00.000Z",
+        "status": "NORMAL",
+        "analyst": "Operador DEMO"
+      },
+      {
+        "id": "demo-biogas-temperature",
+        "measurement_point": "DEMO-DIG-01",
+        "equipment_tag": "DEMO-DIG-01-TEMP",
+        "sensor_tag": "DEMO-DIG-01-TEMP",
+        "metric_type": "temperature",
+        "value": 37.8,
+        "unit": "°C",
+        "measured_at": "2026-10-01T09:30:00.000Z",
+        "timestamp": "2026-10-01T09:30:00.000Z",
+        "status": "NORMAL",
+        "analyst": "Operador DEMO"
+      },
+      {
+        "id": "demo-biogas-ph",
+        "measurement_point": "DEMO-DIG-01",
+        "equipment_tag": "DEMO-DIG-01-PH",
+        "sensor_tag": "DEMO-DIG-01-PH",
+        "metric_type": "ph",
+        "value": 7.2,
+        "unit": "pH",
+        "measured_at": "2026-10-01T09:30:00.000Z",
+        "timestamp": "2026-10-01T09:30:00.000Z",
+        "status": "NORMAL",
+        "analyst": "Operador DEMO"
+      },
+      {
+        "id": "demo-biogas-methane",
+        "measurement_point": "DEMO-GAS-01",
+        "equipment_tag": "DEMO-GAS-01-CH4",
+        "sensor_tag": "DEMO-GAS-01-CH4",
+        "metric_type": "methane",
+        "value": 62.4,
+        "unit": "%",
+        "measured_at": "2026-10-01T09:30:00.000Z",
+        "timestamp": "2026-10-01T09:30:00.000Z",
+        "status": "NORMAL",
+        "analyst": "Operador DEMO"
+      },
+      {
+        "id": "demo-biogas-gas_pressure",
+        "measurement_point": "DEMO-GAS-01",
+        "equipment_tag": "DEMO-GAS-01-PRESS",
+        "sensor_tag": "DEMO-GAS-01-PRESS",
+        "metric_type": "gas_pressure",
+        "value": 12.1,
+        "unit": "mbar",
+        "measured_at": "2026-10-01T09:30:00.000Z",
+        "timestamp": "2026-10-01T09:30:00.000Z",
+        "status": "NORMAL",
+        "analyst": "Operador DEMO"
+      },
+      {
+        "id": "demo-biogas-fos_tac",
+        "measurement_point": "DEMO-DIG-01",
+        "equipment_tag": "DEMO-DIG-01-FOSTAC",
+        "sensor_tag": "DEMO-DIG-01-FOSTAC",
+        "metric_type": "fos_tac",
+        "value": 0.32,
+        "unit": "ratio",
+        "measured_at": "2026-10-01T09:30:00.000Z",
+        "timestamp": "2026-10-01T09:30:00.000Z",
+        "status": "NORMAL",
+        "analyst": "Operador DEMO"
+      },
+      {
+        "id": "demo-biogas-h2s",
+        "measurement_point": "DEMO-GAS-01",
+        "equipment_tag": "DEMO-GAS-01-H2S",
+        "sensor_tag": "DEMO-GAS-01-H2S",
+        "metric_type": "h2s",
+        "value": 185,
+        "unit": "ppm",
+        "measured_at": "2026-10-01T09:30:00.000Z",
+        "timestamp": "2026-10-01T09:30:00.000Z",
+        "status": "NORMAL",
+        "analyst": "Operador DEMO"
+      },
+      {
+        "id": "demo-biogas-sludge",
+        "measurement_point": "DEMO-DIG-01",
+        "equipment_tag": "DEMO-DIG-01-NIVEL",
+        "sensor_tag": "DEMO-DIG-01-NIVEL",
+        "metric_type": "sludge",
+        "value": 78,
+        "unit": "%",
+        "measured_at": "2026-10-01T09:30:00.000Z",
+        "timestamp": "2026-10-01T09:30:00.000Z",
+        "status": "NORMAL",
+        "analyst": "Operador DEMO"
+      },
+      {
+        "id": "demo-biogas-flow-6-0",
+        "measurement_point": "DEMO-GAS-01",
+        "equipment_tag": "DEMO-GAS-01-FLOW",
+        "sensor_tag": "DEMO-GAS-01-FLOW",
+        "metric_type": "flow",
+        "value": 350,
+        "unit": "m³/h",
+        "measured_at": "2026-10-01T08:00:00.000Z",
+        "timestamp": "2026-10-01T08:00:00.000Z",
+        "status": "NORMAL",
+        "analyst": "Operador DEMO"
+      },
+      {
+        "id": "demo-biogas-flow-5-1",
+        "measurement_point": "DEMO-GAS-01",
+        "equipment_tag": "DEMO-GAS-01-FLOW",
+        "sensor_tag": "DEMO-GAS-01-FLOW",
+        "metric_type": "flow",
+        "value": 376,
+        "unit": "m³/h",
+        "measured_at": "2026-09-30T16:00:00.000Z",
+        "timestamp": "2026-09-30T16:00:00.000Z",
+        "status": "NORMAL",
+        "analyst": "Operador DEMO"
+      },
+      {
+        "id": "demo-biogas-flow-5-0",
+        "measurement_point": "DEMO-GAS-01",
+        "equipment_tag": "DEMO-GAS-01-FLOW",
+        "sensor_tag": "DEMO-GAS-01-FLOW",
+        "metric_type": "flow",
+        "value": 368,
+        "unit": "m³/h",
+        "measured_at": "2026-09-30T08:00:00.000Z",
+        "timestamp": "2026-09-30T08:00:00.000Z",
+        "status": "NORMAL",
+        "analyst": "Operador DEMO"
+      },
+      {
+        "id": "demo-biogas-flow-4-1",
+        "measurement_point": "DEMO-GAS-01",
+        "equipment_tag": "DEMO-GAS-01-FLOW",
+        "sensor_tag": "DEMO-GAS-01-FLOW",
+        "metric_type": "flow",
+        "value": 341,
+        "unit": "m³/h",
+        "measured_at": "2026-09-29T16:00:00.000Z",
+        "timestamp": "2026-09-29T16:00:00.000Z",
+        "status": "NORMAL",
+        "analyst": "Operador DEMO"
+      },
+      {
+        "id": "demo-biogas-flow-4-0",
+        "measurement_point": "DEMO-GAS-01",
+        "equipment_tag": "DEMO-GAS-01-FLOW",
+        "sensor_tag": "DEMO-GAS-01-FLOW",
+        "metric_type": "flow",
+        "value": 333,
+        "unit": "m³/h",
+        "measured_at": "2026-09-29T08:00:00.000Z",
+        "timestamp": "2026-09-29T08:00:00.000Z",
+        "status": "NORMAL",
+        "analyst": "Operador DEMO"
+      },
+      {
+        "id": "demo-biogas-flow-3-1",
+        "measurement_point": "DEMO-GAS-01",
+        "equipment_tag": "DEMO-GAS-01-FLOW",
+        "sensor_tag": "DEMO-GAS-01-FLOW",
+        "metric_type": "flow",
+        "value": 365,
+        "unit": "m³/h",
+        "measured_at": "2026-09-28T16:00:00.000Z",
+        "timestamp": "2026-09-28T16:00:00.000Z",
+        "status": "NORMAL",
+        "analyst": "Operador DEMO"
+      },
+      {
+        "id": "demo-biogas-flow-3-0",
+        "measurement_point": "DEMO-GAS-01",
+        "equipment_tag": "DEMO-GAS-01-FLOW",
+        "sensor_tag": "DEMO-GAS-01-FLOW",
+        "metric_type": "flow",
+        "value": 357,
+        "unit": "m³/h",
+        "measured_at": "2026-09-28T08:00:00.000Z",
+        "timestamp": "2026-09-28T08:00:00.000Z",
+        "status": "NORMAL",
+        "analyst": "Operador DEMO"
+      },
+      {
+        "id": "demo-biogas-flow-2-1",
+        "measurement_point": "DEMO-GAS-01",
+        "equipment_tag": "DEMO-GAS-01-FLOW",
+        "sensor_tag": "DEMO-GAS-01-FLOW",
+        "metric_type": "flow",
+        "value": 309,
+        "unit": "m³/h",
+        "measured_at": "2026-09-27T16:00:00.000Z",
+        "timestamp": "2026-09-27T16:00:00.000Z",
+        "status": "NORMAL",
+        "analyst": "Operador DEMO"
+      },
+      {
+        "id": "demo-biogas-flow-2-0",
+        "measurement_point": "DEMO-GAS-01",
+        "equipment_tag": "DEMO-GAS-01-FLOW",
+        "sensor_tag": "DEMO-GAS-01-FLOW",
+        "metric_type": "flow",
+        "value": 301,
+        "unit": "m³/h",
+        "measured_at": "2026-09-27T08:00:00.000Z",
+        "timestamp": "2026-09-27T08:00:00.000Z",
+        "status": "NORMAL",
+        "analyst": "Operador DEMO"
+      },
+      {
+        "id": "demo-biogas-flow-1-1",
+        "measurement_point": "DEMO-GAS-01",
+        "equipment_tag": "DEMO-GAS-01-FLOW",
+        "sensor_tag": "DEMO-GAS-01-FLOW",
+        "metric_type": "flow",
+        "value": 346,
+        "unit": "m³/h",
+        "measured_at": "2026-09-26T16:00:00.000Z",
+        "timestamp": "2026-09-26T16:00:00.000Z",
+        "status": "NORMAL",
+        "analyst": "Operador DEMO"
+      },
+      {
+        "id": "demo-biogas-flow-1-0",
+        "measurement_point": "DEMO-GAS-01",
+        "equipment_tag": "DEMO-GAS-01-FLOW",
+        "sensor_tag": "DEMO-GAS-01-FLOW",
+        "metric_type": "flow",
+        "value": 338,
+        "unit": "m³/h",
+        "measured_at": "2026-09-26T08:00:00.000Z",
+        "timestamp": "2026-09-26T08:00:00.000Z",
+        "status": "NORMAL",
+        "analyst": "Operador DEMO"
+      },
+      {
+        "id": "demo-biogas-flow-0-1",
+        "measurement_point": "DEMO-GAS-01",
+        "equipment_tag": "DEMO-GAS-01-FLOW",
+        "sensor_tag": "DEMO-GAS-01-FLOW",
+        "metric_type": "flow",
+        "value": 322,
+        "unit": "m³/h",
+        "measured_at": "2026-09-25T16:00:00.000Z",
+        "timestamp": "2026-09-25T16:00:00.000Z",
+        "status": "NORMAL",
+        "analyst": "Operador DEMO"
+      },
+      {
+        "id": "demo-biogas-flow-0-0",
+        "measurement_point": "DEMO-GAS-01",
+        "equipment_tag": "DEMO-GAS-01-FLOW",
+        "sensor_tag": "DEMO-GAS-01-FLOW",
+        "metric_type": "flow",
+        "value": 314,
+        "unit": "m³/h",
+        "measured_at": "2026-09-25T08:00:00.000Z",
+        "timestamp": "2026-09-25T08:00:00.000Z",
+        "status": "NORMAL",
+        "analyst": "Operador DEMO"
+      }
+    ],
+    "tasks:{plant}": [
+      {
+        "id": "demo-biogas-task-01",
+        "title": "Inspección visual del digestor",
+        "operator": "Operario DEMO",
+        "priority": "HIGH",
+        "status": "PENDING",
+        "due_date": "2026-10-01"
+      },
+      {
+        "id": "demo-biogas-task-02",
+        "title": "Control de nivel de digestato",
+        "operator": "Encargado DEMO",
+        "priority": "MEDIUM",
+        "status": "PENDING",
+        "due_date": "2026-10-01"
+      },
+      {
+        "id": "demo-biogas-task-03",
+        "title": "Limpieza de filtros del cogenerador",
+        "operator": "Operario DEMO",
+        "priority": "MEDIUM",
+        "status": "PENDING",
+        "due_date": "2026-10-02"
+      },
+      {
+        "id": "demo-biogas-task-04",
+        "title": "Registrar lectura de caudal",
+        "operator": "Operario DEMO",
+        "priority": "LOW",
+        "status": "COMPLETED",
+        "due_date": "2026-09-30"
+      }
+    ],
+    "maintenance:{plant}": [
+      {
+        "id": "demo-biogas-maintenance-01",
+        "equipment": "Bomba de recirculación DEMO",
+        "equipment_name": "Bomba de recirculación DEMO",
+        "maintenance_type": "PREVENTIVO",
+        "scheduled_date": "2026-10-02",
+        "scheduled_at": "2026-10-02T10:00:00.000Z",
+        "notes": "Control de vibraciones y sellos (DEMO).",
+        "status": "PENDING"
+      },
+      {
+        "id": "demo-biogas-maintenance-02",
+        "equipment": "Soplador de biogás DEMO",
+        "equipment_name": "Soplador de biogás DEMO",
+        "maintenance_type": "PREVENTIVO",
+        "scheduled_date": "2026-10-06",
+        "scheduled_at": "2026-10-06T10:00:00.000Z",
+        "notes": "Verificar filtro y temperatura (DEMO).",
+        "status": "PENDING"
+      }
+    ],
+    "equipment:{plant}": [
+      {
+        "id": "demo-biogas-equipment-01",
+        "name": "Bomba de recirculación DEMO",
+        "type": "PUMP",
+        "scale": "MEDIANA",
+        "manufacturer": "Fabricante DEMO",
+        "capex_usd": 18000,
+        "status": "OPERATIONAL"
+      },
+      {
+        "id": "demo-biogas-equipment-02",
+        "name": "Agitador AG-01 DEMO",
+        "type": "AGITATOR",
+        "scale": "MEDIANA",
+        "manufacturer": "Fabricante DEMO",
+        "capex_usd": 26000,
+        "status": "OPERATIONAL"
+      },
+      {
+        "id": "demo-biogas-equipment-03",
+        "name": "Cogenerador CHP 450 kW DEMO",
+        "type": "COGENERATOR",
+        "scale": "MEDIANA",
+        "manufacturer": "Fabricante DEMO",
+        "capex_usd": 410000,
+        "status": "OPERATIONAL"
+      }
+    ],
+    "greenhouses:all": [
+      {
+        "id": "demo-biogas-digester-01",
+        "name": "Digestor DEMO D-01",
+        "location": "Planta DEMO, Pergamino (BA)",
+        "latitude": -33.8899,
+        "longitude": -60.5736,
+        "capex_usd": 950000,
+        "notes": "Digestor ficticio para la prueba",
+        "createdAt": "2026-08-02T10:00:00.000Z"
+      },
+      {
+        "id": "demo-biogas-digester-02",
+        "name": "Post-digestor DEMO D-02",
+        "location": "Planta DEMO, Pergamino (BA)",
+        "latitude": -33.8905,
+        "longitude": -60.5741,
+        "capex_usd": 420000,
+        "notes": "Digestor ficticio para la prueba",
+        "createdAt": "2026-08-02T10:00:00.000Z"
+      }
+    ],
+    "company:{plant}": {
+      "legal_name": "Planta de Biogás DEMO S.A.",
+      "tax_id": "30-00000000-0 (DEMO)",
+      "fiscal_address": "Ruta 8 km 220, Pergamino, Buenos Aires (DEMO)"
+    },
+    "biomass-ingress:{plant}": [
+      {
+        "id": "demo-biogas-biomass-01",
+        "supplier_name": "Tambo proveedor DEMO",
+        "biomass_type": "VACUNO_TAMBO",
+        "net_weight_tons": 8.5,
+        "net_price_ars_ton": 9000,
+        "payment_source": "BANCO",
+        "moisture_percentage": 88,
+        "observations": "Recepción de prueba (DEMO)",
+        "net_amount_ars": 76500,
+        "iva_credit_ars": 16065,
+        "total_amount_ars": 92565,
+        "savedAt": "2026-10-01T07:30:00.000Z"
+      },
+      {
+        "id": "demo-biogas-biomass-02",
+        "supplier_name": "Acopio de silaje DEMO",
+        "biomass_type": "SILAJE_MAIZ",
+        "net_weight_tons": 4,
+        "net_price_ars_ton": 45000,
+        "payment_source": "CREDITO_PROVEEDOR",
+        "moisture_percentage": 65,
+        "observations": "Silaje para codigestión (DEMO)",
+        "net_amount_ars": 180000,
+        "iva_credit_ars": 37800,
+        "total_amount_ars": 217800,
+        "savedAt": "2026-10-01T08:15:00.000Z"
+      },
+      {
+        "id": "demo-biogas-biomass-03",
+        "supplier_name": "Tambo proveedor DEMO",
+        "biomass_type": "VACUNO_TAMBO",
+        "net_weight_tons": 8.2,
+        "net_price_ars_ton": 9000,
+        "payment_source": "BANCO",
+        "moisture_percentage": 87,
+        "observations": "Recepción de prueba (DEMO)",
+        "net_amount_ars": 73800,
+        "iva_credit_ars": 15498,
+        "total_amount_ars": 89298,
+        "savedAt": "2026-09-30T07:40:00.000Z"
+      }
+    ],
+    "biomass-stock:{plant}": [
+      {
+        "biomass_type": "VACUNO_TAMBO",
+        "available_tons": 16.7,
+        "updatedAt": "2026-10-01T07:30:00.000Z"
+      },
+      {
+        "biomass_type": "SILAJE_MAIZ",
+        "available_tons": 4,
+        "updatedAt": "2026-10-01T08:15:00.000Z"
+      }
+    ],
+    "opex-ars:{plant}": [
+      {
+        "id": "demo-biogas-biomass-01",
+        "category": "OPEX_BIOMASA",
+        "supplier_name": "Tambo proveedor DEMO",
+        "amount_ars": 76500,
+        "iva_credit_ars": 16065,
+        "total_ars": 92565,
+        "savedAt": "2026-10-01T07:30:00.000Z"
+      },
+      {
+        "id": "demo-biogas-biomass-02",
+        "category": "OPEX_BIOMASA",
+        "supplier_name": "Acopio de silaje DEMO",
+        "amount_ars": 180000,
+        "iva_credit_ars": 37800,
+        "total_ars": 217800,
+        "savedAt": "2026-10-01T08:15:00.000Z"
+      }
+    ],
+    "digestato:{plant}": {
+      "liquid_volume_m3": 245,
+      "solid_tons": 18
+    },
+    "stock:{plant}": [
+      {
+        "sku_id": "BIOL-01",
+        "product_name": "Biol líquido DEMO",
+        "sku_code": "BIOL-01",
+        "available_quantity": 245,
+        "unit": "M3"
+      },
+      {
+        "sku_id": "DIG-SOL-01",
+        "product_name": "Digestato sólido DEMO",
+        "sku_code": "DIG-SOL-01",
+        "available_quantity": 18,
+        "unit": "TON"
+      },
+      {
+        "sku_id": "FILTRO-H2S",
+        "product_name": "Filtro de H₂S DEMO",
+        "sku_code": "FILTRO-H2S",
+        "available_quantity": 6,
+        "unit": "UNITS"
+      }
+    ],
+    "inventory-movements:{plant}": [
+      {
+        "id": "demo-biogas-movement-01",
+        "sku_id": "BIOL-01",
+        "movement_type": "PRODUCTION",
+        "quantity": 30,
+        "reference": "Producción diaria (DEMO)",
+        "savedAt": "2026-10-01T06:00:00.000Z"
+      },
+      {
+        "id": "demo-biogas-movement-02",
+        "sku_id": "BIOL-01",
+        "movement_type": "DISPATCH",
+        "quantity": -20,
+        "reference": "Aplicación en lote DEMO",
+        "savedAt": "2026-09-30T15:00:00.000Z"
+      },
+      {
+        "id": "demo-biogas-movement-03",
+        "sku_id": "FILTRO-H2S",
+        "movement_type": "LOSS",
+        "quantity": -1,
+        "reference": "Reemplazo de filtro (DEMO)",
+        "savedAt": "2026-09-29T11:00:00.000Z"
+      }
+    ],
+    "recipes:{plant}": [
+      {
+        "id": "demo-biogas-recipe-01",
+        "recipe_code": "REC-DEMO-01",
+        "name": "Mezcla tambo 70/30 (DEMO)",
+        "status": "ACTIVE",
+        "substrate_id": "VACUNO_TAMBO",
+        "second_substrate_id": "SILAJE_MAIZ",
+        "mix_percentage": 70,
+        "second_mix_percentage": 30,
+        "third_mix_percentage": 0,
+        "deviation_tolerance_percentage": 5,
+        "theoretical_methane_yield_m3_per_ton": 62,
+        "cn_ratio": 24,
+        "total_solids_percentage": 9.5,
+        "volatile_solids_percentage": 82,
+        "bmp_m3_day": 410,
+        "components": [
+          {
+            "substrate_id": "VACUNO_TAMBO",
+            "mix_percentage": 70
+          },
+          {
+            "substrate_id": "SILAJE_MAIZ",
+            "mix_percentage": 30
+          }
+        ],
+        "notes": "Receta ficticia",
+        "savedAt": "2026-09-01T10:00:00.000Z",
+        "syncStatus": "local"
+      }
+    ],
+    "process-units:{plant}": [
+      {
+        "id": "demo-biogas-unit-01",
+        "type": "RECEPCION",
+        "unit_code": "PU-DEMO-01",
+        "name": "Pileta de recepción y mezcla DEMO",
+        "sequence_order": 1,
+        "measurement_points": [],
+        "parameters": {},
+        "savedAt": "2026-09-01T10:00:00.000Z"
+      },
+      {
+        "id": "demo-biogas-unit-02",
+        "type": "DIGESTOR",
+        "unit_code": "PU-DEMO-02",
+        "name": "Digestor DEMO D-01",
+        "sequence_order": 2,
+        "measurement_points": [
+          "DEMO-DIG-01"
+        ],
+        "parameters": {},
+        "savedAt": "2026-09-01T10:00:00.000Z"
+      },
+      {
+        "id": "demo-biogas-unit-03",
+        "type": "CHP",
+        "unit_code": "PU-DEMO-03",
+        "name": "Cogenerador DEMO",
+        "sequence_order": 3,
+        "measurement_points": [
+          "DEMO-GAS-01"
+        ],
+        "parameters": {},
+        "savedAt": "2026-09-01T10:00:00.000Z"
+      }
+    ],
+    "process-connections:{plant}": [
+      {
+        "id": "demo-biogas-conn-01",
+        "source_unit_id": "demo-biogas-unit-01",
+        "target_unit_id": "demo-biogas-unit-02",
+        "connection_type": "SERIE",
+        "nominal_flow_m3_per_hour": 2.5,
+        "savedAt": "2026-09-01T10:00:00.000Z"
+      },
+      {
+        "id": "demo-biogas-conn-02",
+        "source_unit_id": "demo-biogas-unit-02",
+        "target_unit_id": "demo-biogas-unit-03",
+        "connection_type": "GAS",
+        "nominal_flow_m3_per_hour": 354,
+        "savedAt": "2026-09-01T10:00:00.000Z"
+      }
+    ],
+    "plant-design-projects:{plant}": [
+      {
+        "id": "demo-biogas-design-01",
+        "name": "Ampliación planta DEMO",
+        "reactor_scheme": "CSTR",
+        "target_solids_percentage": 9.5,
+        "daily_feedstock_tons": 19.7,
+        "dilution_water_m3_per_day": 14.2,
+        "has_post_digester": "true",
+        "calculations": {},
+        "savedAt": "2026-09-11T10:00:00.000Z",
+        "syncStatus": "local"
+      }
+    ],
+    "transport-fleet:{plant}": [
+      {
+        "id": "demo-biogas-vehicle-01",
+        "plate": "AA000AA",
+        "vehicle_type": "CISTERNA",
+        "capacity_tons": 12,
+        "odometer_km": 68420,
+        "status": "AVAILABLE",
+        "driver": "Chofer DEMO 1",
+        "savedAt": "2026-08-22T10:00:00.000Z"
+      },
+      {
+        "id": "demo-biogas-vehicle-02",
+        "plate": "AA000AB",
+        "vehicle_type": "TOLVA",
+        "capacity_tons": 18,
+        "odometer_km": 42110,
+        "status": "IN_SERVICE",
+        "driver": "Chofer DEMO 2",
+        "savedAt": "2026-08-22T10:00:00.000Z"
+      }
+    ],
+    "transport-routes:{plant}": [
+      {
+        "id": "demo-biogas-route-01",
+        "vehicle_id": "demo-biogas-vehicle-01",
+        "vehicle_plate": "AA000AA",
+        "driver": "Chofer DEMO 1",
+        "cargo_type": "BIOMASA",
+        "cargo_tons": 8.5,
+        "origin": "Tambo proveedor DEMO",
+        "destination": "Planta DEMO",
+        "departure_at": "2026-10-01T06:30:00.000Z",
+        "status": "COMPLETED",
+        "notes": "Ruta ficticia",
+        "savedAt": "2026-09-30T10:00:00.000Z"
+      },
+      {
+        "id": "demo-biogas-route-02",
+        "vehicle_id": "demo-biogas-vehicle-02",
+        "vehicle_plate": "AA000AB",
+        "driver": "Chofer DEMO 2",
+        "cargo_type": "DIGESTATO",
+        "cargo_tons": 14,
+        "origin": "Planta DEMO",
+        "destination": "Lote de aplicación DEMO",
+        "departure_at": "2026-10-01T11:00:00.000Z",
+        "status": "IN_TRANSIT",
+        "notes": "Ruta ficticia",
+        "savedAt": "2026-10-01T10:00:00.000Z"
+      }
+    ],
+    "transport-maintenance:{plant}": [
+      {
+        "id": "demo-biogas-transport-maint-01",
+        "vehicle_id": "demo-biogas-vehicle-02",
+        "maintenance_type": "PREVENTIVO",
+        "scheduled_date": "2026-10-04",
+        "odometer_km": 42110,
+        "status": "SCHEDULED",
+        "amount_ars": 48500,
+        "notes": "Cambio de filtros (DEMO)",
+        "savedAt": "2026-09-29T10:00:00.000Z"
+      }
+    ],
+    "treasury:{plant}": [
+      {
+        "id": "demo-biogas-treasury-01",
+        "type": "BANCO",
+        "reference": "Saldo bancario inicial DEMO",
+        "amount": 2450000,
+        "date": "2026-09-21",
+        "savedAt": "2026-09-21T10:00:00.000Z"
+      },
+      {
+        "id": "demo-biogas-treasury-02",
+        "type": "CAJA",
+        "reference": "Fondo fijo DEMO",
+        "amount": 85000,
+        "date": "2026-09-21",
+        "savedAt": "2026-09-21T10:00:00.000Z"
+      },
+      {
+        "id": "demo-biogas-treasury-03",
+        "type": "PASIVO_COMERCIAL",
+        "reference": "Deuda con proveedor de silaje DEMO",
+        "amount": 217800,
+        "date": "2026-10-01",
+        "savedAt": "2026-10-01T10:00:00.000Z"
+      }
+    ],
+    "bank-accounts:{plant}": [
+      {
+        "id": "demo-biogas-bank-01",
+        "bank": "Banco DEMO",
+        "account_name": "Cuenta operativa ARS (DEMO)",
+        "currency": "ARS",
+        "alias": "PLANTA.BIOGAS.DEMO",
+        "account_reference": "0000000000000000000000",
+        "homebanking_url": "",
+        "savedAt": "2026-09-21T10:00:00.000Z"
+      }
+    ],
+    "fideicomiso-reserves:{plant}": [
+      {
+        "id": "demo-biogas-reserve-01",
+        "type": "DEBT_RESERVE",
+        "entity": "Fiduciario DEMO",
+        "reserve_usd": 12000,
+        "reference": "Reserva de mantenimiento mayor (DEMO)",
+        "savedAt": "2026-09-21T10:00:00.000Z"
+      }
+    ],
+    "checks-receivable:{plant}": [
+      {
+        "id": "demo-biogas-check-in-01",
+        "number": "00000001",
+        "bank": "Banco DEMO",
+        "amount": 240000,
+        "due_date": "2026-10-05",
+        "savedAt": "2026-09-28T10:00:00.000Z"
+      }
+    ],
+    "checks-payable:{plant}": [
+      {
+        "id": "demo-biogas-check-out-01",
+        "number": "00000002",
+        "bank": "Banco DEMO",
+        "amount": 95000,
+        "due_date": "2026-10-07",
+        "savedAt": "2026-09-28T10:00:00.000Z"
+      }
+    ],
+    "credits:{plant}": [
+      {
+        "id": "demo-biogas-credit-01",
+        "lender": "Entidad financiera DEMO",
+        "purpose": "CHP principal (DEMO)",
+        "principal_ars": 3200000,
+        "annual_rate": 48,
+        "amortization_system": "FRENCH",
+        "term_months": 24,
+        "due_date": "2026-10-21",
+        "alert_days": 7
+      }
+    ],
+    "opex:{plant}": [
+      {
+        "id": "demo-biogas-opex-01",
+        "category_id": "ENERGIA",
+        "category_name": "Energía (DEMO)",
+        "period": "2026-10",
+        "amount_usd": 185,
+        "expense_date": "2026-09-29",
+        "description": "Consumo eléctrico auxiliar (DEMO)",
+        "supplier_name": "Distribuidora DEMO",
+        "savedAt": "2026-09-29T10:00:00.000Z"
+      }
+    ],
+    "cost-records:{plant}": [
+      {
+        "id": "demo-biogas-cost-01",
+        "category": "MANTENIMIENTO",
+        "cost_type": "OPERATIVO",
+        "reference": "Servicio técnico DEMO",
+        "amount_ars": 72500,
+        "date": "2026-09-28",
+        "notes": "Repuestos de bomba (DEMO)",
+        "savedAt": "2026-09-28T10:00:00.000Z"
+      },
+      {
+        "id": "demo-biogas-cost-02",
+        "category": "LABORATORIO",
+        "cost_type": "OPERATIVO",
+        "reference": "Laboratorio DEMO",
+        "amount_ars": 38000,
+        "date": "2026-09-26",
+        "notes": "Análisis FOS/TAC (DEMO)",
+        "savedAt": "2026-09-26T10:00:00.000Z"
+      }
+    ],
+    "cost-per-m3:{plant}": [
+      {
+        "id": "demo-biogas-cost-m3-01",
+        "recipe": "PURIN_MAIZ_70_30",
+        "purin_tons": 70,
+        "purin_cost_usd_ton": 5,
+        "purin_yield_m3_ton": 25,
+        "maize_tons": 30,
+        "maize_cost_usd_ton": 45,
+        "maize_yield_m3_ton": 180,
+        "daily_opex_usd": 550,
+        "exchange_rate_ars_usd": 1010,
+        "real_biogas_m3": 8496,
+        "upgrading_cost_usd_m3": 0.03,
+        "sale_price_usd_m3": 0.12,
+        "ceco": "CECO-01 · Digestión",
+        "cebe": "CEBE-A · Energía eléctrica",
+        "exchange_rate_source": "Ingresado manualmente",
+        "substrate_cost_usd": 1700,
+        "purchased_biomass_opex_usd": 0,
+        "theoretical_biogas_m3": 7150,
+        "volume_used_m3": 8496,
+        "total_cost_usd": 2250,
+        "cost_per_m3_usd": 0.2648,
+        "biometane_cost_per_m3_usd": 0.2948,
+        "margin_per_m3_usd": -0.1748,
+        "savedAt": "2026-10-01T10:00:00.000Z"
+      }
+    ],
+    "ppa-contracts:{plant}": [
+      {
+        "id": "demo-biogas-ppa-01",
+        "contract_code": "PPA-DEMO-001",
+        "buyer_name": "Comprador de energía DEMO",
+        "base_rate_usd_kwh": 0.085,
+        "equipment_id": "demo-biogas-equipment-03",
+        "contracted_power_kw": 450,
+        "minimum_availability_percentage": 83.33,
+        "non_compliance_penalty_usd": 1500,
+        "currency": "USD",
+        "valid_from": "2026-07-03",
+        "valid_to": "2027-07-03",
+        "dispatched_mwh": 86.4,
+        "rate_usd_mwh": 85,
+        "savedAt": "2026-07-03T10:00:00.000Z",
+        "syncStatus": "local"
+      }
+    ],
+    "chp-balances:{plant}": [
+      {
+        "id": "demo-biogas-chp-01",
+        "equipment_id": "demo-biogas-equipment-03",
+        "biogas_consumed_m3": 8496,
+        "methane_average_percentage": 62.4,
+        "electric_energy_kwh": 18700,
+        "thermal_energy_kwh": 21400,
+        "electrical_efficiency_percentage": 37.1,
+        "savedAt": "2026-10-01T10:00:00.000Z",
+        "syncStatus": "local"
+      }
+    ],
+    "carbon-credits:{plant}": [
+      {
+        "id": "demo-biogas-carbon-01",
+        "period": "2026-10",
+        "captured_methane_m3": 18720,
+        "injected_energy_kwh": 42600,
+        "carbon_price_usd": 18,
+        "feedstock_origin": "Estiércol de tambo (DEMO)",
+        "minimum_feedstock_tons": 150,
+        "emissions_baseline": "Descomposición sin captura de metano",
+        "methane_leakage_control": "REQUIRED",
+        "automated_monitoring": "true",
+        "flowmeter_calibration": "CERTIFIED_PERIODICALLY",
+        "double_benefit_prevention": "true",
+        "energy_attribute_certificates": "INCLUDED",
+        "biological_force_majeure": "INCLUDED",
+        "estimated_credits_tco2e": 3.24,
+        "contract_notes": "Registro ficticio",
+        "savedAt": "2026-10-01T10:00:00.000Z"
+      }
+    ],
+    "driver-rates:{plant}": [
+      {
+        "id": "demo-biogas-rate-01",
+        "user_id": "DEMO-EMP-01",
+        "employee_number": "001",
+        "employee_type": "CHOFER",
+        "base_salary_ars": 650000,
+        "pay_per_ton_ars": 1200,
+        "pay_per_km_ars": 0,
+        "hire_date": "2025-08-27",
+        "savedAt": "2025-08-27T10:00:00.000Z"
+      },
+      {
+        "id": "demo-biogas-rate-02",
+        "user_id": "DEMO-EMP-02",
+        "employee_number": "002",
+        "employee_type": "OPERARIO",
+        "base_salary_ars": 720000,
+        "pay_per_ton_ars": 0,
+        "pay_per_km_ars": 0,
+        "hire_date": "2025-12-05",
+        "savedAt": "2025-12-05T10:00:00.000Z"
+      }
+    ],
+    "payroll-settlements:{plant}": [
+      {
+        "id": "demo-biogas-payroll-01",
+        "user_id": "DEMO-EMP-01",
+        "period": "2026-10",
+        "transported_tons": 120,
+        "audited_km": 0,
+        "bonus_amount_ars": 0,
+        "deductions_ars": 0,
+        "employer_contributions_ars": 0,
+        "gross_amount_ars": 794000,
+        "net_amount_ars": 659020,
+        "status": "PENDING",
+        "savedAt": "2026-10-01T10:00:00.000Z"
+      }
+    ],
+    "fiscal-withholdings:{plant}": [
+      {
+        "id": "demo-biogas-withholding-01",
+        "type": "IIBB",
+        "reference": "Factura proveedor DEMO",
+        "amount_ars": 12400,
+        "date": "2026-09-27",
+        "savedAt": "2026-09-27T10:00:00.000Z"
+      }
+    ],
+    "cost-payments:{plant}": [
+      {
+        "id": "demo-biogas-cost-payment-01",
+        "reference": "Servicio técnico DEMO",
+        "payment_method": "TRANSFERENCIA",
+        "amount_ars": 72500,
+        "date": "2026-09-28",
+        "savedAt": "2026-09-28T10:00:00.000Z"
+      }
+    ],
+    "users-roles:{plant}": [
+      {
+        "id": "demo-biogas-user-01",
+        "name": "Encargado DEMO",
+        "role": "RESPONSABLE"
+      },
+      {
+        "id": "demo-biogas-user-02",
+        "name": "Operario DEMO",
+        "role": "OPERADOR"
+      }
+    ]
+  }
+}

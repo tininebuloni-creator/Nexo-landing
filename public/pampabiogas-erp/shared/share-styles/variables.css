@@ -1,0 +1,57 @@
+/* packages/share-styles/variables.css
+   Tema ERP PAMPA (oscuro + ámbar) para apps nuevas. Extraído del CSS inline de
+   apps/pampaagro/index.html, que es la versión más completa del tema.
+
+   Orden de carga: variables.css -> componentes.css -> brand.css (opcional).
+
+   Diferencia con las apps actuales: allí el acento ámbar se llama --green
+   (Agro, Porcinos, Ganadería), --amber (Tambo) o --accent (PBP). Acá se llama
+   --accent, y --green es verde de verdad (estados "ok"). Si copiás CSS de una
+   app vieja, reemplazá var(--green) por var(--accent). */
+
+:root {
+  /* Fondos */
+  --bg-primary: #0f1419;
+  --bg-secondary: #1a1f2e;
+  --bg-tertiary: #252b3b;
+  --bg-card: #1e2433;
+  --bg-card-hover: #252b3b;
+
+  /* Bordes */
+  --border: #2d3548;
+  --border-light: #3d4558;
+
+  /* Acento de marca */
+  --accent: #f59e0b;
+  --accent-dim: #d97706;
+  --accent-glow: rgba(245, 158, 11, 0.15);
+  --on-accent: #ffffff;
+
+  /* Colores de estado y de series */
+  --green: #22c55e;
+  --green-dim: #16a34a;
+  --blue: #3b82f6;
+  --blue-dim: #2563eb;
+  --purple: #8b5cf6;
+  --orange: #f97316;
+  --red: #ef4444;
+  --yellow: #eab308;
+  --cyan: #06b6d4;
+
+  /* Texto */
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-dim: #64748b;
+
+  /* Tipografía */
+  --font-main: "Inter", system-ui, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", Consolas, monospace;
+
+  /* Medidas */
+  --sidebar-w: 280px;
+  --header-h: 60px;
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}

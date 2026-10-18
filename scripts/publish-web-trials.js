@@ -20,11 +20,14 @@ const sources = {
   // Pampa PBP: su servidor corre en el navegador; la carpeta la arma PAMPA N-ecosystem/scripts/build-web-trial-pbp.js
   'pampapbp-erp': path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'PampaBalanceadosPorcinos', 'web-dist'),
   // PampaCoop: la carpeta la arma PAMPA N-ecosystem/apps/pampacooperativas/armar-trial-web.js
-  'pampacooperativas-erp': path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'pampacooperativas', 'public')
+  'pampacooperativas-erp': path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'pampacooperativas', 'public'),
+  // PampaBiogas: public/ lo arma apps/pampabiogas/scripts/sync-public.js (npm run public:sync).
+  'pampabiogas-erp': path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'pampabiogas', 'public')
 };
 // Apps que traen su propio control de prueba (barra, respaldo y bloqueo): no llevan trial-progress.js de la landing,
 // que guarda el progreso en otro lugar y pondría una segunda barra.
-const conPruebaPropia = new Set(['pampacooperativas-erp']);
+// PampaBiogas trae su trial-progress.js (registra el inicio en el servidor y bloquea al vencer) y lo carga solo en la web.
+const conPruebaPropia = new Set(['pampacooperativas-erp', 'pampabiogas-erp']);
 
 // Por defecto solo se publican estas 4 (las que ya estan completas y en uso). Para publicar
 // tambien Porcinos y Precision, correr: node scripts/publish-web-trials.js all
