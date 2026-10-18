@@ -12,7 +12,7 @@
       "fuente": "senasa-avisos",
       "tipo": "avisos",
       "ok": true,
-      "cantidad": 7,
+      "cantidad": 8,
       "cambios_detectados": 0,
       "errores": 0
     }
@@ -278,6 +278,18 @@
       "hash": "de6caf6f6c1e51c5cdcf9ba6dcdf07866f1ed48afb884e8dcc64851ee673d2a8",
       "cambio_detectado": false,
       "verificado_el": "2026-10-06T03:40:32.970Z"
+    },
+    {
+      "id": "arca-rg-3419",
+      "nombre": "ARCA · RG 3419/2012 · Liquidación Primaria de Granos (ex F.1116 B y C)",
+      "url": "https://biblioteca.afip.gob.ar/dcp/REAG01003419_2012_12_20",
+      "apps": [
+        "agro"
+      ],
+      "nota": "LPG electrónica con COE (web o WSLPG) en compraventa y consignación de granos; reemplazó a los formularios C 1116 B y C 1116 C desde el 13/03/2013. Modificada por RG 5558/2024 y RG 5687/2025.",
+      "hash": "ae9ac097f1107a8506dc9c6ed376fdf10caf8546e71d2129393baf3b21c4cdfb",
+      "cambio_detectado": false,
+      "verificado_el": "2026-10-18T00:30:46.811Z"
     }
   ]
 }
