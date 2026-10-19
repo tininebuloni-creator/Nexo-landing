@@ -65,6 +65,9 @@ const ignoredPrefixes = ['dist-', 'release-', '~$', 'electron-builder'];
 // Scripts de desarrollo que no tienen que llegar a la web (ej: aplicar_parche.py) y notas .txt
 // internas (versiones, roles, LEEME): quedaban publicadas y descargables por cualquiera.
 const ignoredExtensions = ['.env', '.key', '.crt', '.bat', '.py', '.sh', '.ps1', '.txt'];
+// Copias sueltas que deja Windows al bajar/duplicar (ej: "index (9).html"): una vieja quedaba
+// publicada con el manifest y el service worker, o sea instalable.
+const copiaWindows = / \(\d+\)\.[^.]+$/;
 const privacyPopup = path.join(projectsRoot, 'PAMPA N-ecosystem', 'packages', 'pampa-privacy-popup.js');
 const trialProgress = path.join(landingRoot, 'trial-progress.js');
 // OJO: pampatambo-erp tenía acá un override que pisaba el index.html publicado con el
@@ -86,6 +89,20 @@ function webTrialGuard() {
   return `<script id="pampa-web-trial-guard">(function(){try{const url=new URL(window.location.href);if(url.searchParams.get('trial')==='auto'){window.__pampaTrialAutoRequested=true;url.searchParams.delete('trial');window.history.replaceState({},document.title,url.pathname+url.search+url.hash);}}catch(error){}}());</script>`;
 }
 
+// La web es una demo de 10 días: no se tiene que poder instalar como app (PWA) ni andar sin
+// internet, porque una copia instalada/cacheada seguiría abriendo sin pasar por el control de días
+// del servidor. Sin manifest el navegador no ofrece "Instalar"; este script además anula el registro
+// del service worker y da de baja los que hayan quedado de publicaciones anteriores.
+function webNoInstallGuard() {
+  return `<script id="pampa-web-no-install">(function(){try{window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();});var sw=navigator.serviceWorker;if(sw){sw.register=function(){return Promise.reject(new Error('La prueba web no se instala'));};sw.getRegistrations().then(function(rs){rs.forEach(function(r){r.unregister();});}).catch(function(){});}}catch(error){}}());</script>`;
+}
+
+// Reemplaza el sw.js publicado: a quien ya tenga instalada una versión anterior, el navegador le
+// baja este al buscar actualizaciones, que borra la copia offline y se da de baja solo.
+const killSwitchSw = `self.addEventListener('install',function(){self.skipWaiting();});
+self.addEventListener('activate',function(e){e.waitUntil(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k);}));}).then(function(){return self.registration.unregister();}));});
+`;
+
 for (const [folderName, source] of Object.entries(sources)) {
   if (!selectedKeys.includes(folderName)) continue;
   if (!fs.existsSync(path.join(source, 'index.html'))) throw new Error(`No se encontró la aplicación web para ${folderName}: ${source}`);
@@ -101,7 +118,8 @@ for (const [folderName, source] of Object.entries(sources)) {
       const name = path.basename(entry);
       return !ignored.has(name)
         && !ignoredPrefixes.some(prefix => name.startsWith(prefix))
-        && !ignoredExtensions.some(ext => name.toLowerCase().endsWith(ext));
+        && !ignoredExtensions.some(ext => name.toLowerCase().endsWith(ext))
+        && !copiaWindows.test(name);
     }
   });
   // La carpeta data/ no se publica (puede tener datos del servidor), pero los datos de ejemplo de
@@ -141,6 +159,17 @@ for (const [folderName, source] of Object.entries(sources)) {
   html = html.replace(/<script id="pampa-web-trial-guard">[\s\S]*?<\/script>\s*\n?/i, '');
   if (!html.includes('id="pampa-web-trial-guard"')) {
     html = html.replace(/<head>/i, `<head>\n${guardTag}`);
+  }
+  // Demo no instalable: fuera el manifest (es lo que hace aparecer "Instalar" en la barra de
+  // direcciones) y el service worker (ver webNoInstallGuard).
+  html = html.replace(/[ \t]*<link\b[^>]*\brel=["']manifest["'][^>]*>\s*\n?/gi, '');
+  html = html.replace(/<script id="pampa-web-no-install">[\s\S]*?<\/script>\s*\n?/i, '');
+  html = html.replace(/(<script id="pampa-web-trial-guard">[\s\S]*?<\/script>)/i, `$1\n${webNoInstallGuard()}`);
+  for (const nombre of ['manifest.webmanifest', 'manifest.json']) {
+    fs.rmSync(path.join(destination, nombre), { force: true });
+  }
+  if (fs.existsSync(path.join(destination, 'sw.js'))) {
+    fs.writeFileSync(path.join(destination, 'sw.js'), killSwitchSw, 'utf8');
   }
   if (!html.includes(trialProgressTag) && !conPruebaPropia.has(folderName)) {
     html = injectBeforeFinalBody(html, trialProgressTag);
