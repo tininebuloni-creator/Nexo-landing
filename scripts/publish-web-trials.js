@@ -22,12 +22,16 @@ const sources = {
   // PampaCoop: la carpeta la arma PAMPA N-ecosystem/apps/pampacooperativas/armar-trial-web.js
   'pampacooperativas-erp': path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'pampacooperativas', 'public'),
   // PampaBiogas: public/ lo arma apps/pampabiogas/scripts/sync-public.js (npm run public:sync).
-  'pampabiogas-erp': path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'pampabiogas', 'public')
+  'pampabiogas-erp': path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'pampabiogas', 'public'),
+  // Pampa Hidroponía: public/ es el espejo web que arma apps/pampahidroponia/scripts/sync-public.js (npm run public:sync);
+  // la raíz de la app queda como fuente pura de los exe. Se publica en la carpeta que ya enlazaba el catálogo.
+  'pampa-hidroponia': path.join(projectsRoot, 'PAMPA N-ecosystem', 'apps', 'pampahidroponia', 'public')
 };
 // Apps que traen su propio control de prueba (barra, respaldo y bloqueo): no llevan trial-progress.js de la landing,
 // que guarda el progreso en otro lugar y pondría una segunda barra.
 // PampaBiogas trae su trial-progress.js (registra el inicio en el servidor y bloquea al vencer) y lo carga solo en la web.
-const conPruebaPropia = new Set(['pampacooperativas-erp', 'pampabiogas-erp']);
+// Pampa Hidroponía carga su barra de prueba desde pampa/trial-progress.js (packages/core-licensing).
+const conPruebaPropia = new Set(['pampacooperativas-erp', 'pampabiogas-erp', 'pampa-hidroponia']);
 
 // Por defecto solo se publican estas 4 (las que ya estan completas y en uso). Para publicar
 // tambien Porcinos y Precision, correr: node scripts/publish-web-trials.js all
@@ -58,7 +62,9 @@ console.log(`Publicando: ${selectedKeys.join(', ')}`);
 // Código de servidor que nunca se publica: server.js (Express de Porcinos, que se publica desde la
 // raíz de la app), _worker.js (Worker de Cloudflare; Pages no lo ejecuta fuera de la raíz y quedaba
 // descargable) y Pampa-Packs (entregas de clientes).
-const ignored = new Set(['node_modules', '.git', '.wrangler', 'data', 'services', 'server', 'controllers', 'models', 'routes', 'scripts', 'dist', 'release', 'build', 'public_protected', 'packs', 'Pampa-Packs', 'desktop-public', 'electron', 'server.js', '_worker.js', 'package.json', 'package-lock.json', 'wrangler.jsonc', 'wrangler.toml']);
+const ignored = new Set(['node_modules', '.git', '.wrangler', 'data', 'services', 'server', 'controllers', 'models', 'routes', 'scripts', 'dist', 'release', 'build', 'public_protected', 'packs', 'Pampa-Packs', 'desktop-public', 'electron', 'server.js', '_worker.js', 'package.json', 'package-lock.json', 'wrangler.jsonc', 'wrangler.toml',
+  // Pruebas, copias anteriores, certificados de ARCA y archivos del servidor local (Hidroponía, Porcinos).
+  'tests', '_anterior', 'arca', 'dataDir.js', '.env.example', '.gitignore']);
 // '~$': archivos de bloqueo que crea Office mientras un documento está abierto (ej: ~$Planilla_...xlsx)
 // 'electron-builder': configs del instalador de escritorio (ej: electron-builder-premium.json)
 // 'Manual': borradores de manuales en la carpeta de la app (Manual_Operativo_..._v1.docx, etc.);
