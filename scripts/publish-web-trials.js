@@ -61,10 +61,13 @@ console.log(`Publicando: ${selectedKeys.join(', ')}`);
 const ignored = new Set(['node_modules', '.git', '.wrangler', 'data', 'services', 'server', 'controllers', 'models', 'routes', 'scripts', 'dist', 'release', 'build', 'public_protected', 'packs', 'Pampa-Packs', 'desktop-public', 'electron', 'server.js', '_worker.js', 'package.json', 'package-lock.json', 'wrangler.jsonc', 'wrangler.toml']);
 // '~$': archivos de bloqueo que crea Office mientras un documento está abierto (ej: ~$Planilla_...xlsx)
 // 'electron-builder': configs del instalador de escritorio (ej: electron-builder-premium.json)
-const ignoredPrefixes = ['dist-', 'release-', '~$', 'electron-builder'];
+// 'Manual': borradores de manuales en la carpeta de la app (Manual_Operativo_..._v1.docx, etc.);
+// los PDF útiles para el cliente van en "Ver documentación" (public/documentos), no en la demo.
+const ignoredPrefixes = ['dist-', 'release-', '~$', 'electron-builder', 'Manual'];
 // Scripts de desarrollo que no tienen que llegar a la web (ej: aplicar_parche.py) y notas .txt
 // internas (versiones, roles, LEEME): quedaban publicadas y descargables por cualquiera.
-const ignoredExtensions = ['.env', '.key', '.crt', '.bat', '.py', '.sh', '.ps1', '.txt'];
+// .doc/.docx: borradores de Word, nunca se publican.
+const ignoredExtensions = ['.env', '.key', '.crt', '.bat', '.py', '.sh', '.ps1', '.txt', '.doc', '.docx'];
 // Copias sueltas que deja Windows al bajar/duplicar (ej: "index (9).html"): una vieja quedaba
 // publicada con el manifest y el service worker, o sea instalable.
 const copiaWindows = / \(\d+\)\.[^.]+$/;
