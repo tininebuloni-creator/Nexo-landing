@@ -146,20 +146,47 @@
     await refreshApp();
   }
 
+  // Con la prueba vencida queda todo deshabilitado salvo el panel (guardar / importar el respaldo).
+  // Antes se deshabilitaba una sola vez al cargar: lo que la app dibujaba después (el dashboard, otro
+  // módulo, un formulario) quedaba habilitado y se podía seguir usando. Ahora un observador
+  // deshabilita cada control nuevo y vuelve a deshabilitar el que la app intente habilitar.
+  const CONTROLES = 'button,input,select,textarea,a';
+  let observadorBloqueo = null;
+  function bloquearControl(node, blocked) {
+    if (node.closest(`#${PANEL_ID}`)) return;
+    if (blocked) {
+      if (!node.hasAttribute('data-trial-prev-disabled')) node.setAttribute('data-trial-prev-disabled', node.disabled ? '1' : '0');
+      if (node.tagName === 'A') node.setAttribute('aria-disabled', 'true');
+      else if (!node.disabled) node.disabled = true;
+    } else if (node.getAttribute('data-trial-prev-disabled') === '0') {
+      node.disabled = false;
+      node.removeAttribute('aria-disabled');
+      node.removeAttribute('data-trial-prev-disabled');
+    }
+  }
   function setTrialBlocked(blocked) {
     document.body.classList.toggle('pampa-trial-expired', blocked);
-    document.querySelectorAll('button,input,select,textarea,a').forEach((node) => {
-      if (node.closest(`#${PANEL_ID}`)) return;
-      if (blocked) {
-        if (!node.hasAttribute('data-trial-prev-disabled')) node.setAttribute('data-trial-prev-disabled', node.disabled ? '1' : '0');
-        if (node.tagName === 'A') node.setAttribute('aria-disabled', 'true');
-        else node.disabled = true;
-      } else if (node.getAttribute('data-trial-prev-disabled') === '0') {
-        node.disabled = false;
-        node.removeAttribute('aria-disabled');
-        node.removeAttribute('data-trial-prev-disabled');
-      }
-    });
+    if (!blocked && observadorBloqueo) {
+      observadorBloqueo.disconnect();
+      observadorBloqueo = null;
+    }
+    document.querySelectorAll(CONTROLES).forEach((node) => bloquearControl(node, blocked));
+    if (blocked && !observadorBloqueo && typeof MutationObserver === 'function') {
+      observadorBloqueo = new MutationObserver((cambios) => {
+        cambios.forEach((cambio) => {
+          if (cambio.type === 'attributes') {
+            if (cambio.target.matches && cambio.target.matches(CONTROLES)) bloquearControl(cambio.target, true);
+            return;
+          }
+          cambio.addedNodes.forEach((n) => {
+            if (n.nodeType !== 1) return;
+            if (n.matches(CONTROLES)) bloquearControl(n, true);
+            n.querySelectorAll(CONTROLES).forEach((c) => bloquearControl(c, true));
+          });
+        });
+      });
+      observadorBloqueo.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled'] });
+    }
   }
 
   function renderPanel(daysLeft) {
