@@ -106,6 +106,14 @@ function webNoInstallGuard() {
   return `<script id="pampa-web-no-install">(function(){try{window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();});var sw=navigator.serviceWorker;if(sw){sw.register=function(){return Promise.reject(new Error('La prueba web no se instala'));};sw.getRegistrations().then(function(rs){rs.forEach(function(r){r.unregister();});}).catch(function(){});}}catch(error){}}());</script>`;
 }
 
+// La web es la demo de 10 días: la gestión y activación de licencia es solo de las versiones puras
+// (escritorio / packs). Varias apps la traían igual en el menú o en el panel (Agro, Ganadería, Tambo,
+// Porcinos, Precisión, Fiscal). Se ocultan los accesos por id y por texto ("Gestión de licencia",
+// "Licencia(s)", "Activar licencia"), también los que la app dibuja después de cargar.
+function webNoLicenseGuard() {
+  return `<script id="pampa-web-sin-licencia">(function(){try{var ids=['btnActivarLicencia','licenseStatus','licenseExpiryNotice','roleSeatsCard'];var texto=/^[^a-z\\u00c0-\\u024f]*(gesti[o\\u00f3]n de licencias?|licencias?|activar licencia)\\b/i;var st=document.createElement('style');st.textContent=ids.map(function(i){return '#'+i;}).join(',')+',.pampa-web-sin-licencia{display:none!important}';document.head.appendChild(st);function ocultar(){document.querySelectorAll('.nav-item,[data-view],[data-module],nav button,button,a').forEach(function(el){if(el.classList.contains('pampa-web-sin-licencia'))return;var partes=[],w=document.createTreeWalker(el,4),n;while((n=w.nextNode()))partes.push(n.nodeValue);var t=partes.join(' ').replace(/\\s+/g,' ').trim();if(t.length<80&&texto.test(t))el.classList.add('pampa-web-sin-licencia');});}var pendiente=false;function programar(){if(pendiente)return;pendiente=true;setTimeout(function(){pendiente=false;ocultar();},50);}document.addEventListener('DOMContentLoaded',function(){ocultar();new MutationObserver(programar).observe(document.body,{childList:true,subtree:true});});}catch(error){}}());</script>`;
+}
+
 // Reemplaza el sw.js publicado: a quien ya tenga instalada una versión anterior, el navegador le
 // baja este al buscar actualizaciones, que borra la copia offline y se da de baja solo.
 const killSwitchSw = `self.addEventListener('install',function(){self.skipWaiting();});
@@ -174,6 +182,11 @@ for (const [folderName, source] of Object.entries(sources)) {
   html = html.replace(/[ \t]*<link\b[^>]*\brel=["']manifest["'][^>]*>\s*\n?/gi, '');
   html = html.replace(/<script id="pampa-web-no-install">[\s\S]*?<\/script>\s*\n?/i, '');
   html = html.replace(/(<script id="pampa-web-trial-guard">[\s\S]*?<\/script>)/i, `$1\n${webNoInstallGuard()}`);
+  // Demo sin licencia (ver webNoLicenseGuard). El aviso Self-Hosted de Precisión es de la instalación
+  // local del licenciatario: en la demo web no va.
+  html = html.replace(/<script id="pampa-web-sin-licencia">[\s\S]*?<\/script>[ \t]*\r?\n?/i, '');
+  html = html.replace(/(<script id="pampa-web-no-install">[\s\S]*?<\/script>)/i, `$1\n${webNoLicenseGuard()}`);
+  html = html.replace(/[ \t]*<script\b[^>]*pampa-onpremise-disclaimer\.js[^>]*><\/script>[ \t]*\r?\n?/gi, '');
   for (const nombre of ['manifest.webmanifest', 'manifest.json']) {
     fs.rmSync(path.join(destination, nombre), { force: true });
   }
