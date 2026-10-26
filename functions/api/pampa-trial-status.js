@@ -20,7 +20,8 @@
 //
 // GET /api/pampa-trial-status?app=<id>&d=<dispositivo>              → estado
 // GET /api/pampa-trial-status?app=<id>&d=<dispositivo>&pampa_trial=1 → registra si no existe
-//     (&propietario=<clave>: acceso del dueño sin control de días, con PAMPA_PROPIETARIO_CLAVE)
+//     (&propietario=<clave>: acceso del dueño sin control de días, con PAMPA_PROPIETARIO_CLAVE;
+//      también sin clave desde una IP de PAMPA_PROPIETARIO_IPS)
 //     (&desde=<ISO> opcional: inicio de un trial local anterior a este control; se acota a los
 //      últimos DIAS_TRIAL días para que no sirva para alargar la prueba)
 
@@ -38,6 +39,16 @@ async function sha256Hex(texto) {
 function ipDelCliente(request) {
   const cruda = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || '';
   return cruda.split(',')[0].trim().slice(0, 64);
+}
+
+// IPs del propietario (PAMPA_PROPIETARIO_IPS en Cloudflare): separadas por coma o espacio, exactas o con
+// prefijo terminado en * (181.10.* o 2800:810:4ab:*) para una IP dinámica dentro del rango del proveedor.
+// Solo vale CF-Connecting-IP, que pone Cloudflare: X-Forwarded-For lo puede inventar cualquiera.
+function esIpDueno(request, lista) {
+  const ip = String(request.headers.get('CF-Connecting-IP') || '').trim().toLowerCase();
+  if (!ip) return false;
+  return String(lista || '').toLowerCase().split(/[\s,;]+/).filter(Boolean).some((patron) =>
+    patron.endsWith('*') ? patron.length > 4 && ip.startsWith(patron.slice(0, -1)) : ip === patron);
 }
 
 function respuestaJson(datos, status = 200) {
@@ -58,7 +69,8 @@ async function responderEstadoTrial(request, kv, opciones = {}) {
   // de la web) el dueño prueba las apps sin el control de días. No se registra ni se guarda nada.
   const claveDueno = String(opciones.claveDueno || '');
   const clavePedida = String(url.searchParams.get('propietario') || '');
-  if (claveDueno.length >= 16 && clavePedida && await sha256Hex(clavePedida) === await sha256Hex(claveDueno)) {
+  if ((claveDueno.length >= 16 && clavePedida && await sha256Hex(clavePedida) === await sha256Hex(claveDueno)) ||
+    esIpDueno(request, opciones.ipsDueno)) {
     return respuestaJson({
       ok: true, app, propietario: true, trialActive: true, trialExhausted: false,
       activatedAt: new Date(ahora).toISOString(), expiresAt: new Date(ahora + 365 * DIA_MS).toISOString(), diasRestantes: 365,
@@ -112,5 +124,5 @@ async function responderEstadoTrial(request, kv, opciones = {}) {
 
 // Pages Function de la landing: atiende los trials de todas las apps publicadas (?app=).
 export async function onRequestGet({ request, env }) {
-  return responderEstadoTrial(request, env.PAMPA_TRIAL_KV, { sal: env.TRIAL_SALT, claveDueno: env.PAMPA_PROPIETARIO_CLAVE });
+  return responderEstadoTrial(request, env.PAMPA_TRIAL_KV, { sal: env.TRIAL_SALT, claveDueno: env.PAMPA_PROPIETARIO_CLAVE, ipsDueno: env.PAMPA_PROPIETARIO_IPS });
 }
