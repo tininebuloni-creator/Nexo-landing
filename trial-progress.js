@@ -71,8 +71,26 @@
   }
   function quitarPanel() {
     setTrialBlocked(false);
+    mostrarVencida(false);
     const panel = document.getElementById(PANEL_ID);
     if (panel) panel.remove();
+  }
+  // Con la prueba vencida la app no se abre: queda tapada por "Prueba gratuita finalizada" (la misma pantalla que
+  // muestra pampa-trial-guard.js cuando el servidor dice que se agotó). Solo la saca el acceso de propietario.
+  const VENCIDA_ID = 'pampaTrialAgotado';
+  function mostrarVencida(vencida) {
+    const capa = document.getElementById(VENCIDA_ID);
+    document.documentElement.style.overflow = vencida ? 'hidden' : '';
+    if (!vencida) { if (capa) capa.remove(); return; }
+    if (capa) return;
+    const guard = window.PampaTrialGuard;
+    if (guard && typeof guard.mostrarAgotado === 'function') { guard.mostrarAgotado(); return; }
+    const nueva = document.createElement('div');
+    nueva.id = VENCIDA_ID;
+    nueva.setAttribute('role', 'alertdialog');
+    nueva.style.cssText = 'position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;padding:20px;background:rgba(15,23,42,.88);font:16px Arial,sans-serif';
+    nueva.innerHTML = '<section style="max-width:480px;background:#fff;color:#172033;border-radius:10px;padding:24px;box-shadow:0 18px 48px rgba(0,0,0,.4)"><h2 style="margin:0 0 12px;font-size:22px">Prueba gratuita finalizada</h2><p style="margin:0 0 16px;line-height:1.5">Los 10 días de prueba de esta aplicación ya se usaron en este equipo y no se pueden reiniciar. Para seguir usándola, consultanos por la versión completa.</p><a href="/" style="display:inline-block;padding:10px 14px;border-radius:6px;background:#2563eb;color:#fff;font-weight:700;text-decoration:none">Volver al catálogo</a></section>';
+    (document.body || document.documentElement).appendChild(nueva);
   }
   const esPropietario = () => { try { return Boolean(localStorage.getItem('pampaPropietario')); } catch (e) { return false; } };
 
@@ -157,7 +175,7 @@
     await refreshApp();
   }
 
-  // Con la prueba vencida queda todo deshabilitado salvo el panel (guardar / importar el respaldo).
+  // Con la prueba vencida queda todo deshabilitado (además de la pantalla de prueba finalizada, por si se la saca a mano).
   // Antes se deshabilitaba una sola vez al cargar: lo que la app dibujaba después (el dashboard, otro
   // módulo, un formulario) quedaba habilitado y se podía seguir usando. Ahora un observador
   // deshabilita cada control nuevo y vuelve a deshabilitar el que la app intente habilitar.
@@ -222,9 +240,10 @@
     const expired = daysLeft <= 0;
     panel.classList.toggle('is-expired', expired);
     panel.querySelector('[data-trial-status]').innerHTML = expired
-      ? '<strong>Prueba vencida:</strong> pasaron los 10 días. Podés guardar o importar tu respaldo local, pero la edición queda bloqueada.'
+      ? '<strong>Prueba vencida:</strong> pasaron los 10 días.'
       : `<strong>Período de prueba activo:</strong> te quedan <strong>${daysLeft} día(s)</strong> de simulación local.`;
     setTrialBlocked(expired);
+    mostrarVencida(expired);
   }
 
   function injectStyles() {
