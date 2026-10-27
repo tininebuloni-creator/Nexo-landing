@@ -1,3 +1,7 @@
+// browser-trial-progress.js — CANÓNICO del panel de días de prueba (trial-progress.js en cada app).
+// Tomado de apps/pampafiscal/public/trial-progress.js (10/10/2026), la versión más nueva: cuenta
+// los días desde la hora exacta de inicio y no bloquea con la clave de propietario.
+
 (function () {
   const TRIAL_DAYS = 10;
   // Cada app publicada tiene su propia cuenta: todas comparten dominio y antes usaban la misma
@@ -18,7 +22,11 @@
     // sobreviva a cerrar el navegador — si no, cada reapertura reiniciaba la cuenta de días.
     let start = localStorage.getItem(INIT_KEY);
     if (!start) {
-      start = new Date().toISOString();
+      // Versiones anteriores guardaban el inicio sin el nombre de la app (y antes, en sessionStorage):
+      // se toma ese para no reiniciarle la cuenta a quien ya estaba en prueba.
+      let anterior = null;
+      try { anterior = localStorage.getItem('pampa_trial_init') || sessionStorage.getItem('pampa_trial_init'); } catch (e) { anterior = null; }
+      start = anterior && !Number.isNaN(new Date(anterior).getTime()) ? anterior : new Date().toISOString();
       localStorage.setItem(INIT_KEY, start);
     }
     return start;
@@ -39,7 +47,10 @@
   function sincronizarConServidor() {
     const guard = window.PampaTrialGuard;
     if (!guard || typeof guard.estado !== 'function') return;
-    guard.estado().then((estado) => {
+    // registrar() deja asentado el inicio en el servidor aunque no se haya entrado por el enlace de prueba: así
+    // borrar los datos del navegador no reinicia la prueba. Guards anteriores solo tienen estado().
+    const consulta = typeof guard.registrar === 'function' ? guard.registrar(getTrialStart()) : guard.estado();
+    consulta.then((estado) => {
       if (!estado || !estado.disponible) return;
       if (estado.propietario) { quitarPanel(); return; }
       if (estado.activatedAt) setTrialStart(estado.activatedAt);
@@ -281,10 +292,13 @@
     reader.readAsText(file);
   };
 
-  window.addEventListener('DOMContentLoaded', () => {
+  function initializeTrialProgress() {
     injectStyles();
     // Con la clave de propietario guardada se espera la confirmación del servidor antes de bloquear.
     if (!esPropietario()) renderPanel(getDaysLeft(getTrialStart()));
     sincronizarConServidor();
-  });
+  }
+  // Si el script carga después de que la página terminó de cargar (defer o insertado), arranca igual.
+  if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', initializeTrialProgress, { once: true });
+  else initializeTrialProgress();
 }());
