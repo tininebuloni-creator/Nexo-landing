@@ -1,5 +1,7 @@
 // Actualización de normativa fiscal/sanitaria compartida por las apps PAMPA (navegador).
-//  - Feed de reglamentaciones (pampa-regulaciones-feed): se lee solo cada 24 h. Las reglas con el
+//  - Feed de reglamentaciones: lo arma el servidor de escritorio de la app en el propio equipo (GET
+//    /pampa-normativa/feed, feed-normativa.js de @pampa/core-fiscal-arca); una URL cargada a mano lo reemplaza.
+//    Se lee solo cada 24 h. Las reglas con el
 //    "app" de esta aplicación que cambian un valor quedan como PROPUESTA; nunca se aplican solas.
 //  - Avisos de páginas oficiales ARCA/SENASA publicados en el feed: la app guarda el hash que ya
 //    vio de cada página y avisa cuando cambió, aunque haya estado días sin abrirse.
@@ -87,11 +89,31 @@
       feedVersion: saved.feedVersion || null,
       avisos: Array.isArray(saved.avisos) ? saved.avisos : [],
       vistos: saved.vistos && typeof saved.vistos === 'object' ? saved.vistos : {},
+      local: typeof saved.local === 'boolean' ? saved.local : null,
+      origen: saved.origen || null,
     };
   }
 
   function writeFeedState(feed) {
     writeLocal(feedKey, feed);
+  }
+
+  // Feed armado por el servidor local de la app: Agro abre la pantalla desde archivo y pide la dirección del servidor
+  // por electronAPI; las demás la sirven desde el mismo servidor. Sin servidor (prueba web) no hay feed local.
+  async function localFeedUrl() {
+    try {
+      if (window.electronAPI && typeof window.electronAPI.getServerUrl === 'function') {
+        const r = await window.electronAPI.getServerUrl();
+        return r && r.ok && r.url ? `${String(r.url).replace(/\/$/, '')}/pampa-normativa/feed` : '';
+      }
+    } catch {
+      return '';
+    }
+    return /^https?:$/.test(location.protocol) ? `${location.origin}/pampa-normativa/feed` : '';
+  }
+
+  async function feedUrl(feed) {
+    return feed.url || localFeedUrl();
   }
 
   function makeId() {
@@ -155,6 +177,9 @@
       const valorNuevo = Number(regla.alicuota_pct);
       if (!regla.regimen || !regla.condicion || !regla.vigencia_desde || !Number.isFinite(valorNuevo)) return;
       const actual = currentValue(store, regla);
+      // Si la app informa sus valores vigentes y no tiene este régimen (o todavía no cargó sus reglas), no se propone:
+      // la propuesta saldría sin valor anterior. Se vuelve a evaluar en la próxima lectura del feed.
+      if (actual === null && typeof window.PAMPA_NORMATIVA_VALOR_VIGENTE === 'function') return;
       if (actual === valorNuevo) return;
       const repetida = store.proposals.some((item) => item.origen === 'feed' && item.reglaClave === ruleKey(regla)
         && Number(item.valorNuevo) === valorNuevo && item.vigenciaDesde === regla.vigencia_desde && item.estado !== 'APROBADA');
@@ -201,20 +226,28 @@
 
   async function syncFeed({ silent = true } = {}) {
     const feed = readFeedState();
-    if (!feed.url) {
-      if (!silent) alert('Cargá primero la URL del feed de reglamentaciones.');
+    const url = await feedUrl(feed);
+    if (!url) {
+      if (!silent) alert('El feed de reglamentaciones se arma en la app de escritorio. Acá podés cargar la URL de un feed publicado.');
       return { activo: false };
     }
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
     try {
-      const response = await fetch(feed.url, { cache: 'no-store', signal: controller.signal, headers: { Accept: 'application/json' } });
+      const response = await fetch(url, { cache: 'no-store', signal: controller.signal, headers: { Accept: 'application/json' } });
+      if (!feed.url && (!response.ok || !String(response.headers.get('content-type') || '').includes('application/json'))) {
+        // Página sin servidor local (por ejemplo, la prueba web): no hay feed para leer, no es un error.
+        Object.assign(feed, { local: false });
+        writeFeedState(feed);
+        render();
+        return { activo: false };
+      }
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
       if (!data || !Array.isArray(data.reglas)) throw new Error('el feed no tiene el formato esperado');
       const nuevas = processFeedRules(data.reglas);
       processAvisos(feed, data.avisos);
-      Object.assign(feed, { lastSync: new Date().toISOString(), lastError: null, feedVersion: data.version || null });
+      Object.assign(feed, { lastSync: new Date().toISOString(), lastError: null, feedVersion: data.version || null, local: !feed.url, origen: data.origen || null });
       writeFeedState(feed);
       render();
       const cambios = feed.avisos.filter((aviso) => aviso.cambio).length;
@@ -235,7 +268,7 @@
 
   function syncIfDue() {
     const feed = readFeedState();
-    if (!feed.url || !navigator.onLine) return;
+    if (!navigator.onLine || feed.local === false && !feed.url) return;
     if (feed.lastSync && Date.now() - new Date(feed.lastSync).getTime() < DAY_MS) return;
     syncFeed({ silent: true });
   }
@@ -329,9 +362,9 @@
     const feed = readFeedState();
     const status = document.getElementById('pampaNormativeFeedStatus');
     if (status) {
-      status.textContent = !feed.url
-        ? 'Sin URL del feed: cargala para recibir las actualizaciones automáticamente.'
-        : `${feed.lastSync ? `Última lectura: ${new Date(feed.lastSync).toLocaleString('es-AR')}` : 'Todavía no se leyó.'}${feed.lastError ? ` · Error: ${feed.lastError}` : ''}${feed.feedVersion ? ` · Feed publicado el ${new Date(feed.feedVersion).toLocaleDateString('es-AR')}` : ''}. Se lee sola cada 24 h.`;
+      status.textContent = !feed.url && feed.local === false
+        ? 'El feed se arma en la app de escritorio. En esta copia podés cargar la URL de un feed publicado.'
+        : `${feed.url ? '' : `Feed armado en este equipo${feed.origen === 'incluido en la app' ? ' (todavía el que viaja con la app)' : ''}. `}${feed.lastSync ? `Última lectura: ${new Date(feed.lastSync).toLocaleString('es-AR')}` : 'Todavía no se leyó'}${feed.lastError ? ` · Error: ${feed.lastError}` : ''}${feed.feedVersion ? ` · Feed publicado el ${new Date(feed.feedVersion).toLocaleDateString('es-AR')}` : ''}. Se lee sola cada 24 h.`;
     }
     const input = document.getElementById('pampaNormativeFeedUrl');
     if (input && document.activeElement !== input) input.value = feed.url;
@@ -491,7 +524,7 @@
       </div>
       <p class="text-muted">Lee el feed de reglamentaciones cada 24 h. Los cambios de alícuotas quedan como propuestas para aprobar (nunca se aplican solos) y los cambios en páginas oficiales de ARCA/SENASA aparecen para revisar.</p>
       <form id="pampaNormativeFeedForm" class="form-grid">
-        <div class="form-group" style="grid-column:1/-1"><label class="form-label">URL del feed de reglamentaciones</label><input class="form-input" id="pampaNormativeFeedUrl" type="url" placeholder="https://cdn.jsdelivr.net/gh/USUARIO/pampa-regulaciones-feed@main/feed/reglamentaciones.json"></div>
+        <div class="form-group" style="grid-column:1/-1"><label class="form-label">URL de otro feed de reglamentaciones (opcional)</label><input class="form-input" id="pampaNormativeFeedUrl" type="url" placeholder="Vacía: se usa el feed que arma la app en este equipo"></div>
         <div class="form-group" style="align-self:end"><button class="btn" type="submit">Guardar URL</button></div>
       </form>
       <p class="text-muted" id="pampaNormativeFeedStatus" style="margin-top:6px;font-size:12px;"></p>
@@ -527,7 +560,8 @@
   function start() {
     attach();
     notify();
-    syncIfDue();
+    // La primera lectura espera a que la app cargue sus datos (el valor vigente de cada régimen sale de ahí).
+    setTimeout(syncIfDue, 10000);
     // Apps de escritorio que quedan abiertas varios días: se vuelve a mirar cada 6 h.
     setInterval(syncIfDue, 6 * 60 * 60 * 1000);
     window.addEventListener('online', syncIfDue);
