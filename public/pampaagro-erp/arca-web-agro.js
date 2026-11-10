@@ -1,1 +1,186 @@
-/*pampa-ofuscado*/function p7269c0_0x2b22(_0x236605,_0x10c223){_0x236605=_0x236605-0x78;const _0x182f5a=p7269c0_0x182f();let _0x2b22cd=_0x182f5a[_0x236605];return _0x2b22cd;}(function(_0x57ea74,_0x21a066){const _0x4e1e83=p7269c0_0x2b22,_0x177caa=_0x57ea74();while(!![]){try{const _0x54cebe=-parseInt(_0x4e1e83(0xf2))/0x1*(-parseInt(_0x4e1e83(0x90))/0x2)+-parseInt(_0x4e1e83(0xb5))/0x3+parseInt(_0x4e1e83(0xde))/0x4*(parseInt(_0x4e1e83(0xb0))/0x5)+parseInt(_0x4e1e83(0xc4))/0x6+parseInt(_0x4e1e83(0xf9))/0x7+parseInt(_0x4e1e83(0xe9))/0x8+parseInt(_0x4e1e83(0xea))/0x9*(-parseInt(_0x4e1e83(0xfe))/0xa);if(_0x54cebe===_0x21a066)break;else _0x177caa['push'](_0x177caa['shift']());}catch(_0x54888f){_0x177caa['push'](_0x177caa['shift']());}}}(p7269c0_0x182f,0x7c563),(function(){'use strict';const _0x19df00=p7269c0_0x2b22;const _0x5de78f=window[_0x19df00(0xaa)];if(!_0x5de78f)return;const _0x4f8ab7='agro',_0x3d8a90=_0x19df00(0xc3),{util:_0x2de607}=_0x5de78f,_0x513bd2=_0x2de607[_0x19df00(0xd6)],_0x261320=()=>{const _0x513efd=_0x19df00;try{return _0x513bd2(state[_0x513efd(0xf6)]&&state[_0x513efd(0xf6)]['cuit']);}catch{return'';}},_0x132f60=_0x5526eb=>Number(String(_0x5526eb??'')[_0x19df00(0xff)](',','.'))||0x0,_0x1ff037=_0x25679f=>String(_0x25679f??'')['trim']()!==''&&Number[_0x19df00(0xfa)](Number(_0x25679f))?Math[_0x19df00(0xc1)](Number(_0x25679f)):undefined,_0x50ab28=_0x2a9de5=>({'success':!![],'simulado':!![],..._0x2a9de5}),_0x59d3a9={0x1:0.05,0x2:0.07,0x3:0.08,'INACTIVO':0.08},_0x2d5c38={0x1:0.1,0x2:0.1,0x3:0.16,'INACTIVO':0.16},_0x5a94bf={0x1:0x0,0x2:0.02,0x3:0.15};async function _0x1e6b60(_0x3ae7c9){const _0x5c086e=_0x19df00;if(!_0x3ae7c9)return _0x3ae7c9;const _0x20ab8d=_0x58df7b=>String(_0x58df7b??'')['normalize'](_0x5c086e(0xef))[_0x5c086e(0xff)](/[̀-ͯ]/g,'')[_0x5c086e(0x84)]()[_0x5c086e(0xff)](/[^A-Z0-9]+/g,'\x20')['trim'](),_0x1c52f6=(_0x347858,_0x1562cf)=>{const _0x49941f=_0x5c086e;if(/^\d+$/['test'](String(_0x1562cf??'')[_0x49941f(0xd4)]()))return Number(_0x1562cf);const _0x56d485=(_0x347858||[])[_0x49941f(0x78)](_0x57f191=>_0x20ab8d(_0x57f191[_0x49941f(0x99)])===_0x20ab8d(_0x1562cf));return _0x56d485[_0x49941f(0xcd)]===0x1?Number(_0x56d485[0x0][_0x49941f(0x81)]):undefined;};try{const _0x54fb55=_0x1c52f6(await _0x5de78f['catalogo'](_0x5c086e(0x105)),_0x3ae7c9[_0x5c086e(0xe4)]),_0x59ad37=_0x54fb55===undefined?undefined:_0x1c52f6(await _0x5de78f['catalogo'](_0x5c086e(0xa0),_0x54fb55),_0x3ae7c9[_0x5c086e(0x83)]);return{..._0x3ae7c9,'codProvincia':_0x54fb55??_0x3ae7c9[_0x5c086e(0xe4)],'codLocalidad':_0x59ad37??_0x3ae7c9['codLocalidad']};}catch{return _0x3ae7c9;}}_0x5de78f[_0x19df00(0xed)](_0x4f8ab7,[{'metodo':_0x19df00(0x92),'patron':/^\/api\/fiscal\/arca\/estado$/,'sinConfig':!![],'manejar':async({app:_0x44ffa1})=>{const _0xd9fabc=_0x19df00,_0x3e97e1=await _0x5de78f[_0xd9fabc(0x103)](_0x44ffa1);return{'simulado':!![],'entorno':_0x3e97e1[_0xd9fabc(0xa3)],'certificadoConfigurado':_0x3e97e1[_0xd9fabc(0xf8)]&&!_0x3e97e1[_0xd9fabc(0xab)],'claveConfigurada':_0x3e97e1[_0xd9fabc(0xf8)]&&!_0x3e97e1[_0xd9fabc(0xab)],'cuitConfigurado':Boolean(_0x3e97e1['cuit']),'activo':_0x3e97e1[_0xd9fabc(0xf8)],'minutosRestantes':_0x3e97e1[_0xd9fabc(0xf8)]?0x2d0:0x0,'cuitProductor':_0x3e97e1['cuit'],'servicioDisponible':_0x3e97e1[_0xd9fabc(0xf8)],'aviso':_0x2de607[_0xd9fabc(0xf1)]};}},{'metodo':_0x19df00(0x92),'patron':/^\/api\/fiscal\/catalogos\/(\w+)$/,'sinConfig':!![],'manejar':async({match:_0x5863c6,params:_0x5827b8})=>{const _0x3a6ad8=_0x19df00;if(_0x5863c6[0x1]!==_0x3a6ad8(0xcf))throw _0x2de607[_0x3a6ad8(0xb9)](_0x3a6ad8(0xdd)+_0x5863c6[0x1][_0x3a6ad8(0x84)]()+'\x20se\x20bajan\x20desde\x20el\x20escritorio.',0x194);const _0x255131=await _0x2de607[_0x3a6ad8(0xaf)](),_0x9e5814=_0x5827b8[_0x3a6ad8(0xc9)]?await _0x5de78f[_0x3a6ad8(0x9f)](_0x5827b8['tabla'],_0x5827b8['provincia']):{'granos':await _0x5de78f[_0x3a6ad8(0x9f)]('granos'),'provincias':await _0x5de78f['catalogo']('provincias')};return _0x50ab28({'servicio':_0x3a6ad8(0xcf),'ambiente':_0x255131[_0x3a6ad8(0xa3)],'actualizado':_0x255131[_0x3a6ad8(0xb4)],'errores':{},'datos':_0x9e5814});}},{'metodo':_0x19df00(0x7c),'patron':/^\/api\/fiscal\/catalogos\/sincronizar$/,'sinConfig':!![],'manejar':async()=>{const _0x581736=_0x19df00,_0x55b96e=await _0x2de607[_0x581736(0xaf)]();return _0x50ab28({'catalogos':{'wscpe':{'origen':_0x581736(0x7b),'actualizado':_0x55b96e[_0x581736(0xb4)],'tablas':['granos',_0x581736(0x105),_0x581736(0xa0)],'errores':{}}},'message':_0x581736(0xbf)});}},{'metodo':_0x19df00(0x7c),'patron':/^\/api\/fiscal\/cpe\/autorizar$/,'manejar':async({cuerpo:_0x127cce,cfg:_0x146904,app:_0x354a06})=>{const _0x56ce0a=_0x19df00,_0x2e7671=String(_0x127cce[_0x56ce0a(0x87)]||'')['trim']();if(_0x2e7671){const _0x101000=_0x2de607[_0x56ce0a(0xe5)][_0x56ce0a(0xd0)](_0x354a06,_0x56ce0a(0xcb))[_0x56ce0a(0xa2)](_0x49b024=>_0x49b024[_0x56ce0a(0x87)]===_0x2e7671);if(_0x101000)return _0x50ab28({..._0x101000,'repetido':!![],'message':'La\x20CPE\x20ya\x20estaba\x20autorizada\x20(CTG\x20'+_0x101000[_0x56ce0a(0xe6)]+_0x56ce0a(0x80)});}const _0x86051b=await _0x1e6b60(_0x127cce[_0x56ce0a(0xeb)]),_0x1ef472=await _0x1e6b60(_0x127cce[_0x56ce0a(0x93)]),_0x2d12b8=_0x127cce[_0x56ce0a(0x94)]||{},_0xc06377=_0x132f60(_0x127cce['kilosTotales']),_0x2e886e=[!_0x127cce[_0x56ce0a(0x8f)]&&'campo',!(_0xc06377>0x0)&&_0x56ce0a(0xae),!String(_0x127cce[_0x56ce0a(0xee)]||'')[_0x56ce0a(0xd4)]()&&_0x56ce0a(0xc8),!_0x127cce[_0x56ce0a(0xf4)]&&_0x56ce0a(0xf4),!(_0x1ff037(_0x86051b&&_0x86051b[_0x56ce0a(0xe4)])!==undefined&&_0x1ff037(_0x86051b&&_0x86051b['codLocalidad']))&&_0x56ce0a(0x8d),_0x513bd2(_0x2d12b8[_0x56ce0a(0xe8)])[_0x56ce0a(0xcd)]!==0xb&&_0x56ce0a(0xf3),_0x513bd2(_0x2d12b8[_0x56ce0a(0xd3)])[_0x56ce0a(0xcd)]!==0xb&&_0x56ce0a(0xc6),!(_0x132f60(_0x2d12b8['kmRecorrer'])>0x0)&&_0x56ce0a(0x82),_0x513bd2(_0x1ef472&&_0x1ef472[_0x56ce0a(0x9e)]||_0x127cce[_0x56ce0a(0xdb)]||_0x127cce[_0x56ce0a(0xc2)])[_0x56ce0a(0xcd)]!==0xb&&_0x56ce0a(0xad),!(_0x1ff037(_0x1ef472&&_0x1ef472['codProvincia'])!==undefined&&_0x1ff037(_0x1ef472&&_0x1ef472[_0x56ce0a(0x83)]))&&'provincia\x20y\x20localidad\x20de\x20ARCA\x20del\x20destino',_0x513bd2(_0x127cce[_0x56ce0a(0xdb)]||_0x127cce[_0x56ce0a(0xc2)])[_0x56ce0a(0xcd)]!==0xb&&_0x56ce0a(0xdc)]['filter'](Boolean);if(_0x2e886e['length'])throw _0x2de607['error'](_0x56ce0a(0x101)+_0x2e886e['join'](',\x20')+'.',0x190,{'codigo':_0x56ce0a(0xba),'faltan':_0x2e886e});const _0x380578=_0x1ff037(_0x127cce[_0x56ce0a(0xfd)])||0x1,_0x52b229={'ctg':_0x2de607[_0x56ce0a(0xe6)](),'codigoBarra':_0x2de607['azar'](0x14),'loteId':_0x127cce[_0x56ce0a(0x8f)][_0x56ce0a(0x81)]||_0x127cce[_0x56ce0a(0x8f)][_0x56ce0a(0x100)]||'','campoCodigo':_0x127cce[_0x56ce0a(0x8f)]['codigo']||'','kilosOrigen':_0xc06377,'kilos':_0xc06377,'kilosDestino':null,'patente':_0x127cce['patente']||'','tipoCPE':0x4a,'sucursal':_0x380578,'nroOrden':_0x2de607['siguiente'](_0x354a06,_0x56ce0a(0x8c)+_0x380578),'compradorCuit':_0x127cce['cuitCliente']||'','estado':_0x56ce0a(0xf0),'estadoFiscal':'APROBADO','estadoInterno':_0x56ce0a(0xac),'cierreLogistico':_0x56ce0a(0xc0),'observaciones':[_0x2de607[_0x56ce0a(0xf1)]],'simulado':!![],'cuitSolicitante':_0x146904['cuit'],'creadoEn':new Date()[_0x56ce0a(0xa6)](),'idempotencyKey':_0x2e7671||undefined};return _0x2de607[_0x56ce0a(0xe5)][_0x56ce0a(0x7a)](_0x354a06,'cpe',_0x52b229),_0x50ab28({..._0x52b229,'message':_0x56ce0a(0xa8)+_0x52b229[_0x56ce0a(0xe6)]+_0x56ce0a(0xdf)});}},{'metodo':_0x19df00(0x92),'patron':/^\/api\/fiscal\/cartas-porte-cpe$/,'sinConfig':!![],'manejar':async({app:_0x31c49f})=>({'cartasPorteCPE':_0x2de607[_0x19df00(0xe5)][_0x19df00(0xd0)](_0x31c49f,_0x19df00(0xcb)),'simulado':!![]})},{'metodo':_0x19df00(0x7c),'patron':/^\/api\/fiscal\/cpe\/confirmar-arribo$/,'manejar':async({cuerpo:_0x4cf785,app:_0x4f0494})=>{const _0x460f3f=_0x19df00,_0x1dad7f=_0x2de607[_0x460f3f(0xe5)][_0x460f3f(0xd0)](_0x4f0494,'cpe')[_0x460f3f(0xa2)](_0xa50041=>_0xa50041[_0x460f3f(0xe6)]===_0x4cf785[_0x460f3f(0xe6)]);if(!_0x1dad7f)throw _0x2de607[_0x460f3f(0xb9)](_0x460f3f(0xa4)+_0x4cf785[_0x460f3f(0xe6)]+'.',0x194);const _0x5ae643=_0x132f60(_0x4cf785[_0x460f3f(0xd2)]),_0x4e335c=Math['max'](0x0,_0x132f60(_0x1dad7f['kilosOrigen'])-_0x5ae643);return _0x2de607[_0x460f3f(0xe5)][_0x460f3f(0x97)](_0x4f0494,_0x460f3f(0xcb),_0x22c3ae=>_0x22c3ae[_0x460f3f(0xe6)]===_0x4cf785[_0x460f3f(0xe6)],{'kilosDestino':_0x5ae643,'kilosMerma':_0x4e335c,'cierreLogistico':'Cerrado','estadoInterno':_0x460f3f(0xb8),..._0x4cf785[_0x460f3f(0x104)]?{'perdidaEconomicaMerma':Math[_0x460f3f(0xc5)](_0x4e335c*_0x132f60(_0x4cf785[_0x460f3f(0x104)]))}:{}}),_0x50ab28({'kilosMerma':_0x4e335c,'message':_0x460f3f(0xd1)});}},{'metodo':_0x19df00(0x7c),'patron':/^\/api\/fiscal\/lpg\/emitir$/,'manejar':async({cuerpo:_0x228af5,cfg:_0x1a97fd,app:_0x5a2e4b})=>{const _0x1b79fb=_0x19df00,_0x5a9097=_0x132f60(_0x228af5[_0x1b79fb(0xae)]),_0x407235=_0x228af5[_0x1b79fb(0xf7)]!==undefined&&_0x228af5['precioRefTn']!==''?_0x132f60(_0x228af5[_0x1b79fb(0xf7)]):_0x5a9097>0x0&&_0x132f60(_0x228af5[_0x1b79fb(0x91)])>0x0?Math['round'](_0x132f60(_0x228af5[_0x1b79fb(0x91)])/_0x5a9097*0x3e8*0x3e8)/0x3e8:undefined;if(!_0x228af5[_0x1b79fb(0x95)]||!(_0x5a9097>0x0||(_0x228af5[_0x1b79fb(0xb3)]||[])[_0x1b79fb(0xcd)])||_0x407235===undefined)throw _0x2de607['error'](_0x1b79fb(0x79),0x190,{'codigo':_0x1b79fb(0x8e)});const _0x2924e2=_0x513bd2(_0x1a97fd[_0x1b79fb(0x9e)]),_0x2965f0=Boolean(_0x228af5[_0x1b79fb(0x98)]),_0x284f5a=_0x2965f0?_0x513bd2(_0x228af5[_0x1b79fb(0x102)]&&_0x228af5['corredor'][_0x1b79fb(0x9e)])===_0x2924e2:_0x513bd2(_0x228af5[_0x1b79fb(0x95)])===_0x2924e2;if(!_0x284f5a)throw _0x2de607[_0x1b79fb(0xb9)](_0x1b79fb(0xb1)+_0x2924e2+_0x1b79fb(0xbb)+(_0x2965f0?'la\x20del\x20corredor':_0x1b79fb(0x7d)+_0x513bd2(_0x228af5[_0x1b79fb(0x95)])+')')+':\x20pedile\x20la\x20LPG\x20al\x20comprador\x20y\x20consultala\x20por\x20COE.',0x1a6,{'codigo':'LPG_LA_LIQUIDA_EL_COMPRADOR'});const _0x4b301c=_0x228af5[_0x1b79fb(0xbd)]?String(_0x228af5[_0x1b79fb(0xbd)])[_0x1b79fb(0xd4)]()[_0x1b79fb(0x84)]():'';if(!_0x4b301c)throw _0x2de607[_0x1b79fb(0xb9)](_0x1b79fb(0xd8),0x1a6,{'codigo':_0x1b79fb(0x88)});const _0xdd4de6=_0x2de607[_0x1b79fb(0xbe)](_0x5a9097*_0x407235/0x3e8),_0x5315ca=_0x228af5[_0x1b79fb(0x7e)]===null?0x0:_0x132f60(_0x228af5[_0x1b79fb(0x7e)]??10.5)||10.5,_0x25db41=_0x2de607[_0x1b79fb(0xbe)](_0xdd4de6*_0x5315ca/0x64),_0x235629=_0x228af5[_0x1b79fb(0x96)]===!![]||_0x228af5['cbuInconsistente']==='si',_0x268ae8=_0x235629?_0x25db41:_0x2de607[_0x1b79fb(0xbe)](_0xdd4de6*((_0x228af5[_0x1b79fb(0xfc)]?_0x2d5c38:_0x59d3a9)[_0x4b301c]??0x0)),_0x548fbb=_0x235629?_0x1b79fb(0x8b):_0x1b79fb(0xf5)+_0x4b301c+'\x20·\x20'+(_0x228af5[_0x1b79fb(0xfc)]?_0x1b79fb(0xfb):'productor')+'\x20vendedor\x20(RG\x204310,\x20art.\x2043).',_0x406ccb=_0x228af5['esOperador']?0x0:_0x2de607['redondear'](_0xdd4de6*(_0x5a94bf[_0x4b301c]??(_0x228af5[_0x1b79fb(0xb6)]?0.28:0.3))),_0x250eaf=_0x2de607[_0x1b79fb(0xbe)](_0x268ae8+_0x406ccb),_0xbf9c0c=_0x1ff037(_0x228af5[_0x1b79fb(0xe7)])||0x1,_0x13aad0=_0x2de607['siguiente'](_0x5a2e4b,_0x1b79fb(0xec)+_0xbf9c0c),_0x4a7924=_0x2de607[_0x1b79fb(0x8a)](),_0x2e19bd={'coe':_0x4a7924,'cae':_0x4a7924,'numeroComprobante':_0xbf9c0c+'-'+_0x13aad0,'ptoEmision':_0xbf9c0c,'nroOrden':_0x13aad0,'fechaLiquidacion':_0x2de607['hoy'](),'puntoVenta':_0xbf9c0c,'cuitComprador':_0x228af5[_0x1b79fb(0x95)],'cuitVendedor':_0x228af5[_0x1b79fb(0xb7)]||_0x1a97fd[_0x1b79fb(0x9e)],'codigoGranoSISA':_0x228af5[_0x1b79fb(0x85)]||_0x228af5[_0x1b79fb(0xf4)]||'','esOperador':Boolean(_0x228af5['esOperador']),'ctgsVinculados':_0x228af5[_0x1b79fb(0xa7)]||[],'estadoSisa':_0x4b301c,'cbuInconsistente':_0x235629,'liquidacion':{'importeNeto':_0xdd4de6,'iva':{'ivaOperacion':_0x25db41,'retencionIva':_0x268ae8,'motivo':_0x548fbb},'totalRetenciones':_0x250eaf,'ganancias':{'retencionGanancias':_0x406ccb},'netoACobrar':_0x2de607[_0x1b79fb(0xbe)](_0xdd4de6+_0x25db41-_0x250eaf),'totalPesoNeto':_0x5a9097,'precioRefTn':_0x407235},'observaciones':[_0x2de607[_0x1b79fb(0xf1)]],'simulado':!![],'creadoEn':new Date()[_0x1b79fb(0xa6)]()};return _0x2de607['documentos'][_0x1b79fb(0x7a)](_0x5a2e4b,'lpg',_0x2e19bd),_0x50ab28({..._0x2e19bd,'message':'LPG\x20'+_0x2e19bd[_0x1b79fb(0xc7)]+_0x1b79fb(0xe1)+_0x4a7924+',\x20sin\x20validez\x20fiscal).'});}},{'metodo':'GET','patron':/^\/api\/fiscal\/lpg\/coe\/(\d+)$/,'manejar':async({match:_0x199eb5,app:_0x385d6c})=>{const _0x258d52=_0x19df00,_0x3d9e2a=_0x2de607[_0x258d52(0xe5)][_0x258d52(0xd0)](_0x385d6c,'lpg')['find'](_0x3acf3f=>String(_0x3acf3f[_0x258d52(0x8a)])===_0x199eb5[0x1]);if(!_0x3d9e2a)throw _0x2de607[_0x258d52(0xb9)](_0x258d52(0xe0),0x194);return _0x50ab28({'coe':_0x3d9e2a[_0x258d52(0x8a)],'ptoEmision':_0x3d9e2a['ptoEmision'],'nroOrden':_0x3d9e2a[_0x258d52(0xce)],'estadoArca':_0x258d52(0x86),'fechaLiquidacion':_0x3d9e2a[_0x258d52(0xe3)],'subTotal':_0x3d9e2a[_0x258d52(0x9d)][_0x258d52(0x91)],'importeIva':_0x3d9e2a[_0x258d52(0x9d)][_0x258d52(0xd7)]['ivaOperacion'],'totalRetencion':_0x3d9e2a[_0x258d52(0x9d)]['totalRetenciones'],'totalNetoAPagar':_0x3d9e2a[_0x258d52(0x9d)][_0x258d52(0xe2)],'totalPesoNeto':_0x3d9e2a[_0x258d52(0x9d)]['totalPesoNeto'],'datos':{'cuitComprador':_0x3d9e2a[_0x258d52(0x95)],'cuitVendedor':_0x3d9e2a[_0x258d52(0xb7)],'codGrano':_0x3d9e2a[_0x258d52(0x85)]}});}}]);const _0x5b7d30=window['fetch'][_0x19df00(0xa9)](window);window[_0x19df00(0x9a)]=async function(_0x3c89a5,_0x13afb1={}){const _0xbfdd50=_0x19df00,_0x3240c9=typeof _0x3c89a5===_0xbfdd50(0xcc)?_0x3c89a5:_0x3c89a5&&_0x3c89a5[_0xbfdd50(0xca)];if(!_0x3240c9||!_0x3240c9[_0xbfdd50(0xd9)](_0x3d8a90))return _0x5b7d30(_0x3c89a5,_0x13afb1);const _0x53cb2b=_0x3240c9[_0xbfdd50(0x89)](_0x3d8a90[_0xbfdd50(0xcd)]),_0x3a5ca4=String(_0x13afb1['method']||_0xbfdd50(0x92))[_0xbfdd50(0x84)]();let _0x21dc49={};try{_0x21dc49=_0x13afb1[_0xbfdd50(0xa1)]?JSON['parse'](_0x13afb1[_0xbfdd50(0xa1)]):{};}catch{_0x21dc49={};}const _0x40a719=(_0x2b3e51,_0x4ffe54)=>new Response(JSON[_0xbfdd50(0xda)](_0x4ffe54),{'status':_0x2b3e51,'headers':{'Content-Type':_0xbfdd50(0xd5)}});try{return _0x40a719(0xc8,await _0x5de78f[_0xbfdd50(0x7f)](_0x4f8ab7,_0x3a5ca4,_0x53cb2b,_0x21dc49,{'cuitSugerido':_0x261320()}));}catch(_0x44ce5d){return _0x40a719(_0x44ce5d['status']||0x1f4,{'success':![],'simulado':!![],'codigo':_0x44ce5d[_0xbfdd50(0x81)],'faltan':_0x44ce5d[_0xbfdd50(0xbc)],'message':_0x44ce5d['message'],'error':_0x44ce5d['message']});}},window[_0x19df00(0x9c)]={'BASE':_0x3d8a90,'esWeb':()=>!(window[_0x19df00(0xb2)]&&window['electronAPI'][_0x19df00(0xa5)]),'configurar':()=>_0x5de78f[_0x19df00(0x9b)](_0x4f8ab7,{'cuitSugerido':_0x261320()})};}()));function p7269c0_0x182f(){const _0x35b3be=['faltan','estadoSisa','redondear','En\x20la\x20web\x20se\x20usa\x20la\x20copia\x20de\x20los\x20catálogos\x20de\x20ARCA\x20publicada\x20con\x20la\x20app.','Abierto','trunc','cuitCliente','pampa-arca-web://agro','4251366xzVcWQ','round','CUIT\x20del\x20chofer','numeroComprobante','patente\x20del\x20camión','tabla','url','cpe','string','length','nroOrden','wscpe','listar','Arribo\x20confirmado\x20(SIMULADO,\x20sin\x20validez\x20fiscal).','kilosDestino','cuitChofer','trim','application/json','soloDigitos','iva','Indicá\x20el\x20Estado\x20SISA\x20del\x20vendedor\x20(1,\x202,\x203\x20o\x20INACTIVO)\x20según\x20su\x20constancia\x20en\x20ARCA.','startsWith','stringify','cuitDestinatario','CUIT\x20del\x20destinatario','En\x20la\x20web\x20solo\x20están\x20los\x20catálogos\x20de\x20Carta\x20de\x20Porte\x20(WSCPE);\x20los\x20de\x20','4QqWMvq','\x20autorizada\x20(SIMULADA,\x20sin\x20validez\x20fiscal).','En\x20la\x20web\x20solo\x20se\x20pueden\x20traer\x20las\x20LPG\x20simuladas\x20en\x20este\x20equipo;\x20las\x20LPG\x20reales\x20se\x20consultan\x20por\x20COE\x20desde\x20la\x20app\x20de\x20escritorio.','\x20autorizada\x20(SIMULADA,\x20COE\x20','netoACobrar','fechaLiquidacion','codProvincia','documentos','ctg','puntoVenta','cuitTransportista','3790752KklDzS','17982351XjgHkH','origen','lpg-','registrar','patente','NFD','APROBADO','AVISO','8070ajJICa','CUIT\x20del\x20transportista','grano','Estado\x20','empresa','precioRefTn','configurada','4799431sIPMWE','isFinite','operador','esOperador','sucursal','10sgzHUN','replace','nombre','Para\x20pedir\x20el\x20CTG\x20falta:\x20','corredor','estado','precioPizarra','provincias','filter','Faltan\x20datos\x20para\x20la\x20LPG:\x20CUIT\x20comprador,\x20kilos\x20(o\x20certificados)\x20y\x20precio\x20por\x20tonelada\x20(o\x20importe\x20neto).','agregar','copia-web','POST','la\x20del\x20comprador\x20(','alicIvaOperacion','pedir',',\x20simulado).','codigo','kilómetros\x20a\x20recorrer','codLocalidad','toUpperCase','codigoGranoSISA','AC\x20(simulada)','idempotencyKey','LPG_FALTA_ESTADO_SISA','slice','coe','CBU\x20del\x20vendedor\x20inconsistente:\x20se\x20retiene\x20el\x20100\x20%\x20del\x20IVA\x20(RG\x204310,\x20arts.\x2070\x20y\x2076).','cpe-','provincia\x20y\x20localidad\x20de\x20ARCA\x20del\x20origen','LPG_DATOS_INCOMPLETOS','campo','28wtgEbM','importeNeto','GET','destino','transporte','cuitComprador','cbuInconsistente','actualizar','liquidaCorredor','descripcion','fetch','configurar','PampaArcaWebAgro','liquidacion','cuit','catalogo','localidades','body','find','ambiente','No\x20se\x20encontró\x20la\x20CPE\x20','getServerUrl','toISOString','ctgsVinculados','CPE\x20','bind','PampaArcaWeb','demostracion','En\x20tránsito','CUIT\x20del\x20destino','kilos','catalogoInfo','4817765noBRCy','La\x20LPG\x20la\x20emite\x20ante\x20ARCA\x20el\x20comprador\x20(o\x20el\x20corredor\x20que\x20liquida).\x20La\x20CUIT\x20configurada\x20(','electronAPI','certificados','actualizado','1311747CWWwOn','inscriptoGanancias','cuitVendedor','Arribado','error','CPE_DATOS_INCOMPLETOS',')\x20no\x20es\x20'];p7269c0_0x182f=function(){return _0x35b3be;};return p7269c0_0x182f();}
+// PampaAgro · ARCA en la prueba web: mismas rutas y respuestas que el servidor de escritorio (electron/server.js), pero
+// SIMULADAS y sin validez fiscal (ver pampa-arca-web.js). Se usa solo cuando no hay app de escritorio (window.electronAPI).
+(function () {
+  'use strict';
+  const A = window.PampaArcaWeb;
+  if (!A) return;
+  const APP = 'agro';
+  const BASE = 'pampa-arca-web://agro';
+  const { util } = A;
+  const d = util.soloDigitos;
+  const cuitEmpresa = () => { try { return d(state.empresa && state.empresa.cuit); } catch { return ''; } };
+  const num = (v) => Number(String(v ?? '').replace(',', '.')) || 0;
+  const entero = (v) => (String(v ?? '').trim() !== '' && Number.isFinite(Number(v)) ? Math.trunc(Number(v)) : undefined);
+  const ok = (datos) => ({ success: true, simulado: true, ...datos });
+  // Tablas SISA de retención (mismas que @pampa/core-fiscal-arca/retenciones-sisa-lpg, productor directo).
+  const RET_IVA = { 1: 0.05, 2: 0.07, 3: 0.08, INACTIVO: 0.08 };
+  const RET_IVA_OPERADOR = { 1: 0.1, 2: 0.1, 3: 0.16, INACTIVO: 0.16 };
+  const RET_GAN = { 1: 0, 2: 0.02, 3: 0.15 };
+
+  async function resolverLugar(lugar) {
+    // Provincia y localidad: código o nombre (como en el escritorio), con los catálogos estáticos de ARCA.
+    if (!lugar) return lugar;
+    const norm = (s) => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim();
+    const buscar = (lista, v) => {
+      if (/^\d+$/.test(String(v ?? '').trim())) return Number(v);
+      const exactos = (lista || []).filter((i) => norm(i.descripcion) === norm(v));
+      return exactos.length === 1 ? Number(exactos[0].codigo) : undefined;
+    };
+    try {
+      const codProvincia = buscar(await A.catalogo('provincias'), lugar.codProvincia);
+      const codLocalidad = codProvincia === undefined ? undefined : buscar(await A.catalogo('localidades', codProvincia), lugar.codLocalidad);
+      return { ...lugar, codProvincia: codProvincia ?? lugar.codProvincia, codLocalidad: codLocalidad ?? lugar.codLocalidad };
+    } catch { return lugar; }
+  }
+
+  A.registrar(APP, [
+    {
+      metodo: 'GET', patron: /^\/api\/fiscal\/arca\/estado$/, sinConfig: true,
+      manejar: async ({ app }) => {
+        const e = await A.estado(app);
+        return { simulado: true, entorno: e.ambiente, certificadoConfigurado: e.configurada && !e.demostracion, claveConfigurada: e.configurada && !e.demostracion, cuitConfigurado: Boolean(e.cuit), activo: e.configurada, minutosRestantes: e.configurada ? 720 : 0, cuitProductor: e.cuit, servicioDisponible: e.configurada, aviso: util.AVISO };
+      }
+    },
+    {
+      metodo: 'GET', patron: /^\/api\/fiscal\/catalogos\/(\w+)$/, sinConfig: true,
+      manejar: async ({ match, params }) => {
+        if (match[1] !== 'wscpe') throw util.error(`En la web solo están los catálogos de Carta de Porte (WSCPE); los de ${match[1].toUpperCase()} se bajan desde el escritorio.`, 404);
+        const info = await util.catalogoInfo();
+        const datos = params.tabla ? await A.catalogo(params.tabla, params.provincia) : { granos: await A.catalogo('granos'), provincias: await A.catalogo('provincias') };
+        return ok({ servicio: 'wscpe', ambiente: info.ambiente, actualizado: info.actualizado, errores: {}, datos });
+      }
+    },
+    {
+      metodo: 'POST', patron: /^\/api\/fiscal\/catalogos\/sincronizar$/, sinConfig: true,
+      manejar: async () => {
+        const info = await util.catalogoInfo();
+        return ok({ catalogos: { wscpe: { origen: 'copia-web', actualizado: info.actualizado, tablas: ['granos', 'provincias', 'localidades'], errores: {} } }, message: 'En la web se usa la copia de los catálogos de ARCA publicada con la app.' });
+      }
+    },
+    {
+      metodo: 'POST', patron: /^\/api\/fiscal\/cpe\/autorizar$/,
+      manejar: async ({ cuerpo: b, cfg, app }) => {
+        const clave = String(b.idempotencyKey || '').trim();
+        if (clave) {
+          const previo = util.documentos.listar(app, 'cpe').find((x) => x.idempotencyKey === clave);
+          if (previo) return ok({ ...previo, repetido: true, message: `La CPE ya estaba autorizada (CTG ${previo.ctg}, simulado).` });
+        }
+        const origen = await resolverLugar(b.origen);
+        const destino = await resolverLugar(b.destino);
+        const tr = b.transporte || {};
+        const kilos = num(b.kilosTotales);
+        const faltan = [
+          !b.campo && 'campo', !(kilos > 0) && 'kilos', !String(b.patente || '').trim() && 'patente del camión', !b.grano && 'grano',
+          !(entero(origen && origen.codProvincia) !== undefined && entero(origen && origen.codLocalidad)) && 'provincia y localidad de ARCA del origen',
+          d(tr.cuitTransportista).length !== 11 && 'CUIT del transportista', d(tr.cuitChofer).length !== 11 && 'CUIT del chofer', !(num(tr.kmRecorrer) > 0) && 'kilómetros a recorrer',
+          d((destino && destino.cuit) || b.cuitDestinatario || b.cuitCliente).length !== 11 && 'CUIT del destino',
+          !(entero(destino && destino.codProvincia) !== undefined && entero(destino && destino.codLocalidad)) && 'provincia y localidad de ARCA del destino',
+          d(b.cuitDestinatario || b.cuitCliente).length !== 11 && 'CUIT del destinatario'
+        ].filter(Boolean);
+        if (faltan.length) throw util.error(`Para pedir el CTG falta: ${faltan.join(', ')}.`, 400, { codigo: 'CPE_DATOS_INCOMPLETOS', faltan });
+        const sucursal = entero(b.sucursal) || 1;
+        const registro = {
+          ctg: util.ctg(), codigoBarra: util.azar(20), loteId: b.campo.codigo || b.campo.nombre || '', campoCodigo: b.campo.codigo || '',
+          kilosOrigen: kilos, kilos, kilosDestino: null, patente: b.patente || '', tipoCPE: 74, sucursal, nroOrden: util.siguiente(app, `cpe-${sucursal}`),
+          compradorCuit: b.cuitCliente || '', estado: 'APROBADO', estadoFiscal: 'APROBADO', estadoInterno: 'En tránsito', cierreLogistico: 'Abierto',
+          observaciones: [util.AVISO], simulado: true, cuitSolicitante: cfg.cuit, creadoEn: new Date().toISOString(), idempotencyKey: clave || undefined
+        };
+        util.documentos.agregar(app, 'cpe', registro);
+        return ok({ ...registro, message: `CPE ${registro.ctg} autorizada (SIMULADA, sin validez fiscal).` });
+      }
+    },
+    {
+      metodo: 'GET', patron: /^\/api\/fiscal\/cartas-porte-cpe$/,
+      sinConfig: true,
+      manejar: async ({ app }) => ({ cartasPorteCPE: util.documentos.listar(app, 'cpe'), simulado: true })
+    },
+    {
+      metodo: 'POST', patron: /^\/api\/fiscal\/cpe\/confirmar-arribo$/,
+      manejar: async ({ cuerpo: b, app }) => {
+        const previa = util.documentos.listar(app, 'cpe').find((x) => x.ctg === b.ctg);
+        if (!previa) throw util.error(`No se encontró la CPE ${b.ctg}.`, 404);
+        const kilosDestino = num(b.kilosDestino);
+        const kilosMerma = Math.max(0, num(previa.kilosOrigen) - kilosDestino);
+        util.documentos.actualizar(app, 'cpe', (x) => x.ctg === b.ctg, {
+          kilosDestino, kilosMerma, cierreLogistico: 'Cerrado', estadoInterno: 'Arribado',
+          ...(b.precioPizarra ? { perdidaEconomicaMerma: Math.round(kilosMerma * num(b.precioPizarra)) } : {})
+        });
+        return ok({ kilosMerma, message: 'Arribo confirmado (SIMULADO, sin validez fiscal).' });
+      }
+    },
+    {
+      metodo: 'POST', patron: /^\/api\/fiscal\/lpg\/emitir$/,
+      manejar: async ({ cuerpo: b, cfg, app }) => {
+        const kilos = num(b.kilos);
+        const precioRefTn = b.precioRefTn !== undefined && b.precioRefTn !== '' ? num(b.precioRefTn) : (kilos > 0 && num(b.importeNeto) > 0 ? Math.round(num(b.importeNeto) / kilos * 1000 * 1000) / 1000 : undefined);
+        if (!b.cuitComprador || !(kilos > 0 || (b.certificados || []).length) || precioRefTn === undefined) {
+          throw util.error('Faltan datos para la LPG: CUIT comprador, kilos (o certificados) y precio por tonelada (o importe neto).', 400, { codigo: 'LPG_DATOS_INCOMPLETOS' });
+        }
+        // Misma regla que ARCA (manual WSLPG): la LPG la liquida el comprador o el corredor.
+        const liquidador = d(cfg.cuit);
+        const liquidaCorredor = Boolean(b.liquidaCorredor);
+        const liquida = liquidaCorredor ? d(b.corredor && b.corredor.cuit) === liquidador : d(b.cuitComprador) === liquidador;
+        if (!liquida) {
+          throw util.error(`La LPG la emite ante ARCA el comprador (o el corredor que liquida). La CUIT configurada (${liquidador}) no es ${liquidaCorredor ? 'la del corredor' : `la del comprador (${d(b.cuitComprador)})`}: pedile la LPG al comprador y consultala por COE.`, 422, { codigo: 'LPG_LA_LIQUIDA_EL_COMPRADOR' });
+        }
+        const estadoSisa = b.estadoSisa ? String(b.estadoSisa).trim().toUpperCase() : '';
+        if (!estadoSisa) throw util.error('Indicá el Estado SISA del vendedor (1, 2, 3 o INACTIVO) según su constancia en ARCA.', 422, { codigo: 'LPG_FALTA_ESTADO_SISA' });
+        const subTotal = util.redondear(kilos * precioRefTn / 1000);
+        const alicIva = b.alicIvaOperacion === null ? 0 : (b.alicIvaOperacion === undefined || b.alicIvaOperacion === '' ? 10.5 : num(b.alicIvaOperacion)); // 0 es una alícuota válida (exento): no se pisa con 10,5
+        const importeIva = util.redondear(subTotal * alicIva / 100);
+        // CBU del vendedor inconsistente (RG 4310, arts. 70 y 76): se retiene el 100 % del IVA de la operación.
+        const cbuInconsistente = b.cbuInconsistente === true || b.cbuInconsistente === 'si';
+        const retIva = cbuInconsistente ? importeIva : util.redondear(subTotal * ((b.esOperador ? RET_IVA_OPERADOR : RET_IVA)[estadoSisa] ?? 0));
+        const motivoIva = cbuInconsistente ? 'CBU del vendedor inconsistente: se retiene el 100 % del IVA (RG 4310, arts. 70 y 76).' : `Estado ${estadoSisa} · ${b.esOperador ? 'operador' : 'productor'} vendedor (RG 4310, art. 43).`;
+        const retGan = b.esOperador ? 0 : util.redondear(subTotal * (RET_GAN[estadoSisa] ?? (b.inscriptoGanancias ? 0.28 : 0.3)));
+        const totalRetencion = util.redondear(retIva + retGan);
+        const pto = entero(b.puntoVenta) || 1;
+        const nroOrden = util.siguiente(app, `lpg-${pto}`);
+        const coe = util.coe();
+        const registro = {
+          coe, cae: coe, numeroComprobante: `${pto}-${nroOrden}`, ptoEmision: pto, nroOrden, fechaLiquidacion: util.hoy(), puntoVenta: pto,
+          cuitComprador: b.cuitComprador, cuitVendedor: b.cuitVendedor || cfg.cuit, codigoGranoSISA: b.codigoGranoSISA || b.grano || '',
+          esOperador: Boolean(b.esOperador), ctgsVinculados: b.ctgsVinculados || [], estadoSisa, cbuInconsistente,
+          liquidacion: {
+            importeNeto: subTotal, iva: { ivaOperacion: importeIva, retencionIva: retIva, motivo: motivoIva }, totalRetenciones: totalRetencion,
+            ganancias: { retencionGanancias: retGan }, netoACobrar: util.redondear(subTotal + importeIva - totalRetencion), totalPesoNeto: kilos, precioRefTn
+          },
+          observaciones: [util.AVISO], simulado: true, creadoEn: new Date().toISOString()
+        };
+        util.documentos.agregar(app, 'lpg', registro);
+        return ok({ ...registro, message: `LPG ${registro.numeroComprobante} autorizada (SIMULADA, COE ${coe}, sin validez fiscal).` });
+      }
+    },
+    {
+      metodo: 'GET', patron: /^\/api\/fiscal\/lpg\/coe\/(\d+)$/,
+      manejar: async ({ match, app }) => {
+        const lpg = util.documentos.listar(app, 'lpg').find((x) => String(x.coe) === match[1]);
+        if (!lpg) throw util.error('En la web solo se pueden traer las LPG simuladas en este equipo; las LPG reales se consultan por COE desde la app de escritorio.', 404);
+        return ok({
+          coe: lpg.coe, ptoEmision: lpg.ptoEmision, nroOrden: lpg.nroOrden, estadoArca: 'AC (simulada)', fechaLiquidacion: lpg.fechaLiquidacion,
+          subTotal: lpg.liquidacion.importeNeto, importeIva: lpg.liquidacion.iva.ivaOperacion, totalRetencion: lpg.liquidacion.totalRetenciones,
+          totalNetoAPagar: lpg.liquidacion.netoACobrar, totalPesoNeto: lpg.liquidacion.totalPesoNeto,
+          datos: { cuitComprador: lpg.cuitComprador, cuitVendedor: lpg.cuitVendedor, codGrano: lpg.codigoGranoSISA }
+        });
+      }
+    }
+  ]);
+
+  // Sin app de escritorio: las llamadas al "servidor fiscal" (BASE + ruta) se responden con el simulador.
+  const fetchOriginal = window.fetch.bind(window);
+  window.fetch = async function (recurso, opciones = {}) {
+    const url = typeof recurso === 'string' ? recurso : recurso && recurso.url;
+    if (!url || !url.startsWith(BASE)) return fetchOriginal(recurso, opciones);
+    const ruta = url.slice(BASE.length);
+    const metodo = String(opciones.method || 'GET').toUpperCase();
+    let cuerpo = {};
+    try { cuerpo = opciones.body ? JSON.parse(opciones.body) : {}; } catch { cuerpo = {}; }
+    const responder = (status, datos) => new Response(JSON.stringify(datos), { status, headers: { 'Content-Type': 'application/json' } });
+    try {
+      return responder(200, await A.pedir(APP, metodo, ruta, cuerpo, { cuitSugerido: cuitEmpresa() }));
+    } catch (error) {
+      return responder(error.status || 500, { success: false, simulado: true, codigo: error.codigo, faltan: error.faltan, message: error.message, error: error.message });
+    }
+  };
+  window.PampaArcaWebAgro = { BASE, esWeb: () => !(window.electronAPI && window.electronAPI.getServerUrl), configurar: () => A.configurar(APP, { cuitSugerido: cuitEmpresa() }) };
+})();
